@@ -25,7 +25,7 @@
   --secondary-hover: #334155;
 
   /* Semantic status (reused across forms, badges, charts) */
-  --urgent: #DC2626;
+  --urgent: #B91C1C;        /* red-700 — WCAG AA contrast (>5.2:1) on light tint */
   --urgent-tint: #FEF2F2;
   --urgent-border: #FECACA;
 
@@ -412,6 +412,10 @@ tr:hover td {
   gap: var(--space-3);
   font-size: 0.9rem;
   color: var(--text-primary);
+}
+
+.alert-banner[hidden] {
+  display: none;
 }
 
 .alert-success {
