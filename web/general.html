@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Umum & Incidents — Sistem Pelaporan Digital</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <span class="logo-badge">AGRI-DIGITAL</span>
+        <span>Sistem Pelaporan</span>
+      </a>
+      <nav>
+        <a href="index.html" class="nav-link">Daily Form</a>
+        <a href="general.html" class="nav-link active">General Form</a>
+        <a href="admin.html" class="nav-link">Admin Queue</a>
+        <a href="dashboard.html" class="nav-link">Manager Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h1 class="card-title">Laporan Umum & Catatan Lapangan</h1>
+      <p class="card-subtitle">Gunakan formulir ini untuk melaporkan kejadian umum, insiden keselamatan, atau catatan khusus.</p>
+
+      <div id="alertBox" style="display: none;" class="alert-banner alert-success">
+        ✓ Laporan umum berhasil dikirim ke sistem!
+      </div>
+
+      <form id="generalForm">
+        <div class="form-group">
+          <label for="empId">Kode Karyawan / Employee ID <span class="required">*</span></label>
+          <input type="text" id="empId" placeholder="EMP-101" required>
+        </div>
+
+        <div class="form-group">
+          <label for="site">Lokasi / Site <span class="required">*</span></label>
+          <select id="site" required>
+            <option value="">-- Pilih Lokasi Kerja --</option>
+            <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun & Lahan Pertanian</option>
+            <option value="Site B — Peternakan & Kandang">Site B — Peternakan & Kandang</option>
+            <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan & Pakan</option>
+            <option value="Site D — Logistik & Gudang">Site D — Logistik & Gudang</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="reportDate">Tanggal Laporan <span class="required">*</span></label>
+          <input type="date" id="reportDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="details">Rincian Laporan / Kronologi <span class="required">*</span></label>
+          <div class="help-text">Jelaskan aktivitas, kendala, atau kronologi kejadian secara detail.</div>
+          <textarea id="details" rows="5" placeholder="Contoh: Terjadi kebocoran pipa air utama di sektor 3..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-card" style="margin-top: 0.5rem;">
+            <input type="checkbox" id="isSensitive">
+            <div>
+              <strong>Informasi Sensitif? / Sensitive Information</strong>
+              <div class="help-text" style="margin-bottom:0;">Jika dicentang, laporan ini akan diisolasi khusus ke tab Sensitive_Restricted.</div>
+            </div>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kirim Laporan Umum</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById('reportDate').valueAsDate = new Date();
+
+    document.getElementById('generalForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const empId = document.getElementById('empId').value;
+      const site = document.getElementById('site').value;
+      const date = document.getElementById('reportDate').value;
+      const details = document.getElementById('details').value;
+      const isSensitive = document.getElementById('isSensitive').checked;
+
+      const flag = evaluateFlags(details);
+
+      const db = getDB();
+      db.generalReports.unshift({
+        id: Date.now(),
+        timestamp: formatDateNow(),
+        empId: empId,
+        site: site,
+        date: date,
+        details: details,
+        isSensitive: isSensitive,
+        severity: flag.severity,
+        category: flag.category,
+        reviewStatus: isSensitive ? 'Unreviewed (Sensitive)' : 'Unreviewed'
+      });
+      saveDB(db);
+
+      const alertBox = document.getElementById('alertBox');
+      alertBox.style.display = 'flex';
+      this.reset();
+      document.getElementById('reportDate').valueAsDate = new Date();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>

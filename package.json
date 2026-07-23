@@ -1,0 +1,26 @@
+{
+  "name": "mpl-sistem-lapor",
+  "version": "1.0.0",
+  "description": "Zero-budget digital reporting system for integrated agriculture business in Indonesia",
+  "main": "src/Setup.gs",
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "status": "clasp status",
+    "logs": "clasp logs",
+    "open": "clasp open"
+  },
+  "keywords": [
+    "google-apps-script",
+    "clasp",
+    "agriculture",
+    "reporting-system",
+    "indonesia"
+  ],
+  "author": "Agriculture Digital Transformation Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.86"
+  }
+}

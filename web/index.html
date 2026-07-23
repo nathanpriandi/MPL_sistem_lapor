@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Operasional Harian — Sistem Pelaporan Digital</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <span class="logo-badge">AGRI-DIGITAL</span>
+        <span>Sistem Pelaporan</span>
+      </a>
+      <nav>
+        <a href="index.html" class="nav-link active">Daily Form</a>
+        <a href="general.html" class="nav-link">General Form</a>
+        <a href="admin.html" class="nav-link">Admin Queue</a>
+        <a href="dashboard.html" class="nav-link">Manager Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h1 class="card-title">Laporan Operasional Harian</h1>
+      <p class="card-subtitle">Silakan isi laporan aktivitas harian Anda. Pengisian memerlukan waktu &lt; 2 menit.</p>
+
+      <div id="alertBox" style="display: none;" class="alert-banner alert-success">
+        ✓ Laporan harian berhasil dikirim dan dicatat ke sistem central!
+      </div>
+
+      <form id="dailyForm">
+        <div class="form-group">
+          <label for="empId">Kode Karyawan / Employee ID <span class="required">*</span></label>
+          <div class="help-text">Masukkan kode resmi karyawan Anda (contoh: EMP-101)</div>
+          <input type="text" id="empId" placeholder="EMP-101" required>
+        </div>
+
+        <div class="form-group">
+          <label for="site">Lokasi / Site <span class="required">*</span></label>
+          <select id="site" required>
+            <option value="">-- Pilih Lokasi Kerja --</option>
+            <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun & Lahan Pertanian</option>
+            <option value="Site B — Peternakan & Kandang">Site B — Peternakan & Kandang</option>
+            <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan & Pakan</option>
+            <option value="Site D — Logistik & Gudang">Site D — Logistik & Gudang</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="reportDate">Tanggal Laporan <span class="required">*</span></label>
+          <input type="date" id="reportDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="taskStatus">Status Tugas / Target <span class="required">*</span></label>
+          <select id="taskStatus" required>
+            <option value="Completed">Completed (Selesai Sesuai Target)</option>
+            <option value="In Progress">In Progress (Sedang Berjalan)</option>
+            <option value="Delayed">Delayed (Tertunda / Ada Hambatan)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="yieldKg">Hasil Panen / Produksi (Kg)</label>
+          <div class="help-text">Isi total kilogram hasil panen hari ini (opsional)</div>
+          <input type="number" id="yieldKg" placeholder="0" min="0">
+        </div>
+
+        <div class="form-group">
+          <label>Ada Masalah Hari Ini? (Issues)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="Equipment"> Equipment (Alat)
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="Weather"> Weather (Cuaca)
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="Shortage"> Shortage (Stok)
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="None" checked> None (Lancar)
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kirim Laporan Harian</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById('reportDate').valueAsDate = new Date();
+
+    document.getElementById('dailyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const empId = document.getElementById('empId').value;
+      const site = document.getElementById('site').value;
+      const date = document.getElementById('reportDate').value;
+      const status = document.getElementById('taskStatus').value;
+      const yieldKg = parseFloat(document.getElementById('yieldKg').value) || 0;
+      
+      const issueNodes = document.querySelectorAll('input[name="issues"]:checked');
+      const issues = Array.from(issueNodes).map(n => n.value);
+
+      const flag = evaluateFlags(status + ' ' + issues.join(' '));
+
+      const db = getDB();
+      db.dailyReports.unshift({
+        id: Date.now(),
+        timestamp: formatDateNow(),
+        empId: empId,
+        site: site,
+        date: date,
+        status: status,
+        yield: yieldKg,
+        issues: issues,
+        severity: flag.severity,
+        category: flag.category,
+        reviewStatus: 'Unreviewed'
+      });
+      saveDB(db);
+
+      const alertBox = document.getElementById('alertBox');
+      alertBox.style.display = 'flex';
+      this.reset();
+      document.getElementById('reportDate').valueAsDate = new Date();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
