@@ -2,7 +2,7 @@
 
 ![Stack](https://img.shields.io/badge/Stack-Google%20Forms%20%7C%20Sheets%20%7C%20Apps%20Script%20%7C%20Looker%20Studio-green)
 ![Budget](https://img.shields.io/badge/Budget-Zero%20IDR%20%2F%20Free%20Tier-blue)
-![Compliance](https://img.shields.io/badge/UU%20PDP-Compliant-orange)
+![Compliance](https://img.shields.io/badge/UU%20PDP-Considerations%20Addressed-orange)
 
 A zero-budget, modern digital reporting system designed for an integrated agriculture business in Indonesia (Farming, Livestock, Processing Plant, Logistics & End-Products). Replaces traditional daily paper reports with an automated, low-friction mobile workflow, automated triage engine, sensitive data isolation, and executive dashboards.
 
@@ -34,19 +34,22 @@ MPL_sistem_lapor/
 ├── .clasp.json.template       # Clasp deployment configuration template
 ├── CONFIG.md                  # Operational settings, site lists, & keyword rules
 ├── README.md                  # Project documentation and developer guide
-├── implementation_plan.md     # Detailed technical build spec & execution plan
 ├── src/
 │   ├── Setup.gs               # Spreadsheet & Google Form provisioning logic
 │   ├── Automation.gs          # Bahasa Indonesia agriculture triage keyword engine
 │   ├── FormHandlers.gs        # Form submission handlers & sensitive row routing
 │   ├── Notifications.gs       # Urgent alerts, daily admin & weekly manager digests
 │   ├── Triggers.gs            # Automated trigger setup & teardown
-│   └── Utils.gs              # Looker Studio aggregation, date helpers, unit tests
-└── docs/
-    ├── USER_GUIDE_DAILY_REPORT.md # Field staff step-by-step user guide
-    ├── ADMIN_MANUAL.md        # Admin runbook & queue management guide
-    └── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
+│   ├── Utils.gs              # Looker Studio aggregation, date helpers, unit tests
+│   └── MockSimulator.gs       # Seed mock test data generator
+├── docs/
+│   ├── USER_GUIDE_DAILY_REPORT.md # Field staff step-by-step user guide
+│   ├── ADMIN_MANUAL.md        # Admin runbook & queue management guide
+│   └── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
+└── web/ (Visual Demo Mockup)  # Non-functional UI mockup for stakeholder preview
 ```
+
+> ⚠️ **Note on `web/` prototype**: The `web/` directory is a non-functional client-side visual mockup for stakeholder preview purposes only (using browser `localStorage`). It has no connection to Google Sheets or Apps Script scripts and must not be used for production submissions. Production reporting uses Google Forms and Sheets provisioned via `Setup.gs`.
 
 ---
 
@@ -109,4 +112,6 @@ npm run open
 
 ## ⚖️ Legal & Privacy Compliance
 
-This project complies with Indonesia's **Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)** by implementing data minimization (Employee IDs), restricted access isolation for sensitive reports, and explicit staff privacy notices.
+This system addresses key technical data protection considerations under Indonesia's **Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)** by implementing data minimization (Employee IDs), restricted access isolation for sensitive reports, and explicit staff privacy notices.
+
+*Note: This technical implementation addresses privacy design considerations; it does not constitute formal legal certification.*

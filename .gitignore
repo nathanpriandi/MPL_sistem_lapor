@@ -10,7 +10,7 @@ package-lock.json
 .clasprc.json
 
 # System & Planning documents
-implementation_plan.md
+*.md
 
 # OS & Environment generated files
 .DS_Store

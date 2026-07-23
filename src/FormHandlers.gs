@@ -20,10 +20,11 @@ function onDailyFormSubmit(e) {
     // Evaluate flags based on content
     const flag = evaluateFlags(rowData);
 
-    // Populate Flag_Severity (Col H/8), Flag_Category (Col I/9), Review_Status (Col J/10)
+    // Populate Flag_Severity (Col 8), Severity_Rank (Col 9), Flag_Category (Col 10), Review_Status (Col 11)
     sheet.getRange(row, 8).setValue(flag.severity);
-    sheet.getRange(row, 9).setValue(flag.category);
-    sheet.getRange(row, 10).setValue('Unreviewed');
+    sheet.getRange(row, 9).setValue(flag.rank);
+    sheet.getRange(row, 10).setValue(flag.category);
+    sheet.getRange(row, 11).setValue('Unreviewed');
 
     // Highlight row color if urgent or warning
     applyRowHighlighting(sheet, row, flag.severity);
@@ -61,11 +62,11 @@ function onGeneralFormSubmit(e) {
     // 2. Standard report processing
     const flag = evaluateFlags(rowData);
 
-    // Populate Flag_Severity (Col H/7 in raw form input, write to 7, 8, 9), Review_Status
-    // Note: General_Raw columns: Timestamp(1), EmpID(2), Site(3), Date(4), Details(5), Sensitive(6), Flag_Severity(7), Flag_Category(8), Review_Status(9)
+    // Populate Flag_Severity (Col 7), Severity_Rank (Col 8), Flag_Category (Col 9), Review_Status (Col 10)
     sheet.getRange(row, 7).setValue(flag.severity);
-    sheet.getRange(row, 8).setValue(flag.category);
-    sheet.getRange(row, 9).setValue('Unreviewed');
+    sheet.getRange(row, 8).setValue(flag.rank);
+    sheet.getRange(row, 9).setValue(flag.category);
+    sheet.getRange(row, 10).setValue('Unreviewed');
 
     applyRowHighlighting(sheet, row, flag.severity);
 
@@ -86,7 +87,7 @@ function moveRowToSensitiveTab(sourceSheet, row, rowData) {
   
   const flag = evaluateFlags(rowData);
   
-  // Append row data plus flag annotations
+  // Append row data plus flag annotations including Severity_Rank
   const sensitiveRowData = [
     rowData[0], // Timestamp
     rowData[1], // EmpID
@@ -95,6 +96,7 @@ function moveRowToSensitiveTab(sourceSheet, row, rowData) {
     rowData[4], // Details
     rowData[5], // Sensitive Flag
     flag.severity,
+    flag.rank,
     flag.category,
     'Unreviewed (Sensitive)'
   ];

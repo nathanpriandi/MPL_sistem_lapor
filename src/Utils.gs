@@ -60,9 +60,23 @@ function aggregateWeeklyData(ss) {
     };
   });
 
+  // Helper to check if a row date belongs to the target week
+  function isRowInCurrentWeek(dateVal) {
+    if (!dateVal) return false;
+    try {
+      const rowWeek = getISOWeekLabel(new Date(dateVal));
+      return rowWeek === weekLabel;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Aggregate Daily_Raw (skip header)
   for (let i = 1; i < dailyValues.length; i++) {
     const row = dailyValues[i];
+    const reportDate = row[3] || row[0]; // Tanggal Laporan (Col D/index 3) or Timestamp (Col A/index 0)
+    if (!isRowInCurrentWeek(reportDate)) continue;
+
     const site = row[2];
     if (siteStatsMap[site]) {
       siteStatsMap[site].dailyCount++;
@@ -78,6 +92,9 @@ function aggregateWeeklyData(ss) {
   // Aggregate General_Raw (skip header)
   for (let i = 1; i < generalValues.length; i++) {
     const row = generalValues[i];
+    const reportDate = row[3] || row[0];
+    if (!isRowInCurrentWeek(reportDate)) continue;
+
     const site = row[2];
     if (siteStatsMap[site]) {
       siteStatsMap[site].generalCount++;
@@ -90,6 +107,9 @@ function aggregateWeeklyData(ss) {
   // Aggregate Sensitive_Restricted (skip header)
   for (let i = 1; i < sensitiveValues.length; i++) {
     const row = sensitiveValues[i];
+    const reportDate = row[3] || row[0];
+    if (!isRowInCurrentWeek(reportDate)) continue;
+
     const site = row[2];
     if (siteStatsMap[site]) {
       siteStatsMap[site].sensitiveCount++;
@@ -129,16 +149,16 @@ function aggregateWeeklyData(ss) {
  */
 function testKeywordMatcher() {
   const testCases = [
-    { input: ['EMP-01', 'Site A', '2026-07-23', 'Completed', 500, 'Equipment'], expectedSev: 'warning' },
-    { input: ['EMP-02', 'Site B', '2026-07-23', 'Ada kecelakaan kerja di kandang 3'], expectedSev: 'urgent' },
-    { input: ['EMP-03', 'Site C', '2026-07-23', 'Stok pakan ayam habis total'], expectedSev: 'warning' },
-    { input: ['EMP-04', 'Site A', '2026-07-23', 'Semua kegiatan lancar dan aman'], expectedSev: 'normal' }
+    { input: ['EMP-01', 'Site A', '2026-07-23', 'Completed', 500, 'Equipment'], expectedSev: 'warning', expectedRank: 2 },
+    { input: ['EMP-02', 'Site B', '2026-07-23', 'Ada kecelakaan kerja di kandang 3'], expectedSev: 'urgent', expectedRank: 1 },
+    { input: ['EMP-03', 'Site C', '2026-07-23', 'Stok pakan ayam habis total'], expectedSev: 'warning', expectedRank: 2 },
+    { input: ['EMP-04', 'Site A', '2026-07-23', 'Semua kegiatan lancar dan aman'], expectedSev: 'normal', expectedRank: 3 }
   ];
 
   Logger.log('=== RUNNING KEYWORD MATCHER UNIT TESTS ===');
   testCases.forEach((tc, idx) => {
     const result = evaluateFlags(tc.input);
-    const pass = result.severity === tc.expectedSev;
-    Logger.log(`Test #${idx + 1}: ${pass ? 'PASSED' : 'FAILED'} (Expected: ${tc.expectedSev}, Got: ${result.severity})`);
+    const pass = (result.severity === tc.expectedSev) && (result.rank === tc.expectedRank);
+    Logger.log(`Test #${idx + 1}: ${pass ? 'PASSED' : 'FAILED'} (Expected: ${tc.expectedSev} [rank ${tc.expectedRank}], Got: ${result.severity} [rank ${result.rank}])`);
   });
 }

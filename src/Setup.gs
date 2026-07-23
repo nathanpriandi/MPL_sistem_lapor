@@ -59,6 +59,7 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
     'Hasil Panen / Yield (kg)', 
     'Ada Masalah? / Issues', 
     'Flag_Severity', 
+    'Severity_Rank', 
     'Flag_Category', 
     'Review_Status'
   ];
@@ -71,6 +72,7 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
     'Rincian Laporan / Details', 
     'Informasi Sensitif? / Sensitive', 
     'Flag_Severity', 
+    'Severity_Rank', 
     'Flag_Category', 
     'Review_Status'
   ];
@@ -110,16 +112,17 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
     'Hasil Panen (kg) / Sensitive', 
     'Issues / -', 
     'Flag_Severity', 
+    'Severity_Rank', 
     'Flag_Category', 
     'Review_Status'
   ];
   adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]).setFontWeight('bold').setBackground('#feefc3');
   
-  // QUERY formula combining unresolved Daily and General reports sorted by severity
+  // QUERY formula combining unresolved Daily and General reports sorted by Severity_Rank (Col 10)
   const queryFormula = `=QUERY({
-    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:J;
-    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:F, IF(LEN(General_Raw!A2:A), "", ""), General_Raw!G2:J
-  }, "select * where Col1 is not null and Col11 != 'Closed' order by Col9 asc, Col2 desc", 0)`;
+    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:K;
+    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:E, General_Raw!F2:F, ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "", "")), General_Raw!G2:J
+  }, "select * where Col1 is not null and Col12 != 'Closed' order by Col10 asc, Col2 desc", 0)`;
 
   adminQueueSheet.getRange(2, 1).setFormula(queryFormula);
 }

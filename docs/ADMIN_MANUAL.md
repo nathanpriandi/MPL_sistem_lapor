@@ -28,12 +28,16 @@ Spreadsheet ini memiliki 5 Tab utama:
 
 ### 2. Mengubah Status Review (`Review_Status`)
 - Buka tab mentah asal laporan (`Daily_Raw` atau `General_Raw`).
-- Ubah kolom **`Review_Status`** (Kolom J / Kolom 10) dari `Unreviewed` menjadi:
+- Ubah kolom **`Review_Status`** dari `Unreviewed` menjadi:
   - `In Review` (Sedang diproses / diverifikasi)
   - `Action Needed` (Memerlukan tindakan manajerial)
   - `Closed` (Selesai ditangani)
 
 > **Catatan**: Begitu status diubah menjadi `Closed`, baris tersebut akan secara otomatis hilang dari tampilan `Admin_Queue`.
+
+### 3. Penanganan Laporan Sensitif (`Sensitive_Restricted` Tab)
+- Laporan yang ditandai sensitif secara otomatis diisolasi ke tab **`Sensitive_Restricted`** dan **tidak akan pernah muncul di `Admin_Queue`** demi menjaga kerahasiaan data.
+- Admin dan Manager yang berwenang wajib membuka tab `Sensitive_Restricted` secara berkala untuk meninjau laporan sensitif dan memperbarui kolom `Review_Status` (misal: `In Review`, `Action Needed`, atau `Closed (Sensitive)`).
 
 ---
 

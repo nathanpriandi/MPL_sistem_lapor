@@ -38,7 +38,7 @@ function evaluateFlags(rowData) {
       } else if (['rusak berat', 'meledak', 'mati total'].includes(keyword)) {
         category = 'equipment_breakdown';
       }
-      return { severity: 'urgent', category: category };
+      return { severity: 'urgent', category: category, rank: 1 };
     }
   }
 
@@ -52,12 +52,12 @@ function evaluateFlags(rowData) {
       } else if (['mogok', 'rusak ringan', 'equipment'].includes(keyword)) {
         category = 'minor_equipment';
       }
-      return { severity: 'warning', category: category };
+      return { severity: 'warning', category: category, rank: 2 };
     }
   }
 
   // 3. Default to NORMAL / Routine
-  return { severity: 'normal', category: 'routine' };
+  return { severity: 'normal', category: 'routine', rank: 3 };
 }
 
 /**
