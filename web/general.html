@@ -25,15 +25,17 @@
 
   <div class="container">
     <div class="card">
-      <div class="alert-banner alert-warning" style="margin-bottom: 1.5rem;">
-        ⚠️ <strong>DEMO VISUAL SAJA:</strong> Ini adalah prototype UI non-fungsional untuk pratinjau stakeholder. Data disimpan lokal dan TIDAK terhubung ke Google Sheets produksi.
+      <div class="alert-banner alert-warning">
+        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
+        <span><strong>DEMO VISUAL SAJA:</strong> Ini adalah prototype UI non-fungsional untuk pratinjau stakeholder. Data disimpan lokal dan TIDAK terhubung ke Google Sheets produksi.</span>
       </div>
 
       <h1 class="card-title">Laporan Umum & Catatan Lapangan</h1>
       <p class="card-subtitle">Gunakan formulir ini untuk melaporkan kejadian umum, insiden keselamatan, atau catatan khusus.</p>
 
-      <div id="alertBox" style="display: none;" class="alert-banner alert-success">
-        ✓ Laporan umum berhasil dikirim ke sistem!
+      <div id="alertBox" class="alert-banner alert-success" hidden>
+        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <span>Laporan umum berhasil dikirim ke sistem!</span>
       </div>
 
       <form id="generalForm">
@@ -65,11 +67,11 @@
         </div>
 
         <div class="form-group">
-          <label class="checkbox-card" style="margin-top: 0.5rem;">
+          <label class="checkbox-card">
             <input type="checkbox" id="isSensitive">
             <div>
               <strong>Informasi Sensitif? / Sensitive Information</strong>
-              <div class="help-text" style="margin-bottom:0;">Jika dicentang, laporan ini akan diisolasi khusus ke tab Sensitive_Restricted.</div>
+              <div class="help-text">Jika dicentang, laporan ini akan diisolasi khusus ke tab Sensitive_Restricted.</div>
             </div>
           </label>
         </div>
@@ -109,7 +111,7 @@
       saveDB(db);
 
       const alertBox = document.getElementById('alertBox');
-      alertBox.style.display = 'flex';
+      alertBox.removeAttribute('hidden');
       this.reset();
       document.getElementById('reportDate').valueAsDate = new Date();
       window.scrollTo({ top: 0, behavior: 'smooth' });

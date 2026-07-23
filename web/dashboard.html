@@ -25,11 +25,12 @@
   </header>
 
   <div class="container-wide">
-    <div class="alert-banner alert-warning" style="margin-bottom: 1.5rem;">
-      ⚠️ <strong>DEMO VISUAL SAJA:</strong> Ini adalah prototype UI non-fungsional untuk pratinjau stakeholder. Data disimpan lokal dan TIDAK terhubung ke Google Sheets produksi.
+    <div class="alert-banner alert-warning">
+      <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
+      <span><strong>DEMO VISUAL SAJA:</strong> Ini adalah prototype UI non-fungsional untuk pratinjau stakeholder. Data disimpan lokal dan TIDAK terhubung ke Google Sheets produksi.</span>
     </div>
 
-    <h1 class="card-title" style="margin-bottom: 0.5rem;">Executive Manager Dashboard</h1>
+    <h1 class="card-title">Executive Manager Dashboard</h1>
     <p class="card-subtitle">Visualisasi rekapitulasi operasional agribisnis terintegrasi (Prototype Looker Studio).</p>
 
     <!-- Key Metrics Cards -->
@@ -37,34 +38,30 @@
       <div class="metric-card">
         <span class="metric-label">Total Laporan Masuk</span>
         <span class="metric-value" id="kpiTotalReports">0</span>
-        <span class="metric-trend">↑ 12% dari minggu lalu</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">Total Hasil Panen (Kg)</span>
         <span class="metric-value" id="kpiTotalYield">0</span>
-        <span class="metric-trend" style="color: var(--accent-blue);">Akumulasi Panen</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">Insiden Urgent Flagged</span>
-        <span class="metric-value" id="kpiUrgent" style="color: var(--urgent);">0</span>
-        <span class="metric-trend" style="color: var(--urgent);">Memerlukan Perhatian</span>
+        <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">Laporan Sensitif Restriksi</span>
-        <span class="metric-value" id="kpiSensitive" style="color: var(--warning);">0</span>
-        <span class="metric-trend">Diakses Terbatas</span>
+        <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
       </div>
     </div>
 
     <!-- Charts Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-      <div class="card" style="margin-bottom: 0;">
-        <h3 class="card-title" style="font-size: 1.1rem;">Distribusi Severity Laporan</h3>
+    <div class="charts-grid">
+      <div class="card card-no-margin">
+        <h3 class="card-title card-title-sm">Distribusi Severity Laporan</h3>
         <canvas id="severityChart" height="220"></canvas>
       </div>
 
-      <div class="card" style="margin-bottom: 0;">
-        <h3 class="card-title" style="font-size: 1.1rem;">Total Laporan & Hasil Panen per Site</h3>
+      <div class="card card-no-margin">
+        <h3 class="card-title card-title-sm">Total Laporan &amp; Hasil Panen per Site</h3>
         <canvas id="siteChart" height="220"></canvas>
       </div>
     </div>
@@ -97,14 +94,14 @@
           labels: ['Normal / Rutin', 'Warning / Perhatian', 'Urgent / Insiden'],
           datasets: [{
             data: [normalCount, warningCount, urgentCount],
-            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+            backgroundColor: ['#15803D', '#B45309', '#DC2626'],
             borderWidth: 0
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { labels: { color: '#94a3b8' } }
+            legend: { labels: { color: '#475569' } }
           }
         }
       });
@@ -127,18 +124,18 @@
           datasets: [{
             label: 'Total Laporan',
             data: siteCounts,
-            backgroundColor: '#3b82f6',
+            backgroundColor: '#15803D',
             borderRadius: 6
           }]
         },
         options: {
           responsive: true,
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: { ticks: { color: '#475569' }, grid: { color: '#E2E8F0' } },
+            y: { ticks: { color: '#475569' }, grid: { color: '#E2E8F0' } }
           },
           plugins: {
-            legend: { labels: { color: '#94a3b8' } }
+            legend: { labels: { color: '#475569' } }
           }
         }
       });
