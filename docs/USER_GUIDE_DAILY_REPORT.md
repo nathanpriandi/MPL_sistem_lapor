@@ -7,8 +7,9 @@ Panduan ini ditujukan untuk **Staf Lapangan / Mandor Kebun / Pengawas Peternakan
 ## 📱 Cara Mengakses Formulir
 
 1. Buka browser (Chrome / Safari / Browser HP) di ponsel Anda.
-2. Buka link formulir **Laporan Operasional Harian** (atau pindai / scan QR Code yang terpasang di papan pengumuman lokasi).
+2. Buka link **Web App Sistem Pelaporan Digital** (atau pindai / scan QR Code yang terpasang di papan pengumuman lokasi kerja).
 3. **Tidak memerlukan login / email** Google Account.
+4. *(Opsional)* Jika jaringan internet lambat atau terjadi kendala pada Web App, Anda dapat menggunakan link cadangan **Google Form Harian**.
 
 ---
 

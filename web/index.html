@@ -120,7 +120,7 @@
       const issueNodes = document.querySelectorAll('input[name="issues"]:checked');
       const issues = Array.from(issueNodes).map(n => n.value);
 
-      const payload = { empId, site, date, taskStatus, yieldKg, issues };
+      const payload = { empId, site, date, taskStatus: status, yieldKg, issues };
 
       if (isLiveServer()) {
         try {

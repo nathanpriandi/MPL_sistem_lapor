@@ -85,12 +85,23 @@ npm run push
 npm run open
 ```
 
-### Step 4: System Provisioning & Trigger Registration
-1. In the Apps Script Editor, select **`Setup.gs`** and run **`setupReportingSystem()`**.
-   - This creates the Central Spreadsheet (`Daily_Raw`, `General_Raw`, `Admin_Queue`, `Sensitive_Restricted`, `Weekly_Summary`) and the two Google Forms (`Daily Report` & `General Report`).
-2. Update **Script Properties** (`ADMIN_EMAIL` and `MANAGER_EMAIL`) under **Project Settings**.
-3. Select **`Triggers.gs`** and run **`createTriggers()`**.
-   - This installs form submit listeners, daily 17:00 WIB digest, and Monday 08:00 WIB manager digest triggers.
+### Step 5: Web App Deployment (Dual Deployment Pattern)
+To serve the primary Web App frontend while ensuring security:
+1. **Deployment A (Public Intake Forms — Field Staff)**:
+   - Click **Deploy** -> **New deployment**.
+   - Type: **Web app**.
+   - Description: `Public Intake Forms (Field Staff)`.
+   - **Execute as**: `Me`.
+   - **Who has access**: `Anyone` (No Google login required).
+   - *Share this URL with field staff or convert to site QR codes.*
+
+2. **Deployment B (Internal Operations — Admin & Manager)**:
+   - Click **Deploy** -> **New deployment**.
+   - Type: **Web app**.
+   - Description: `Internal Operations Queue & Dashboard`.
+   - **Execute as**: `Me`.
+   - **Who has access**: `Anyone with Google account`.
+   - *Access to `admin.html` and `dashboard.html` is automatically gated by `isAuthorizedStaff()` to `ADMIN_EMAIL` and `MANAGER_EMAIL`.*
 
 ---
 
@@ -98,9 +109,11 @@ npm run open
 
 - [ ] Enable Apps Script API on dedicated Google Account.
 - [ ] Run `npx clasp login` and authorize OAuth consent.
-- [ ] Connect Looker Studio ([lookerstudio.google.com](https://lookerstudio.google.com)) to `Weekly_Summary` tab.
-- [ ] Print QR Codes / Links for Google Forms at farm/plant sites.
+- [ ] Deploy Web App **Deployment A** (Public intake, Access: `Anyone`) for field staff.
+- [ ] Deploy Web App **Deployment B** (Internal views, Access: `Anyone with Google account`) for Admin & Manager.
+- [ ] Print QR Codes / Links for Web App & Google Forms backup at farm/plant sites.
 - [ ] Post staff privacy notice (`docs/CONSENT_NOTICE_UU_PDP.md`).
+- [ ] *(Optional)* Connect Looker Studio ([lookerstudio.google.com](https://lookerstudio.google.com)) to `Weekly_Summary` tab for deeper ad-hoc analytics.
 
 ---
 

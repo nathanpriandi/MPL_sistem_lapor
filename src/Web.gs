@@ -44,10 +44,10 @@ function isAuthorizedStaff() {
 
   const userEmail = (Session.getActiveUser().getEmail() || '').toLowerCase();
   
-  // If running under public "Anyone" deployment without email capture, allow if admin email not set or test mode
+  // If running under public "Anyone" deployment without active Google email capture, deny admin access
   if (!userEmail) {
-    Logger.log('Notice: Anonymous user session on Web App.');
-    return true; 
+    Logger.log('Notice: Anonymous user session denied access to restricted page.');
+    return false;
   }
 
   return userEmail === adminEmail || userEmail === managerEmail;

@@ -15,21 +15,34 @@ function setupReportingSystem() {
   const ssId = ss.getId();
   Logger.log('Created Spreadsheet ID: ' + ssId);
 
-  // 2. Setup Tabs
-  const dailySheet = ss.getSheets()[0];
-  dailySheet.setName('Daily_Raw');
-  
-  const generalSheet = ss.insertSheet('General_Raw');
-  const adminQueueSheet = ss.insertSheet('Admin_Queue');
-  const sensitiveSheet = ss.insertSheet('Sensitive_Restricted');
-  const summarySheet = ss.insertSheet('Weekly_Summary');
-
-  // 3. Define and Set Headers
-  setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet);
-
-  // 4. Create Google Forms & Link Destination
+  // 2. Create Google Forms & Link Destination (creates Form Responses 1 & 2)
   const dailyFormId = setupDailyForm(ssId);
   const generalFormId = setupGeneralForm(ssId);
+
+  // 3. Locate response sheets and rename to Daily_Raw and General_Raw
+  Utilities.sleep(1000); // Allow Apps Script destination binding to finish
+  const sheets = ss.getSheets();
+  
+  let dailySheet = sheets.find(s => s.getName().includes('Form Responses 1') || s.getName().includes('Jawaban Formulir 1'));
+  if (!dailySheet) dailySheet = sheets[0];
+  dailySheet.setName('Daily_Raw');
+
+  let generalSheet = sheets.find(s => s.getName().includes('Form Responses 2') || s.getName().includes('Jawaban Formulir 2'));
+  if (!generalSheet) generalSheet = ss.insertSheet('General_Raw');
+  else generalSheet.setName('General_Raw');
+
+  const adminQueueSheet = ss.getSheetByName('Admin_Queue') || ss.insertSheet('Admin_Queue');
+  const sensitiveSheet = ss.getSheetByName('Sensitive_Restricted') || ss.insertSheet('Sensitive_Restricted');
+  const summarySheet = ss.getSheetByName('Weekly_Summary') || ss.insertSheet('Weekly_Summary');
+
+  // Remove default "Sheet1" / "Lembran1" if present
+  const defaultSheet = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembur1') || ss.getSheetByName('Sheet 1');
+  if (defaultSheet && ss.getSheets().length > 1) {
+    try { ss.deleteSheet(defaultSheet); } catch (e) {}
+  }
+
+  // 4. Define and Set Headers
+  setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet);
 
   // 5. Store Properties in ScriptProperties
   const props = PropertiesService.getScriptProperties();
