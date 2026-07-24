@@ -41,15 +41,17 @@ MPL_sistem_lapor/
 │   ├── Notifications.gs       # Urgent alerts, daily admin & weekly manager digests
 │   ├── Triggers.gs            # Automated trigger setup & teardown
 │   ├── Utils.gs              # Looker Studio aggregation, date helpers, unit tests
-│   └── MockSimulator.gs       # Seed mock test data generator
+│   ├── MockSimulator.gs       # Seed mock test data generator
+│   ├── Web.gs                 # Web App HTTP doGet router & access control
+│   └── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run)
 ├── docs/
 │   ├── USER_GUIDE_DAILY_REPORT.md # Field staff step-by-step user guide
 │   ├── ADMIN_MANUAL.md        # Admin runbook & queue management guide
 │   └── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
-└── web/ (Visual Demo Mockup)  # Non-functional UI mockup for stakeholder preview
+└── web/                       # Mobile-first Web App frontend (live Web App + local preview)
 ```
 
-> ⚠️ **Note on `web/` prototype**: The `web/` directory is a non-functional client-side visual mockup for stakeholder preview purposes only (using browser `localStorage`). It has no connection to Google Sheets or Apps Script scripts and must not be used for production submissions. Production reporting uses Google Forms and Sheets provisioned via `Setup.gs`.
+> 💡 **Dual Intake Architecture**: Field staff can submit reports via the primary **Apps Script Web App** or the backup **Google Forms**. Both intake channels run identical triage flagging and store rows with unique `Report_ID` UUIDs in Google Sheets. The `web/` interface automatically switches to `google.script.run` when deployed live as an Apps Script Web App.
 
 ---
 

@@ -73,44 +73,75 @@
 
   <script src="app.js"></script>
   <script>
-    function renderQueue(filter = 'all') {
-      const db = getDB();
+    // Hide demo warning banner if running live on Apps Script Web App
+    if (isLiveServer()) {
+      const demoBanner = document.querySelector('.alert-warning');
+      if (demoBanner) demoBanner.style.display = 'none';
+    }
+
+    async function renderQueue(filter = 'all') {
       const tbody = document.getElementById('queueBody');
-      tbody.innerHTML = '';
+      tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center">Loading admin queue...</td></tr>';
 
       let combined = [];
 
-      db.dailyReports.forEach(r => {
-        combined.push({
-          source: 'Daily_Raw',
-          timestamp: r.timestamp,
-          empId: r.empId,
-          site: r.site,
-          detail: `Status: ${r.status} | Panen: ${r.yield} kg | Issues: ${(r.issues||[]).join(', ')}`,
-          severity: r.severity,
-          category: r.category,
-          reviewStatus: r.reviewStatus,
-          isSensitive: false,
-          rawObj: r,
-          type: 'daily'
+      if (isLiveServer()) {
+        try {
+          const queueRows = await runServer('getAdminQueueData');
+          (queueRows || []).forEach(r => {
+            combined.push({
+              source: r.source,
+              reportId: r.reportId,
+              timestamp: r.timestamp,
+              empId: r.empId,
+              site: r.site,
+              detail: r.detail,
+              severity: (r.severity || 'normal').toLowerCase(),
+              rank: r.rank || 3,
+              category: r.category,
+              reviewStatus: r.reviewStatus,
+              isSensitive: String(r.source).includes('Sensitive')
+            });
+          });
+        } catch (err) {
+          console.error('Server error getting admin queue:', err);
+        }
+      } else {
+        const db = getDB();
+        db.dailyReports.forEach(r => {
+          combined.push({
+            source: 'Daily_Raw',
+            reportId: r.id,
+            timestamp: r.timestamp,
+            empId: r.empId,
+            site: r.site,
+            detail: `Status: ${r.status} | Panen: ${r.yield} kg | Issues: ${(r.issues||[]).join(', ')}`,
+            severity: r.severity,
+            rank: r.rank || 3,
+            category: r.category,
+            reviewStatus: r.reviewStatus,
+            isSensitive: false,
+            type: 'daily'
+          });
         });
-      });
 
-      db.generalReports.forEach(r => {
-        combined.push({
-          source: r.isSensitive ? 'Sensitive_Restricted' : 'General_Raw',
-          timestamp: r.timestamp,
-          empId: r.empId,
-          site: r.site,
-          detail: r.details,
-          severity: r.severity,
-          category: r.category,
-          reviewStatus: r.reviewStatus,
-          isSensitive: r.isSensitive,
-          rawObj: r,
-          type: 'general'
+        db.generalReports.forEach(r => {
+          combined.push({
+            source: r.isSensitive ? 'Sensitive_Restricted' : 'General_Raw',
+            reportId: r.id,
+            timestamp: r.timestamp,
+            empId: r.empId,
+            site: r.site,
+            detail: r.details,
+            severity: r.severity,
+            rank: r.rank || 3,
+            category: r.category,
+            reviewStatus: r.reviewStatus,
+            isSensitive: r.isSensitive,
+            type: 'general'
+          });
         });
-      });
+      }
 
       // Filter by selection
       if (filter === 'urgent') {
@@ -125,8 +156,12 @@
       // Sort: Urgent first
       combined.sort((a, b) => {
         const order = { urgent: 1, warning: 2, normal: 3 };
-        return order[a.severity] - order[b.severity];
+        const rankA = a.rank || order[a.severity] || 3;
+        const rankB = b.rank || order[b.severity] || 3;
+        return rankA - rankB;
       });
+
+      tbody.innerHTML = '';
 
       if (combined.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="text-muted-center">Tidak ada laporan pending di antrean.</td></tr>`;
@@ -146,7 +181,7 @@
           <td><span class="badge ${badgeClass}">${item.severity}</span></td>
           <td>${item.category}</td>
           <td>
-            <select onchange="updateStatus('${item.type}', ${item.rawObj.id}, this.value)" class="table-select">
+            <select onchange="updateStatus('${item.type || 'raw'}', '${item.reportId}', this.value)" class="table-select">
               <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
               <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
               <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
@@ -154,23 +189,31 @@
             </select>
           </td>
           <td>
-            <button class="btn btn-secondary table-btn-sm" onclick="alert('Detail Laporan:\\n\\nLokasi: ${item.site}\\nOleh: ${item.empId}\\nRincian: ${item.detail}')">Lihat</button>
+            <button class="btn btn-secondary table-btn-sm" onclick="alert('Detail Laporan:\\n\\nReport ID: ${item.reportId}\\nLokasi: ${item.site}\\nOleh: ${item.empId}\\nRincian: ${item.detail}')">Lihat</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function updateStatus(type, id, newStatus) {
-      const db = getDB();
-      if (type === 'daily') {
-        const item = db.dailyReports.find(x => x.id === id);
-        if (item) item.reviewStatus = newStatus;
+    async function updateStatus(type, reportId, newStatus) {
+      if (isLiveServer()) {
+        try {
+          await runServer('updateReviewStatus', reportId, newStatus);
+        } catch (err) {
+          console.error('Server error updating status:', err);
+        }
       } else {
-        const item = db.generalReports.find(x => x.id === id);
-        if (item) item.reviewStatus = newStatus;
+        const db = getDB();
+        if (type === 'daily') {
+          const item = db.dailyReports.find(x => String(x.id) === String(reportId));
+          if (item) item.reviewStatus = newStatus;
+        } else {
+          const item = db.generalReports.find(x => String(x.id) === String(reportId));
+          if (item) item.reviewStatus = newStatus;
+        }
+        saveDB(db);
       }
-      saveDB(db);
       renderQueue();
     }
 

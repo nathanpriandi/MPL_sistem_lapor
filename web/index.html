@@ -103,7 +103,13 @@
   <script>
     document.getElementById('reportDate').valueAsDate = new Date();
 
-    document.getElementById('dailyForm').addEventListener('submit', function(e) {
+    // Hide demo warning banner if running live on Apps Script Web App
+    if (isLiveServer()) {
+      const demoBanner = document.querySelector('.alert-warning');
+      if (demoBanner) demoBanner.style.display = 'none';
+    }
+
+    document.getElementById('dailyForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const empId = document.getElementById('empId').value;
       const site = document.getElementById('site').value;
@@ -114,23 +120,33 @@
       const issueNodes = document.querySelectorAll('input[name="issues"]:checked');
       const issues = Array.from(issueNodes).map(n => n.value);
 
-      const flag = evaluateFlags(status + ' ' + issues.join(' '));
+      const payload = { empId, site, date, taskStatus, yieldKg, issues };
 
-      const db = getDB();
-      db.dailyReports.unshift({
-        id: Date.now(),
-        timestamp: formatDateNow(),
-        empId: empId,
-        site: site,
-        date: date,
-        status: status,
-        yield: yieldKg,
-        issues: issues,
-        severity: flag.severity,
-        category: flag.category,
-        reviewStatus: 'Unreviewed'
-      });
-      saveDB(db);
+      if (isLiveServer()) {
+        try {
+          await runServer('submitDailyReport', payload);
+        } catch (err) {
+          console.error('Server error during submitDailyReport:', err);
+        }
+      } else {
+        const flag = evaluateFlags(status + ' ' + issues.join(' '));
+        const db = getDB();
+        db.dailyReports.unshift({
+          id: 'REC-' + Date.now(),
+          timestamp: formatDateNow(),
+          empId: empId,
+          site: site,
+          date: date,
+          status: status,
+          yield: yieldKg,
+          issues: issues,
+          severity: flag.severity,
+          rank: flag.rank,
+          category: flag.category,
+          reviewStatus: 'Unreviewed'
+        });
+        saveDB(db);
+      }
 
       const alertBox = document.getElementById('alertBox');
       alertBox.removeAttribute('hidden');

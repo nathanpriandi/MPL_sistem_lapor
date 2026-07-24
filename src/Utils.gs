@@ -35,7 +35,9 @@ function aggregateWeeklyData(ss) {
   const generalSheet = ss.getSheetByName('General_Raw');
   const sensitiveSheet = ss.getSheetByName('Sensitive_Restricted');
 
-  const weekLabel = getISOWeekLabel(new Date());
+  // Use reference date 3 days in the past (e.g. Friday) so Monday 08:00 trigger aggregates the ended week
+  const referenceDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  const weekLabel = getISOWeekLabel(referenceDate);
   const sites = [
     'Site A — Kebun & Lahan Pertanian', 
     'Site B — Peternakan & Kandang', 

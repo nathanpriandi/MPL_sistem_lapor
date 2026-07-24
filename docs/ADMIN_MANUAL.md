@@ -20,15 +20,17 @@ Spreadsheet ini memiliki 5 Tab utama:
 ## 🛠️ Alur Kerja Harian Admin (Daily Workflow)
 
 ### 1. Meninjau Antrean (`Admin_Queue`)
-- Buka tab `Admin_Queue`.
-- Periksa laporan dengan baris berwarna:
-  - **Merah Muda (`Urgent`)**: Harus segera ditindaklanjuti atau dikonfirmasi ke lapangan.
-  - **Kuning Muda (`Warning`)**: Memerlukan perhatian atau koordinasi logistik/perbaikan.
-  - **Putih (`Normal`)**: Laporan operasional rutin.
+- Buka antrean via **Web App Admin Interface (`admin.html`)** atau tab `Admin_Queue` pada Spreadsheet.
+- Setiap laporan memiliki **`Report_ID`** unik (UUID di Kolom 1) untuk pencarian dan pembaruan status yang presisi.
+- Periksa laporan berdasarkan tingkat keparahan:
+  - **Urgent**: Harus segera ditindaklanjuti atau dikonfirmasi ke lapangan.
+  - **Warning**: Memerlukan perhatian atau koordinasi logistik/perbaikan.
+  - **Normal**: Laporan operasional rutin.
 
 ### 2. Mengubah Status Review (`Review_Status`)
-- Buka tab mentah asal laporan (`Daily_Raw` atau `General_Raw`).
-- Ubah kolom **`Review_Status`** dari `Unreviewed` menjadi:
+- Pembaruan status dapat dilakukan langsung melalui antarmuka **Web App Admin (`admin.html`)** atau secara manual pada kolom **`Review_Status`** di tab mentah (`Daily_Raw` / `General_Raw`).
+- Pilihan status review:
+  - `Unreviewed` (Belum diperiksa)
   - `In Review` (Sedang diproses / diverifikasi)
   - `Action Needed` (Memerlukan tindakan manajerial)
   - `Closed` (Selesai ditangani)
@@ -37,7 +39,7 @@ Spreadsheet ini memiliki 5 Tab utama:
 
 ### 3. Penanganan Laporan Sensitif (`Sensitive_Restricted` Tab)
 - Laporan yang ditandai sensitif secara otomatis diisolasi ke tab **`Sensitive_Restricted`** dan **tidak akan pernah muncul di `Admin_Queue`** demi menjaga kerahasiaan data.
-- Admin dan Manager yang berwenang wajib membuka tab `Sensitive_Restricted` secara berkala untuk meninjau laporan sensitif dan memperbarui kolom `Review_Status` (misal: `In Review`, `Action Needed`, atau `Closed (Sensitive)`).
+- Admin dan Manager yang berwenang wajib membuka tab `Sensitive_Restricted` secara berkala untuk meninjau laporan sensitif (dapat dicari berdasarkan `Report_ID`) dan memperbarui kolom `Review_Status` (misal: `In Review`, `Action Needed`, atau `Closed (Sensitive)`).
 
 ---
 

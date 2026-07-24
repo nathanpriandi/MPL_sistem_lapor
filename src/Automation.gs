@@ -66,10 +66,8 @@ function evaluateFlags(rowData) {
  * @returns {boolean} True if marked sensitive.
  */
 function isSensitiveRow(rowData) {
-  // Column 6 (Index 5 in 0-indexed array) is "Informasi Sensitif?"
-  if (rowData && rowData.length > 5) {
-    const val = String(rowData[5]).toLowerCase();
-    return val.includes('ya') || val.includes('yes') || val === 'true' || val === '1';
-  }
-  return false;
+  if (!rowData || rowData.length === 0) return false;
+  // Check index 6 (with Report_ID in Col 1) or index 5 (without Report_ID)
+  const val = String(rowData[6] || rowData[5] || '').toLowerCase();
+  return val.includes('ya') || val.includes('yes') || val === 'true' || val === '1';
 }

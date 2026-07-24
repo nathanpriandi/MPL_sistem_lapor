@@ -51,6 +51,7 @@ function setupReportingSystem() {
  */
 function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet) {
   const dailyHeaders = [
+    'Report_ID',
     'Timestamp', 
     'Kode Karyawan / Employee ID', 
     'Lokasi / Site', 
@@ -65,6 +66,7 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
   ];
 
   const generalHeaders = [
+    'Report_ID',
     'Timestamp', 
     'Kode Karyawan / Employee ID', 
     'Lokasi / Site', 
@@ -104,6 +106,7 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
   // Setup Admin_Queue headers & QUERY formula
   const queueHeaders = [
     'Source Sheet',
+    'Report_ID',
     'Timestamp', 
     'Kode Karyawan', 
     'Lokasi / Site', 
@@ -118,11 +121,11 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
   ];
   adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]).setFontWeight('bold').setBackground('#feefc3');
   
-  // QUERY formula combining unresolved Daily and General reports sorted by Severity_Rank (Col 10)
+  // QUERY formula combining unresolved Daily and General reports sorted by Severity_Rank (Col 11)
   const queryFormula = `=QUERY({
-    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:K;
-    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:E, General_Raw!F2:F, ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "", "")), General_Raw!G2:J
-  }, "select * where Col1 is not null and Col12 != 'Closed' order by Col10 asc, Col2 desc", 0)`;
+    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:L;
+    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:F, General_Raw!G2:G, ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "", "")), General_Raw!H2:K
+  }, "select * where Col1 is not null and Col13 != 'Closed' order by Col11 asc, Col3 desc", 0)`;
 
   adminQueueSheet.getRange(2, 1).setFormula(queryFormula);
 }

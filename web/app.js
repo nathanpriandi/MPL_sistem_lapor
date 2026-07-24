@@ -1,6 +1,6 @@
 /**
- * app.js — Standalone Client Logic & Triage Engine
- * Digital Reporting System Prototype
+ * app.js — Client API Bridge & Triage Engine
+ * Digital Reporting System
  */
 
 // Triage Keyword Engine matching Automation.gs
@@ -20,31 +20,54 @@ function evaluateFlags(text) {
   const fullText = (text || '').toLowerCase();
   for (let k of URGENT_KEYWORDS) {
     if (fullText.includes(k)) {
-      return { severity: 'urgent', category: k.includes('hama') || k.includes('wabah') ? 'biological/outbreak' : 'incident' };
+      return { severity: 'urgent', rank: 1, category: k.includes('hama') || k.includes('wabah') ? 'biological/outbreak' : 'incident' };
     }
   }
   for (let k of WARNING_KEYWORDS) {
     if (fullText.includes(k)) {
-      return { severity: 'warning', category: k.includes('hujan') ? 'weather_impact' : 'operational_delay' };
+      return { severity: 'warning', rank: 2, category: k.includes('hujan') ? 'weather_impact' : 'operational_delay' };
     }
   }
-  return { severity: 'normal', category: 'routine' };
+  return { severity: 'normal', rank: 3, category: 'routine' };
 }
 
-// Local Database Initialization
+/**
+ * Promise wrapper for google.script.run
+ */
+function runServer(fnName, ...args) {
+  return new Promise((resolve, reject) => {
+    if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        [fnName](...args);
+    } else {
+      reject(new Error('google.script.run unavailable (local mode)'));
+    }
+  });
+}
+
+/**
+ * Checks if the current page is running inside Apps Script HtmlService environment.
+ */
+function isLiveServer() {
+  return typeof google !== 'undefined' && google && google.script && google.script.run;
+}
+
+// Local Database Fallback Initialization
 function getDB() {
   let db = localStorage.getItem('MPL_REPORTING_DB');
   if (!db) {
     const defaultData = {
       dailyReports: [
-        { id: 1, timestamp: '2026-07-23 08:30', empId: 'EMP-101', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Completed', yield: 1450, issues: ['None'], severity: 'normal', category: 'routine', reviewStatus: 'Unreviewed' },
-        { id: 2, timestamp: '2026-07-23 09:15', empId: 'EMP-102', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Delayed', yield: 800, issues: ['Weather'], severity: 'warning', category: 'weather_impact', reviewStatus: 'Unreviewed' },
-        { id: 3, timestamp: '2026-07-23 10:00', empId: 'EMP-201', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', status: 'Completed', yield: 0, issues: ['None'], severity: 'normal', category: 'routine', reviewStatus: 'Closed' },
-        { id: 4, timestamp: '2026-07-23 11:20', empId: 'EMP-302', site: 'Site C — Pabrik Pengolahan & Pakan', date: '2026-07-23', status: 'Delayed', yield: 1100, issues: ['Equipment'], severity: 'urgent', category: 'equipment_breakdown', reviewStatus: 'Unreviewed' }
+        { id: 'REC-001', timestamp: '2026-07-23 08:30', empId: 'EMP-101', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Completed', yield: 1450, issues: ['None'], severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Unreviewed' },
+        { id: 'REC-002', timestamp: '2026-07-23 09:15', empId: 'EMP-102', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Delayed', yield: 800, issues: ['Weather'], severity: 'warning', rank: 2, category: 'weather_impact', reviewStatus: 'Unreviewed' },
+        { id: 'REC-003', timestamp: '2026-07-23 10:00', empId: 'EMP-201', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', status: 'Completed', yield: 0, issues: ['None'], severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Closed' },
+        { id: 'REC-004', timestamp: '2026-07-23 11:20', empId: 'EMP-302', site: 'Site C — Pabrik Pengolahan & Pakan', date: '2026-07-23', status: 'Delayed', yield: 1100, issues: ['Equipment'], severity: 'urgent', rank: 1, category: 'equipment_breakdown', reviewStatus: 'Unreviewed' }
       ],
       generalReports: [
-        { id: 1, timestamp: '2026-07-23 09:45', empId: 'EMP-203', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', details: 'Ada kecelakaan kerja ringan saat pembersihan kandang 2. Korban sudah ditangani tim P3K.', isSensitive: false, severity: 'urgent', category: 'incident', reviewStatus: 'Unreviewed' },
-        { id: 2, timestamp: '2026-07-23 13:00', empId: 'EMP-401', site: 'Site D — Logistik & Gudang', date: '2026-07-23', details: 'Laporan audit internal biaya operasional dan efisiensi bahan bakar armada.', isSensitive: true, severity: 'normal', category: 'routine', reviewStatus: 'Unreviewed (Sensitive)' }
+        { id: 'REC-101', timestamp: '2026-07-23 09:45', empId: 'EMP-203', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', details: 'Ada kecelakaan kerja ringan saat pembersihan kandang 2. Korban sudah ditangani tim P3K.', isSensitive: false, severity: 'urgent', rank: 1, category: 'incident', reviewStatus: 'Unreviewed' },
+        { id: 'REC-102', timestamp: '2026-07-23 13:00', empId: 'EMP-401', site: 'Site D — Logistik & Gudang', date: '2026-07-23', details: 'Laporan audit internal biaya operasional dan efisiensi bahan bakar armada.', isSensitive: true, severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Unreviewed (Sensitive)' }
       ]
     };
     localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(defaultData));
