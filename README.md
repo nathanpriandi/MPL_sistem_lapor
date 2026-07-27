@@ -30,11 +30,11 @@ flowchart TD
 ```
 MPL_sistem_lapor/
 ├── package.json               # Node & clasp dev dependencies
-├── appsscript.json            # Apps Script manifest (Asia/Jakarta timezone & scopes)
 ├── .clasp.json.template       # Clasp deployment configuration template
 ├── CONFIG.md                  # Operational settings, site lists, & keyword rules
 ├── README.md                  # Project documentation and developer guide
 ├── src/
+│   ├── appsscript.json        # Apps Script manifest (Asia/Jakarta timezone & scopes)
 │   ├── Setup.gs               # Spreadsheet & Google Form provisioning logic
 │   ├── Automation.gs          # Bahasa Indonesia agriculture triage keyword engine
 │   ├── FormHandlers.gs        # Form submission handlers & sensitive row routing
@@ -43,15 +43,20 @@ MPL_sistem_lapor/
 │   ├── Utils.gs              # Looker Studio aggregation, date helpers, unit tests
 │   ├── MockSimulator.gs       # Seed mock test data generator
 │   ├── Web.gs                 # Web App HTTP doGet router & access control
-│   └── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run)
-├── docs/
-│   ├── USER_GUIDE_DAILY_REPORT.md # Field staff step-by-step user guide
-│   ├── ADMIN_MANUAL.md        # Admin runbook & queue management guide
-│   └── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
-└── web/                       # Mobile-first Web App frontend (live Web App + local preview)
+│   ├── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run)
+│   ├── index.html             # Daily Report Form view
+│   ├── general.html           # General Report Form view
+│   ├── admin.html             # Admin Triage Queue view
+│   ├── dashboard.html         # Executive Manager Dashboard view
+│   ├── style.html             # Component design tokens & CSS stylesheet
+│   └── app.html               # Client JS bridge & triage helper engine
+└── docs/
+    ├── USER_GUIDE_DAILY_REPORT.md # Field staff step-by-step user guide
+    ├── ADMIN_MANUAL.md        # Admin runbook & queue management guide
+    └── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
 ```
 
-> 💡 **Dual Intake Architecture**: Field staff can submit reports via the primary **Apps Script Web App** or the backup **Google Forms**. Both intake channels run identical triage flagging and store rows with unique `Report_ID` UUIDs in Google Sheets. The `web/` interface automatically switches to `google.script.run` when deployed live as an Apps Script Web App.
+> 💡 **Dual Intake Architecture**: Field staff can submit reports via the primary **Apps Script Web App** or the backup **Google Forms**. Both intake channels run identical triage flagging and store rows with unique `Report_ID` UUIDs in Google Sheets.
 
 ---
 

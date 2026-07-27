@@ -25,11 +25,6 @@
   </header>
 
   <div class="container-wide">
-    <div class="alert-banner alert-warning">
-      <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
-      <span><strong>DEMO VISUAL SAJA:</strong> Ini adalah prototype UI non-fungsional untuk pratinjau stakeholder. Data disimpan lokal dan TIDAK terhubung ke Google Sheets produksi.</span>
-    </div>
-
     <h1 class="card-title">Executive Manager Dashboard</h1>
     <p class="card-subtitle">Visualisasi rekapitulasi operasional agribisnis terintegrasi (Prototype Looker Studio).</p>
 
@@ -70,12 +65,6 @@
 
   <?!= include('app'); ?>
   <script>
-    // Hide demo warning banner if running live on Apps Script Web App
-    if (isLiveServer()) {
-      const demoBanner = document.querySelector('.alert-warning');
-      if (demoBanner) demoBanner.style.display = 'none';
-    }
-
     async function renderDashboard() {
       let totalReports = 0;
       let totalYield = 0;
