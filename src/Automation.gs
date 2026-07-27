@@ -38,7 +38,7 @@ function evaluateFlags(rowData) {
       } else if (['rusak berat', 'meledak', 'mati total'].includes(keyword)) {
         category = 'equipment_breakdown';
       }
-      return { severity: 'urgent', category: category };
+      return { severity: 'urgent', category: category, rank: 1 };
     }
   }
 
@@ -52,12 +52,12 @@ function evaluateFlags(rowData) {
       } else if (['mogok', 'rusak ringan', 'equipment'].includes(keyword)) {
         category = 'minor_equipment';
       }
-      return { severity: 'warning', category: category };
+      return { severity: 'warning', category: category, rank: 2 };
     }
   }
 
   // 3. Default to NORMAL / Routine
-  return { severity: 'normal', category: 'routine' };
+  return { severity: 'normal', category: 'routine', rank: 3 };
 }
 
 /**
@@ -66,10 +66,8 @@ function evaluateFlags(rowData) {
  * @returns {boolean} True if marked sensitive.
  */
 function isSensitiveRow(rowData) {
-  // Column 6 (Index 5 in 0-indexed array) is "Informasi Sensitif?"
-  if (rowData && rowData.length > 5) {
-    const val = String(rowData[5]).toLowerCase();
-    return val.includes('ya') || val.includes('yes') || val === 'true' || val === '1';
-  }
-  return false;
+  if (!rowData || rowData.length === 0) return false;
+  // Check index 6 (with Report_ID in Col 1) or index 5 (without Report_ID)
+  const val = String(rowData[6] || rowData[5] || '').toLowerCase();
+  return val.includes('ya') || val.includes('yes') || val === 'true' || val === '1';
 }

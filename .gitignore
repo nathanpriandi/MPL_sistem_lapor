@@ -9,8 +9,9 @@ package-lock.json
 .clasp.json
 .clasprc.json
 
-# System & Planning documents
+# Specific planning / scratch files
 implementation_plan.md
+fixes.md
 
 # OS & Environment generated files
 .DS_Store

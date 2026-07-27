@@ -15,21 +15,34 @@ function setupReportingSystem() {
   const ssId = ss.getId();
   Logger.log('Created Spreadsheet ID: ' + ssId);
 
-  // 2. Setup Tabs
-  const dailySheet = ss.getSheets()[0];
-  dailySheet.setName('Daily_Raw');
-  
-  const generalSheet = ss.insertSheet('General_Raw');
-  const adminQueueSheet = ss.insertSheet('Admin_Queue');
-  const sensitiveSheet = ss.insertSheet('Sensitive_Restricted');
-  const summarySheet = ss.insertSheet('Weekly_Summary');
-
-  // 3. Define and Set Headers
-  setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet);
-
-  // 4. Create Google Forms & Link Destination
+  // 2. Create Google Forms & Link Destination (creates Form Responses 1 & 2)
   const dailyFormId = setupDailyForm(ssId);
   const generalFormId = setupGeneralForm(ssId);
+
+  // 3. Locate response sheets and rename to Daily_Raw and General_Raw
+  Utilities.sleep(1000); // Allow Apps Script destination binding to finish
+  const sheets = ss.getSheets();
+  
+  let dailySheet = sheets.find(s => s.getName().includes('Form Responses 1') || s.getName().includes('Jawaban Formulir 1'));
+  if (!dailySheet) dailySheet = sheets[0];
+  dailySheet.setName('Daily_Raw');
+
+  let generalSheet = sheets.find(s => s.getName().includes('Form Responses 2') || s.getName().includes('Jawaban Formulir 2'));
+  if (!generalSheet) generalSheet = ss.insertSheet('General_Raw');
+  else generalSheet.setName('General_Raw');
+
+  const adminQueueSheet = ss.getSheetByName('Admin_Queue') || ss.insertSheet('Admin_Queue');
+  const sensitiveSheet = ss.getSheetByName('Sensitive_Restricted') || ss.insertSheet('Sensitive_Restricted');
+  const summarySheet = ss.getSheetByName('Weekly_Summary') || ss.insertSheet('Weekly_Summary');
+
+  // Remove default "Sheet1" / "Lembran1" if present
+  const defaultSheet = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembur1') || ss.getSheetByName('Sheet 1');
+  if (defaultSheet && ss.getSheets().length > 1) {
+    try { ss.deleteSheet(defaultSheet); } catch (e) {}
+  }
+
+  // 4. Define and Set Headers
+  setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet);
 
   // 5. Store Properties in ScriptProperties
   const props = PropertiesService.getScriptProperties();
@@ -51,6 +64,7 @@ function setupReportingSystem() {
  */
 function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet) {
   const dailyHeaders = [
+    'Report_ID',
     'Timestamp', 
     'Kode Karyawan / Employee ID', 
     'Lokasi / Site', 
@@ -59,11 +73,13 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
     'Hasil Panen / Yield (kg)', 
     'Ada Masalah? / Issues', 
     'Flag_Severity', 
+    'Severity_Rank', 
     'Flag_Category', 
     'Review_Status'
   ];
 
   const generalHeaders = [
+    'Report_ID',
     'Timestamp', 
     'Kode Karyawan / Employee ID', 
     'Lokasi / Site', 
@@ -71,6 +87,7 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
     'Rincian Laporan / Details', 
     'Informasi Sensitif? / Sensitive', 
     'Flag_Severity', 
+    'Severity_Rank', 
     'Flag_Category', 
     'Review_Status'
   ];
@@ -102,6 +119,7 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
   // Setup Admin_Queue headers & QUERY formula
   const queueHeaders = [
     'Source Sheet',
+    'Report_ID',
     'Timestamp', 
     'Kode Karyawan', 
     'Lokasi / Site', 
@@ -110,16 +128,17 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
     'Hasil Panen (kg) / Sensitive', 
     'Issues / -', 
     'Flag_Severity', 
+    'Severity_Rank', 
     'Flag_Category', 
     'Review_Status'
   ];
   adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]).setFontWeight('bold').setBackground('#feefc3');
   
-  // QUERY formula combining unresolved Daily and General reports sorted by severity
+  // QUERY formula combining unresolved Daily and General reports sorted by Severity_Rank (Col 11)
   const queryFormula = `=QUERY({
-    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:J;
-    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:F, IF(LEN(General_Raw!A2:A), "", ""), General_Raw!G2:J
-  }, "select * where Col1 is not null and Col11 != 'Closed' order by Col9 asc, Col2 desc", 0)`;
+    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:L;
+    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:F, General_Raw!G2:G, ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "", "")), General_Raw!H2:K
+  }, "select * where Col1 is not null and Col13 != 'Closed' order by Col11 asc, Col3 desc", 0)`;
 
   adminQueueSheet.getRange(2, 1).setFormula(queryFormula);
 }
@@ -130,8 +149,8 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
 function setupDailyForm(ssId) {
   const form = FormApp.create('Laporan Operasional Harian (Daily Operational Report)');
   form.setDescription('Isi laporan harian aktivitas operasional pertanian, peternakan, dan pabrik.');
-  form.setCollectEmail(false);
-  form.setRequireLogin(false);
+  try { form.setCollectEmail(false); } catch (e) {}
+  try { form.setRequireLogin(false); } catch (e) {}
 
   form.addTextItem()
     .setTitle('Kode Karyawan / Employee ID')
@@ -176,8 +195,8 @@ function setupDailyForm(ssId) {
 function setupGeneralForm(ssId) {
   const form = FormApp.create('Laporan Umum & Catatan Lapangan (General Report)');
   form.setDescription('Laporan kejadian umum, kondisi lapangan, atau insiden.');
-  form.setCollectEmail(false);
-  form.setRequireLogin(false);
+  try { form.setCollectEmail(false); } catch (e) {}
+  try { form.setRequireLogin(false); } catch (e) {}
 
   form.addTextItem()
     .setTitle('Kode Karyawan / Employee ID')
