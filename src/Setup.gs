@@ -149,8 +149,8 @@ function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveS
 function setupDailyForm(ssId) {
   const form = FormApp.create('Laporan Operasional Harian (Daily Operational Report)');
   form.setDescription('Isi laporan harian aktivitas operasional pertanian, peternakan, dan pabrik.');
-  form.setCollectEmail(false);
-  form.setRequireLogin(false);
+  try { form.setCollectEmail(false); } catch (e) {}
+  try { form.setRequireLogin(false); } catch (e) {}
 
   form.addTextItem()
     .setTitle('Kode Karyawan / Employee ID')
@@ -195,8 +195,8 @@ function setupDailyForm(ssId) {
 function setupGeneralForm(ssId) {
   const form = FormApp.create('Laporan Umum & Catatan Lapangan (General Report)');
   form.setDescription('Laporan kejadian umum, kondisi lapangan, atau insiden.');
-  form.setCollectEmail(false);
-  form.setRequireLogin(false);
+  try { form.setCollectEmail(false); } catch (e) {}
+  try { form.setRequireLogin(false); } catch (e) {}
 
   form.addTextItem()
     .setTitle('Kode Karyawan / Employee ID')

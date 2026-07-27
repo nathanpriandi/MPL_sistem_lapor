@@ -27,10 +27,19 @@ function doGet(e) {
     ).setTitle('Access Restricted');
   }
 
-  return HtmlService.createHtmlOutputFromFile(file)
+  const template = HtmlService.createTemplateFromFile(file);
+  return template.evaluate()
     .setTitle('Sistem Pelaporan Digital — Integrated Agriculture')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Helper to include external HTML components (CSS/JS).
+ * Usage in HTML: <?!= include('style'); ?> or <?!= include('app'); ?>
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**

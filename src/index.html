@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Operasional Harian — Sistem Pelaporan Digital</title>
+  <?!= include('style'); ?>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="?page=index" target="_top" class="logo">
+        <span class="logo-badge">AGRI-DIGITAL</span>
+        <span>Sistem Pelaporan</span>
+      </a>
+      <nav>
+        <a href="?page=index" target="_top" class="nav-link active">Daily Form</a>
+        <a href="?page=general" target="_top" class="nav-link">General Form</a>
+        <a href="?page=admin" target="_top" class="nav-link">Admin Queue</a>
+        <a href="?page=dashboard" target="_top" class="nav-link">Manager Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="alert-banner alert-warning">
+        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
+        <span><strong>DEMO VISUAL SAJA:</strong> Ini adalah prototype UI non-fungsional untuk pratinjau stakeholder. Data disimpan lokal dan TIDAK terhubung ke Google Sheets produksi.</span>
+      </div>
+
+      <h1 class="card-title">Laporan Operasional Harian</h1>
+      <p class="card-subtitle">Silakan isi laporan aktivitas harian Anda. Pengisian memerlukan waktu &lt; 2 menit.</p>
+
+      <div id="alertBox" class="alert-banner alert-success" hidden>
+        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <span>Laporan harian berhasil dikirim dan dicatat ke sistem central!</span>
+      </div>
+
+      <form id="dailyForm">
+        <div class="form-group">
+          <label for="empId">Kode Karyawan / Employee ID <span class="required">*</span></label>
+          <div class="help-text">Masukkan kode resmi karyawan Anda (contoh: EMP-101)</div>
+          <input type="text" id="empId" placeholder="EMP-101" required>
+        </div>
+
+        <div class="form-group">
+          <label for="site">Lokasi / Site <span class="required">*</span></label>
+          <select id="site" required>
+            <option value="">-- Pilih Lokasi Kerja --</option>
+            <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun & Lahan Pertanian</option>
+            <option value="Site B — Peternakan & Kandang">Site B — Peternakan & Kandang</option>
+            <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan & Pakan</option>
+            <option value="Site D — Logistik & Gudang">Site D — Logistik & Gudang</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="reportDate">Tanggal Laporan <span class="required">*</span></label>
+          <input type="date" id="reportDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="taskStatus">Status Tugas / Target <span class="required">*</span></label>
+          <select id="taskStatus" required>
+            <option value="Completed">Completed (Selesai Sesuai Target)</option>
+            <option value="In Progress">In Progress (Sedang Berjalan)</option>
+            <option value="Delayed">Delayed (Tertunda / Ada Hambatan)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="yieldKg">Hasil Panen / Produksi (Kg)</label>
+          <div class="help-text">Isi total kilogram hasil panen hari ini (opsional)</div>
+          <input type="number" id="yieldKg" placeholder="0" min="0">
+        </div>
+
+        <div class="form-group">
+          <label>Ada Masalah Hari Ini? (Issues)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="Equipment"> Equipment (Alat)
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="Weather"> Weather (Cuaca)
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="Shortage"> Shortage (Stok)
+            </label>
+            <label class="checkbox-card">
+              <input type="checkbox" name="issues" value="None" checked> None (Lancar)
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kirim Laporan Harian</button>
+      </form>
+    </div>
+  </div>
+
+  <?!= include('app'); ?>
+  <script>
+    document.getElementById('reportDate').valueAsDate = new Date();
+
+    // Hide demo warning banner if running live on Apps Script Web App
+    if (isLiveServer()) {
+      const demoBanner = document.querySelector('.alert-warning');
+      if (demoBanner) demoBanner.style.display = 'none';
+    }
+
+    document.getElementById('dailyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const empId = document.getElementById('empId').value;
+      const site = document.getElementById('site').value;
+      const date = document.getElementById('reportDate').value;
+      const status = document.getElementById('taskStatus').value;
+      const yieldKg = parseFloat(document.getElementById('yieldKg').value) || 0;
+      
+      const issueNodes = document.querySelectorAll('input[name="issues"]:checked');
+      const issues = Array.from(issueNodes).map(n => n.value);
+
+      const payload = { empId, site, date, taskStatus: status, yieldKg, issues };
+
+      if (isLiveServer()) {
+        try {
+          await runServer('submitDailyReport', payload);
+        } catch (err) {
+          console.error('Server error during submitDailyReport:', err);
+        }
+      } else {
+        const flag = evaluateFlags(status + ' ' + issues.join(' '));
+        const db = getDB();
+        db.dailyReports.unshift({
+          id: 'REC-' + Date.now(),
+          timestamp: formatDateNow(),
+          empId: empId,
+          site: site,
+          date: date,
+          status: status,
+          yield: yieldKg,
+          issues: issues,
+          severity: flag.severity,
+          rank: flag.rank,
+          category: flag.category,
+          reviewStatus: 'Unreviewed'
+        });
+        saveDB(db);
+      }
+
+      const alertBox = document.getElementById('alertBox');
+      alertBox.removeAttribute('hidden');
+      this.reset();
+      document.getElementById('reportDate').valueAsDate = new Date();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
