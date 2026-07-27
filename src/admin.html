@@ -8,17 +8,23 @@
 </head>
 <body>
 
-  <header>
+  <header class="<?= userRole ? 'header-internal' : '' ?>">
     <div class="nav-container">
-      <a href="?page=index" target="_top" class="logo">
-        <span class="logo-badge">AGRI-DIGITAL</span>
-        <span>Sistem Pelaporan</span>
+      <a href="<?= webAppUrl ?>?page=<?= userRole ? 'admin' : 'index' ?>" target="_top" class="logo">
+        <span class="logo-badge <?= userRole ? 'logo-badge-internal' : '' ?>"><?= userRole ? 'INTERNAL CONSOLE' : 'AGRI-DIGITAL' ?></span>
+        <span><?= userRole ? 'Portal Operasional' : 'Portal Pelaporan' ?></span>
       </a>
+      <? if (userRole) { ?>
+        <div id="userIdentityStrip"></div>
+      <? } ?>
       <nav>
-        <a href="?page=index" target="_top" class="nav-link">Daily Form</a>
-        <a href="?page=general" target="_top" class="nav-link">General Form</a>
-        <a href="?page=admin" target="_top" class="nav-link active">Admin Queue</a>
-        <a href="?page=dashboard" target="_top" class="nav-link">Manager Dashboard</a>
+        <a href="<?= webAppUrl ?>?page=index" target="_top" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
+        <a href="<?= webAppUrl ?>?page=general" target="_top" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
+        <? if (userRole) { ?>
+          <span style="opacity: 0.35; margin: 0 0.35rem; color: var(--color-gray-400);">|</span>
+          <a href="<?= webAppUrl ?>?page=admin" target="_top" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
+          <a href="<?= webAppUrl ?>?page=dashboard" target="_top" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
+        <? } ?>
       </nav>
     </div>
   </header>
@@ -31,15 +37,44 @@
           <p class="card-subtitle">Laporan yang belum selesai disortir berdasarkan tingkat keparahan (Urgent paling atas).</p>
         </div>
         <div class="button-group-flex">
-          <button class="btn btn-secondary" onclick="renderQueue('all')">Semua</button>
-          <button class="btn btn-secondary" onclick="renderQueue('urgent')">
+          <button class="btn btn-secondary" onclick="setQuickFilter('all', this)" id="btnFilterAll">Semua Pending</button>
+          <button class="btn btn-secondary" onclick="setQuickFilter('urgent', this)">
             <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
             <span>Urgent</span>
           </button>
-          <button class="btn btn-secondary" onclick="renderQueue('sensitive')">
+          <button class="btn btn-secondary" onclick="setQuickFilter('sensitive', this)">
             <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span>Sensitif</span>
           </button>
+          <button class="btn btn-secondary" onclick="exportAdminCSV()">
+            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export CSV</span>
+          </button>
+          <button class="btn btn-secondary" onclick="fetchAndRenderQueue(true)">
+            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <input type="text" id="searchInput" class="filter-input" placeholder="Cari Kode Karyawan / Text Detail / ID..." oninput="applyFilters()">
+        </div>
+        <div class="filter-group">
+          <select id="siteFilter" class="filter-input" onchange="applyFilters()">
+            <option value="">-- Semua Lokasi / Site --</option>
+            <option value="Site A — Kebun &amp; Lahan Pertanian">Site A — Kebun</option>
+            <option value="Site B — Peternakan &amp; Kandang">Site B — Peternakan</option>
+            <option value="Site C — Pabrik Pengolahan &amp; Pakan">Site C — Pabrik</option>
+            <option value="Site D — Logistik &amp; Gudang">Site D — Logistik</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <input type="date" id="startDateFilter" class="filter-input" onchange="applyFilters()" title="Dari Tanggal">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">s/d</span>
+          <input type="date" id="endDateFilter" class="filter-input" onchange="applyFilters()" title="Sampai Tanggal">
         </div>
       </div>
 
@@ -63,47 +98,99 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Control Bar -->
+      <div class="pagination-bar">
+        <div class="pagination-info" id="paginationInfo">Menampilkan 0 laporan</div>
+        <div class="pagination-controls">
+          <button class="btn btn-secondary table-btn-sm" id="btnPrevPage" onclick="changePage(-1)" disabled>&laquo; Prev</button>
+          <span id="pageIndicator" style="font-size: 0.85rem; font-weight: 600; padding: 0 0.5rem;">Halaman 1</span>
+          <button class="btn btn-secondary table-btn-sm" id="btnNextPage" onclick="changePage(1)" disabled>Next &raquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Detail Modal -->
+  <div id="reportDetailModal" class="modal-overlay" hidden>
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Detail Laporan Operations</h3>
+        <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary table-btn-sm" onclick="closeDetailModal()">Tutup</button>
+      </div>
     </div>
   </div>
 
   <?!= include('app'); ?>
   <script>
-    async function renderQueue(filter = 'all') {
-      const tbody = document.getElementById('queueBody');
-      tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center">Loading admin queue...</td></tr>';
+    let rawQueueData = [];
+    let currentFilteredData = [];
+    let currentQuickFilter = 'all';
+    let currentPage = 1;
+    const pageSize = 25;
+    let autoRefreshInterval = null;
 
-      let combined = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      renderIdentityStrip();
+      fetchAndRenderQueue();
+
+      // Soft auto-refresh every 60 seconds (pausable on user interaction)
+      autoRefreshInterval = setInterval(() => {
+        const modal = document.getElementById('reportDetailModal');
+        if (modal && modal.hasAttribute('hidden')) {
+          fetchAndRenderQueue(false);
+        }
+      }, 60000);
+    });
+
+    async function fetchAndRenderQueue(manualRefresh = false) {
+      const tbody = document.getElementById('queueBody');
+      if (!manualRefresh && rawQueueData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center">Memuat antrean triage...</td></tr>';
+      }
+
+      rawQueueData = [];
 
       if (isLiveServer()) {
         try {
           const queueRows = await runServer('getAdminQueueData');
           (queueRows || []).forEach(r => {
-            combined.push({
+            rawQueueData.push({
               source: r.source,
               reportId: r.reportId,
               timestamp: r.timestamp,
               empId: r.empId,
               site: r.site,
+              date: r.date,
               detail: r.detail,
               severity: (r.severity || 'normal').toLowerCase(),
               rank: r.rank || 3,
               category: r.category,
               reviewStatus: r.reviewStatus,
-              isSensitive: String(r.source).includes('Sensitive')
+              isSensitive: String(r.source).includes('Sensitive'),
+              type: String(r.source).includes('Daily') ? 'daily' : 'general'
             });
           });
         } catch (err) {
           console.error('Server error getting admin queue:', err);
+          showToast('Gagal memuat data dari server', 'error');
         }
       } else {
         const db = getDB();
         db.dailyReports.forEach(r => {
-          combined.push({
+          rawQueueData.push({
             source: 'Daily_Raw',
             reportId: r.id,
             timestamp: r.timestamp,
             empId: r.empId,
             site: r.site,
+            date: r.date,
             detail: `Status: ${r.status} | Panen: ${r.yield} kg | Issues: ${(r.issues||[]).join(', ')}`,
             severity: r.severity,
             rank: r.rank || 3,
@@ -115,12 +202,13 @@
         });
 
         db.generalReports.forEach(r => {
-          combined.push({
+          rawQueueData.push({
             source: r.isSensitive ? 'Sensitive_Restricted' : 'General_Raw',
             reportId: r.id,
             timestamp: r.timestamp,
             empId: r.empId,
             site: r.site,
+            date: r.date,
             detail: r.details,
             severity: r.severity,
             rank: r.rank || 3,
@@ -132,45 +220,116 @@
         });
       }
 
-      // Filter by selection
-      if (filter === 'urgent') {
-        combined = combined.filter(x => x.severity === 'urgent');
-      } else if (filter === 'sensitive') {
-        combined = combined.filter(x => x.isSensitive);
+      applyFilters();
+
+      if (manualRefresh) {
+        showToast('Data antrean berhasil diperbarui', 'info');
+      }
+    }
+
+    function setQuickFilter(filter, btnElement) {
+      currentQuickFilter = filter;
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const searchVal = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const siteVal = document.getElementById('siteFilter').value;
+      const startDateVal = document.getElementById('startDateFilter').value;
+      const endDateVal = document.getElementById('endDateFilter').value;
+
+      let filtered = [...rawQueueData];
+
+      // Quick Filter
+      if (currentQuickFilter === 'urgent') {
+        filtered = filtered.filter(x => x.severity === 'urgent');
+      } else if (currentQuickFilter === 'sensitive') {
+        filtered = filtered.filter(x => x.isSensitive);
       } else {
-        // Exclude closed unless requested
-        combined = combined.filter(x => x.reviewStatus !== 'Closed');
+        // Exclude closed unless specifically searched
+        if (!searchVal) {
+          filtered = filtered.filter(x => x.reviewStatus !== 'Closed');
+        }
       }
 
-      // Sort: Urgent first
-      combined.sort((a, b) => {
+      // Site Filter
+      if (siteVal) {
+        filtered = filtered.filter(x => x.site === siteVal);
+      }
+
+      // Date Range Filter
+      if (startDateVal) {
+        filtered = filtered.filter(x => {
+          const itemDate = x.date || (x.timestamp ? x.timestamp.split(' ')[0] : '');
+          return itemDate >= startDateVal;
+        });
+      }
+      if (endDateVal) {
+        filtered = filtered.filter(x => {
+          const itemDate = x.date || (x.timestamp ? x.timestamp.split(' ')[0] : '');
+          return itemDate <= endDateVal;
+        });
+      }
+
+      // Search Query
+      if (searchVal) {
+        filtered = filtered.filter(x => 
+          (x.empId || '').toLowerCase().includes(searchVal) ||
+          (x.detail || '').toLowerCase().includes(searchVal) ||
+          (x.reportId || '').toLowerCase().includes(searchVal) ||
+          (x.category || '').toLowerCase().includes(searchVal)
+        );
+      }
+
+      // Sort: Urgent (rank 1) -> Warning (rank 2) -> Normal (rank 3)
+      filtered.sort((a, b) => {
         const order = { urgent: 1, warning: 2, normal: 3 };
         const rankA = a.rank || order[a.severity] || 3;
         const rankB = b.rank || order[b.severity] || 3;
         return rankA - rankB;
       });
 
+      currentFilteredData = filtered;
+      currentPage = 1;
+      renderCurrentPage();
+    }
+
+    function renderCurrentPage() {
+      const tbody = document.getElementById('queueBody');
       tbody.innerHTML = '';
 
-      if (combined.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-muted-center">Tidak ada laporan pending di antrean.</td></tr>`;
+      const totalItems = currentFilteredData.length;
+      const totalPages = Math.ceil(totalItems / pageSize) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      const pageSlice = currentFilteredData.slice(startIndex, endIndex);
+
+      if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
+        document.getElementById('paginationInfo').innerText = 'Menampilkan 0 laporan';
+        document.getElementById('pageIndicator').innerText = 'Halaman 1 dari 1';
+        document.getElementById('btnPrevPage').disabled = true;
+        document.getElementById('btnNextPage').disabled = true;
         return;
       }
 
-      combined.forEach(item => {
+      pageSlice.forEach((item, index) => {
         const tr = document.createElement('tr');
         const badgeClass = `badge-${item.severity}`;
-        
+        const itemGlobalIndex = startIndex + index;
+
         tr.innerHTML = `
           <td><span class="badge badge-neutral">${item.source}</span></td>
-          <td>${item.timestamp}</td>
+          <td>${item.timestamp || item.date || '-'}</td>
           <td><strong>${item.empId}</strong></td>
           <td>${item.site}</td>
           <td class="max-w-details">${item.detail}</td>
           <td><span class="badge ${badgeClass}">${item.severity}</span></td>
           <td>${item.category}</td>
           <td>
-            <select onchange="updateStatus('${item.type || 'raw'}', '${item.reportId}', this.value)" class="table-select">
+            <select onchange="updateStatus('${item.type}', '${item.reportId}', this.value)" class="table-select">
               <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
               <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
               <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
@@ -178,35 +337,145 @@
             </select>
           </td>
           <td>
-            <button class="btn btn-secondary table-btn-sm" onclick="alert('Detail Laporan:\\n\\nReport ID: ${item.reportId}\\nLokasi: ${item.site}\\nOleh: ${item.empId}\\nRincian: ${item.detail}')">Lihat</button>
+            <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})">Lihat</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      document.getElementById('paginationInfo').innerText = `Menampilkan ${startIndex + 1} - ${endIndex} dari ${totalItems} laporan`;
+      document.getElementById('pageIndicator').innerText = `Halaman ${currentPage} dari ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+      document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+    }
+
+    function changePage(delta) {
+      currentPage += delta;
+      renderCurrentPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openDetailModal(globalIndex) {
+      const item = currentFilteredData[globalIndex];
+      if (!item) return;
+
+      const modal = document.getElementById('reportDetailModal');
+      const modalBody = document.getElementById('modalBody');
+
+      const badgeClass = `badge-${item.severity}`;
+      modalBody.innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Report ID</span>
+            <span class="detail-value"><code>${item.reportId}</code></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Sumber Sheet</span>
+            <span class="detail-value"><span class="badge badge-neutral">${item.source}</span></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Kode Karyawan</span>
+            <span class="detail-value"><strong>${item.empId}</strong></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Lokasi / Site</span>
+            <span class="detail-value">${item.site}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Waktu Submit</span>
+            <span class="detail-value">${item.timestamp || item.date || '-'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Triage Flag</span>
+            <span class="detail-value">
+              <span class="badge ${badgeClass}">${item.severity.toUpperCase()}</span>
+              <span class="badge badge-neutral">${item.category}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Rincian Laporan / Kronologi</span>
+          <div class="detail-value-box">${item.detail}</div>
+        </div>
+
+        <div class="detail-item" style="margin-top: 0.5rem;">
+          <label for="modalStatusSelect" class="detail-label">Update Review Status</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <select id="modalStatusSelect" style="max-width: 260px;">
+              <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
+              <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
+              <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
+              <option value="Closed" ${item.reviewStatus==='Closed'?'selected':''}>Closed (Selesai)</option>
+            </select>
+            <button class="btn btn-primary table-btn-sm" onclick="saveModalStatus('${item.type}', '${item.reportId}')">Simpan Status</button>
+          </div>
+        </div>
+      `;
+
+      modal.removeAttribute('hidden');
+    }
+
+    function closeDetailModal() {
+      const modal = document.getElementById('reportDetailModal');
+      modal.setAttribute('hidden', 'true');
+    }
+
+    async function saveModalStatus(type, reportId) {
+      const select = document.getElementById('modalStatusSelect');
+      if (!select) return;
+      const newStatus = select.value;
+      await updateStatus(type, reportId, newStatus);
+      closeDetailModal();
     }
 
     async function updateStatus(type, reportId, newStatus) {
-      if (isLiveServer()) {
-        try {
+      try {
+        if (isLiveServer()) {
           await runServer('updateReviewStatus', reportId, newStatus);
-        } catch (err) {
-          console.error('Server error updating status:', err);
-        }
-      } else {
-        const db = getDB();
-        if (type === 'daily') {
-          const item = db.dailyReports.find(x => String(x.id) === String(reportId));
-          if (item) item.reviewStatus = newStatus;
         } else {
-          const item = db.generalReports.find(x => String(x.id) === String(reportId));
-          if (item) item.reviewStatus = newStatus;
+          const db = getDB();
+          if (type === 'daily') {
+            const item = db.dailyReports.find(x => String(x.id) === String(reportId));
+            if (item) item.reviewStatus = newStatus;
+          } else {
+            const item = db.generalReports.find(x => String(x.id) === String(reportId));
+            if (item) item.reviewStatus = newStatus;
+          }
+          saveDB(db);
         }
-        saveDB(db);
+
+        showToast(`Review Status laporan berhasil diperbarui: "${newStatus}"`, 'success');
+        await fetchAndRenderQueue(false);
+      } catch (err) {
+        console.error('Update status error:', err);
+        showToast('Gagal memperbarui status laporan', 'error');
       }
-      renderQueue();
     }
 
-    renderQueue();
+    function exportAdminCSV() {
+      if (currentFilteredData.length === 0) {
+        showToast('Tidak ada data untuk diexport', 'warning');
+        return;
+      }
+
+      const headers = ['Report_ID', 'Sumber_Sheet', 'Timestamp', 'Kode_Karyawan', 'Lokasi_Site', 'Detail', 'Severity', 'Kategori', 'Review_Status'];
+      const rows = currentFilteredData.map(item => [
+        item.reportId,
+        item.source,
+        item.timestamp || item.date || '',
+        item.empId,
+        item.site,
+        item.detail,
+        item.severity,
+        item.category,
+        item.reviewStatus
+      ]);
+
+      downloadCSV(`Admin_Queue_Export_${Date.now()}.csv`, headers, rows);
+      showToast(`Export CSV berhasil (${currentFilteredData.length} laporan)`, 'success');
+    }
   </script>
 </body>
 </html>
+
