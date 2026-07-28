@@ -135,35 +135,33 @@ function include(filename) {
 
 /**
  * Evaluates active user email against script properties ADMIN_EMAIL and MANAGER_EMAIL.
+ * Uses ONLY Session.getActiveUser() — never getEffectiveUser().
+ * Under an "Execute as: Me" deployment, getEffectiveUser() always resolves to the developer's
+ * own account, not the visitor's, so it must never be used as a visitor identity source.
  * Returns null for any email not explicitly listed — no fallback, no auto-bind.
  * Requires ADMIN_EMAIL and/or MANAGER_EMAIL to be set in Script Properties to real email addresses.
  * @returns {'admin' | 'manager' | 'both' | null} Role string or null if unauthorized.
  */
 function getUserRole() {
   const props = PropertiesService.getScriptProperties();
-  let adminEmail = (props.getProperty('ADMIN_EMAIL') || '').trim().toLowerCase();
-  let managerEmail = (props.getProperty('MANAGER_EMAIL') || '').trim().toLowerCase();
+  const adminEmail = (props.getProperty('ADMIN_EMAIL') || '').trim().toLowerCase();
+  const managerEmail = (props.getProperty('MANAGER_EMAIL') || '').trim().toLowerCase();
 
-  let activeEmail = '';
+  // Only use getActiveUser() — it returns the *visitor's* identity.
+  // getEffectiveUser() returns the script owner's identity under "Execute as: Me" and must NOT
+  // be used as a fallback, or every anonymous public visitor would resolve to the developer.
+  let userEmail = '';
   try {
-    activeEmail = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+    userEmail = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
   } catch (e) {
     Logger.log('Notice: Session.getActiveUser().getEmail() restricted/unavailable.');
   }
 
-  let effectiveEmail = '';
-  try {
-    effectiveEmail = (Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
-  } catch (e) {
-    Logger.log('Notice: Session.getEffectiveUser().getEmail() restricted/unavailable.');
-  }
-
-  const userEmail = activeEmail || effectiveEmail;
+  // No identifiable visitor → deny
   if (!userEmail) return null;
 
-  // SECURITY: Do NOT auto-bind or overwrite ADMIN_EMAIL / MANAGER_EMAIL with the visiting user's address.
-  // If Script Properties still hold placeholder defaults or are empty, treat as unconfigured —
-  // deny access rather than granting admin to whoever happens to visit first.
+  // SECURITY: If Script Properties still hold placeholder defaults or are empty, treat as
+  // unconfigured — deny access rather than granting admin to whoever happens to visit first.
   // Action required: set ADMIN_EMAIL and MANAGER_EMAIL in Apps Script → Project Settings → Script Properties.
   const PLACEHOLDER_ADMIN = 'admin.operasional@perusahaan-agri.co.id';
   const PLACEHOLDER_MANAGER = 'manager.operasional@perusahaan-agri.co.id';
@@ -174,25 +172,26 @@ function getUserRole() {
   // If neither role is configured, deny all access
   if (!effectiveAdmin && !effectiveManager) return null;
 
-  const isAdmin = effectiveAdmin && (userEmail === effectiveAdmin || activeEmail === effectiveAdmin || effectiveEmail === effectiveAdmin);
-  const isManager = effectiveManager && (userEmail === effectiveManager || activeEmail === effectiveManager || effectiveEmail === effectiveManager);
+  const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
+  const isManager = effectiveManager && userEmail === effectiveManager;
 
   if (isAdmin && isManager) return 'both';
   if (isAdmin) return 'admin';
   if (isManager) return 'manager';
 
-  // Return null for unrecognized identity — deny access by default
+  // Unrecognized identity — deny by default
   return null;
 }
 
 /**
  * Returns active user email and role for client consumption.
+ * Uses only Session.getActiveUser() — never getEffectiveUser() (see getUserRole() for rationale).
  * @returns {Object} { email: string, role: string|null, isAuthorized: boolean }
  */
 function getUserIdentityInfo() {
   let userEmail = '';
   try {
-    userEmail = Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail() || '';
+    userEmail = (Session.getActiveUser().getEmail() || '').trim();
   } catch (e) {
     userEmail = '';
   }
