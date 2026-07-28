@@ -31,21 +31,25 @@
 
     <!-- Key Metrics Cards -->
     <div class="metrics-grid">
-      <div class="metric-card">
+      <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk membuka Admin Queue (Semua Pending)">
         <span class="metric-label">Total Laporan Masuk</span>
         <span class="metric-value" id="kpiTotalReports">0</span>
+        <span class="metric-trend metric-trend-neutral" id="trendTotal">▶ Buka Antrean</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">Total Hasil Panen (Kg)</span>
         <span class="metric-value" id="kpiTotalYield">0</span>
+        <span class="metric-trend metric-trend-up" id="trendYield">▲ Akumulasi Produksi</span>
       </div>
-      <div class="metric-card">
+      <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Admin Queue ke Insiden Urgent">
         <span class="metric-label">Insiden Urgent Flagged</span>
         <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
+        <span class="metric-trend metric-trend-down" id="trendUrgent">⚠ Perlu Tindakan</span>
       </div>
-      <div class="metric-card">
+      <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Admin Queue ke Laporan Sensitif">
         <span class="metric-label">Laporan Sensitif Restriksi</span>
         <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
+        <span class="metric-trend metric-trend-neutral" id="trendSensitive">🔒 Tab Terisolasi</span>
       </div>
     </div>
 
@@ -69,6 +73,28 @@
     let severityChartInstance = null;
     let siteChartInstance = null;
     let cachedStats = null;
+
+    function navigateToQueue(filter) {
+      let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
+      if (!baseUrl && typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
+        baseUrl = document.referrer.split('?')[0];
+      }
+      if (!baseUrl) {
+        try { baseUrl = (window.top || window).location.href.split('?')[0]; } catch(e) {}
+      }
+      if (!baseUrl) baseUrl = window.location.href.split('?')[0];
+
+      const targetUrl = `${baseUrl}?page=admin&filter=${filter}`;
+      try {
+        if (window.top && window.top.location) {
+          window.top.location.href = targetUrl;
+        } else {
+          window.location.href = targetUrl;
+        }
+      } catch (e) {
+        window.location.href = targetUrl;
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       // app.html's DOMContentLoaded also calls renderIdentityStrip() when userIdentityStrip exists.
@@ -134,6 +160,18 @@
       document.getElementById('kpiUrgent').innerText = urgentCount;
       document.getElementById('kpiSensitive').innerText = sensitiveCount;
 
+      // Update trend badges
+      const urgentTrend = document.getElementById('trendUrgent');
+      if (urgentTrend) {
+        if (urgentCount > 0) {
+          urgentTrend.className = 'metric-trend metric-trend-down';
+          urgentTrend.innerText = `⚠ ${urgentCount} Perlu Penanganan`;
+        } else {
+          urgentTrend.className = 'metric-trend metric-trend-up';
+          urgentTrend.innerText = `✓ Kondisi Aman`;
+        }
+      }
+
       // Render Chart 1: Severity Pie Chart
       if (severityChartInstance) severityChartInstance.destroy();
       const ctx1 = document.getElementById('severityChart').getContext('2d');
@@ -144,13 +182,15 @@
           datasets: [{
             data: [normalCount, warningCount, urgentCount],
             backgroundColor: ['#15803D', '#B45309', '#DC2626'],
-            borderWidth: 0
+            borderWidth: 2,
+            borderColor: '#ffffff'
           }]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: '#475569' } }
+            legend: { position: 'bottom', labels: { color: '#475569', font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 } } }
           }
         }
       });
@@ -166,17 +206,19 @@
             label: 'Total Laporan',
             data: siteCounts,
             backgroundColor: '#15803D',
-            borderRadius: 6
+            borderRadius: 6,
+            borderSkipped: false
           }]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           scales: {
-            x: { ticks: { color: '#475569' }, grid: { color: '#E2E8F0' } },
-            y: { ticks: { color: '#475569' }, grid: { color: '#E2E8F0' } }
+            x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: '#475569', precision: 0 }, grid: { color: '#F1F5F9' } }
           },
           plugins: {
-            legend: { labels: { color: '#475569' } }
+            legend: { display: false }
           }
         }
       });

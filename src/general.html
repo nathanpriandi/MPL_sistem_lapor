@@ -15,42 +15,64 @@
       <h1 class="card-title">Laporan Umum &amp; Catatan Lapangan</h1>
       <p class="card-subtitle">Gunakan formulir ini untuk melaporkan kejadian umum, insiden keselamatan, atau catatan khusus.</p>
 
-      <form id="generalForm">
-        <div class="form-group">
-          <label for="empId">Kode Karyawan / Employee ID <span class="required">*</span></label>
-          <input type="text" id="empId" placeholder="EMP-101" required>
+      <form id="generalForm" novalidate>
+        <div id="errorSummary" class="error-summary" style="display: none;">
+          <div class="error-summary-title">
+            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Mohon perbaiki formulir sebelum mengirim:
+          </div>
+          <ul id="errorSummaryList" class="error-summary-list"></ul>
         </div>
 
-        <div class="form-group">
-          <label for="site">Lokasi / Site <span class="required">*</span></label>
-          <select id="site" required>
-            <option value="">-- Pilih Lokasi Kerja --</option>
-            <option value="Site A — Kebun &amp; Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
-            <option value="Site B — Peternakan &amp; Kandang">Site B — Peternakan &amp; Kandang</option>
-            <option value="Site C — Pabrik Pengolahan &amp; Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
-            <option value="Site D — Logistik &amp; Gudang">Site D — Logistik &amp; Gudang</option>
-          </select>
+        <!-- Section 1: Identitas Pelapor -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            1. Informasi Pelapor &amp; Lokasi
+          </div>
+          <div class="form-group">
+            <label for="empId">Kode Karyawan / Employee ID <span class="required">*</span></label>
+            <input type="text" id="empId" placeholder="EMP-101" required>
+          </div>
+
+          <div class="form-group">
+            <label for="site">Lokasi / Site <span class="required">*</span></label>
+            <select id="site" required>
+              <option value="">-- Pilih Lokasi Kerja --</option>
+              <option value="Site A — Kebun &amp; Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
+              <option value="Site B — Peternakan &amp; Kandang">Site B — Peternakan &amp; Kandang</option>
+              <option value="Site C — Pabrik Pengolahan &amp; Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
+              <option value="Site D — Logistik &amp; Gudang">Site D — Logistik &amp; Gudang</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="reportDate">Tanggal Laporan <span class="required">*</span></label>
+            <input type="date" id="reportDate" required>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="reportDate">Tanggal Laporan <span class="required">*</span></label>
-          <input type="date" id="reportDate" required>
-        </div>
+        <!-- Section 2: Detail Catatan & Kronologi -->
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            2. Detail Laporan &amp; Pengaturan Kerahasian
+          </div>
+          <div class="form-group">
+            <label for="details">Rincian Laporan / Kronologi <span class="required">*</span></label>
+            <div class="help-text">Jelaskan aktivitas, kendala, atau kronologi kejadian secara detail.</div>
+            <textarea id="details" rows="5" placeholder="Contoh: Terjadi kebocoran pipa air utama di sektor 3..." required></textarea>
+          </div>
 
-        <div class="form-group">
-          <label for="details">Rincian Laporan / Kronologi <span class="required">*</span></label>
-          <div class="help-text">Jelaskan aktivitas, kendala, atau kronologi kejadian secara detail.</div>
-          <textarea id="details" rows="5" placeholder="Contoh: Terjadi kebocoran pipa air utama di sektor 3..." required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-card">
-            <input type="checkbox" id="isSensitive">
-            <div>
-              <strong>Informasi Sensitif? / Sensitive Information</strong>
-              <div class="help-text">Jika dicentang, laporan ini akan diisolasi khusus ke tab Sensitive_Restricted.</div>
-            </div>
-          </label>
+          <div class="form-group">
+            <label class="checkbox-card">
+              <input type="checkbox" id="isSensitive">
+              <div>
+                <strong>Informasi Sensitif? / Sensitive Information</strong>
+                <div class="help-text">Jika dicentang, laporan ini akan diisolasi khusus ke tab Sensitive_Restricted.</div>
+              </div>
+            </label>
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Kirim Laporan Umum</button>
@@ -62,8 +84,59 @@
   <script>
     document.getElementById('reportDate').valueAsDate = new Date();
 
+    function validateGeneralForm() {
+      const summary = document.getElementById('errorSummary');
+      const list = document.getElementById('errorSummaryList');
+      list.innerHTML = '';
+      const errors = [];
+
+      const empId = document.getElementById('empId');
+      if (!empId.value.trim()) {
+        errors.push({ id: 'empId', text: 'Kode Karyawan / Employee ID wajib diisi.' });
+      }
+
+      const site = document.getElementById('site');
+      if (!site.value) {
+        errors.push({ id: 'site', text: 'Lokasi / Site kerja wajib dipilih.' });
+      }
+
+      const reportDate = document.getElementById('reportDate');
+      if (!reportDate.value) {
+        errors.push({ id: 'reportDate', text: 'Tanggal Laporan wajib diisi.' });
+      }
+
+      const details = document.getElementById('details');
+      if (!details.value.trim()) {
+        errors.push({ id: 'details', text: 'Rincian Laporan / Kronologi wajib diisi.' });
+      }
+
+      if (errors.length > 0) {
+        errors.forEach(err => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="error-summary-link" onclick="focusField('${err.id}')">${err.text}</span>`;
+          list.appendChild(li);
+        });
+        summary.style.display = 'block';
+        summary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+
+      summary.style.display = 'none';
+      return true;
+    }
+
+    function focusField(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.focus();
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
     document.getElementById('generalForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      if (!validateGeneralForm()) return;
+
       const submitBtn = this.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       submitBtn.innerText = 'Mengirim...';
