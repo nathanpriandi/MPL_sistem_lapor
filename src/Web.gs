@@ -23,12 +23,17 @@ function doGet(e) {
   let file = allowed[pageParam];
 
   // Default landing page when no explicit ?page= parameter is provided.
-  // doGet() cannot distinguish which deployment (Public Access vs Admin & Manager) served the request,
-  // so a role-based default here incorrectly redirects authenticated admin/manager identities away from
-  // the public form even when they're legitimately testing or using it via the Public Access URL.
-  // The internal console must only ever be reached via an explicit ?page=admin or ?page=dashboard link.
+  // Resolves to role-appropriate view if authenticated (manager -> dashboard, admin/both -> admin).
+  // Defaults to 'index' (Daily Form) for public or unauthorized visitors.
+  // Gated by downstream deployment check (!isInternalDeployment) to restrict Deployment A.
   if (!file) {
-    file = 'index';
+    if (userRole === 'manager') {
+      file = 'dashboard';
+    } else if (userRole) {
+      file = 'admin';
+    } else {
+      file = 'index';
+    }
   }
 
   // Access control: strict per-role RBAC (Option A — as documented in ADMIN_MANUAL.md)
