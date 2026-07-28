@@ -76,7 +76,7 @@
     </div>
   </div>
 
-  <?!= include('app'); ?>
+  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
   <script>
     document.getElementById('reportDate').valueAsDate = new Date();
 

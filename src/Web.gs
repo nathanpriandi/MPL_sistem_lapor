@@ -111,6 +111,7 @@ function getCanonicalWebAppUrl() {
 /**
  * Returns true only when the currently executing Web App URL matches the
  * explicitly configured internal deployment URL.
+ * Compares deployment IDs if available to tolerate /u/N/ profile segment differences.
  * If either side is missing/invalid, the check is intentionally false.
  * @returns {boolean}
  */
@@ -122,7 +123,52 @@ function isInternalWebAppDeployment() {
     return false;
   }
 
+  const serviceId = extractDeploymentId_(serviceUrl);
+  const internalId = extractDeploymentId_(internalUrl);
+
+  if (serviceId && internalId) {
+    return serviceId === internalId;
+  }
+
   return normalizeWebAppUrl_(serviceUrl) === normalizeWebAppUrl_(internalUrl);
+}
+
+/**
+ * Extracts deployment ID from Apps Script Web App URL.
+ * Handles standard URLs and URLs containing /u/N/ profile path segments.
+ * @param {string} url
+ * @returns {string}
+ */
+function extractDeploymentId_(url) {
+  const match = String(url || '').match(/\/s\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : '';
+}
+
+/**
+ * Returns deployment diagnostics for Admin/Manager troubleshooting.
+ * Privileged operation — requires authenticated Admin or Manager role.
+ * @returns {Object} Diagnostic details.
+ */
+function getDeploymentDiagnostics() {
+  const role = getUserRole();
+  if (!role) {
+    throw new Error('Akses ditolak: Hanya Admin/Manager yang dapat mengakses diagnosa.');
+  }
+
+  const serviceUrl = getExecutingWebAppUrl_();
+  const publicUrl = getConfiguredWebAppUrl_('PUBLIC_WEB_APP_URL');
+  const internalUrl = getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
+
+  return {
+    executingUrl: serviceUrl,
+    configuredPublicUrl: publicUrl,
+    configuredInternalUrl: internalUrl,
+    executingDeploymentId: extractDeploymentId_(serviceUrl),
+    publicDeploymentId: extractDeploymentId_(publicUrl),
+    internalDeploymentId: extractDeploymentId_(internalUrl),
+    isInternalDeployment: isInternalWebAppDeployment(),
+    userRole: role
+  };
 }
 
 /**
@@ -195,10 +241,27 @@ function renderAccessRestricted(title, reason) {
 
 /**
  * Helper to include external HTML components (CSS/JS).
- * Usage in HTML: <?!= include('style'); ?> or <?!= include('app'); ?>
+ * Usage in HTML: <?!= include('style'); ?>
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Injects client configuration variables into a script tag preceding app.html contents.
+ * Evaluates dynamically per request to ensure valid client variables.
+ * @param {string} webAppUrl
+ * @param {string} urgentKeywordsJson
+ * @param {string} warningKeywordsJson
+ * @returns {string}
+ */
+function includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson) {
+  const scriptTag = '<script>\n' +
+    '  window.SERVER_WEB_APP_URL = ' + JSON.stringify(webAppUrl || '') + ';\n' +
+    '  window.SERVER_URGENT_KEYWORDS = ' + (urgentKeywordsJson || '[]') + ';\n' +
+    '  window.SERVER_WARNING_KEYWORDS = ' + (warningKeywordsJson || '[]') + ';\n' +
+    '</script>\n';
+  return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
 }
 
 /**

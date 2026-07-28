@@ -4,10 +4,8 @@
  * Digital Reporting System
  */
 
-// Server-injected base web app URL
-try {
-  window.SERVER_WEB_APP_URL = '<?!= webAppUrl ?>';
-} catch (e) {
+// Server-injected base web app URL (populated on window by includeApp)
+if (typeof window.SERVER_WEB_APP_URL === 'undefined') {
   window.SERVER_WEB_APP_URL = '';
 }
 
@@ -69,14 +67,11 @@ function navigateToPage(pageName, anchorEl) {
   }
 }
 
-// Server-injected authoritative keywords from Automation.gs
-try {
-  const urgentRaw = '<?!= urgentKeywordsJson ?>';
-  const warningRaw = '<?!= warningKeywordsJson ?>';
-  window.SERVER_URGENT_KEYWORDS = (urgentRaw && urgentRaw.startsWith('[')) ? JSON.parse(urgentRaw) : null;
-  window.SERVER_WARNING_KEYWORDS = (warningRaw && warningRaw.startsWith('[')) ? JSON.parse(warningRaw) : null;
-} catch (e) {
+// Authoritative triage keywords (populated on window by includeApp)
+if (typeof window.SERVER_URGENT_KEYWORDS === 'undefined') {
   window.SERVER_URGENT_KEYWORDS = null;
+}
+if (typeof window.SERVER_WARNING_KEYWORDS === 'undefined') {
   window.SERVER_WARNING_KEYWORDS = null;
 }
 

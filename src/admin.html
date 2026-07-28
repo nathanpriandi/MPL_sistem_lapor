@@ -25,6 +25,10 @@
           <span style="font-size: 0.85rem; color: var(--color-gray-500);">Memuat tautan...</span>
         </div>
       </div>
+      <details style="margin-top: 0.75rem; border-top: 1px solid var(--color-gray-200); padding-top: 0.5rem; font-size: 0.8rem;" id="diagnosticsDetails">
+        <summary style="cursor: pointer; font-weight: 600; color: var(--color-gray-700); user-select: none;">🔧 Deployment Diagnostics</summary>
+        <div id="diagnosticsContent" style="margin-top: 0.5rem; font-family: monospace; background: #f8fafc; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--color-gray-200); white-space: pre-wrap; font-size: 0.75rem; color: var(--color-gray-800);">Memuat diagnosa deployment...</div>
+      </details>
     </div>
 
     <div class="card">
@@ -128,7 +132,7 @@
     </div>
   </div>
 
-  <?!= include('app'); ?>
+  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
   <script>
     let rawQueueData = [];
     let currentFilteredData = [];
@@ -141,6 +145,7 @@
       // renderIdentityStrip() is called centrally by app.html's DOMContentLoaded
       // when userIdentityStrip is present, so no duplicate call needed here.
       loadQuickLinks();
+      loadDiagnostics();
       fetchAndRenderQueue();
 
       // Soft auto-refresh every 60 seconds (pausable on user interaction)
@@ -176,6 +181,33 @@
       container.innerHTML = `
         <span class="badge badge-neutral">Local Mode — Quick links live di Google Apps Script</span>
       `;
+    }
+
+    async function loadDiagnostics() {
+      const container = document.getElementById('diagnosticsContent');
+      if (!container) return;
+
+      if (isLiveServer()) {
+        try {
+          const diag = await runServer('getDeploymentDiagnostics');
+          if (diag) {
+            container.innerText = `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
+              `Executing ID  : ${diag.executingDeploymentId || '(none)'}\n` +
+              `Public URL    : ${diag.configuredPublicUrl || '(belum dikonfigurasi)'}\n` +
+              `Public ID     : ${diag.publicDeploymentId || '(none)'}\n` +
+              `Internal URL  : ${diag.configuredInternalUrl || '(belum dikonfigurasi)'}\n` +
+              `Internal ID   : ${diag.internalDeploymentId || '(none)'}\n` +
+              `Is Internal   : ${diag.isInternalDeployment ? '✅ YES (Recognized as Deployment B)' : '❌ NO (Deployment match failed)'}\n` +
+              `Active Role   : ${diag.userRole || 'unauthorized'}`;
+            return;
+          }
+        } catch (e) {
+          container.innerText = 'Gagal memuat diagnosa: ' + e.message;
+          return;
+        }
+      }
+
+      container.innerText = 'Local Mode Preview — Server diagnostics live di Google Apps Script.';
     }
 
     function toggleAdvancedFilters() {
