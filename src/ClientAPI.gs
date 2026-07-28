@@ -287,13 +287,12 @@ function getAdminQuickLinks() {
   const ssId = props.getProperty('SPREADSHEET_ID') || '';
   const dailyFormId = props.getProperty('DAILY_FORM_ID') || '';
   const generalFormId = props.getProperty('GENERAL_FORM_ID') || '';
-  const webAppUrl = getCanonicalWebAppUrl();
+  const publicWebAppUrl = (props.getProperty('PUBLIC_WEB_APP_URL') || '').trim();
 
   return {
     spreadsheetUrl: ssId ? `https://docs.google.com/spreadsheets/d/${ssId}/edit` : '',
     dailyFormEditUrl: dailyFormId ? `https://docs.google.com/forms/d/${dailyFormId}/edit` : '',
     generalFormEditUrl: generalFormId ? `https://docs.google.com/forms/d/${generalFormId}/edit` : '',
-    publicWebAppUrl: webAppUrl ? (webAppUrl.includes('?') ? webAppUrl : `${webAppUrl}?page=index`) : ''
+    publicWebAppUrl: publicWebAppUrl ? (publicWebAppUrl.includes('?') ? publicWebAppUrl : `${publicWebAppUrl}?page=index`) : ''
   };
 }
-

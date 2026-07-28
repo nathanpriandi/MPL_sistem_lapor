@@ -17,25 +17,32 @@ function doGet(e) {
   };
 
   const userRole = getUserRole();
+  const isInternalDeployment = isInternalWebAppDeployment();
+  const templateUserRole = isInternalDeployment ? userRole : null;
 
   let file = allowed[pageParam];
 
   // Default landing page when no explicit ?page= parameter is provided.
-  // Must be role-aware: defaulting any authenticated user to 'admin' locks out managers.
+  // doGet() cannot distinguish which deployment (Public Access vs Admin & Manager) served the request,
+  // so a role-based default here incorrectly redirects authenticated admin/manager identities away from
+  // the public form even when they're legitimately testing or using it via the Public Access URL.
+  // The internal console must only ever be reached via an explicit ?page=admin or ?page=dashboard link.
   if (!file) {
-    if (userRole === 'manager') {
-      file = 'dashboard'; // Managers land on Manager Dashboard
-    } else if (userRole) {
-      file = 'admin'; // Admin and 'both' roles land on Admin Queue
-    } else {
-      file = 'index'; // Public / Field staff land on Daily Form
-    }
+    file = 'index';
   }
 
   // Access control: strict per-role RBAC (Option A — as documented in ADMIN_MANUAL.md)
   // admin  → Admin Queue only
   // manager → Manager Dashboard only
   // both   → both pages allowed
+  if ((file === 'admin' || file === 'dashboard') && !isInternalDeployment) {
+    return renderAccessRestricted(
+      'Akses Internal Console Tidak Tersedia di Deployment Ini',
+      'Halaman Admin Queue dan Manager Dashboard hanya tersedia melalui Deployment B (Internal Operations Console). ' +
+      'Gunakan tautan internal resmi yang memiliki akses Google account.'
+    );
+  }
+
   if (file === 'admin' || file === 'dashboard') {
     if (!userRole) {
       return renderAccessRestricted(
@@ -63,7 +70,7 @@ function doGet(e) {
   const webAppUrl = getCanonicalWebAppUrl();
 
   template.webAppUrl = webAppUrl;
-  template.userRole = userRole;
+  template.userRole = templateUserRole;
   template.currentPage = file;
   template.urgentKeywordsJson = JSON.stringify(typeof URGENT_KEYWORDS !== 'undefined' ? URGENT_KEYWORDS : []);
   template.warningKeywordsJson = JSON.stringify(typeof WARNING_KEYWORDS !== 'undefined' ? WARNING_KEYWORDS : []);
@@ -76,27 +83,88 @@ function doGet(e) {
 
 /**
  * Safely resolves the canonical Web App deployment URL.
- * Falls back to WEB_APP_URL script property if getService().getUrl() is empty or invalid.
+ * Uses the executing deployment URL when Apps Script exposes it. If unavailable,
+ * falls back to the explicit deployment URL properties. PUBLIC_WEB_APP_URL is
+ * preferred because an inconclusive deployment check is treated as public.
  * @returns {string} Canonical base URL.
  */
 function getCanonicalWebAppUrl() {
-  const props = PropertiesService.getScriptProperties();
-  const configuredUrl = (props.getProperty('WEB_APP_URL') || '').trim();
+  const serviceUrl = getExecutingWebAppUrl_();
 
-  let serviceUrl = '';
-  try {
-    serviceUrl = (ScriptApp.getService().getUrl() || '').trim();
-  } catch (err) {
-    Logger.log('Notice: ScriptApp.getService().getUrl() unavailable.');
-  }
-
-  if (serviceUrl && serviceUrl.includes('script.google.com')) {
+  if (isValidWebAppUrl_(serviceUrl)) {
     return serviceUrl;
   }
-  if (configuredUrl && configuredUrl.includes('script.google.com')) {
-    return configuredUrl;
+
+  const publicUrl = getConfiguredWebAppUrl_('PUBLIC_WEB_APP_URL');
+  if (publicUrl) {
+    return publicUrl;
   }
+
+  const internalUrl = getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
+  if (internalUrl) {
+    return internalUrl;
+  }
+
   return serviceUrl;
+}
+
+/**
+ * Returns true only when the currently executing Web App URL matches the
+ * explicitly configured internal deployment URL.
+ * If either side is missing/invalid, the check is intentionally false.
+ * @returns {boolean}
+ */
+function isInternalWebAppDeployment() {
+  const serviceUrl = getExecutingWebAppUrl_();
+  const internalUrl = getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
+
+  if (!isValidWebAppUrl_(serviceUrl) || !internalUrl) {
+    return false;
+  }
+
+  return normalizeWebAppUrl_(serviceUrl) === normalizeWebAppUrl_(internalUrl);
+}
+
+/**
+ * Reads and validates a configured Web App URL from Script Properties.
+ * @param {string} propertyName
+ * @returns {string}
+ */
+function getConfiguredWebAppUrl_(propertyName) {
+  const props = PropertiesService.getScriptProperties();
+  const configuredUrl = (props.getProperty(propertyName) || '').trim();
+
+  return isValidWebAppUrl_(configuredUrl) ? configuredUrl : '';
+}
+
+/**
+ * Reads the URL of the deployment currently serving this request.
+ * @returns {string}
+ */
+function getExecutingWebAppUrl_() {
+  try {
+    return (ScriptApp.getService().getUrl() || '').trim();
+  } catch (err) {
+    Logger.log('Notice: ScriptApp.getService().getUrl() unavailable.');
+    return '';
+  }
+}
+
+/**
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isValidWebAppUrl_(url) {
+  return !!(url && url.indexOf('script.google.com') !== -1);
+}
+
+/**
+ * Normalizes a Web App URL for equality checks.
+ * @param {string} url
+ * @returns {string}
+ */
+function normalizeWebAppUrl_(url) {
+  return String(url || '').trim().split('?')[0].replace(/\/+$/, '');
 }
 
 /**
@@ -131,6 +199,21 @@ function renderAccessRestricted(title, reason) {
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Evaluates the shared header partial with page-level template variables.
+ * @param {'admin' | 'manager' | 'both' | null} userRole
+ * @param {string} currentPage
+ * @param {string} webAppUrl
+ * @returns {string}
+ */
+function includeHeader(userRole, currentPage, webAppUrl) {
+  const template = HtmlService.createTemplateFromFile('header');
+  template.userRole = userRole;
+  template.currentPage = currentPage;
+  template.webAppUrl = webAppUrl;
+  return template.evaluate().getContent();
 }
 
 /**

@@ -38,9 +38,13 @@ function navigateToPage(pageName, anchorEl) {
 
   // Recovery 3: try current window location (works if top-level, not in sandbox)
   if (!baseUrl || !baseUrl.includes('script.google.com')) {
-    const loc = (window.top || window).location.href;
-    if (loc && loc.includes('script.google.com')) {
-      baseUrl = loc.split('?')[0];
+    try {
+      const loc = (window.top || window).location.href;
+      if (loc && loc.includes('script.google.com')) {
+        baseUrl = loc.split('?')[0];
+      }
+    } catch (e) {
+      console.warn('Unable to read top-level URL for navigation fallback:', e);
     }
   }
 

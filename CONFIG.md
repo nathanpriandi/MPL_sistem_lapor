@@ -15,6 +15,16 @@ After running `setupReportingSystem()`, you must set the following properties in
 | `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` |
 | `DAILY_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` |
 | `GENERAL_FORM_ID` | `1K2l3M4n5O...` | Generated automatically by `Setup.gs` |
+| `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment A URL for the public field-staff portal. Set manually after Deployment A is created. |
+| `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment B URL for Admin Queue and Manager Dashboard. Set manually after Deployment B is created. |
+
+`WEB_APP_URL` is retired. Use the explicit `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` properties instead so public quick links and internal navigation cannot be confused.
+
+## 1.1 Google Script Properties (Optional Operational Tuning)
+
+| Property Name | Example / Expected Value | Description |
+|---|---|---|
+| `RETENTION_DAYS` | `90` | Optional archive threshold for `archiveOldReports()`. If unset or invalid, the system uses the safe default of 90 days. |
 
 ---
 
