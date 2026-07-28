@@ -8,30 +8,12 @@
 </head>
 <body>
 
-  <header>
-    <div class="nav-container">
-      <a href="?page=index" target="_top" class="logo">
-        <span class="logo-badge">AGRI-DIGITAL</span>
-        <span>Sistem Pelaporan</span>
-      </a>
-      <nav>
-        <a href="?page=index" target="_top" class="nav-link active">Daily Form</a>
-        <a href="?page=general" target="_top" class="nav-link">General Form</a>
-        <a href="?page=admin" target="_top" class="nav-link">Admin Queue</a>
-        <a href="?page=dashboard" target="_top" class="nav-link">Manager Dashboard</a>
-      </nav>
-    </div>
-  </header>
+  <?!= includeHeader(userRole, currentPage, webAppUrl); ?>
 
   <div class="container">
     <div class="card">
       <h1 class="card-title">Laporan Operasional Harian</h1>
       <p class="card-subtitle">Silakan isi laporan aktivitas harian Anda. Pengisian memerlukan waktu &lt; 2 menit.</p>
-
-      <div id="alertBox" class="alert-banner alert-success" hidden>
-        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-        <span>Laporan harian berhasil dikirim dan dicatat ke sistem central!</span>
-      </div>
 
       <form id="dailyForm">
         <div class="form-group">
@@ -44,10 +26,10 @@
           <label for="site">Lokasi / Site <span class="required">*</span></label>
           <select id="site" required>
             <option value="">-- Pilih Lokasi Kerja --</option>
-            <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun & Lahan Pertanian</option>
-            <option value="Site B — Peternakan & Kandang">Site B — Peternakan & Kandang</option>
-            <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan & Pakan</option>
-            <option value="Site D — Logistik & Gudang">Site D — Logistik & Gudang</option>
+            <option value="Site A — Kebun &amp; Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
+            <option value="Site B — Peternakan &amp; Kandang">Site B — Peternakan &amp; Kandang</option>
+            <option value="Site C — Pabrik Pengolahan &amp; Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
+            <option value="Site D — Logistik &amp; Gudang">Site D — Logistik &amp; Gudang</option>
           </select>
         </div>
 
@@ -94,12 +76,16 @@
     </div>
   </div>
 
-  <?!= include('app'); ?>
+  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
   <script>
     document.getElementById('reportDate').valueAsDate = new Date();
 
     document.getElementById('dailyForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      const submitBtn = this.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Mengirim...';
+
       const empId = document.getElementById('empId').value;
       const site = document.getElementById('site').value;
       const date = document.getElementById('reportDate').value;
@@ -111,37 +97,40 @@
 
       const payload = { empId, site, date, taskStatus: status, yieldKg, issues };
 
-      if (isLiveServer()) {
-        try {
+      try {
+        if (isLiveServer()) {
           await runServer('submitDailyReport', payload);
-        } catch (err) {
-          console.error('Server error during submitDailyReport:', err);
+        } else {
+          const flag = evaluateFlags(status + ' ' + issues.join(' '));
+          const db = getDB();
+          db.dailyReports.unshift({
+            id: 'REC-' + Date.now(),
+            timestamp: formatDateNow(),
+            empId: empId,
+            site: site,
+            date: date,
+            status: status,
+            yield: yieldKg,
+            issues: issues,
+            severity: flag.severity,
+            rank: flag.rank,
+            category: flag.category,
+            reviewStatus: 'Unreviewed'
+          });
+          saveDB(db);
         }
-      } else {
-        const flag = evaluateFlags(status + ' ' + issues.join(' '));
-        const db = getDB();
-        db.dailyReports.unshift({
-          id: 'REC-' + Date.now(),
-          timestamp: formatDateNow(),
-          empId: empId,
-          site: site,
-          date: date,
-          status: status,
-          yield: yieldKg,
-          issues: issues,
-          severity: flag.severity,
-          rank: flag.rank,
-          category: flag.category,
-          reviewStatus: 'Unreviewed'
-        });
-        saveDB(db);
-      }
 
-      const alertBox = document.getElementById('alertBox');
-      alertBox.removeAttribute('hidden');
-      this.reset();
-      document.getElementById('reportDate').valueAsDate = new Date();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        showToast('Laporan harian berhasil dikirim dan dicatat ke sistem!', 'success');
+        this.reset();
+        document.getElementById('reportDate').valueAsDate = new Date();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        console.error('Submit error:', err);
+        showToast('Gagal mengirim laporan. Periksa koneksi Anda.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Kirim Laporan Harian';
+      }
     });
   </script>
 </body>

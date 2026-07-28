@@ -23,9 +23,12 @@ Data yang dikumpulkan digunakan semata-mata untuk:
 ### 3. Pengolahan Data Sensitif
 Laporan yang ditandai sebagai **Informasi Sensitif** akan diisolasi secara otomatis ke dalam penyimpanan khusus yang hanya dapat diakses oleh **Admin Operasional Terbatas** dan **General Manager**. Data tersebut tidak dipublikasikan ke antrean umum.
 
-### 4. Keamanan & Penyiapan Data
-Seluruh data disimpan dalam infrastruktur terenkripsi Google Cloud / Google Workspace yang mematuhi standar keamanan internasional. Data tidak akan dijual atau dibagikan kepada pihak ketiga di luar kepentingan operasional legal perusahaan.
+### 5. Masa Retensi & Pengarsipan Data (Data Minimization)
+Sesuai dengan prinsip minimisasi data dalam Pasal 16 UU PDP:
+- Laporan yang telah berstatus selesai (`Closed`) dan telah berumur lebih dari 90 hari akan dipindahkan secara otomatis dari penyimpanan aktif ke dalam **Arsip Terenkripsi (`Archive_Reports`)**.
+- Data operasional aktif hanya disimpan selama diperlukan untuk kegiatan operasional harian dan evaluasi mingguan perusahaan.
 
 ---
 
 *Pemberitahuan ini disediakan dalam bahasa Indonesia yang ringkas dan jelas agar dipahami oleh seluruh staf dan karyawan lapangan.*
+

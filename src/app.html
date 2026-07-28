@@ -4,27 +4,115 @@
  * Digital Reporting System
  */
 
-// Triage Keyword Engine matching Automation.gs
-const URGENT_KEYWORDS = [
+// Server-injected base web app URL (populated on window by includeApp)
+if (typeof window.SERVER_WEB_APP_URL === 'undefined') {
+  window.SERVER_WEB_APP_URL = '';
+}
+
+/**
+ * Safe navigation helper to prevent top-level navigation to googleusercontent.com sandbox.
+ * Resolves base script.google.com URL from server variable, document.referrer, anchor href, or current URL.
+ * Falls back to the calling anchor element's own href if all other sources fail.
+ * @param {string} pageName - Target page name (e.g. 'admin', 'dashboard', 'index', 'general')
+ * @param {HTMLAnchorElement|null} [anchorEl=null] - The anchor element that triggered navigation (optional fallback)
+ */
+function navigateToPage(pageName, anchorEl) {
+  let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
+
+  // Recovery 1: try document.referrer (only valid in Apps Script iframe context)
+  if (!baseUrl || !baseUrl.includes('script.google.com')) {
+    if (typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
+      baseUrl = document.referrer.split('?')[0];
+    }
+  }
+
+  // Recovery 2: try to derive base from the anchor element's href attribute
+  if ((!baseUrl || !baseUrl.includes('script.google.com')) && anchorEl && anchorEl.href) {
+    const anchorHref = anchorEl.href;
+    if (anchorHref.includes('script.google.com')) {
+      baseUrl = anchorHref.split('?')[0];
+    }
+  }
+
+  // Recovery 3: try current window location (works if top-level, not in sandbox)
+  if (!baseUrl || !baseUrl.includes('script.google.com')) {
+    try {
+      const loc = (window.top || window).location.href;
+      if (loc && loc.includes('script.google.com')) {
+        baseUrl = loc.split('?')[0];
+      }
+    } catch (e) {
+      console.warn('Unable to read top-level URL for navigation fallback:', e);
+    }
+  }
+
+  if (baseUrl && baseUrl.includes('script.google.com')) {
+    const cleanUrl = baseUrl.split('?')[0];
+    const targetUrl = `${cleanUrl}?page=${pageName}`;
+    try {
+      if (window.top && window.top.location) {
+        window.top.location.href = targetUrl;
+      } else {
+        window.location.href = targetUrl;
+      }
+    } catch (e) {
+      // Cross-origin restriction — navigate the inner frame directly
+      window.location.href = targetUrl;
+    }
+  } else {
+    // Local preview fallback: update ?page= query param in current URL
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('page', pageName);
+    window.location.search = urlParams.toString();
+  }
+}
+
+// Authoritative triage keywords (populated on window by includeApp)
+if (typeof window.SERVER_URGENT_KEYWORDS === 'undefined') {
+  window.SERVER_URGENT_KEYWORDS = null;
+}
+if (typeof window.SERVER_WARNING_KEYWORDS === 'undefined') {
+  window.SERVER_WARNING_KEYWORDS = null;
+}
+
+
+
+// Fallback Triage Keyword Engine matching Automation.gs
+const FALLBACK_URGENT_KEYWORDS = [
   'kecelakaan', 'kebakaran', 'banjir', 'darurat', 'cedera', 'korban',
   'rusak berat', 'bocor', 'meledak', 'mati total', 'patah', 'tumbang',
   'hama', 'wabah', 'penyakit', 'mati masal', 'terkontaminasi', 'keracunan', 'pestisida'
 ];
 
-const WARNING_KEYWORDS = [
+const FALLBACK_WARNING_KEYWORDS = [
   'kurang', 'terlambat', 'lambat', 'habis', 'tertunda', 'stok tipis',
   'mogok', 'rusak ringan', 'bising', 'bocor halus', 'baterai lemah',
   'hujan deras', 'angin kencang', 'becek', 'akses tertutup', 'equipment'
 ];
 
+function getUrgentKeywords() {
+  return (typeof window !== 'undefined' && window.SERVER_URGENT_KEYWORDS && window.SERVER_URGENT_KEYWORDS.length)
+    ? window.SERVER_URGENT_KEYWORDS
+    : FALLBACK_URGENT_KEYWORDS;
+}
+
+function getWarningKeywords() {
+  return (typeof window !== 'undefined' && window.SERVER_WARNING_KEYWORDS && window.SERVER_WARNING_KEYWORDS.length)
+    ? window.SERVER_WARNING_KEYWORDS
+    : FALLBACK_WARNING_KEYWORDS;
+}
+
 function evaluateFlags(text) {
   const fullText = (text || '').toLowerCase();
-  for (let k of URGENT_KEYWORDS) {
+  const urgentList = getUrgentKeywords();
+  const warningList = getWarningKeywords();
+
+  for (let k of urgentList) {
     if (fullText.includes(k)) {
       return { severity: 'urgent', rank: 1, category: k.includes('hama') || k.includes('wabah') ? 'biological/outbreak' : 'incident' };
     }
   }
-  for (let k of WARNING_KEYWORDS) {
+  for (let k of warningList) {
     if (fullText.includes(k)) {
       return { severity: 'warning', rank: 2, category: k.includes('hujan') ? 'weather_impact' : 'operational_delay' };
     }
@@ -53,6 +141,135 @@ function runServer(fnName, ...args) {
  */
 function isLiveServer() {
   return typeof google !== 'undefined' && google && google.script && google.script.run;
+}
+
+/**
+ * Toast / Snackbar Notification Engine
+ */
+function showToast(message, type = 'info', duration = 3500) {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  let iconHtml = '';
+  if (type === 'success') {
+    iconHtml = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
+  } else if (type === 'error') {
+    iconHtml = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>';
+  } else if (type === 'warning') {
+    iconHtml = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>';
+  } else {
+    iconHtml = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+  }
+
+  toast.innerHTML = `
+    <div class="toast-content">
+      ${iconHtml}
+      <span>${message}</span>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-fade-out');
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 300);
+  }, duration);
+}
+
+/**
+ * CSV Exporter Helper
+ */
+function downloadCSV(filename, headers, rows) {
+  const escapeCell = (val) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const csvContent = [
+    headers.map(escapeCell).join(','),
+    ...rows.map(row => row.map(escapeCell).join(','))
+  ].join('\r\n');
+
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Renders user identity strip in Internal Console header
+ */
+async function renderIdentityStrip() {
+  const stripEl = document.getElementById('userIdentityStrip');
+  if (!stripEl) return;
+
+  if (isLiveServer()) {
+    try {
+      const info = await runServer('getUserIdentityInfo');
+      if (info && info.email) {
+        let roleBadge = '';
+        if (info.role === 'both') {
+          roleBadge = '<span class="badge badge-primary">Admin &amp; Manager</span>';
+        } else if (info.role === 'admin') {
+          roleBadge = '<span class="badge badge-primary">Admin Operasional</span>';
+        } else if (info.role === 'manager') {
+          roleBadge = '<span class="badge badge-normal">Executive Manager</span>';
+        } else {
+          // Unknown/unauthorized — don't display internal badge
+          roleBadge = '<span class="badge badge-neutral">Tamu</span>';
+        }
+
+        stripEl.innerHTML = `
+          <div class="user-identity">
+            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="user-email">${info.email}</span>
+            ${roleBadge}
+          </div>
+        `;
+        
+        // Show only nav links the user's role actually permits
+        _showInternalNavLinks(info.role);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to get user identity:', err);
+    }
+  }
+
+  // Fallback for local preview mode — show all nav links
+  stripEl.innerHTML = `
+    <div class="user-identity">
+      <span class="user-email">local.dev@agri.co.id</span>
+      <span class="badge badge-neutral">Local Preview</span>
+    </div>
+  `;
+  _showInternalNavLinks('both'); // In local preview, show all internal links
+}
+
+/**
+ * Nav link visibility is now managed server-side via template conditionals.
+ * This function is intentionally a no-op; kept to avoid call-site errors.
+ * @param {string} [role] - 'admin', 'manager', 'both', or null
+ */
+function _showInternalNavLinks(role) {
+  // no-op: server-side conditionals render only the correct links for each role.
 }
 
 // Local Database Fallback Initialization
@@ -86,4 +303,26 @@ function formatDateNow() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
+
+// On DOMContentLoaded: populate the identity strip and show local preview notice.
+// Nav link visibility is now handled entirely server-side via template conditionals
+// (<?= if (userRole === ...) { ?>) — no client-side hiding or restoration needed.
+document.addEventListener('DOMContentLoaded', () => {
+  // Populate the identity strip (email + role badge) for pages where the user is authenticated.
+  // The strip element is only rendered server-side when userRole is truthy.
+  const identityStrip = document.getElementById('userIdentityStrip');
+  if (identityStrip && !identityStrip.dataset.populated) {
+    identityStrip.dataset.populated = '1'; // prevent double-call if page also calls it
+    renderIdentityStrip();
+  }
+
+  if (!isLiveServer()) {
+    const banner = document.createElement('div');
+    banner.className = 'alert-banner alert-warning';
+    banner.style.margin = '1rem auto';
+    banner.style.maxWidth = '1200px';
+    banner.innerHTML = '<strong>MODE PREVIEW LOKAL:</strong> Menggunakan penyimpanan data lokal (localStorage). Data tidak tersimpan ke Google Sheets live.';
+    document.body.insertBefore(banner, document.body.firstChild);
+  }
+});
 </script>

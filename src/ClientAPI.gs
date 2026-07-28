@@ -277,3 +277,22 @@ function getDashboardStats() {
     siteCounts: siteCounts
   };
 }
+
+/**
+ * Returns direct quick links for Admin/Manager workspace resources.
+ * @returns {Object} { spreadsheetUrl, dailyFormEditUrl, generalFormEditUrl, publicWebAppUrl }
+ */
+function getAdminQuickLinks() {
+  const props = PropertiesService.getScriptProperties();
+  const ssId = props.getProperty('SPREADSHEET_ID') || '';
+  const dailyFormId = props.getProperty('DAILY_FORM_ID') || '';
+  const generalFormId = props.getProperty('GENERAL_FORM_ID') || '';
+  const publicWebAppUrl = (props.getProperty('PUBLIC_WEB_APP_URL') || '').trim();
+
+  return {
+    spreadsheetUrl: ssId ? `https://docs.google.com/spreadsheets/d/${ssId}/edit` : '',
+    dailyFormEditUrl: dailyFormId ? `https://docs.google.com/forms/d/${dailyFormId}/edit` : '',
+    generalFormEditUrl: generalFormId ? `https://docs.google.com/forms/d/${generalFormId}/edit` : '',
+    publicWebAppUrl: publicWebAppUrl ? (publicWebAppUrl.includes('?') ? publicWebAppUrl : `${publicWebAppUrl}?page=index`) : ''
+  };
+}
