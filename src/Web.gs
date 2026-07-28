@@ -8,35 +8,59 @@
  * Routes to index, general, admin, or dashboard HTML views.
  */
 function doGet(e) {
-  const pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : 'index').toLowerCase().trim();
+  const pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : '').toLowerCase().trim();
   const allowed = { 
     index: 'index', 
     general: 'general', 
     admin: 'admin', 
     dashboard: 'dashboard' 
   };
-  const file = allowed[pageParam] || 'index';
 
   const userRole = getUserRole();
 
-  // Access control check for internal admin and manager dashboards
+  let file = allowed[pageParam];
+
+  // Default landing page when no explicit ?page= parameter is provided.
+  // Must be role-aware: defaulting any authenticated user to 'admin' locks out managers.
+  if (!file) {
+    if (userRole === 'manager') {
+      file = 'dashboard'; // Managers land on Manager Dashboard
+    } else if (userRole) {
+      file = 'admin'; // Admin and 'both' roles land on Admin Queue
+    } else {
+      file = 'index'; // Public / Field staff land on Daily Form
+    }
+  }
+
+  // Access control: strict per-role RBAC (Option A — as documented in ADMIN_MANUAL.md)
+  // admin  → Admin Queue only
+  // manager → Manager Dashboard only
+  // both   → both pages allowed
   if (file === 'admin' || file === 'dashboard') {
     if (!userRole) {
       return renderAccessRestricted(
-        '🔒 Akses Internal Console Terbatas', 
+        '🔒 Akses Internal Console Terbatas',
         'Halaman ini hanya dapat diakses oleh Admin Operasional dan Manager yang terdaftar dalam sistem.'
+      );
+    }
+    if (file === 'admin' && userRole === 'manager') {
+      return renderAccessRestricted(
+        '🔒 Akses Ditolak — Hak Akses Tidak Memadai',
+        'Peran Anda (Manager) hanya dapat mengakses halaman <strong>Manager Dashboard</strong>. ' +
+        'Silakan hubungi Admin Operasional jika Anda membutuhkan akses ke Antrean Triage Admin.'
+      );
+    }
+    if (file === 'dashboard' && userRole === 'admin') {
+      return renderAccessRestricted(
+        '🔒 Akses Ditolak — Hak Akses Tidak Memadai',
+        'Peran Anda (Admin Operasional) hanya dapat mengakses halaman <strong>Admin Queue</strong>. ' +
+        'Silakan hubungi Manager jika Anda membutuhkan akses ke Manager Dashboard.'
       );
     }
   }
 
   const template = HtmlService.createTemplateFromFile(file);
-
-  let webAppUrl = '';
-  try {
-    webAppUrl = ScriptApp.getService().getUrl() || '';
-  } catch (err) {
-    Logger.log('Notice: ScriptApp.getService().getUrl() unavailable in local preview.');
-  }
+  const webAppUrl = getCanonicalWebAppUrl();
 
   template.webAppUrl = webAppUrl;
   template.userRole = userRole;
@@ -51,17 +75,36 @@ function doGet(e) {
 }
 
 /**
- * Helper to render structured Access Restricted response.
+ * Safely resolves the canonical Web App deployment URL.
+ * Falls back to WEB_APP_URL script property if getService().getUrl() is empty or invalid.
+ * @returns {string} Canonical base URL.
  */
-function renderAccessRestricted(title, reason) {
-  let webAppUrl = '';
+function getCanonicalWebAppUrl() {
+  const props = PropertiesService.getScriptProperties();
+  const configuredUrl = (props.getProperty('WEB_APP_URL') || '').trim();
+
+  let serviceUrl = '';
   try {
-    webAppUrl = ScriptApp.getService().getUrl() || '';
+    serviceUrl = (ScriptApp.getService().getUrl() || '').trim();
   } catch (err) {
     Logger.log('Notice: ScriptApp.getService().getUrl() unavailable.');
   }
 
-  const backUrl = webAppUrl ? (webAppUrl + '?page=index') : '?page=index';
+  if (serviceUrl && serviceUrl.includes('script.google.com')) {
+    return serviceUrl;
+  }
+  if (configuredUrl && configuredUrl.includes('script.google.com')) {
+    return configuredUrl;
+  }
+  return serviceUrl;
+}
+
+/**
+ * Helper to render structured Access Restricted response.
+ */
+function renderAccessRestricted(title, reason) {
+  const webAppUrl = getCanonicalWebAppUrl();
+  const backAction = webAppUrl ? `window.top.location.href='${webAppUrl}?page=index'` : `window.history.back()`;
 
   return HtmlService.createHtmlOutput(
     '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">' +
@@ -71,13 +114,13 @@ function renderAccessRestricted(title, reason) {
     '.icon { font-size: 3rem; margin-bottom: 1rem; }' +
     'h2 { font-size: 1.35rem; color: #B91C1C; margin-bottom: 0.75rem; font-weight: 700; }' +
     'p { color: #475569; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem; }' +
-    '.btn { display: inline-block; background: #15803D; color: #FFFFFF; text-decoration: none; padding: 0.65rem 1.25rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }' +
+    '.btn { display: inline-block; background: #15803D; color: #FFFFFF; text-decoration: none; padding: 0.65rem 1.25rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; }' +
     '</style></head><body>' +
     '<div class="card">' +
     '<div class="icon">🔒</div>' +
     '<h2>' + title + '</h2>' +
     '<p>' + reason + '</p>' +
-    '<a href="' + backUrl + '" target="_top" class="btn">Kembali ke Form Publik</a>' +
+    '<button onclick="' + backAction + '" class="btn">Kembali ke Form Publik</button>' +
     '</div></body></html>'
   ).setTitle(title);
 }
@@ -92,25 +135,54 @@ function include(filename) {
 
 /**
  * Evaluates active user email against script properties ADMIN_EMAIL and MANAGER_EMAIL.
+ * Returns null for any email not explicitly listed — no fallback, no auto-bind.
+ * Requires ADMIN_EMAIL and/or MANAGER_EMAIL to be set in Script Properties to real email addresses.
  * @returns {'admin' | 'manager' | 'both' | null} Role string or null if unauthorized.
  */
 function getUserRole() {
   const props = PropertiesService.getScriptProperties();
-  const adminEmail = (props.getProperty('ADMIN_EMAIL') || '').trim().toLowerCase();
-  const managerEmail = (props.getProperty('MANAGER_EMAIL') || '').trim().toLowerCase();
+  let adminEmail = (props.getProperty('ADMIN_EMAIL') || '').trim().toLowerCase();
+  let managerEmail = (props.getProperty('MANAGER_EMAIL') || '').trim().toLowerCase();
 
-  const userEmail = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  let activeEmail = '';
+  try {
+    activeEmail = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  } catch (e) {
+    Logger.log('Notice: Session.getActiveUser().getEmail() restricted/unavailable.');
+  }
+
+  let effectiveEmail = '';
+  try {
+    effectiveEmail = (Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
+  } catch (e) {
+    Logger.log('Notice: Session.getEffectiveUser().getEmail() restricted/unavailable.');
+  }
+
+  const userEmail = activeEmail || effectiveEmail;
   if (!userEmail) return null;
 
-  const isAdmin = adminEmail && userEmail === adminEmail;
-  const isManager = managerEmail && userEmail === managerEmail;
+  // SECURITY: Do NOT auto-bind or overwrite ADMIN_EMAIL / MANAGER_EMAIL with the visiting user's address.
+  // If Script Properties still hold placeholder defaults or are empty, treat as unconfigured —
+  // deny access rather than granting admin to whoever happens to visit first.
+  // Action required: set ADMIN_EMAIL and MANAGER_EMAIL in Apps Script → Project Settings → Script Properties.
+  const PLACEHOLDER_ADMIN = 'admin.operasional@perusahaan-agri.co.id';
+  const PLACEHOLDER_MANAGER = 'manager.operasional@perusahaan-agri.co.id';
+
+  const effectiveAdmin = (adminEmail && adminEmail !== PLACEHOLDER_ADMIN) ? adminEmail : null;
+  const effectiveManager = (managerEmail && managerEmail !== PLACEHOLDER_MANAGER) ? managerEmail : null;
+
+  // If neither role is configured, deny all access
+  if (!effectiveAdmin && !effectiveManager) return null;
+
+  const isAdmin = effectiveAdmin && (userEmail === effectiveAdmin || activeEmail === effectiveAdmin || effectiveEmail === effectiveAdmin);
+  const isManager = effectiveManager && (userEmail === effectiveManager || activeEmail === effectiveManager || effectiveEmail === effectiveManager);
 
   if (isAdmin && isManager) return 'both';
   if (isAdmin) return 'admin';
   if (isManager) return 'manager';
 
-  // Default internal role for authenticated Google account users accessing via Admin link
-  return 'admin';
+  // Return null for unrecognized identity — deny access by default
+  return null;
 }
 
 /**
@@ -118,7 +190,13 @@ function getUserRole() {
  * @returns {Object} { email: string, role: string|null, isAuthorized: boolean }
  */
 function getUserIdentityInfo() {
-  const userEmail = Session.getActiveUser().getEmail() || '';
+  let userEmail = '';
+  try {
+    userEmail = Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail() || '';
+  } catch (e) {
+    userEmail = '';
+  }
+
   const role = getUserRole();
   return {
     email: userEmail,

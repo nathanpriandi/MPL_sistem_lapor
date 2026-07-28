@@ -36,14 +36,15 @@ MPL_sistem_lapor/
 ├── src/
 │   ├── appsscript.json        # Apps Script manifest (Asia/Jakarta timezone & scopes)
 │   ├── Setup.gs               # Spreadsheet & Google Form provisioning logic
-│   ├── Automation.gs          # Bahasa Indonesia agriculture triage keyword engine (Authoritative)
+│   ├── Automation.gs          # Triage keyword engine & 90-day data archival (archiveOldReports)
 │   ├── FormHandlers.gs        # Form submission handlers & sensitive row routing
 │   ├── Notifications.gs       # Urgent alerts, daily admin & weekly manager digests
-│   ├── Triggers.gs            # Automated trigger setup & teardown
+│   ├── Triggers.gs            # Automated trigger setup (daily digests, weekly summaries, monthly archival)
 │   ├── Utils.gs              # Looker Studio aggregation, date helpers, unit tests
 │   ├── MockSimulator.gs       # Seed mock test data generator
-│   ├── Web.gs                 # Web App HTTP doGet router, RBAC auth, keyword injection
-│   ├── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run)
+│   ├── Web.gs                 # Web App HTTP doGet router, strict RBAC auth, keyword injection
+│   ├── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run & Quick Links)
+
 │   ├── index.html             # Public Daily Report Form view
 │   ├── general.html           # Public General Report Form view
 │   ├── admin.html             # Internal Admin Triage Queue view (Modal detail, search, filter, CSV export)

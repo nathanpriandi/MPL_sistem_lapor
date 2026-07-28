@@ -53,6 +53,14 @@ function createTriggers() {
     .create();
   Logger.log('Created trigger: sendWeeklyManagerDigest (Mondays at 08:00 WIB)');
 
+  // 5. Time-driven Monthly Data Archival Trigger (1st day of month at 01:00 AM WIB)
+  ScriptApp.newTrigger('archiveOldReports')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(1)
+    .create();
+  Logger.log('Created trigger: archiveOldReports (Monthly on 1st at 01:00 AM WIB)');
+
   Logger.log('=== ALL TRIGGERS INSTALLED SUCCESSFULLY ===');
 }
 

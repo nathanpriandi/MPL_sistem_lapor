@@ -11,6 +11,60 @@ try {
   window.SERVER_WEB_APP_URL = '';
 }
 
+/**
+ * Safe navigation helper to prevent top-level navigation to googleusercontent.com sandbox.
+ * Resolves base script.google.com URL from server variable, document.referrer, anchor href, or current URL.
+ * Falls back to the calling anchor element's own href if all other sources fail.
+ * @param {string} pageName - Target page name (e.g. 'admin', 'dashboard', 'index', 'general')
+ * @param {HTMLAnchorElement|null} [anchorEl=null] - The anchor element that triggered navigation (optional fallback)
+ */
+function navigateToPage(pageName, anchorEl) {
+  let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
+
+  // Recovery 1: try document.referrer (only valid in Apps Script iframe context)
+  if (!baseUrl || !baseUrl.includes('script.google.com')) {
+    if (typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
+      baseUrl = document.referrer.split('?')[0];
+    }
+  }
+
+  // Recovery 2: try to derive base from the anchor element's href attribute
+  if ((!baseUrl || !baseUrl.includes('script.google.com')) && anchorEl && anchorEl.href) {
+    const anchorHref = anchorEl.href;
+    if (anchorHref.includes('script.google.com')) {
+      baseUrl = anchorHref.split('?')[0];
+    }
+  }
+
+  // Recovery 3: try current window location (works if top-level, not in sandbox)
+  if (!baseUrl || !baseUrl.includes('script.google.com')) {
+    const loc = (window.top || window).location.href;
+    if (loc && loc.includes('script.google.com')) {
+      baseUrl = loc.split('?')[0];
+    }
+  }
+
+  if (baseUrl && baseUrl.includes('script.google.com')) {
+    const cleanUrl = baseUrl.split('?')[0];
+    const targetUrl = `${cleanUrl}?page=${pageName}`;
+    try {
+      if (window.top && window.top.location) {
+        window.top.location.href = targetUrl;
+      } else {
+        window.location.href = targetUrl;
+      }
+    } catch (e) {
+      // Cross-origin restriction — navigate the inner frame directly
+      window.location.href = targetUrl;
+    }
+  } else {
+    // Local preview fallback: update ?page= query param in current URL
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('page', pageName);
+    window.location.search = urlParams.toString();
+  }
+}
+
 // Server-injected authoritative keywords from Automation.gs
 try {
   const urgentRaw = '<?!= urgentKeywordsJson ?>';
@@ -179,7 +233,8 @@ async function renderIdentityStrip() {
         } else if (info.role === 'manager') {
           roleBadge = '<span class="badge badge-normal">Executive Manager</span>';
         } else {
-          roleBadge = '<span class="badge badge-primary">Admin Operasional</span>';
+          // Unknown/unauthorized — don't display internal badge
+          roleBadge = '<span class="badge badge-neutral">Tamu</span>';
         }
 
         stripEl.innerHTML = `
@@ -190,12 +245,8 @@ async function renderIdentityStrip() {
           </div>
         `;
         
-        // Ensure all page links in Internal Console navigation remain visible for authenticated users on Admin link
-        const adminNav = document.getElementById('navLinkAdmin');
-        const managerNav = document.getElementById('navLinkDashboard');
-
-        if (adminNav) adminNav.style.display = 'inline-flex';
-        if (managerNav) managerNav.style.display = 'inline-flex';
+        // Show only nav links the user's role actually permits
+        _showInternalNavLinks(info.role);
         return;
       }
     } catch (err) {
@@ -203,17 +254,23 @@ async function renderIdentityStrip() {
     }
   }
 
-  // Fallback for local preview mode
+  // Fallback for local preview mode — show all nav links
   stripEl.innerHTML = `
     <div class="user-identity">
       <span class="user-email">local.dev@agri.co.id</span>
       <span class="badge badge-neutral">Local Preview</span>
     </div>
   `;
-  const adminNav = document.getElementById('navLinkAdmin');
-  const managerNav = document.getElementById('navLinkDashboard');
-  if (adminNav) adminNav.style.display = 'inline-flex';
-  if (managerNav) managerNav.style.display = 'inline-flex';
+  _showInternalNavLinks('both'); // In local preview, show all internal links
+}
+
+/**
+ * Nav link visibility is now managed server-side via template conditionals.
+ * This function is intentionally a no-op; kept to avoid call-site errors.
+ * @param {string} [role] - 'admin', 'manager', 'both', or null
+ */
+function _showInternalNavLinks(role) {
+  // no-op: server-side conditionals render only the correct links for each role.
 }
 
 // Local Database Fallback Initialization
@@ -248,8 +305,18 @@ function formatDateNow() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
-// Render local preview notice conditionally if running outside live server
+// On DOMContentLoaded: populate the identity strip and show local preview notice.
+// Nav link visibility is now handled entirely server-side via template conditionals
+// (<?= if (userRole === ...) { ?>) — no client-side hiding or restoration needed.
 document.addEventListener('DOMContentLoaded', () => {
+  // Populate the identity strip (email + role badge) for pages where the user is authenticated.
+  // The strip element is only rendered server-side when userRole is truthy.
+  const identityStrip = document.getElementById('userIdentityStrip');
+  if (identityStrip && !identityStrip.dataset.populated) {
+    identityStrip.dataset.populated = '1'; // prevent double-call if page also calls it
+    renderIdentityStrip();
+  }
+
   if (!isLiveServer()) {
     const banner = document.createElement('div');
     banner.className = 'alert-banner alert-warning';

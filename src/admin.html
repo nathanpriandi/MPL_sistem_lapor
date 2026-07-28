@@ -10,7 +10,8 @@
 
   <header class="<?= userRole ? 'header-internal' : '' ?>">
     <div class="nav-container">
-      <a href="<?= webAppUrl ?>?page=<?= userRole ? 'admin' : 'index' ?>" target="_top" class="logo">
+      <? const logoPage = userRole ? 'admin' : 'index'; ?>
+      <a href="<?= webAppUrl ? webAppUrl + '?page=' + logoPage : '#' ?>" data-page="<?= logoPage ?>" onclick="navigateToPage(this.getAttribute('data-page'), this); return false;" class="logo">
         <span class="logo-badge <?= userRole ? 'logo-badge-internal' : '' ?>"><?= userRole ? 'INTERNAL CONSOLE' : 'AGRI-DIGITAL' ?></span>
         <span><?= userRole ? 'Portal Operasional' : 'Portal Pelaporan' ?></span>
       </a>
@@ -18,18 +19,36 @@
         <div id="userIdentityStrip"></div>
       <? } ?>
       <nav>
-        <a href="<?= webAppUrl ?>?page=index" target="_top" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
-        <a href="<?= webAppUrl ?>?page=general" target="_top" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
-        <? if (userRole) { ?>
-          <span style="opacity: 0.35; margin: 0 0.35rem; color: var(--color-gray-400);">|</span>
-          <a href="<?= webAppUrl ?>?page=admin" target="_top" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
-          <a href="<?= webAppUrl ?>?page=dashboard" target="_top" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
+        <span style="opacity: 0.35; margin: 0 0.35rem; color: var(--color-gray-400);">|</span>
+        <? if (userRole === 'admin' || userRole === 'both') { ?>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
+        <? } ?>
+        <? if (userRole === 'manager' || userRole === 'both') { ?>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
         <? } ?>
       </nav>
     </div>
   </header>
 
   <div class="container-wide">
+    <!-- Quick Links Panel -->
+    <div class="card" style="margin-bottom: 1rem; padding: 1.25rem 1.5rem;" id="quickLinksPanel">
+      <div class="flex-between-wrap" style="align-items: center;">
+        <div>
+          <h2 style="font-size: 1.05rem; font-weight: 700; color: var(--color-gray-800); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.4rem;">
+            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Tautan Cepat Akses Sistem
+          </h2>
+          <p style="font-size: 0.825rem; color: var(--color-gray-600); margin: 0;">Akses langsung ke spreadsheet terpusat dan editor formulir tanpa harus mencari di Google Drive.</p>
+        </div>
+        <div class="button-group-flex" id="quickLinksButtons">
+          <span style="font-size: 0.85rem; color: var(--color-gray-500);">Memuat tautan...</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="flex-between-wrap">
         <div>
@@ -46,6 +65,10 @@
             <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span>Sensitif</span>
           </button>
+          <button class="btn btn-secondary" onclick="toggleAdvancedFilters()" id="btnToggleAdvancedFilter">
+            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <span>Filter Lanjutan ▾</span>
+          </button>
           <button class="btn btn-secondary" onclick="exportAdminCSV()">
             <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Export CSV</span>
@@ -57,8 +80,8 @@
         </div>
       </div>
 
-      <!-- Advanced Filter Bar -->
-      <div class="filter-bar">
+      <!-- Advanced Filter Bar (Collapsible, default closed) -->
+      <div class="filter-bar" id="advancedFilterBar" style="display: none;">
         <div class="filter-group">
           <input type="text" id="searchInput" class="filter-input" placeholder="Cari Kode Karyawan / Text Detail / ID..." oninput="applyFilters()">
         </div>
@@ -137,7 +160,9 @@
     let autoRefreshInterval = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      renderIdentityStrip();
+      // renderIdentityStrip() is called centrally by app.html's DOMContentLoaded
+      // when userIdentityStrip is present, so no duplicate call needed here.
+      loadQuickLinks();
       fetchAndRenderQueue();
 
       // Soft auto-refresh every 60 seconds (pausable on user interaction)
@@ -148,6 +173,46 @@
         }
       }, 60000);
     });
+
+    async function loadQuickLinks() {
+      const container = document.getElementById('quickLinksButtons');
+      if (!container) return;
+
+      if (isLiveServer()) {
+        try {
+          const links = await runServer('getAdminQuickLinks');
+          if (links) {
+            container.innerHTML = `
+              ${links.spreadsheetUrl ? `<a href="${links.spreadsheetUrl}" target="_blank" class="btn btn-secondary table-btn-sm" title="Buka Spreadsheet Utama">📊 Spreadsheet Utama</a>` : ''}
+              ${links.dailyFormEditUrl ? `<a href="${links.dailyFormEditUrl}" target="_blank" class="btn btn-secondary table-btn-sm" title="Edit Google Form Daily Report">📝 Edit Form Daily</a>` : ''}
+              ${links.generalFormEditUrl ? `<a href="${links.generalFormEditUrl}" target="_blank" class="btn btn-secondary table-btn-sm" title="Edit Google Form General Report">📝 Edit Form General</a>` : ''}
+              ${links.publicWebAppUrl ? `<a href="${links.publicWebAppUrl}" target="_top" class="btn btn-secondary table-btn-sm" title="Buka Form Publik Web App">🌐 Form Publik</a>` : ''}
+            `;
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to load quick links:', e);
+        }
+      }
+
+      container.innerHTML = `
+        <span class="badge badge-neutral">Local Mode — Quick links live di Google Apps Script</span>
+      `;
+    }
+
+    function toggleAdvancedFilters() {
+      const filterBar = document.getElementById('advancedFilterBar');
+      const btn = document.getElementById('btnToggleAdvancedFilter');
+      if (!filterBar || !btn) return;
+
+      if (filterBar.style.display === 'none' || !filterBar.style.display) {
+        filterBar.style.display = 'flex';
+        btn.innerHTML = '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg><span>Sembunyikan Filter ▴</span>';
+      } else {
+        filterBar.style.display = 'none';
+        btn.innerHTML = '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg><span>Filter Lanjutan ▾</span>';
+      }
+    }
 
     async function fetchAndRenderQueue(manualRefresh = false) {
       const tbody = document.getElementById('queueBody');

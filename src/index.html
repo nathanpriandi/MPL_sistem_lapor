@@ -10,7 +10,8 @@
 
   <header class="<?= userRole ? 'header-internal' : '' ?>">
     <div class="nav-container">
-      <a href="<?= webAppUrl ?>?page=<?= userRole ? 'admin' : 'index' ?>" target="_top" class="logo">
+      <? const logoPage = userRole ? 'admin' : 'index'; ?>
+      <a href="<?= webAppUrl ? webAppUrl + '?page=' + logoPage : '#' ?>" data-page="<?= logoPage ?>" onclick="navigateToPage(this.getAttribute('data-page'), this); return false;" class="logo">
         <span class="logo-badge <?= userRole ? 'logo-badge-internal' : '' ?>"><?= userRole ? 'INTERNAL CONSOLE' : 'AGRI-DIGITAL' ?></span>
         <span><?= userRole ? 'Portal Operasional' : 'Portal Pelaporan' ?></span>
       </a>
@@ -18,12 +19,16 @@
         <div id="userIdentityStrip"></div>
       <? } ?>
       <nav>
-        <a href="<?= webAppUrl ?>?page=index" target="_top" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
-        <a href="<?= webAppUrl ?>?page=general" target="_top" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
         <? if (userRole) { ?>
-          <span style="opacity: 0.35; margin: 0 0.35rem; color: var(--color-gray-400);">|</span>
-          <a href="<?= webAppUrl ?>?page=admin" target="_top" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
-          <a href="<?= webAppUrl ?>?page=dashboard" target="_top" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
+        <span style="opacity: 0.35; margin: 0 0.35rem; color: var(--color-gray-400);">|</span>
+        <? if (userRole === 'admin' || userRole === 'both') { ?>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
+        <? } ?>
+        <? if (userRole === 'manager' || userRole === 'both') { ?>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
+        <? } ?>
         <? } ?>
       </nav>
     </div>

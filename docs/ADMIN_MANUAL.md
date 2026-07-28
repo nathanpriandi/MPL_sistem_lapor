@@ -17,16 +17,34 @@ Spreadsheet ini memiliki 5 Tab utama:
 
 ---
 
+## 🌐 Troubleshooting URL & Multi-Account Browser
+
+> [!IMPORTANT]
+> **Catatan Penanganan Akses Multi-Akun Google:**
+> *Jika muncul 'Sorry, unable to open the file', jangan ketik ulang URL — gunakan kembali QR code atau shortcut yang sudah tersedia.*
+
+- **Penyebab Utama:** Google Workspace sering membingungkan nomor slot akun (`/u/0/`, `/u/1/`) ketika satu browser membuka beberapa akun Google sekaligus.
+- **Solusi Standar Operasional:**
+  1. **Profil Browser Terpisah (Desktop Admin & Manager):** Buat profil Google Chrome / Edge khusus untuk akun kerja perusahaan agribisnis. Ini menghilangkan kerancuan pindah akun Google.
+  2. **Shortcut Layar Utama (Perangkat Lapangan / Ponsel):** Pasang shortcut Web App di layar utama ponsel staf lapangan saat inisialisasi awal.
+  3. **QR Code Resmi:** Cetak QR Code yang mengarah ke URL kanonis Web App hasil deployment resmi (diambil dari *Deploy → Manage deployments*).
+
+---
+
 ## 🛠️ Alur Kerja Harian Admin (Daily Workflow)
 
 ### 1. Login & Identitas Pengguna (Internal Console)
-- Akses halaman admin via **Web App Internal Console (`admin.html`)** yang telah dilindungi sistem otorisasi **RBAC (Role-Based Access Control)**.
-- Header aplikasi menampilkan **Identity Strip** yang mengonfirmasi alamat email Google Anda dan peran resmi (misal: `Admin Operasional`).
-- Jika akun Anda terdaftar hanya sebagai Manager, sistem akan menampilkan pemberitahuan akses terbatas khusus peran Admin.
+- Akses halaman admin via **Web App Internal Console (`admin.html`)** yang telah dilindungi sistem otorisasi **RBAC (Role-Based Access Control)** ketat (Option A):
+  - Peran **`admin`**: Hanya dapat mengakses Antrean Triage Admin (`admin.html`).
+  - Peran **`manager`**: Hanya dapat mengakses Manager Dashboard (`dashboard.html`).
+  - Peran **`both`**: Dapat mengakses kedua halaman konsol internal.
+  - Akun Google lain yang tidak terdaftar di Script Properties akan langsung ditolak (menampilkan kartu *Access Restricted*).
+- Header aplikasi menampilkan **Identity Strip** yang mengonfirmasi alamat email Google Anda dan peran resmi (`Admin Operasional`).
+- Manfaatkan **Panel Tautan Cepat (Quick Links)** untuk membuka Google Spreadsheet terpusat atau mengedit Google Forms secara langsung tanpa mencari di Google Drive.
 
 ### 2. Meninjau Antrean & Pencarian Detail (`Admin_Queue`)
 - Antrean laporan disortir otomatis berdasarkan tingkat keparahan triage: **Urgent** (peringkat 1), **Warning** (peringkat 2), dan **Normal** (peringkat 3).
-- Gunakan **Bar Filter Lanjutan**:
+- Gunakan tombol **Filter Lanjutan ▾** untuk membuka bar pencarian:
   - **Pencarian Kata Kunci / ID**: Ketik Kode Karyawan (`EMP-101`), Kata Kronologi, atau Report ID di kotak pencarian.
   - **Filter Lokasi / Site**: Saring laporan spesifik Site A (Kebun), Site B (Peternakan), Site C (Pabrik), atau Site D (Logistik).
   - **Filter Rentang Tanggal**: Tentukan tanggal mulai dan selesai laporan.
@@ -36,7 +54,7 @@ Spreadsheet ini memiliki 5 Tab utama:
 ### 3. Panel Detail Interaktif (Detail Modal)
 - Klik tombol **Lihat** pada baris laporan untuk membuka **Detail Modal**.
 - Modal menampilkan rincian lengkap: Report ID, Sumber Sheet, Kode Karyawan, Lokasi Site, Timestamp Submit, Badges Triage, serta Kronologi/Rincian lengkap.
-- Anda dapat memperbarui status review langsung dari dalam modal dengan memilih opsi dropdown dan menekan **Simpan Status**. Notifikasi Toast akan muncul mengonfirmasi keberhasilan update.
+- Anda dapat memperbarui status review langsung dari dalam modal dengan memilih opsi dropdown dan menekan **Simpan Status**. Notifikasi Toast konfirmasi akan muncul mengonfirmasi keberhasilan pembaruan.
 
 ### 4. Mengubah Status Review (`Review_Status`)
 - Pembaruan status dapat dilakukan melalui **Detail Modal** atau dropdown **Review Status** pada tabel `Admin_Queue`.
@@ -71,9 +89,21 @@ Spreadsheet ini memiliki 5 Tab utama:
 
 ---
 
+## 📦 Kebijakan Retensi & Pengarsipan Data (Data Archival Policy)
+
+- **Retensi Otomatis 90 Hari (`RETENTION_DAYS`):**
+  Untuk mencegah penumpukan data pada sheet aktif dan mematuhi prinsip minimisasi data UU PDP, sistem menjalankan proses pengarsipan otomatis `archiveOldReports()` pada tanggal 1 setiap bulan (pukul 01:00 WIB).
+- **Kriteria Pengarsipan:**
+  Laporan dengan `Review_Status = 'Closed'` yang memiliki tanggal laporan lebih lama dari 90 hari akan dipindahkan secara otomatis dari tab `Daily_Raw`, `General_Raw`, dan `Sensitive_Restricted` ke tab `Archive_Reports`.
+- **Integritas Rekapitulasi Mingguan:**
+  Statistik tren historis telah tersimpan di tab `Weekly_Summary` sebelum pengarsipan dilakukan, sehingga grafik dan metrik manajerial tetap akurat.
+
+---
+
 ## ⚙️ Penyesuaian Kata Kunci (Keyword Adjustment)
 
 Admin dapat menyesuaikan istilah lokal (istilah pertanian / pabrik setempat) dalam file `src/Automation.gs`:
 - `URGENT_KEYWORDS`: Kata kunci tingkat bahaya tinggi / darurat.
 - `WARNING_KEYWORDS`: Kata kunci keterlambatan / masalah ringan.
+
 
