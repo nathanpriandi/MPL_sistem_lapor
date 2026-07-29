@@ -6,7 +6,19 @@
       <span><?= userRole ? 'Portal Operasional' : 'Portal Pelaporan' ?></span>
     </a>
     <? if (userRole) { ?>
-      <div id="userIdentityStrip"></div>
+      <div id="userIdentityStrip" data-populated="1">
+        <div class="user-identity">
+          <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="user-email"><?= userEmail || 'staf.operasional@agri.co.id' ?></span>
+          <? if (userRole === 'both') { ?>
+            <span class="badge badge-primary">Admin &amp; Manager</span>
+          <? } else if (userRole === 'admin') { ?>
+            <span class="badge badge-primary">Admin Operasional</span>
+          <? } else if (userRole === 'manager') { ?>
+            <span class="badge badge-normal">Executive Manager</span>
+          <? } ?>
+        </div>
+      </div>
     <? } ?>
     <nav>
       <? if (userRole) { ?>

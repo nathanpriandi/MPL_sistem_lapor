@@ -220,6 +220,11 @@ async function renderIdentityStrip() {
   const stripEl = document.getElementById('userIdentityStrip');
   if (!stripEl) return;
 
+  // Skip client-side re-render if identity strip is already populated server-side
+  if (stripEl.children.length > 0 && stripEl.querySelector('.user-email')) {
+    return;
+  }
+
   if (isLiveServer()) {
     try {
       const info = await runServer('getUserIdentityInfo');
