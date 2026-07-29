@@ -84,7 +84,7 @@
       </div>
 
       <div class="table-responsive">
-        <table>
+        <table class="table-sticky-col responsive-card-table">
           <thead>
             <tr>
               <th>Sumber</th>
@@ -142,8 +142,13 @@
     let autoRefreshInterval = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      // renderIdentityStrip() is called centrally by app.html's DOMContentLoaded
-      // when userIdentityStrip is present, so no duplicate call needed here.
+      // Parse optional initial filter from URL query param (e.g. ?page=admin&filter=urgent)
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialFilter = urlParams.get('filter');
+      if (initialFilter) {
+        currentQuickFilter = initialFilter;
+      }
+
       loadQuickLinks();
       loadDiagnostics();
       fetchAndRenderQueue();
@@ -396,14 +401,14 @@
         const itemGlobalIndex = startIndex + index;
 
         tr.innerHTML = `
-          <td><span class="badge badge-neutral">${item.source}</span></td>
-          <td>${item.timestamp || item.date || '-'}</td>
-          <td><strong>${item.empId}</strong></td>
-          <td>${item.site}</td>
-          <td class="max-w-details">${item.detail}</td>
-          <td><span class="badge ${badgeClass}">${item.severity}</span></td>
-          <td>${item.category}</td>
-          <td>
+          <td data-label="Sumber"><span class="badge badge-neutral">${item.source}</span></td>
+          <td data-label="Waktu">${item.timestamp || item.date || '-'}</td>
+          <td data-label="Kode Karyawan"><strong>${item.empId}</strong></td>
+          <td data-label="Lokasi">${item.site}</td>
+          <td data-label="Rincian" class="max-w-details">${item.detail}</td>
+          <td data-label="Severity"><span class="badge ${badgeClass}">${item.severity}</span></td>
+          <td data-label="Kategori">${item.category}</td>
+          <td data-label="Review Status">
             <select onchange="updateStatus('${item.type}', '${item.reportId}', this.value)" class="table-select">
               <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
               <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
@@ -411,7 +416,7 @@
               <option value="Closed" ${item.reviewStatus==='Closed'?'selected':''}>Closed (Selesai)</option>
             </select>
           </td>
-          <td>
+          <td data-label="Aksi">
             <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})">Lihat</button>
           </td>
         `;

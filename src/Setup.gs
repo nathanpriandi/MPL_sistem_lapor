@@ -1,6 +1,9 @@
 /**
  * Setup.gs — System Provisioning and Initialization
  * Digital Reporting System for Integrated Agriculture Company
+ * 
+ * Clean Architecture Layer: PROVISIONING / INITIALIZATION
+ * Responsibility: Run-once provisioning script for generating spreadsheets, forms, and script properties.
  */
 
 /**
@@ -25,33 +28,32 @@ function setupReportingSystem() {
   
   let dailySheet = sheets.find(s => s.getName().includes('Form Responses 1') || s.getName().includes('Jawaban Formulir 1'));
   if (!dailySheet) dailySheet = sheets[0];
-  dailySheet.setName('Daily_Raw');
+  dailySheet.setName(SHEET_NAMES.DAILY_RAW);
 
   let generalSheet = sheets.find(s => s.getName().includes('Form Responses 2') || s.getName().includes('Jawaban Formulir 2'));
-  if (!generalSheet) generalSheet = ss.insertSheet('General_Raw');
-  else generalSheet.setName('General_Raw');
+  if (!generalSheet) generalSheet = ss.insertSheet(SHEET_NAMES.GENERAL_RAW);
+  else generalSheet.setName(SHEET_NAMES.GENERAL_RAW);
 
-  const adminQueueSheet = ss.getSheetByName('Admin_Queue') || ss.insertSheet('Admin_Queue');
-  const sensitiveSheet = ss.getSheetByName('Sensitive_Restricted') || ss.insertSheet('Sensitive_Restricted');
-  const summarySheet = ss.getSheetByName('Weekly_Summary') || ss.insertSheet('Weekly_Summary');
+  const adminQueueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE) || ss.insertSheet(SHEET_NAMES.ADMIN_QUEUE);
+  const sensitiveSheet = ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED) || ss.insertSheet(SHEET_NAMES.SENSITIVE_RESTRICTED);
+  const summarySheet = ss.getSheetByName(SHEET_NAMES.WEEKLY_SUMMARY) || ss.insertSheet(SHEET_NAMES.WEEKLY_SUMMARY);
 
-  // Remove default "Sheet1" / "Lembran1" if present
+  // Remove default "Sheet1" if present
   const defaultSheet = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembur1') || ss.getSheetByName('Sheet 1');
   if (defaultSheet && ss.getSheets().length > 1) {
     try { ss.deleteSheet(defaultSheet); } catch (e) {}
   }
 
-  // 4. Define and Set Headers
+  // 4. Define and Set Headers via SpreadsheetRepository
   setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet);
 
-  // 5. Store Properties in ScriptProperties
-  const props = PropertiesService.getScriptProperties();
-  props.setProperties({
+  // 5. Store Properties via ConfigRepository
+  ConfigRepository.setProperties({
     'SPREADSHEET_ID': ssId,
     'DAILY_FORM_ID': dailyFormId,
     'GENERAL_FORM_ID': generalFormId,
-    'ADMIN_EMAIL': 'admin.operasional@perusahaan-agri.co.id',
-    'MANAGER_EMAIL': 'manager.operasional@perusahaan-agri.co.id'
+    'ADMIN_EMAIL': ConfigRepository.PLACEHOLDER_ADMIN,
+    'MANAGER_EMAIL': ConfigRepository.PLACEHOLDER_MANAGER
   });
 
   Logger.log('=== PROVISIONING COMPLETE ===');
@@ -63,84 +65,7 @@ function setupReportingSystem() {
  * Configure Headers and Formulas for all 5 Tabs
  */
 function setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet) {
-  const dailyHeaders = [
-    'Report_ID',
-    'Timestamp', 
-    'Kode Karyawan / Employee ID', 
-    'Lokasi / Site', 
-    'Tanggal Laporan / Date', 
-    'Status Tugas / Task Status', 
-    'Hasil Panen / Yield (kg)', 
-    'Ada Masalah? / Issues', 
-    'Flag_Severity', 
-    'Severity_Rank', 
-    'Flag_Category', 
-    'Review_Status'
-  ];
-
-  const generalHeaders = [
-    'Report_ID',
-    'Timestamp', 
-    'Kode Karyawan / Employee ID', 
-    'Lokasi / Site', 
-    'Tanggal Laporan / Date', 
-    'Rincian Laporan / Details', 
-    'Informasi Sensitif? / Sensitive', 
-    'Flag_Severity', 
-    'Severity_Rank', 
-    'Flag_Category', 
-    'Review_Status'
-  ];
-
-  const summaryHeaders = [
-    'Tahun-Minggu (Year-Week)', 
-    'Lokasi / Site', 
-    'Total Daily Reports', 
-    'Total General Reports', 
-    'Total Urgent Flags', 
-    'Total Warning Flags', 
-    'Total Sensitive Reports', 
-    'Total Panen / Yield (kg)', 
-    'Last Updated'
-  ];
-
-  // Set Daily_Raw headers
-  dailySheet.getRange(1, 1, 1, dailyHeaders.length).setValues([dailyHeaders]).setFontWeight('bold').setBackground('#e8f0fe');
-  
-  // Set General_Raw headers
-  generalSheet.getRange(1, 1, 1, generalHeaders.length).setValues([generalHeaders]).setFontWeight('bold').setBackground('#e8f0fe');
-
-  // Set Sensitive_Restricted headers
-  sensitiveSheet.getRange(1, 1, 1, generalHeaders.length).setValues([generalHeaders]).setFontWeight('bold').setBackground('#fce8e6');
-
-  // Set Weekly_Summary headers
-  summarySheet.getRange(1, 1, 1, summaryHeaders.length).setValues([summaryHeaders]).setFontWeight('bold').setBackground('#e6f4ea');
-
-  // Setup Admin_Queue headers & QUERY formula
-  const queueHeaders = [
-    'Source Sheet',
-    'Report_ID',
-    'Timestamp', 
-    'Kode Karyawan', 
-    'Lokasi / Site', 
-    'Tanggal', 
-    'Status/Rincian', 
-    'Hasil Panen (kg) / Sensitive', 
-    'Issues / -', 
-    'Flag_Severity', 
-    'Severity_Rank', 
-    'Flag_Category', 
-    'Review_Status'
-  ];
-  adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]).setFontWeight('bold').setBackground('#feefc3');
-  
-  // QUERY formula combining unresolved Daily and General reports sorted by Severity_Rank (Col 11)
-  const queryFormula = `=QUERY({
-    ARRAYFORMULA(IF(LEN(Daily_Raw!A2:A), "Daily_Raw", "")), Daily_Raw!A2:L;
-    ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "General_Raw", "")), General_Raw!A2:F, General_Raw!G2:G, ARRAYFORMULA(IF(LEN(General_Raw!A2:A), "", "")), General_Raw!H2:K
-  }, "select * where Col1 is not null and Col13 != 'Closed' order by Col11 asc, Col3 desc", 0)`;
-
-  adminQueueSheet.getRange(2, 1).setFormula(queryFormula);
+  SpreadsheetRepository.setupSheetHeaders(dailySheet, generalSheet, adminQueueSheet, sensitiveSheet, summarySheet);
 }
 
 /**

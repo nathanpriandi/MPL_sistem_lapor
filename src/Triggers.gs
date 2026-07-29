@@ -1,6 +1,9 @@
 /**
- * Triggers.gs — Automated Trigger Registration & Management
+ * Triggers.gs — Automated Trigger Registration & Management Controller
  * Digital Reporting System for Integrated Agriculture Company
+ * 
+ * Clean Architecture Layer: PROVISIONING / INFRASTRUCTURE
+ * Responsibility: Registers and removes Apps Script event and time-driven triggers.
  */
 
 /**
@@ -13,9 +16,8 @@ function createTriggers() {
   // Clear any pre-existing triggers to avoid duplicates
   removeTriggers();
 
-  const props = PropertiesService.getScriptProperties();
-  const dailyFormId = props.getProperty('DAILY_FORM_ID');
-  const generalFormId = props.getProperty('GENERAL_FORM_ID');
+  const dailyFormId = ConfigRepository.getDailyFormId();
+  const generalFormId = ConfigRepository.getGeneralFormId();
 
   if (!dailyFormId || !generalFormId) {
     throw new Error('DAILY_FORM_ID or GENERAL_FORM_ID missing in ScriptProperties. Run setupReportingSystem() first.');

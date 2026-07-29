@@ -6,19 +6,36 @@
       <span><?= userRole ? 'Portal Operasional' : 'Portal Pelaporan' ?></span>
     </a>
     <? if (userRole) { ?>
-      <div id="userIdentityStrip"></div>
+      <div id="userIdentityStrip" data-populated="1">
+        <div class="user-identity">
+          <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="user-email"><?= userEmail || 'staf.operasional@agri.co.id' ?></span>
+          <? if (userRole === 'both') { ?>
+            <span class="badge badge-primary">Admin &amp; Manager</span>
+          <? } else if (userRole === 'admin') { ?>
+            <span class="badge badge-primary">Admin Operasional</span>
+          <? } else if (userRole === 'manager') { ?>
+            <span class="badge badge-normal">Executive Manager</span>
+          <? } ?>
+        </div>
+      </div>
     <? } ?>
     <nav>
-      <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
-      <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
       <? if (userRole) { ?>
-      <span style="opacity: 0.35; margin: 0 0.35rem; color: var(--color-gray-400);">|</span>
-      <? if (userRole === 'admin' || userRole === 'both') { ?>
-      <a href="<?= webAppUrl ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
-      <? } ?>
-      <? if (userRole === 'manager' || userRole === 'both') { ?>
-      <a href="<?= webAppUrl ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
-      <? } ?>
+        <!-- Internal Console Mode: Admin Queue / Manager Dashboard primary, public forms demoted -->
+        <? if (userRole === 'admin' || userRole === 'both') { ?>
+          <a href="<?= webAppUrl ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
+        <? } ?>
+        <? if (userRole === 'manager' || userRole === 'both') { ?>
+          <a href="<?= webAppUrl ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
+        <? } ?>
+        <span class="nav-divider"></span>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link nav-link-secondary <?= currentPage === 'index' ? 'active' : '' ?>" title="Pratinjau Form Publik Daily">Form Daily</a>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link nav-link-secondary <?= currentPage === 'general' ? 'active' : '' ?>" title="Pratinjau Form Publik General">Form General</a>
+      <? } else { ?>
+        <!-- Public Portal Mode: Intake forms primary -->
+        <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
+        <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
       <? } ?>
     </nav>
   </div>

@@ -335,12 +335,16 @@ select option {
 /* Data Tables */
 .table-responsive {
   overflow-x: auto;
+  max-height: 70vh;
+  position: relative;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--space-3);
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 th, td {
@@ -354,10 +358,82 @@ th {
   background: var(--bg-app);
   font-weight: 600;
   color: var(--text-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 0 var(--border-color);
 }
 
 tr:hover td {
   background: var(--bg-app);
+}
+
+/* Freeze Kode Karyawan column (3rd child) in horizontal scroll */
+.table-sticky-col th:nth-child(3),
+.table-sticky-col td:nth-child(3) {
+  position: sticky;
+  left: 0;
+  background: var(--bg-surface);
+  z-index: 5;
+  box-shadow: 1px 0 0 var(--border-color);
+}
+
+.table-sticky-col th:nth-child(3) {
+  background: var(--bg-app);
+  z-index: 11;
+}
+
+/* Mobile Responsive Stacked Cards (< 640px) */
+@media (max-width: 640px) {
+  .responsive-card-table {
+    display: block;
+  }
+
+  .responsive-card-table thead {
+    display: none;
+  }
+
+  .responsive-card-table tbody,
+  .responsive-card-table tr,
+  .responsive-card-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-card-table tr {
+    margin-bottom: var(--space-3);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .responsive-card-table td {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+  }
+
+  .responsive-card-table td:last-child {
+    border-bottom: none;
+    justify-content: flex-end;
+    margin-top: var(--space-2);
+  }
+
+  .responsive-card-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-align: left;
+    padding-right: var(--space-2);
+  }
 }
 
 /* Metrics Grid & Cards */
@@ -376,6 +452,17 @@ tr:hover td {
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
+}
+
+.metric-card-interactive {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.metric-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
 .metric-label {
@@ -397,6 +484,114 @@ tr:hover td {
 
 .metric-value-warning {
   color: var(--warning);
+}
+
+.metric-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: var(--space-2);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  width: fit-content;
+}
+
+.metric-trend-up {
+  background: var(--normal-tint);
+  color: var(--normal);
+}
+
+.metric-trend-down {
+  background: var(--urgent-tint);
+  color: var(--urgent);
+}
+
+.metric-trend-neutral {
+  background: var(--bg-app);
+  color: var(--text-muted);
+}
+
+/* Form Sections & Field Grouping */
+.form-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Error Summary Banner */
+.error-summary {
+  background: var(--urgent-tint);
+  border: 1px solid var(--urgent-border);
+  border-left: 4px solid var(--urgent);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.error-summary-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--urgent);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.error-summary-list {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.error-summary-list li {
+  margin-bottom: var(--space-1);
+}
+
+.error-summary-link {
+  color: var(--urgent);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Secondary / Demoted Nav Links for Internal Mode */
+.nav-link-secondary {
+  color: var(--text-muted);
+  font-size: 0.825rem;
+  opacity: 0.85;
+}
+
+.nav-link-secondary:hover {
+  opacity: 1;
+  color: var(--text-secondary);
+  background: var(--bg-app);
+}
+
+.nav-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 var(--space-1);
+  align-self: center;
 }
 
 /* Alert Banner */
@@ -448,6 +643,12 @@ tr:hover td {
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: var(--space-5);
   margin-bottom: var(--space-5);
+}
+
+.chart-container {
+  position: relative;
+  height: 260px;
+  width: 100%;
 }
 
 .card-no-margin {

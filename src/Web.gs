@@ -1,11 +1,17 @@
 /**
- * Web.gs — Web App Request Router & Page Dispatcher
+ * Web.gs — Web App Request Router & Page Delivery Controller
  * Digital Reporting System for Integrated Agriculture Company
+ * 
+ * Clean Architecture Layer: DELIVERY / ADAPTERS
+ * Responsibility: Handles HTTP GET requests (doGet), page routing, and template inclusions.
+ * Delegates authentication, RBAC, and business logic to AuthService & AdminService.
  */
 
 /**
  * Handles HTTP GET requests for Apps Script Web App.
  * Routes to index, general, admin, or dashboard HTML views.
+ * @param {Object} e - HTTP GET Event object.
+ * @returns {HtmlOutput} Evaluated HTML response.
  */
 function doGet(e) {
   const pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : '').toLowerCase().trim();
@@ -16,30 +22,26 @@ function doGet(e) {
     dashboard: 'dashboard' 
   };
 
-  const userRole = getUserRole();
-  const isInternalDeployment = isInternalWebAppDeployment();
+  const userRole = AuthService.getUserRole();
+  const isInternalDeployment = AuthService.isInternalWebAppDeployment();
   const templateUserRole = isInternalDeployment ? userRole : null;
 
   let file = allowed[pageParam];
 
   // Default landing page when no explicit ?page= parameter is provided.
-  // Resolves to role-appropriate view if authenticated (manager -> dashboard, admin/both -> admin).
-  // Defaults to 'index' (Daily Form) for public or unauthorized visitors.
-  // Gated by downstream deployment check (!isInternalDeployment) to restrict Deployment A.
+  // On Deployment B (Internal Console), defaults to role-appropriate view (dashboard for manager, admin for admin/both).
+  // On Deployment A (Public Portal), ALWAYS defaults to 'index' (Daily Form) for all visitors, preventing false access blocks.
   if (!file) {
-    if (userRole === 'manager') {
+    if (isInternalDeployment && userRole === 'manager') {
       file = 'dashboard';
-    } else if (userRole) {
+    } else if (isInternalDeployment && userRole) {
       file = 'admin';
     } else {
       file = 'index';
     }
   }
 
-  // Access control: strict per-role RBAC (Option A — as documented in ADMIN_MANUAL.md)
-  // admin  → Admin Queue only
-  // manager → Manager Dashboard only
-  // both   → both pages allowed
+  // Access control: strict per-role RBAC for internal console pages
   if ((file === 'admin' || file === 'dashboard') && !isInternalDeployment) {
     return renderAccessRestricted(
       'Akses Internal Console Tidak Tersedia di Deployment Ini',
@@ -72,7 +74,7 @@ function doGet(e) {
   }
 
   const template = HtmlService.createTemplateFromFile(file);
-  const webAppUrl = getCanonicalWebAppUrl();
+  const webAppUrl = AuthService.getCanonicalWebAppUrl();
 
   template.webAppUrl = webAppUrl;
   template.userRole = templateUserRole;
@@ -87,142 +89,13 @@ function doGet(e) {
 }
 
 /**
- * Safely resolves the canonical Web App deployment URL.
- * Uses the executing deployment URL when Apps Script exposes it. If unavailable,
- * falls back to the explicit deployment URL properties. PUBLIC_WEB_APP_URL is
- * preferred because an inconclusive deployment check is treated as public.
- * @returns {string} Canonical base URL.
- */
-function getCanonicalWebAppUrl() {
-  const serviceUrl = getExecutingWebAppUrl_();
-
-  if (isValidWebAppUrl_(serviceUrl)) {
-    return serviceUrl;
-  }
-
-  const publicUrl = getConfiguredWebAppUrl_('PUBLIC_WEB_APP_URL');
-  if (publicUrl) {
-    return publicUrl;
-  }
-
-  const internalUrl = getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
-  if (internalUrl) {
-    return internalUrl;
-  }
-
-  return serviceUrl;
-}
-
-/**
- * Returns true only when the currently executing Web App URL matches the
- * explicitly configured internal deployment URL.
- * Compares deployment IDs if available to tolerate /u/N/ profile segment differences.
- * If either side is missing/invalid, the check is intentionally false.
- * @returns {boolean}
- */
-function isInternalWebAppDeployment() {
-  const serviceUrl = getExecutingWebAppUrl_();
-  const internalUrl = getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
-
-  if (!isValidWebAppUrl_(serviceUrl) || !internalUrl) {
-    return false;
-  }
-
-  const serviceId = extractDeploymentId_(serviceUrl);
-  const internalId = extractDeploymentId_(internalUrl);
-
-  if (serviceId && internalId) {
-    return serviceId === internalId;
-  }
-
-  return normalizeWebAppUrl_(serviceUrl) === normalizeWebAppUrl_(internalUrl);
-}
-
-/**
- * Extracts deployment ID from Apps Script Web App URL.
- * Handles standard URLs and URLs containing /u/N/ profile path segments.
- * @param {string} url
- * @returns {string}
- */
-function extractDeploymentId_(url) {
-  const match = String(url || '').match(/\/s\/([a-zA-Z0-9_-]+)/);
-  return match ? match[1] : '';
-}
-
-/**
- * Returns deployment diagnostics for Admin/Manager troubleshooting.
- * Privileged operation — requires authenticated Admin or Manager role.
- * @returns {Object} Diagnostic details.
- */
-function getDeploymentDiagnostics() {
-  const role = getUserRole();
-  if (!role) {
-    throw new Error('Akses ditolak: Hanya Admin/Manager yang dapat mengakses diagnosa.');
-  }
-
-  const serviceUrl = getExecutingWebAppUrl_();
-  const publicUrl = getConfiguredWebAppUrl_('PUBLIC_WEB_APP_URL');
-  const internalUrl = getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
-
-  return {
-    executingUrl: serviceUrl,
-    configuredPublicUrl: publicUrl,
-    configuredInternalUrl: internalUrl,
-    executingDeploymentId: extractDeploymentId_(serviceUrl),
-    publicDeploymentId: extractDeploymentId_(publicUrl),
-    internalDeploymentId: extractDeploymentId_(internalUrl),
-    isInternalDeployment: isInternalWebAppDeployment(),
-    userRole: role
-  };
-}
-
-/**
- * Reads and validates a configured Web App URL from Script Properties.
- * @param {string} propertyName
- * @returns {string}
- */
-function getConfiguredWebAppUrl_(propertyName) {
-  const props = PropertiesService.getScriptProperties();
-  const configuredUrl = (props.getProperty(propertyName) || '').trim();
-
-  return isValidWebAppUrl_(configuredUrl) ? configuredUrl : '';
-}
-
-/**
- * Reads the URL of the deployment currently serving this request.
- * @returns {string}
- */
-function getExecutingWebAppUrl_() {
-  try {
-    return (ScriptApp.getService().getUrl() || '').trim();
-  } catch (err) {
-    Logger.log('Notice: ScriptApp.getService().getUrl() unavailable.');
-    return '';
-  }
-}
-
-/**
- * @param {string} url
- * @returns {boolean}
- */
-function isValidWebAppUrl_(url) {
-  return !!(url && url.indexOf('script.google.com') !== -1);
-}
-
-/**
- * Normalizes a Web App URL for equality checks.
- * @param {string} url
- * @returns {string}
- */
-function normalizeWebAppUrl_(url) {
-  return String(url || '').trim().split('?')[0].replace(/\/+$/, '');
-}
-
-/**
  * Helper to render structured Access Restricted response.
+ * @param {string} title 
+ * @param {string} reason 
+ * @returns {HtmlOutput}
  */
 function renderAccessRestricted(title, reason) {
-  const webAppUrl = getCanonicalWebAppUrl();
+  const webAppUrl = AuthService.getCanonicalWebAppUrl();
   const backAction = webAppUrl ? `window.top.location.href='${webAppUrl}?page=index'` : `window.history.back()`;
 
   return HtmlService.createHtmlOutput(
@@ -247,6 +120,8 @@ function renderAccessRestricted(title, reason) {
 /**
  * Helper to include external HTML components (CSS/JS).
  * Usage in HTML: <?!= include('style'); ?>
+ * @param {string} filename 
+ * @returns {string}
  */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
@@ -254,10 +129,9 @@ function include(filename) {
 
 /**
  * Injects client configuration variables into a script tag preceding app.html contents.
- * Evaluates dynamically per request to ensure valid client variables.
- * @param {string} webAppUrl
- * @param {string} urgentKeywordsJson
- * @param {string} warningKeywordsJson
+ * @param {string} webAppUrl 
+ * @param {string} urgentKeywordsJson 
+ * @param {string} warningKeywordsJson 
  * @returns {string}
  */
 function includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson) {
@@ -271,9 +145,9 @@ function includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson) {
 
 /**
  * Evaluates the shared header partial with page-level template variables.
- * @param {'admin' | 'manager' | 'both' | null} userRole
- * @param {string} currentPage
- * @param {string} webAppUrl
+ * @param {'admin' | 'manager' | 'both' | null} userRole 
+ * @param {string} currentPage 
+ * @param {string} webAppUrl 
  * @returns {string}
  */
 function includeHeader(userRole, currentPage, webAppUrl) {
@@ -281,84 +155,16 @@ function includeHeader(userRole, currentPage, webAppUrl) {
   template.userRole = userRole;
   template.currentPage = currentPage;
   template.webAppUrl = webAppUrl;
+
+  let userEmail = '';
+  if (userRole) {
+    try {
+      userEmail = (Session.getActiveUser().getEmail() || '').trim();
+    } catch (e) {
+      userEmail = '';
+    }
+  }
+  template.userEmail = userEmail;
+
   return template.evaluate().getContent();
-}
-
-/**
- * Evaluates active user email against script properties ADMIN_EMAIL and MANAGER_EMAIL.
- * Uses ONLY Session.getActiveUser() — never getEffectiveUser().
- * Under an "Execute as: Me" deployment, getEffectiveUser() always resolves to the developer's
- * own account, not the visitor's, so it must never be used as a visitor identity source.
- * Returns null for any email not explicitly listed — no fallback, no auto-bind.
- * Requires ADMIN_EMAIL and/or MANAGER_EMAIL to be set in Script Properties to real email addresses.
- * @returns {'admin' | 'manager' | 'both' | null} Role string or null if unauthorized.
- */
-function getUserRole() {
-  const props = PropertiesService.getScriptProperties();
-  const adminEmail = (props.getProperty('ADMIN_EMAIL') || '').trim().toLowerCase();
-  const managerEmail = (props.getProperty('MANAGER_EMAIL') || '').trim().toLowerCase();
-
-  // Only use getActiveUser() — it returns the *visitor's* identity.
-  // getEffectiveUser() returns the script owner's identity under "Execute as: Me" and must NOT
-  // be used as a fallback, or every anonymous public visitor would resolve to the developer.
-  let userEmail = '';
-  try {
-    userEmail = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
-  } catch (e) {
-    Logger.log('Notice: Session.getActiveUser().getEmail() restricted/unavailable.');
-  }
-
-  // No identifiable visitor → deny
-  if (!userEmail) return null;
-
-  // SECURITY: If Script Properties still hold placeholder defaults or are empty, treat as
-  // unconfigured — deny access rather than granting admin to whoever happens to visit first.
-  // Action required: set ADMIN_EMAIL and MANAGER_EMAIL in Apps Script → Project Settings → Script Properties.
-  const PLACEHOLDER_ADMIN = 'admin.operasional@perusahaan-agri.co.id';
-  const PLACEHOLDER_MANAGER = 'manager.operasional@perusahaan-agri.co.id';
-
-  const effectiveAdmin = (adminEmail && adminEmail !== PLACEHOLDER_ADMIN) ? adminEmail : null;
-  const effectiveManager = (managerEmail && managerEmail !== PLACEHOLDER_MANAGER) ? managerEmail : null;
-
-  // If neither role is configured, deny all access
-  if (!effectiveAdmin && !effectiveManager) return null;
-
-  const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
-  const isManager = effectiveManager && userEmail === effectiveManager;
-
-  if (isAdmin && isManager) return 'both';
-  if (isAdmin) return 'admin';
-  if (isManager) return 'manager';
-
-  // Unrecognized identity — deny by default
-  return null;
-}
-
-/**
- * Returns active user email and role for client consumption.
- * Uses only Session.getActiveUser() — never getEffectiveUser() (see getUserRole() for rationale).
- * @returns {Object} { email: string, role: string|null, isAuthorized: boolean }
- */
-function getUserIdentityInfo() {
-  let userEmail = '';
-  try {
-    userEmail = (Session.getActiveUser().getEmail() || '').trim();
-  } catch (e) {
-    userEmail = '';
-  }
-
-  const role = getUserRole();
-  return {
-    email: userEmail,
-    role: role,
-    isAuthorized: !!role
-  };
-}
-
-/**
- * Verifies if the active user email belongs to ADMIN_EMAIL or MANAGER_EMAIL.
- * @returns {boolean} True if authorized.
- */
-function isAuthorizedStaff() {
-  return getUserRole() !== null;
 }
