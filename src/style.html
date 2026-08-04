@@ -147,7 +147,7 @@ nav {
 }
 
 .container-wide {
-  max-width: 1200px;
+  max-width: 1360px;
   margin: var(--space-5) auto;
   padding: 0 var(--space-4);
 }
@@ -439,9 +439,21 @@ tr:hover td {
 /* Metrics Grid & Cards */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-5);
+}
+
+@media (max-width: 900px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .metric-card {
@@ -452,6 +464,8 @@ tr:hover td {
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  min-height: 135px;
 }
 
 .metric-card-interactive {
@@ -492,7 +506,7 @@ tr:hover td {
   gap: 4px;
   font-size: 0.75rem;
   font-weight: 600;
-  margin-top: var(--space-2);
+  margin-top: auto;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
   width: fit-content;
@@ -821,17 +835,23 @@ tr:hover td {
   display: none;
 }
 
-.modal-container {
-  background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  max-width: 680px;
+.modal-container,
+.modal-card {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  border-radius: var(--radius-md, 12px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-width: 620px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color, #E2E8F0);
   animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  position: relative;
+  z-index: 9001;
+  color: var(--text-primary, #0F172A);
 }
 
 .modal-header {
@@ -1315,7 +1335,7 @@ tr:hover td {
 
 /* KPI Breakdown List Pattern */
 .kpi-breakdown-list {
-  margin-top: 0.75rem;
+  margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border-color);
   display: flex;

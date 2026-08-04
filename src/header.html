@@ -1,45 +1,12 @@
-<header class="<?= userRole ? 'header-internal' : '' ?>">
+<header>
   <div class="nav-container">
-    <? const logoPage = (userRole === 'manager') ? 'dashboard' : (userRole ? 'admin' : 'index'); ?>
-    <a href="<?= webAppUrl ? webAppUrl + '?page=' + logoPage : '#' ?>" data-page="<?= logoPage ?>" onclick="navigateToPage(this.getAttribute('data-page'), this); return false;" class="logo">
-      <span class="logo-badge <?= userRole ? 'logo-badge-internal' : '' ?>"><?= userRole ? 'INTERNAL CONSOLE' : 'AGRI-DIGITAL' ?></span>
-      <span><?= userRole ? 'Portal Operasional' : 'Portal Pelaporan' ?></span>
+    <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" data-page="index" onclick="navigateToPage('index', this); return false;" class="logo">
+      <span class="logo-badge">AGRI-DIGITAL</span>
+      <span>Portal Pelaporan</span>
     </a>
-    <? if (userRole) { ?>
-      <div id="userIdentityStrip" data-populated="1">
-        <div class="user-identity-menu">
-          <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
-          <div class="user-info">
-            <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
-            <? if (userRole === 'both') { ?>
-              <span class="badge badge-primary">Admin &amp; Manager</span>
-            <? } else if (userRole === 'admin') { ?>
-              <span class="badge badge-primary">Admin Operasional</span>
-            <? } else if (userRole === 'manager') { ?>
-              <span class="badge badge-normal">Executive Manager</span>
-            <? } ?>
-          </div>
-          <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-    <? } ?>
     <nav>
-      <? if (userRole) { ?>
-        <!-- Internal Console Mode: Admin Queue / Manager Dashboard primary, public forms demoted -->
-        <? if (userRole === 'admin' || userRole === 'both') { ?>
-          <a href="<?= webAppUrl ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" id="navLinkAdmin" class="nav-link <?= currentPage === 'admin' ? 'active' : '' ?>">Admin Queue</a>
-        <? } ?>
-        <? if (userRole === 'manager' || userRole === 'both') { ?>
-          <a href="<?= webAppUrl ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" id="navLinkDashboard" class="nav-link <?= currentPage === 'dashboard' ? 'active' : '' ?>">Manager Dashboard</a>
-        <? } ?>
-        <span class="nav-divider"></span>
-        <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link nav-link-secondary <?= currentPage === 'index' ? 'active' : '' ?>" title="Pratinjau Form Publik Daily">Form Daily</a>
-        <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link nav-link-secondary <?= currentPage === 'general' ? 'active' : '' ?>" title="Pratinjau Form Publik General">Form General</a>
-      <? } else { ?>
-        <!-- Public Portal Mode: Intake forms primary -->
-        <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Daily Form</a>
-        <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">General Form</a>
-      <? } ?>
+      <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Form Laporan Harian</a>
+      <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="nav-link <?= currentPage === 'general' ? 'active' : '' ?>">Form Laporan Umum</a>
     </nav>
   </div>
 </header>

@@ -58,3 +58,48 @@ function getDashboardStats() {
 function getAdminQuickLinks() {
   return AdminService.getAdminQuickLinks();
 }
+
+/**
+ * Returns list of all registered reporting forms.
+ * @returns {Array<Object>}
+ */
+function getRegisteredForms() {
+  try {
+    const res = FormManagementService.getFormList();
+    return JSON.parse(JSON.stringify(res || []));
+  } catch (e) {
+    Logger.log('ClientAPI Error in getRegisteredForms: ' + e.toString());
+    return [];
+  }
+}
+
+/**
+ * Creates and provisions a new Google Form.
+ * @param {Object} params - { title, description, formType, sites }
+ * @returns {Object}
+ */
+function createNewReportingForm(params) {
+  const res = FormManagementService.createForm(params);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Updates form configuration settings and Google Form properties.
+ * @param {string} formId 
+ * @param {Object} updates - { title, description, status }
+ * @returns {Object}
+ */
+function updateReportingForm(formId, updates) {
+  const res = FormManagementService.updateFormConfig(formId, updates);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Deletes a form registration and optionally trashes its Drive file.
+ * @param {string} formId 
+ * @param {boolean} deleteDriveFile 
+ * @returns {boolean}
+ */
+function deleteReportingForm(formId, deleteDriveFile) {
+  return FormManagementService.deleteForm(formId, deleteDriveFile);
+}

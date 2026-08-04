@@ -126,9 +126,29 @@ function evaluateFlags(text) {
 function runServer(fnName, ...args) {
   return new Promise((resolve, reject) => {
     if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+      let isSettled = false;
+      const timeoutTimer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          reject(new Error(`Server RPC '${fnName}' timed out after 8s`));
+        }
+      }, 8000);
+
       google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(reject)
+        .withSuccessHandler((res) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timeoutTimer);
+            resolve(res);
+          }
+        })
+        .withFailureHandler((err) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timeoutTimer);
+            reject(err);
+          }
+        })
         [fnName](...args);
     } else {
       reject(new Error('google.script.run unavailable (local mode)'));

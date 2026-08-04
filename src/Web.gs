@@ -19,7 +19,8 @@ function doGet(e) {
     index: 'index', 
     general: 'general', 
     admin: 'admin', 
-    dashboard: 'dashboard' 
+    dashboard: 'dashboard',
+    forms: 'forms'
   };
 
   const userRole = AuthService.getUserRole();
@@ -42,15 +43,15 @@ function doGet(e) {
   }
 
   // Access control: strict per-role RBAC for internal console pages
-  if ((file === 'admin' || file === 'dashboard') && !isInternalDeployment) {
+  if ((file === 'admin' || file === 'dashboard' || file === 'forms') && !isInternalDeployment) {
     return renderAccessRestricted(
       'Akses Internal Console Tidak Tersedia di Deployment Ini',
-      'Halaman Admin Queue dan Manager Dashboard hanya tersedia melalui Deployment B (Internal Operations Console). ' +
+      'Halaman Internal Console (Admin Queue, Dashboard Manajer, dan Manajemen Form) hanya tersedia melalui Deployment B. ' +
       'Gunakan tautan internal resmi yang memiliki akses Google account.'
     );
   }
 
-  if (file === 'admin' || file === 'dashboard') {
+  if (file === 'admin' || file === 'dashboard' || file === 'forms') {
     if (!userRole) {
       return renderAccessRestricted(
         '🔒 Akses Internal Console Terbatas',
@@ -188,17 +189,15 @@ function includeHeader(userRole, currentPage, webAppUrl) {
  */
 function includeSidebar(userRole, currentPage, webAppUrl) {
   const template = HtmlService.createTemplateFromFile('sidebar');
-  template.userRole = userRole;
-  template.currentPage = currentPage;
-  template.webAppUrl = webAppUrl;
+  template.userRole = userRole || '';
+  template.currentPage = currentPage || '';
+  template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
 
   let userEmail = '';
-  if (userRole) {
-    try {
-      userEmail = (Session.getActiveUser().getEmail() || '').trim();
-    } catch (e) {
-      userEmail = '';
-    }
+  try {
+    userEmail = (Session.getActiveUser().getEmail() || '').trim();
+  } catch (e) {
+    userEmail = '';
   }
   template.userEmail = userEmail;
 
