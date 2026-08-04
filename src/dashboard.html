@@ -28,9 +28,9 @@
 
         <div id="userIdentityStrip" data-populated="1">
           <div class="user-identity-menu">
-            <div class="user-avatar"><?= (userEmail && userEmail.length > 0) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
+            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
             <div class="user-info">
-              <span class="user-email"><?= userEmail || 'staf.operasional@agri.co.id' ?></span>
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
               <? if (userRole === 'both') { ?>
                 <span class="badge badge-primary">Admin &amp; Manager</span>
               <? } else if (userRole === 'admin') { ?>
@@ -157,9 +157,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // app.html's DOMContentLoaded also calls renderIdentityStrip() when userIdentityStrip exists.
-      // The data-populated guard prevents the double-call; this is the page-specific trigger
-      // that ensures renderDashboard() runs alongside identity resolution.
       const identityStrip = document.getElementById('userIdentityStrip');
       if (identityStrip && !identityStrip.dataset.populated) {
         identityStrip.dataset.populated = '1';
@@ -167,13 +164,37 @@
       }
       loadQuickLinks();
       loadDiagnostics();
-      renderDashboard();
+
+      // Defer renderDashboard until layout flexbox and fonts have fully settled
+      window.requestAnimationFrame(() => {
+        setTimeout(() => {
+          renderDashboard();
+        }, 50);
+      });
+    });
+
+    window.addEventListener('load', () => {
+      if (severityChartInstance) severityChartInstance.resize();
+      if (siteChartInstance) siteChartInstance.resize();
+    });
+
+    let windowResizeTimeout = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(windowResizeTimeout);
+      windowResizeTimeout = setTimeout(() => {
+        if (severityChartInstance) severityChartInstance.resize();
+        if (siteChartInstance) siteChartInstance.resize();
+      }, 150);
     });
 
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
       if (sidebar) {
         sidebar.classList.toggle('sidebar-open');
+        setTimeout(() => {
+          if (severityChartInstance) severityChartInstance.resize();
+          if (siteChartInstance) siteChartInstance.resize();
+        }, 280);
       }
     }
 
@@ -336,6 +357,7 @@
           }
         }
       });
+      severityChartInstance.resize();
 
       // Render Chart 2: Site Bar Chart
       if (siteChartInstance) siteChartInstance.destroy();
@@ -364,6 +386,7 @@
           }
         }
       });
+      siteChartInstance.resize();
 
       if (isManualRefresh) {
         showToast('Dashboard statistik berhasil diperbarui', 'info');

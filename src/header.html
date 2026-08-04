@@ -8,9 +8,9 @@
     <? if (userRole) { ?>
       <div id="userIdentityStrip" data-populated="1">
         <div class="user-identity-menu">
-          <div class="user-avatar"><?= (userEmail && userEmail.length > 0) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
+          <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
           <div class="user-info">
-            <span class="user-email"><?= userEmail || 'staf.operasional@agri.co.id' ?></span>
+            <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
             <? if (userRole === 'both') { ?>
               <span class="badge badge-primary">Admin &amp; Manager</span>
             <? } else if (userRole === 'admin') { ?>

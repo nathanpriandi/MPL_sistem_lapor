@@ -76,8 +76,18 @@ function doGet(e) {
   const template = HtmlService.createTemplateFromFile(file);
   const webAppUrl = AuthService.getCanonicalWebAppUrl();
 
+  let userEmail = '';
+  if (templateUserRole) {
+    try {
+      userEmail = (Session.getActiveUser().getEmail() || '').trim();
+    } catch (e) {
+      userEmail = '';
+    }
+  }
+
   template.webAppUrl = webAppUrl;
   template.userRole = templateUserRole;
+  template.userEmail = userEmail;
   template.currentPage = file;
   template.urgentKeywordsJson = JSON.stringify(typeof URGENT_KEYWORDS !== 'undefined' ? URGENT_KEYWORDS : []);
   template.warningKeywordsJson = JSON.stringify(typeof WARNING_KEYWORDS !== 'undefined' ? WARNING_KEYWORDS : []);
@@ -181,6 +191,17 @@ function includeSidebar(userRole, currentPage, webAppUrl) {
   template.userRole = userRole;
   template.currentPage = currentPage;
   template.webAppUrl = webAppUrl;
+
+  let userEmail = '';
+  if (userRole) {
+    try {
+      userEmail = (Session.getActiveUser().getEmail() || '').trim();
+    } catch (e) {
+      userEmail = '';
+    }
+  }
+  template.userEmail = userEmail;
+
   return template.evaluate().getContent();
 }
 
