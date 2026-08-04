@@ -168,3 +168,19 @@ function includeHeader(userRole, currentPage, webAppUrl) {
 
   return template.evaluate().getContent();
 }
+
+/**
+ * Evaluates the shared sidebar partial for internal console pages.
+ * @param {'admin' | 'manager' | 'both' | null} userRole 
+ * @param {string} currentPage 
+ * @param {string} webAppUrl 
+ * @returns {string}
+ */
+function includeSidebar(userRole, currentPage, webAppUrl) {
+  const template = HtmlService.createTemplateFromFile('sidebar');
+  template.userRole = userRole;
+  template.currentPage = currentPage;
+  template.webAppUrl = webAppUrl;
+  return template.evaluate().getContent();
+}
+

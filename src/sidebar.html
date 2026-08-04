@@ -1,0 +1,55 @@
+<aside class="sidebar" id="appSidebar">
+  <div class="sidebar-header">
+    <? const logoPage = (userRole === 'manager') ? 'dashboard' : (userRole ? 'admin' : 'index'); ?>
+    <a href="<?= webAppUrl ? webAppUrl + '?page=' + logoPage : '#' ?>" data-page="<?= logoPage ?>" onclick="navigateToPage(this.getAttribute('data-page'), this); return false;" class="logo sidebar-logo">
+      <span class="logo-badge logo-badge-internal">INTERNAL CONSOLE</span>
+      <span class="sidebar-logo-text">Portal Operasional</span>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">NAVIGASI UTAMA</div>
+    <? if (userRole === 'admin' || userRole === 'both') { ?>
+      <a href="<?= webAppUrl ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" class="sidebar-nav-item <?= currentPage === 'admin' ? 'active' : '' ?>" id="sidebarNavAdmin">
+        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Admin Queue</span>
+      </a>
+    <? } ?>
+
+    <? if (userRole === 'manager' || userRole === 'both') { ?>
+      <a href="<?= webAppUrl ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" class="sidebar-nav-item <?= currentPage === 'dashboard' ? 'active' : '' ?>" id="sidebarNavDashboard">
+        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        <span>Manager Dashboard</span>
+      </a>
+    <? } ?>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section-label">TAUTAN SISTEM</div>
+    <div id="sidebarQuickLinks" class="sidebar-link-list">
+      <span class="sidebar-link-loading">Memuat tautan...</span>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section-label">DEMOSI FORM PUBLIK</div>
+    <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="sidebar-nav-item sidebar-nav-item-subtle <?= currentPage === 'index' ? 'active' : '' ?>" title="Pratinjau Form Publik Daily">
+      <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <span>Form Daily Publik</span>
+    </a>
+    <a href="<?= webAppUrl ? webAppUrl + '?page=general' : '#' ?>" onclick="navigateToPage('general', this); return false;" class="sidebar-nav-item sidebar-nav-item-subtle <?= currentPage === 'general' ? 'active' : '' ?>" title="Pratinjau Form Publik General">
+      <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <span>Form General Publik</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <details class="sidebar-diagnostics" id="diagnosticsDetails">
+      <summary class="sidebar-diagnostics-summary">
+        <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span>Deployment Diagnostics</span>
+      </summary>
+      <div id="diagnosticsContent" class="sidebar-diagnostics-body">Memuat diagnosa...</div>
+    </details>
+  </div>
+</aside>

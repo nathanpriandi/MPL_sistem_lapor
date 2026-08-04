@@ -237,19 +237,22 @@ async function renderIdentityStrip() {
         } else if (info.role === 'manager') {
           roleBadge = '<span class="badge badge-normal">Executive Manager</span>';
         } else {
-          // Unknown/unauthorized — don't display internal badge
           roleBadge = '<span class="badge badge-neutral">Tamu</span>';
         }
 
+        const avatarInitial = info.email ? info.email.charAt(0).toUpperCase() : 'S';
+
         stripEl.innerHTML = `
-          <div class="user-identity">
-            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span class="user-email">${info.email}</span>
-            ${roleBadge}
+          <div class="user-identity-menu">
+            <div class="user-avatar">${avatarInitial}</div>
+            <div class="user-info">
+              <span class="user-email">${info.email}</span>
+              ${roleBadge}
+            </div>
+            <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         `;
         
-        // Show only nav links the user's role actually permits
         _showInternalNavLinks(info.role);
         return;
       }
@@ -258,14 +261,18 @@ async function renderIdentityStrip() {
     }
   }
 
-  // Fallback for local preview mode — show all nav links
+  // Fallback for local preview mode
   stripEl.innerHTML = `
-    <div class="user-identity">
-      <span class="user-email">local.dev@agri.co.id</span>
-      <span class="badge badge-neutral">Local Preview</span>
+    <div class="user-identity-menu">
+      <div class="user-avatar">L</div>
+      <div class="user-info">
+        <span class="user-email">local.dev@agri.co.id</span>
+        <span class="badge badge-neutral">Local Preview</span>
+      </div>
+      <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
   `;
-  _showInternalNavLinks('both'); // In local preview, show all internal links
+  _showInternalNavLinks('both');
 }
 
 /**
