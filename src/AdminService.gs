@@ -59,28 +59,22 @@ const AdminService = {
    */
   sendDailyDigest: function() {
     Logger.log('AdminService: Running sendDailyDigest...');
-    const ss = SpreadsheetRepository.getSpreadsheet();
-    const queueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE);
-    if (!queueSheet) return;
-
-    const values = queueSheet.getDataRange().getValues();
+    const queueItems = this.getAdminQueueData();
     let totalPending = 0;
     let urgentCount = 0;
     let warningCount = 0;
     let normalCount = 0;
 
-    for (let i = 1; i < values.length; i++) {
-      const row = values[i];
-      if (row[0] && row[0] !== '') {
-        totalPending++;
-        const severity = String(row[9] || row[8]).toLowerCase();
-        if (severity === ReportSeverity.URGENT) urgentCount++;
-        else if (severity === ReportSeverity.WARNING) warningCount++;
-        else normalCount++;
-      }
-    }
+    queueItems.forEach(item => {
+      totalPending++;
+      const severity = String(item.severity || '').toLowerCase();
+      if (severity === ReportSeverity.URGENT) urgentCount++;
+      else if (severity === ReportSeverity.WARNING) warningCount++;
+      else normalCount++;
+    });
 
-    NotificationAdapter.sendDailyDigest(totalPending, urgentCount, warningCount, normalCount, ss.getUrl());
+    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
+    NotificationAdapter.sendDailyDigest(totalPending, urgentCount, warningCount, normalCount, publicWebAppUrl);
   },
 
   /**

@@ -18,6 +18,7 @@ function doGet(e) {
   const allowed = { 
     index: 'index', 
     general: 'general', 
+    dynamicform: 'dynamicform',
     admin: 'admin', 
     dashboard: 'dashboard',
     forms: 'forms'

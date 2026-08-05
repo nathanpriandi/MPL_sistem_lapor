@@ -17,13 +17,17 @@ const ReportService = {
       throw new Error('Missing required daily report fields.');
     }
 
+    const forms = FormManagementService.getFormList();
+    const dForm = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily);
+    const targetSheetId = dForm ? dForm.sheetId : null;
+
     const report = DailyReport(payload);
     const flag = TriageEngine.evaluate([report.empId, report.site, report.date, report.taskStatus, report.yieldKg, report.issues]);
     
-    const result = SpreadsheetRepository.saveDailyReport(report, flag);
+    const result = SpreadsheetRepository.saveDailyReport(report, flag, targetSheetId);
 
     if (flag.severity === ReportSeverity.URGENT) {
-      NotificationAdapter.sendUrgentAlert(SHEET_NAMES.DAILY_RAW, result.row, result.rowData, flag);
+      NotificationAdapter.sendUrgentAlert('Laporan Harian', 1, [result.reportId, formatDate(new Date()), report.empId, report.site, report.date, report.taskStatus, report.yieldKg, report.issues, flag.severity], flag);
     }
 
     return { success: true, reportId: result.reportId };
@@ -39,12 +43,16 @@ const ReportService = {
       throw new Error('Missing required general report fields.');
     }
 
+    const forms = FormManagementService.getFormList();
+    const gForm = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral);
+    const targetSheetId = gForm ? gForm.sheetId : null;
+
     const report = GeneralReport(payload);
     const flag = TriageEngine.evaluate([report.empId, report.site, report.date, report.details]);
 
     if (payload.isSensitive || TriageEngine.isSensitiveRow([report.details, report.sensitiveText])) {
       report.isSensitive = true;
-      const result = SpreadsheetRepository.saveSensitiveReport(report, flag);
+      const result = SpreadsheetRepository.saveGeneralReport(report, flag, targetSheetId);
       
       NotificationAdapter.sendSensitiveAlert({
         reportId: result.reportId,
@@ -56,87 +64,104 @@ const ReportService = {
       return { success: true, reportId: result.reportId, isSensitive: true };
     }
 
-    const result = SpreadsheetRepository.saveGeneralReport(report, flag);
+    const result = SpreadsheetRepository.saveGeneralReport(report, flag, targetSheetId);
 
     if (flag.severity === ReportSeverity.URGENT) {
-      NotificationAdapter.sendUrgentAlert(SHEET_NAMES.GENERAL_RAW, result.row, result.rowData, flag);
+      NotificationAdapter.sendUrgentAlert('Laporan Umum', 1, [result.reportId, formatDate(new Date()), report.empId, report.site, report.date, report.details, 'NO', flag.severity], flag);
     }
 
     return { success: true, reportId: result.reportId, isSensitive: false };
   },
 
   /**
-   * Handles Google Form submit trigger for Daily Report Form.
-   * @param {Object} e - Event object.
+   * Uploads base64 encoded photo attachment into form's dedicated Drive folder.
+   * @param {string} base64Data 
+   * @param {string} mimeType 
+   * @param {string} formId 
+   * @returns {string} File public view URL.
    */
-  processDailyFormSubmit: function(e) {
-    try {
-      const range = e.range;
-      const sheet = range.getSheet();
-      const row = range.getRow();
-      const lastCol = sheet.getLastColumn();
-      let rowData = sheet.getRange(row, 1, 1, lastCol).getValues()[0];
+  uploadReportAttachment: function(base64Data, mimeType, formId) {
+    if (!base64Data) throw new Error('Blob data foto tidak boleh kosong.');
+    
+    const forms = FormManagementService.getFormList();
+    const form = forms.find(f => f.id === formId);
+    let targetFolder;
 
-      Logger.log('ReportService: Processing Daily Form Submit at row: ' + row);
-      SpreadsheetRepository.ensureReportId(sheet, row, rowData);
-      rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-      const flag = TriageEngine.evaluate(rowData);
-
-      // Populate Flag_Severity (Col 9), Severity_Rank (Col 10), Flag_Category (Col 11), Review_Status (Col 12)
-      sheet.getRange(row, 9).setValue(flag.severity);
-      sheet.getRange(row, 10).setValue(flag.rank);
-      sheet.getRange(row, 11).setValue(flag.category);
-      sheet.getRange(row, 12).setValue(ReviewStatus.UNREVIEWED);
-
-      SpreadsheetRepository.applyRowHighlighting(sheet, row, flag.severity);
-
-      if (flag.severity === ReportSeverity.URGENT) {
-        NotificationAdapter.sendUrgentAlert(SHEET_NAMES.DAILY_RAW, row, rowData, flag);
-      }
-    } catch (err) {
-      Logger.log('ReportService Error in processDailyFormSubmit: ' + err.toString());
+    if (form && form.driveFolderId) {
+      try {
+        targetFolder = DriveApp.getFolderById(form.driveFolderId);
+      } catch (e) {}
     }
+    if (!targetFolder) {
+      const parentFolderName = 'Reporting System Data';
+      const folderIter = DriveApp.getFoldersByName(parentFolderName);
+      targetFolder = folderIter.hasNext() ? folderIter.next() : DriveApp.getRootFolder();
+    }
+
+    const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
+    const file = targetFolder.createFile(blob);
+    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e) {}
+
+    return file.getUrl();
   },
 
   /**
-   * Handles Google Form submit trigger for General Report Form.
-   * @param {Object} e - Event object.
+   * Submits a dynamic custom form response into form's dedicated sheet.
+   * @param {string} formId 
+   * @param {Object} payload 
+   * @returns {{ success: boolean, reportId: string }}
    */
-  processGeneralFormSubmit: function(e) {
-    try {
-      const range = e.range;
-      const sheet = range.getSheet();
-      const row = range.getRow();
-      const lastCol = sheet.getLastColumn();
-      let rowData = sheet.getRange(row, 1, 1, lastCol).getValues()[0];
+  submitDynamicFormResponse: function(formId, payload) {
+    if (!formId || !payload) throw new Error('Form ID dan payload data wajib diisi.');
 
-      Logger.log('ReportService: Processing General Form Submit at row: ' + row);
-      SpreadsheetRepository.ensureReportId(sheet, row, rowData);
-      rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const forms = FormManagementService.getFormList();
+    const form = forms.find(f => f.id === formId);
+    if (!form) throw new Error('Form tidak ditemukan.');
 
-      if (TriageEngine.isSensitiveRow(rowData)) {
-        Logger.log('ReportService: Sensitive flag detected. Isolating row to Sensitive_Restricted...');
-        const info = SpreadsheetRepository.moveRowToSensitiveTab(sheet, row, rowData);
-        NotificationAdapter.sendSensitiveAlert(info);
-        return;
+    const reportId = Utilities.getUuid();
+    const nowStr = formatDate(new Date());
+    const empId = payload.empId || payload.kode_karyawan || 'EMP-DYNAMIC';
+    const site = payload.site || payload.lokasi || 'Site A — Kebun & Lahan Pertanian';
+    const date = payload.date || payload.tanggal || formatDate(new Date());
+
+    // Combine custom fields into structured details text
+    const textPieces = [];
+    Object.keys(payload).forEach(k => {
+      if (!['empId', 'site', 'date', 'kode_karyawan', 'lokasi', 'tanggal'].includes(k)) {
+        textPieces.push(`${k}: ${payload[k]}`);
       }
+    });
+    const details = textPieces.join(' | ');
 
-      const flag = TriageEngine.evaluate(rowData);
+    const flag = TriageEngine.evaluate([empId, site, date, details]);
 
-      // Populate Flag_Severity (Col 8), Severity_Rank (Col 9), Flag_Category (Col 10), Review_Status (Col 11)
-      sheet.getRange(row, 8).setValue(flag.severity);
-      sheet.getRange(row, 9).setValue(flag.rank);
-      sheet.getRange(row, 10).setValue(flag.category);
-      sheet.getRange(row, 11).setValue(ReviewStatus.UNREVIEWED);
+    const targetSsId = form.sheetId;
+    if (!targetSsId) throw new Error('Sheet data form belum terkonfigurasi.');
 
-      SpreadsheetRepository.applyRowHighlighting(sheet, row, flag.severity);
+    const ss = SpreadsheetApp.openById(targetSsId);
+    const rawSheet = ss.getSheetByName('Raw') || ss.getSheets()[0];
 
-      if (flag.severity === ReportSeverity.URGENT) {
-        NotificationAdapter.sendUrgentAlert(SHEET_NAMES.GENERAL_RAW, row, rowData, flag);
-      }
-    } catch (err) {
-      Logger.log('ReportService Error in processGeneralFormSubmit: ' + err.toString());
+    const rowData = [
+      reportId,
+      nowStr,
+      empId,
+      site,
+      date,
+      details,
+      'NO',
+      flag.severity,
+      flag.keywords.join(', '),
+      flag.isUrgent ? 'YES' : 'NO',
+      ReviewStatus.UNREVIEWED
+    ];
+
+    rawSheet.appendRow(rowData);
+
+    if (flag.severity === ReportSeverity.URGENT) {
+      NotificationAdapter.sendUrgentAlert(form.title || 'Form Kustom', rawSheet.getLastRow(), rowData, flag);
     }
+
+    return { success: true, reportId: reportId };
   }
 };

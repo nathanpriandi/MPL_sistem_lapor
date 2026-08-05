@@ -26,6 +26,45 @@ function submitGeneralReport(payload) {
 }
 
 /**
+ * Uploads a base64 photo attachment into form's dedicated Drive folder.
+ * @param {string} base64Data 
+ * @param {string} mimeType 
+ * @param {string} formId 
+ * @returns {string} File view URL.
+ */
+function uploadReportAttachment(base64Data, mimeType, formId) {
+  return ReportService.uploadReportAttachment(base64Data, mimeType, formId);
+}
+
+/**
+ * Returns schema definition for a custom form.
+ * @param {string} formId 
+ * @returns {Object} { id, title, description, fields }
+ */
+function getFormSchema(formId) {
+  const forms = FormManagementService.getFormList();
+  const form = forms.find(f => f.id === formId);
+  if (!form) throw new Error('Form tidak ditemukan.');
+  return JSON.parse(JSON.stringify({
+    id: form.id,
+    title: form.title || 'Form Laporan Kustom',
+    description: form.description || '',
+    type: form.type || 'kustom',
+    fields: form.fields || []
+  }));
+}
+
+/**
+ * Submits a dynamic custom form response.
+ * @param {string} formId 
+ * @param {Object} payload 
+ * @returns {{ success: boolean, reportId: string }}
+ */
+function submitDynamicFormResponse(formId, payload) {
+  return ReportService.submitDynamicFormResponse(formId, payload);
+}
+
+/**
  * Returns Admin_Queue rows for admin display.
  * @returns {Array} Array of QueueItem objects.
  */
@@ -74,8 +113,8 @@ function getRegisteredForms() {
 }
 
 /**
- * Creates and provisions a new Google Form.
- * @param {Object} params - { title, description, formType, sites }
+ * Creates and provisions a new Google Form or Custom Dynamic Form.
+ * @param {Object} params - { title, description, formType, sites, fields }
  * @returns {Object}
  */
 function createNewReportingForm(params) {
@@ -86,7 +125,7 @@ function createNewReportingForm(params) {
 /**
  * Updates form configuration settings and Google Form properties.
  * @param {string} formId 
- * @param {Object} updates - { title, description, status }
+ * @param {Object} updates - { title, description, status, fields }
  * @returns {Object}
  */
 function updateReportingForm(formId, updates) {
@@ -95,11 +134,19 @@ function updateReportingForm(formId, updates) {
 }
 
 /**
- * Deletes a form registration and optionally trashes its Drive file.
+ * Deletes a form registration.
  * @param {string} formId 
  * @param {boolean} deleteDriveFile 
  * @returns {boolean}
  */
-function deleteReportingForm(formId, deleteDriveFile) {
+function deleteReportingForm(formId, deleteDriveFile = false) {
   return FormManagementService.deleteForm(formId, deleteDriveFile);
+}
+
+/**
+ * Executes historical data migration script from central spreadsheet to per-form dedicated spreadsheets.
+ * @returns {Object}
+ */
+function runHistoricalMigration() {
+  return FormManagementService.migrateHistoricalDataToPerFormSheets();
 }

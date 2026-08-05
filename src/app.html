@@ -357,4 +357,58 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.insertBefore(banner, document.body.firstChild);
   }
 });
+
+async function loadQuickLinks() {
+  const container = document.getElementById('sidebarQuickLinks');
+  if (!container) return;
+
+  if (isLiveServer()) {
+    try {
+      const links = await runServer('getAdminQuickLinks');
+      if (links) {
+        const publicUrl = links.publicWebAppUrl || (window.SERVER_WEB_APP_URL ? `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index` : '');
+        let linksHtml = '';
+        if (links.spreadsheetUrl) {
+          linksHtml += `<a href="${links.spreadsheetUrl}" target="_blank" class="sidebar-link-item" title="Buka Spreadsheet Utama"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Spreadsheet Utama</span></a>`;
+        }
+        if (publicUrl) {
+          linksHtml += `<a href="${publicUrl}" target="_blank" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Publik</span></a>`;
+        }
+        container.innerHTML = linksHtml;
+        return;
+      }
+    } catch (e) {
+      console.error('Failed to load quick links:', e);
+    }
+  }
+
+  container.innerHTML = '<span class="sidebar-link-loading">Local Mode — Quick links live di Google Apps Script</span>';
+}
+
+async function loadDiagnostics() {
+  const container = document.getElementById('diagnosticsContent');
+  if (!container) return;
+
+  if (isLiveServer()) {
+    try {
+      const diag = await runServer('getDeploymentDiagnostics');
+      if (diag) {
+        container.innerText = `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
+          `Executing ID  : ${diag.executingDeploymentId || '(none)'}\n` +
+          `Public URL    : ${diag.configuredPublicUrl || '(belum dikonfigurasi)'}\n` +
+          `Public ID     : ${diag.publicDeploymentId || '(none)'}\n` +
+          `Internal URL  : ${diag.configuredInternalUrl || '(belum dikonfigurasi)'}\n` +
+          `Internal ID   : ${diag.internalDeploymentId || '(none)'}\n` +
+          `Is Internal   : ${diag.isInternalDeployment ? '✅ YES (Recognized as Deployment B)' : '❌ NO (Deployment match failed)'}\n` +
+          `Active Role   : ${diag.userRole || 'unauthorized'}`;
+        return;
+      }
+    } catch (e) {
+      container.innerText = 'Gagal memuat diagnosa: ' + e.message;
+      return;
+    }
+  }
+
+  container.innerText = 'Local Mode Preview — Server diagnostics live di Google Apps Script.';
+}
 </script>
