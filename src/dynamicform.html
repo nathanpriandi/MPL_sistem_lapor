@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Pelaporan Digital Lapangan</title>
+  <?!= include('style'); ?>
+</head>
+<body class="public-form-body">
+
+  <div class="public-form-container">
+    <header class="public-header">
+      <div class="header-badge">Formulir Pelaporan Digital</div>
+      <h1 class="header-title" id="formHeaderTitle">Memuat Formulir...</h1>
+      <p class="header-subtitle" id="formHeaderDesc">Silakan tunggu sebentar...</p>
+    </header>
+
+    <div class="alert-banner" id="formAlertBanner" hidden></div>
+
+    <form id="dynamicFormEl" class="form-card" onsubmit="handleDynamicSubmit(event)">
+      <!-- Standard Required Fields -->
+      <div class="form-group">
+        <label class="form-label" for="empId">Kode Karyawan / Employee ID <span class="text-danger">*</span></label>
+        <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: EMP-102" required>
+        <span class="form-help">Masukkan ID resmi karyawan Anda.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="site">Lokasi / Site Operasional <span class="text-danger">*</span></label>
+        <select id="site" name="site" class="form-input" required>
+          <option value="" disabled selected>-- Pilih Lokasi / Site --</option>
+          <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
+          <option value="Site B — Peternakan & Kandang">Site B — Peternakan &amp; Kandang</option>
+          <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
+          <option value="Site D — Logistik & Gudang">Site D — Logistik &amp; Gudang</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="date">Tanggal Pelaporan / Date <span class="text-danger">*</span></label>
+        <input type="date" id="date" name="date" class="form-input" required>
+      </div>
+
+      <!-- Dynamic Fields Container -->
+      <div id="dynamicFieldsContainer"></div>
+
+      <div class="form-actions">
+        <button type="submit" id="btnSubmitDynamic" class="btn btn-primary btn-block">
+          <span>Kirim Laporan</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
+  <script>
+    var currentFormId = '';
+    var currentSchema = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var dateInput = document.getElementById('date');
+      if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+
+      var urlParams = new URLSearchParams(window.location.search);
+      currentFormId = urlParams.get('formId') || '';
+
+      if (currentFormId) {
+        fetchFormSchema(currentFormId);
+      } else {
+        renderFormNotFound('ID Formulir tidak ditemukan pada URL.');
+      }
+    });
+
+    async function fetchFormSchema(formId) {
+      if (isLiveServer()) {
+        try {
+          var schema = await runServer('getFormSchema', formId);
+          if (schema) {
+            currentSchema = schema;
+            renderSchema(schema);
+            return;
+          }
+        } catch (e) {
+          console.error('Error fetching form schema:', e);
+        }
+      }
+
+      // Mock fallback schema for preview mode
+      currentSchema = {
+        id: formId,
+        title: 'Form Laporan Kustom Lapangan',
+        description: 'Formulir pelaporan kustom untuk inspeksi dan catatan operasional.',
+        fields: [
+          { key: 'kondisi_alat', label: 'Kondisi Alat / Peralatan', type: 'text', required: true },
+          { key: 'rincian_catatan', label: 'Rincian & Catatan Lapangan', type: 'textarea', required: true },
+          { key: 'foto_lampiran', label: 'Foto Lampiran Lapangan', type: 'photo', required: false }
+        ]
+      };
+      renderSchema(currentSchema);
+    }
+
+    function renderSchema(schema) {
+      document.getElementById('formHeaderTitle').innerText = schema.title || 'Form Laporan Lapangan';
+      document.getElementById('formHeaderDesc').innerText = schema.description || 'Isi data formulir pelaporan digital di bawah ini.';
+
+      var container = document.getElementById('dynamicFieldsContainer');
+      if (!container) return;
+
+      var fields = schema.fields || [];
+      if (fields.length === 0) {
+        container.innerHTML = '<div class="form-group"><label class="form-label">Rincian Laporan <span class="text-danger">*</span></label><textarea id="field_rincian" name="rincian" class="form-input" rows="4" required placeholder="Tuliskan rincian laporan Anda..."></textarea></div>';
+        return;
+      }
+
+      var html = '';
+      fields.forEach(function(f, idx) {
+        var fieldId = 'field_' + (f.key || idx);
+        var reqAttr = f.required ? 'required' : '';
+        var reqMark = f.required ? ' <span class="text-danger">*</span>' : '';
+        var label = escapeHtml(f.label || 'Field ' + (idx + 1));
+
+        html += '<div class="form-group">';
+        html += '<label class="form-label" for="' + fieldId + '">' + label + reqMark + '</label>';
+
+        if (f.type === 'textarea') {
+          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" ' + reqAttr + '></textarea>';
+        } else if (f.type === 'select') {
+          html += '<select id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
+          html += '<option value="" disabled selected>-- Pilih Options --</option>';
+          (f.options || []).forEach(function(opt) {
+            html += '<option value="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</option>';
+          });
+          html += '</select>';
+        } else if (f.type === 'checkbox') {
+          html += '<div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.25rem;">';
+          (f.options || ['Ya / True']).forEach(function(opt, oIdx) {
+            html += '<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">';
+            html += '<input type="checkbox" name="' + f.key + '" value="' + escapeHtml(opt) + '"> <span>' + escapeHtml(opt) + '</span>';
+            html += '</label>';
+          });
+          html += '</div>';
+        } else if (f.type === 'date') {
+          html += '<input type="date" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
+        } else if (f.type === 'photo') {
+          html += '<input type="file" id="' + fieldId + '" data-photofield="' + f.key + '" class="form-input" accept="image/*" ' + reqAttr + '>';
+          html += '<span class="form-help">Unggah foto bukti lapangan (format JPEG/PNG, maks 5MB).</span>';
+        } else {
+          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
+        }
+
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    function renderFormNotFound(msg) {
+      document.getElementById('formHeaderTitle').innerText = 'Form Tidak Ditemukan';
+      document.getElementById('formHeaderDesc').innerText = msg || 'Formulir pelaporan tidak tersedia.';
+      document.getElementById('dynamicFormEl').style.display = 'none';
+    }
+
+    async function handleDynamicSubmit(e) {
+      e.preventDefault();
+      var btn = document.getElementById('btnSubmitDynamic');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Mengirim Laporan...</span>';
+
+      try {
+        var payload = {
+          empId: document.getElementById('empId').value.trim(),
+          site: document.getElementById('site').value,
+          date: document.getElementById('date').value
+        };
+
+        // Collect custom fields
+        var fields = (currentSchema && currentSchema.fields) ? currentSchema.fields : [];
+        for (var i = 0; i < fields.length; i++) {
+          var f = fields[i];
+          var key = f.key || 'field_' + i;
+
+          if (f.type === 'photo') {
+            var fileEl = document.querySelector('[data-photofield="' + key + '"]');
+            if (fileEl && fileEl.files && fileEl.files[0]) {
+              btn.innerHTML = '<span>Mengunggah Foto...</span>';
+              var photoUrl = await processAndUploadPhoto(fileEl.files[0], currentFormId);
+              payload[key] = photoUrl;
+            } else {
+              payload[key] = '-';
+            }
+          } else if (f.type === 'checkbox') {
+            var chks = document.querySelectorAll('input[name="' + key + '"]:checked');
+            var selected = Array.from(chks).map(function(c) { return c.value; });
+            payload[key] = selected.join(', ') || '-';
+          } else {
+            var el = document.getElementById('field_' + key);
+            payload[key] = el ? el.value.trim() : '-';
+          }
+        }
+
+        if (isLiveServer()) {
+          var res = await runServer('submitDynamicFormResponse', currentFormId, payload);
+          showSuccessBanner('Laporan berhasil terkirim! (ID: ' + res.reportId + ')');
+        } else {
+          showSuccessBanner('Laporan berhasil terkirim! (Local Preview)');
+        }
+
+        document.getElementById('dynamicFormEl').reset();
+      } catch (err) {
+        console.error('Submit error:', err);
+        showErrorBanner('Gagal mengirim laporan: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Kirim Laporan</span>';
+      }
+    }
+
+    function processAndUploadPhoto(file, formId) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = async function(e) {
+          try {
+            var base64Data = e.target.result;
+            if (isLiveServer()) {
+              var url = await runServer('uploadReportAttachment', base64Data, file.type, formId);
+              resolve(url);
+            } else {
+              resolve('https://drive.google.com/mock-file-view');
+            }
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function showSuccessBanner(msg) {
+      var banner = document.getElementById('formAlertBanner');
+      banner.className = 'alert-banner alert-success';
+      banner.innerText = '✅ ' + msg;
+      banner.hidden = false;
+      banner.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showErrorBanner(msg) {
+      var banner = document.getElementById('formAlertBanner');
+      banner.className = 'alert-banner alert-warning';
+      banner.innerText = '⚠️ ' + msg;
+      banner.hidden = false;
+      banner.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

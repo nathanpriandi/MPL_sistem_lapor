@@ -9,67 +9,136 @@
 </head>
 <body>
 
-  <?!= includeHeader(userRole, currentPage, webAppUrl); ?>
+  <div class="app-shell">
+    <?!= includeSidebar(userRole, currentPage, webAppUrl); ?>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-  <div class="container-wide">
-    <div class="flex-between-wrap" style="margin-bottom: 1.5rem;">
-      <div>
-        <h1 class="card-title" style="margin-bottom: 0.25rem;">Executive Manager Dashboard</h1>
-        <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi rekapitulasi operasional agribisnis terintegrasi.</p>
-      </div>
-      <div class="button-group-flex">
-        <button class="btn btn-secondary" onclick="exportDashboardCSV()">
-          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Export Summary CSV</span>
-        </button>
-        <button class="btn btn-secondary" onclick="renderDashboard(true)">
-          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          <span>Refresh</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Key Metrics Cards -->
-    <div class="metrics-grid">
-      <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk membuka Admin Queue (Semua Pending)">
-        <span class="metric-label">Total Laporan Masuk</span>
-        <span class="metric-value" id="kpiTotalReports">0</span>
-        <span class="metric-trend metric-trend-neutral" id="trendTotal">▶ Buka Antrean</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Total Hasil Panen (Kg)</span>
-        <span class="metric-value" id="kpiTotalYield">0</span>
-        <span class="metric-trend metric-trend-up" id="trendYield">▲ Akumulasi Produksi</span>
-      </div>
-      <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Admin Queue ke Insiden Urgent">
-        <span class="metric-label">Insiden Urgent Flagged</span>
-        <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
-        <span class="metric-trend metric-trend-down" id="trendUrgent">⚠ Perlu Tindakan</span>
-      </div>
-      <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Admin Queue ke Laporan Sensitif">
-        <span class="metric-label">Laporan Sensitif Restriksi</span>
-        <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
-        <span class="metric-trend metric-trend-neutral" id="trendSensitive">🔒 Tab Terisolasi</span>
-      </div>
-    </div>
-
-    <!-- Charts Grid -->
-    <div class="charts-grid">
-      <div class="card card-no-margin">
-        <h3 class="card-title card-title-sm">Distribusi Severity Laporan</h3>
-        <div class="chart-container">
-          <canvas id="severityChart"></canvas>
+    <div class="main-wrapper">
+      <header class="topbar-internal">
+        <div class="topbar-left">
+          <button class="btn-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-breadcrumb">
+            <span class="breadcrumb-root">Konsol Internal</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Dashboard Manajer</span>
+          </div>
         </div>
-      </div>
 
-      <div class="card card-no-margin">
-        <h3 class="card-title card-title-sm">Total Laporan per Site</h3>
-        <div class="chart-container">
-          <canvas id="siteChart"></canvas>
+        <div id="userIdentityStrip" data-populated="1">
+          <div class="user-identity-menu">
+            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
+            <div class="user-info">
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
+              <? if (userRole === 'both') { ?>
+                <span class="badge badge-primary">Admin &amp; Manager</span>
+              <? } else if (userRole === 'admin') { ?>
+                <span class="badge badge-primary">Admin Operasional</span>
+              <? } else if (userRole === 'manager') { ?>
+                <span class="badge badge-normal">Executive Manager</span>
+              <? } ?>
+            </div>
+            <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
         </div>
-      </div>
-    </div>
+      </header>
 
+      <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+        <div class="flex-between-wrap" style="margin-bottom: 1.5rem;">
+          <div>
+            <h1 class="card-title" style="margin-bottom: 0.25rem;">Dashboard Eksekutif Manajer</h1>
+            <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi rekapitulasi operasional agribisnis terintegrasi.</p>
+          </div>
+          <div class="button-group-flex" style="align-items: center;">
+            <span id="dashLastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.35rem;"></span>
+            <button class="btn btn-secondary" onclick="exportDashboardCSV()">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Ekspor Ringkasan CSV</span>
+            </button>
+            <button class="btn btn-secondary" onclick="renderDashboard(true)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>Perbarui</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Key Metrics Cards (Headline + Breakdown Pattern) -->
+        <div class="metrics-grid">
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk membuka Antrean Admin (Semua Pending)">
+            <span class="metric-label">Total Laporan Masuk</span>
+            <span class="metric-value" id="kpiTotalReports">0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendTotal">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              <span>Buka Antrean</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownTotal">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site A (Kebun)</span><span class="kpi-breakdown-val" id="bTotalSiteA">0</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site B (Peternakan)</span><span class="kpi-breakdown-val" id="bTotalSiteB">0</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site C (Pabrik)</span><span class="kpi-breakdown-val" id="bTotalSiteC">0</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site D (Logistik)</span><span class="kpi-breakdown-val" id="bTotalSiteD">0</span></div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <span class="metric-label">Total Hasil Panen (Kg)</span>
+            <span class="metric-value" id="kpiTotalYield">0</span>
+            <span class="metric-trend metric-trend-up" id="trendYield">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              <span>Akumulasi Produksi</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownYield">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Rutin</span><span class="kpi-breakdown-val" id="bYieldNormal">0</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Peringatan</span><span class="kpi-breakdown-val" id="bYieldWarning">0</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Mendesak</span><span class="kpi-breakdown-val" id="bYieldUrgent">0</span></div>
+            </div>
+          </div>
+
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Antrean Admin ke Insiden Mendesak">
+            <span class="metric-label">Insiden Mendesak Flagged</span>
+            <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
+            <span class="metric-trend metric-trend-down" id="trendUrgent">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Perlu Penanganan</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownUrgent">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Prioritas Triage</span><span class="kpi-breakdown-val">Rank 1</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Ter-Rute Otomatis</span><span class="kpi-breakdown-val" id="bUrgentRouted">0</span></div>
+            </div>
+          </div>
+
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Antrean Admin ke Laporan Sensitif">
+            <span class="metric-label">Laporan Sensitif Restriksi</span>
+            <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendSensitive">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Tab Terisolasi</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownSensitive">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Sheet Terpisah</span><span class="kpi-breakdown-val">Restricted</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Hak Akses</span><span class="kpi-breakdown-val" id="bSensitiveRole">Manager</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+          <div class="card card-no-margin">
+            <h3 class="card-title card-title-sm">Distribusi Severity Laporan</h3>
+            <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
+              <canvas id="severityChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
+            </div>
+          </div>
+
+          <div class="card card-no-margin">
+            <h3 class="card-title card-title-sm">Total Laporan per Site</h3>
+            <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
+              <canvas id="siteChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 
   <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
@@ -100,17 +169,76 @@
       }
     }
 
+    let lastFetchedTimestamp = null;
+
     document.addEventListener('DOMContentLoaded', () => {
-      // app.html's DOMContentLoaded also calls renderIdentityStrip() when userIdentityStrip exists.
-      // The data-populated guard prevents the double-call; this is the page-specific trigger
-      // that ensures renderDashboard() runs alongside identity resolution.
       const identityStrip = document.getElementById('userIdentityStrip');
       if (identityStrip && !identityStrip.dataset.populated) {
         identityStrip.dataset.populated = '1';
         renderIdentityStrip();
       }
-      renderDashboard();
+      loadQuickLinks();
+      loadDiagnostics();
+
+      // Defer renderDashboard until layout flexbox and fonts have fully settled
+      window.requestAnimationFrame(() => {
+        setTimeout(() => {
+          renderDashboard();
+        }, 50);
+      });
+
+      // Update data freshness UI every 30 seconds
+      setInterval(updateFreshnessTag, 30000);
     });
+
+    window.addEventListener('load', () => {
+      if (severityChartInstance) severityChartInstance.resize();
+      if (siteChartInstance) siteChartInstance.resize();
+    });
+
+    let windowResizeTimeout = null;
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('sidebar-open');
+      }
+    }
+
+    function updateFreshnessTag() {
+      const tag = document.getElementById('lastUpdatedTag');
+      if (!tag || !lastFetchedTimestamp) return;
+      const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
+      const elapsedMin = Math.floor(elapsedSec / 60);
+      if (elapsedMin < 1) {
+        tag.innerText = 'Diperbarui baru saja';
+      } else {
+        tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
+      }
+    }
+
+    function navigateToQueue(filter) {
+      let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
+      if (!baseUrl && typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
+        baseUrl = document.referrer.split('?')[0];
+      }
+      if (!baseUrl) {
+        try { baseUrl = (window.top || window).location.href.split('?')[0]; } catch(e) {}
+      }
+      if (!baseUrl) baseUrl = window.location.href.split('?')[0];
+
+      const targetUrl = `${baseUrl}?page=admin&filter=${filter}`;
+      try {
+        if (window.top && window.top.location) {
+          window.top.location.href = targetUrl;
+        } else {
+          window.location.href = targetUrl;
+        }
+      } catch (e) {
+        window.location.href = targetUrl;
+      }
+    }
+
+
 
     async function renderDashboard(isManualRefresh = false) {
       let totalReports = 0;
@@ -159,73 +287,113 @@
         cachedStats = { totalReports, totalYield, urgentCount, sensitiveCount, normalCount, warningCount, siteCounts };
       }
 
+      lastFetchedTimestamp = Date.now();
+      updateFreshnessTag();
+
       document.getElementById('kpiTotalReports').innerText = totalReports;
       document.getElementById('kpiTotalYield').innerText = totalYield.toLocaleString('id-ID') + ' kg';
       document.getElementById('kpiUrgent').innerText = urgentCount;
       document.getElementById('kpiSensitive').innerText = sensitiveCount;
+
+      // Populate breakdown details
+      const elSiteA = document.getElementById('bTotalSiteA');
+      const elSiteB = document.getElementById('bTotalSiteB');
+      const elSiteC = document.getElementById('bTotalSiteC');
+      const elSiteD = document.getElementById('bTotalSiteD');
+      if (elSiteA) elSiteA.innerText = siteCounts[0] || 0;
+      if (elSiteB) elSiteB.innerText = siteCounts[1] || 0;
+      if (elSiteC) elSiteC.innerText = siteCounts[2] || 0;
+      if (elSiteD) elSiteD.innerText = siteCounts[3] || 0;
+
+      const elYNorm = document.getElementById('bYieldNormal');
+      const elYWarn = document.getElementById('bYieldWarning');
+      const elYUrg = document.getElementById('bYieldUrgent');
+      if (elYNorm) elYNorm.innerText = normalCount;
+      if (elYWarn) elYWarn.innerText = warningCount;
+      if (elYUrg) elYUrg.innerText = urgentCount;
+
+      const elUrgRouted = document.getElementById('bUrgentRouted');
+      if (elUrgRouted) elUrgRouted.innerText = urgentCount;
 
       // Update trend badges
       const urgentTrend = document.getElementById('trendUrgent');
       if (urgentTrend) {
         if (urgentCount > 0) {
           urgentTrend.className = 'metric-trend metric-trend-down';
-          urgentTrend.innerText = `⚠ ${urgentCount} Perlu Penanganan`;
+          urgentTrend.innerHTML = `<svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>${urgentCount} Perlu Penanganan</span>`;
         } else {
           urgentTrend.className = 'metric-trend metric-trend-up';
-          urgentTrend.innerText = `✓ Kondisi Aman`;
+          urgentTrend.innerHTML = `<svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> <span>Kondisi Aman</span>`;
         }
       }
 
-      // Render Chart 1: Severity Pie Chart
-      if (severityChartInstance) severityChartInstance.destroy();
-      const ctx1 = document.getElementById('severityChart').getContext('2d');
-      severityChartInstance = new Chart(ctx1, {
-        type: 'doughnut',
-        data: {
-          labels: ['Normal / Rutin', 'Warning / Perhatian', 'Urgent / Insiden'],
-          datasets: [{
-            data: [normalCount, warningCount, urgentCount],
-            backgroundColor: ['#15803D', '#B45309', '#DC2626'],
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#475569', font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 } } }
+      // Render Charts with safety checks
+      if (typeof Chart !== 'undefined') {
+        try {
+          if (severityChartInstance) severityChartInstance.destroy();
+          const ctx1 = document.getElementById('severityChart');
+          if (ctx1) {
+            severityChartInstance = new Chart(ctx1.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: ['Rutin / Normal', 'Peringatan / Warning', 'Mendesak / Insiden'],
+                datasets: [{
+                  data: [normalCount, warningCount, urgentCount],
+                  backgroundColor: ['#15803D', '#B45309', '#DC2626'],
+                  borderWidth: 2,
+                  borderColor: '#ffffff'
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                  legend: { position: 'bottom', labels: { color: '#475569', font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 } } }
+                }
+              }
+            });
+            severityChartInstance.resize();
           }
+        } catch (e1) {
+          console.error('Error initializing severityChart:', e1);
         }
-      });
 
-      // Render Chart 2: Site Bar Chart
-      if (siteChartInstance) siteChartInstance.destroy();
-      const ctx2 = document.getElementById('siteChart').getContext('2d');
-      siteChartInstance = new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: ['Site A (Kebun)', 'Site B (Peternakan)', 'Site C (Pabrik)', 'Site D (Logistik)'],
-          datasets: [{
-            label: 'Total Laporan',
-            data: siteCounts,
-            backgroundColor: '#15803D',
-            borderRadius: 6,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { display: false } },
-            y: { ticks: { color: '#475569', precision: 0 }, grid: { color: '#F1F5F9' } }
-          },
-          plugins: {
-            legend: { display: false }
+        try {
+          if (siteChartInstance) siteChartInstance.destroy();
+          const ctx2 = document.getElementById('siteChart');
+          if (ctx2) {
+            siteChartInstance = new Chart(ctx2.getContext('2d'), {
+              type: 'bar',
+              data: {
+                labels: ['Site A (Kebun)', 'Site B (Peternakan)', 'Site C (Pabrik)', 'Site D (Logistik)'],
+                datasets: [{
+                  label: 'Total Laporan',
+                  data: siteCounts,
+                  backgroundColor: '#15803D',
+                  borderRadius: 6,
+                  borderSkipped: false
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                  x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { display: false } },
+                  y: { ticks: { color: '#475569', precision: 0 }, grid: { color: '#F1F5F9' } }
+                },
+                plugins: {
+                  legend: { display: false }
+                }
+              }
+            });
+            siteChartInstance.resize();
           }
+        } catch (e2) {
+          console.error('Error initializing siteChart:', e2);
         }
-      });
+      }
 
       if (isManualRefresh) {
         showToast('Dashboard statistik berhasil diperbarui', 'info');
@@ -253,7 +421,7 @@
       ];
 
       downloadCSV(`Executive_Dashboard_Summary_${Date.now()}.csv`, headers, rows);
-      showToast('Export CSV Ringkasan Dashboard berhasil', 'success');
+      showToast('Ekspor CSV Ringkasan Dashboard berhasil', 'success');
     }
   </script>
 </body>

@@ -126,9 +126,29 @@ function evaluateFlags(text) {
 function runServer(fnName, ...args) {
   return new Promise((resolve, reject) => {
     if (typeof google !== 'undefined' && google && google.script && google.script.run) {
+      let isSettled = false;
+      const timeoutTimer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          reject(new Error(`Server RPC '${fnName}' timed out after 8s`));
+        }
+      }, 8000);
+
       google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(reject)
+        .withSuccessHandler((res) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timeoutTimer);
+            resolve(res);
+          }
+        })
+        .withFailureHandler((err) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timeoutTimer);
+            reject(err);
+          }
+        })
         [fnName](...args);
     } else {
       reject(new Error('google.script.run unavailable (local mode)'));
@@ -237,19 +257,22 @@ async function renderIdentityStrip() {
         } else if (info.role === 'manager') {
           roleBadge = '<span class="badge badge-normal">Executive Manager</span>';
         } else {
-          // Unknown/unauthorized — don't display internal badge
           roleBadge = '<span class="badge badge-neutral">Tamu</span>';
         }
 
+        const avatarInitial = info.email ? info.email.charAt(0).toUpperCase() : 'S';
+
         stripEl.innerHTML = `
-          <div class="user-identity">
-            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span class="user-email">${info.email}</span>
-            ${roleBadge}
+          <div class="user-identity-menu">
+            <div class="user-avatar">${avatarInitial}</div>
+            <div class="user-info">
+              <span class="user-email">${info.email}</span>
+              ${roleBadge}
+            </div>
+            <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         `;
         
-        // Show only nav links the user's role actually permits
         _showInternalNavLinks(info.role);
         return;
       }
@@ -258,14 +281,18 @@ async function renderIdentityStrip() {
     }
   }
 
-  // Fallback for local preview mode — show all nav links
+  // Fallback for local preview mode
   stripEl.innerHTML = `
-    <div class="user-identity">
-      <span class="user-email">local.dev@agri.co.id</span>
-      <span class="badge badge-neutral">Local Preview</span>
+    <div class="user-identity-menu">
+      <div class="user-avatar">L</div>
+      <div class="user-info">
+        <span class="user-email">local.dev@agri.co.id</span>
+        <span class="badge badge-neutral">Local Preview</span>
+      </div>
+      <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
   `;
-  _showInternalNavLinks('both'); // In local preview, show all internal links
+  _showInternalNavLinks('both');
 }
 
 /**
@@ -330,4 +357,55 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.insertBefore(banner, document.body.firstChild);
   }
 });
+
+async function loadQuickLinks() {
+  const container = document.getElementById('sidebarQuickLinks');
+  if (!container) return;
+
+  if (isLiveServer()) {
+    try {
+      const links = await runServer('getAdminQuickLinks');
+      if (links) {
+        const publicUrl = links.publicWebAppUrl || (window.SERVER_WEB_APP_URL ? `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index` : '');
+        let linksHtml = '';
+        if (publicUrl) {
+          linksHtml += `<a href="${publicUrl}" target="_blank" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Publik</span></a>`;
+        }
+        container.innerHTML = linksHtml;
+        return;
+      }
+    } catch (e) {
+      console.error('Failed to load quick links:', e);
+    }
+  }
+
+  container.innerHTML = '<span class="sidebar-link-loading">Local Mode — Quick links live di Google Apps Script</span>';
+}
+
+async function loadDiagnostics() {
+  const container = document.getElementById('diagnosticsContent');
+  if (!container) return;
+
+  if (isLiveServer()) {
+    try {
+      const diag = await runServer('getDeploymentDiagnostics');
+      if (diag) {
+        container.innerText = `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
+          `Executing ID  : ${diag.executingDeploymentId || '(none)'}\n` +
+          `Public URL    : ${diag.configuredPublicUrl || '(belum dikonfigurasi)'}\n` +
+          `Public ID     : ${diag.publicDeploymentId || '(none)'}\n` +
+          `Internal URL  : ${diag.configuredInternalUrl || '(belum dikonfigurasi)'}\n` +
+          `Internal ID   : ${diag.internalDeploymentId || '(none)'}\n` +
+          `Is Internal   : ${diag.isInternalDeployment ? '✅ YES (Recognized as Deployment B)' : '❌ NO (Deployment match failed)'}\n` +
+          `Active Role   : ${diag.userRole || 'unauthorized'}`;
+        return;
+      }
+    } catch (e) {
+      container.innerText = 'Gagal memuat diagnosa: ' + e.message;
+      return;
+    }
+  }
+
+  container.innerText = 'Local Mode Preview — Server diagnostics live di Google Apps Script.';
+}
 </script>

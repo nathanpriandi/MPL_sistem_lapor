@@ -38,18 +38,12 @@ const AdminService = {
 
   /**
    * Returns quick links for Admin/Manager workspace.
-   * @returns {{ spreadsheetUrl: string, dailyFormEditUrl: string, generalFormEditUrl: string, publicWebAppUrl: string }}
+   * @returns {{ publicWebAppUrl: string }}
    */
   getAdminQuickLinks: function() {
-    const ssId = ConfigRepository.getSpreadsheetId();
-    const dailyFormId = ConfigRepository.getDailyFormId();
-    const generalFormId = ConfigRepository.getGeneralFormId();
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
 
     return {
-      spreadsheetUrl: ssId ? `https://docs.google.com/spreadsheets/d/${ssId}/edit` : '',
-      dailyFormEditUrl: dailyFormId ? `https://docs.google.com/forms/d/${dailyFormId}/edit` : '',
-      generalFormEditUrl: generalFormId ? `https://docs.google.com/forms/d/${generalFormId}/edit` : '',
       publicWebAppUrl: publicWebAppUrl ? (publicWebAppUrl.includes('?') ? publicWebAppUrl : `${publicWebAppUrl}?page=index`) : ''
     };
   },
@@ -59,42 +53,30 @@ const AdminService = {
    */
   sendDailyDigest: function() {
     Logger.log('AdminService: Running sendDailyDigest...');
-    const ss = SpreadsheetRepository.getSpreadsheet();
-    const queueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE);
-    if (!queueSheet) return;
-
-    const values = queueSheet.getDataRange().getValues();
+    const queueItems = this.getAdminQueueData();
     let totalPending = 0;
     let urgentCount = 0;
     let warningCount = 0;
     let normalCount = 0;
 
-    for (let i = 1; i < values.length; i++) {
-      const row = values[i];
-      if (row[0] && row[0] !== '') {
-        totalPending++;
-        const severity = String(row[9] || row[8]).toLowerCase();
-        if (severity === ReportSeverity.URGENT) urgentCount++;
-        else if (severity === ReportSeverity.WARNING) warningCount++;
-        else normalCount++;
-      }
-    }
+    queueItems.forEach(item => {
+      totalPending++;
+      const severity = String(item.severity || '').toLowerCase();
+      if (severity === ReportSeverity.URGENT) urgentCount++;
+      else if (severity === ReportSeverity.WARNING) warningCount++;
+      else normalCount++;
+    });
 
-    NotificationAdapter.sendDailyDigest(totalPending, urgentCount, warningCount, normalCount, ss.getUrl());
+    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
+    NotificationAdapter.sendDailyDigest(totalPending, urgentCount, warningCount, normalCount, publicWebAppUrl);
   },
 
   /**
-   * Aggregates weekly data into Weekly_Summary tab.
+   * Aggregates weekly data across all dedicated per-form spreadsheets.
    * @param {Spreadsheet} [ss] 
    * @returns {Array} List of WeeklyStat objects.
    */
   aggregateWeeklyData: function(ss) {
-    const activeSs = ss || SpreadsheetRepository.getSpreadsheet();
-    const summarySheet = activeSs.getSheetByName(SHEET_NAMES.WEEKLY_SUMMARY);
-    const dailySheet = activeSs.getSheetByName(SHEET_NAMES.DAILY_RAW);
-    const generalSheet = activeSs.getSheetByName(SHEET_NAMES.GENERAL_RAW);
-    const sensitiveSheet = activeSs.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-
     const referenceDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     const weekLabel = getISOWeekLabel(referenceDate);
     const sites = [
@@ -103,10 +85,6 @@ const AdminService = {
       'Site C — Pabrik Pengolahan & Pakan', 
       'Site D — Logistik & Gudang'
     ];
-
-    const dailyValues = dailySheet.getDataRange().getValues();
-    const generalValues = generalSheet.getDataRange().getValues();
-    const sensitiveValues = sensitiveSheet.getDataRange().getValues();
 
     const siteStatsMap = {};
     sites.forEach(site => {
@@ -122,71 +100,60 @@ const AdminService = {
       }
     }
 
-    // Daily_Raw aggregation
-    for (let i = 1; i < dailyValues.length; i++) {
-      const row = dailyValues[i];
-      const reportDate = row[4] || row[1];
-      if (!isRowInCurrentWeek(reportDate)) continue;
-
-      const site = row[3];
-      if (siteStatsMap[site]) {
-        siteStatsMap[site].dailyCount++;
-        siteStatsMap[site].totalYield += parseFloat(row[6]) || 0;
+    const forms = FormManagementService.getFormList();
+    forms.forEach(f => {
+      if (!f.sheetId) return;
+      try {
+        const targetSs = SpreadsheetApp.openById(f.sheetId);
         
-        const severity = String(row[8]).toLowerCase();
-        if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
-        else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
+        // Scan Raw sheet
+        const rawSheet = targetSs.getSheetByName('Raw') || targetSs.getSheets()[0];
+        if (rawSheet && rawSheet.getLastRow() > 1) {
+          const values = rawSheet.getDataRange().getValues().slice(1);
+          values.forEach(row => {
+            const reportDate = row[4] || row[1];
+            if (!isRowInCurrentWeek(reportDate)) return;
+
+            const site = row[3];
+            if (siteStatsMap[site]) {
+              if ((f.type || '').toLowerCase() === 'harian') {
+                siteStatsMap[site].dailyCount++;
+                siteStatsMap[site].totalYield += parseFloat(row[6]) || 0;
+              } else {
+                siteStatsMap[site].generalCount++;
+              }
+              const severity = String(row[8] || '').toLowerCase();
+              if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
+              else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
+            }
+          });
+        }
+
+        // Scan Sensitive sheet if present
+        const sensitiveSheet = targetSs.getSheetByName('Sensitive');
+        if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
+          const values = sensitiveSheet.getDataRange().getValues().slice(1);
+          values.forEach(row => {
+            const reportDate = row[4] || row[1];
+            if (!isRowInCurrentWeek(reportDate)) return;
+
+            const site = row[3];
+            if (siteStatsMap[site]) {
+              siteStatsMap[site].sensitiveCount++;
+              const severity = String(row[7] || '').toLowerCase();
+              if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
+              else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
+            }
+          });
+        }
+      } catch (err) {
+        Logger.log(`AdminService Warning: Unable to aggregate weekly data for sheet ${f.sheetId}: ${err.toString()}`);
       }
-    }
-
-    // General_Raw aggregation
-    for (let i = 1; i < generalValues.length; i++) {
-      const row = generalValues[i];
-      const reportDate = row[4] || row[1];
-      if (!isRowInCurrentWeek(reportDate)) continue;
-
-      const site = row[3];
-      if (siteStatsMap[site]) {
-        siteStatsMap[site].generalCount++;
-        const severity = String(row[7]).toLowerCase();
-        if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
-        else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
-      }
-    }
-
-    // Sensitive_Restricted aggregation
-    for (let i = 1; i < sensitiveValues.length; i++) {
-      const row = sensitiveValues[i];
-      const reportDate = row[4] || row[1];
-      if (!isRowInCurrentWeek(reportDate)) continue;
-
-      const site = row[3];
-      if (siteStatsMap[site]) {
-        siteStatsMap[site].sensitiveCount++;
-        const severity = String(row[7]).toLowerCase();
-        if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
-        else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
-      }
-    }
+    });
 
     const resultStats = [];
-    const nowFormatted = formatDate(new Date());
-
     sites.forEach(site => {
-      const stat = siteStatsMap[site];
-      resultStats.push(stat);
-
-      summarySheet.appendRow([
-        weekLabel,
-        stat.site,
-        stat.dailyCount,
-        stat.generalCount,
-        stat.urgentCount,
-        stat.warningCount,
-        stat.sensitiveCount,
-        stat.totalYield,
-        nowFormatted
-      ]);
+      resultStats.push(siteStatsMap[site]);
     });
 
     return resultStats;
@@ -197,11 +164,11 @@ const AdminService = {
    */
   sendWeeklyManagerDigest: function() {
     Logger.log('AdminService: Running sendWeeklyManagerDigest...');
-    const ss = SpreadsheetRepository.getSpreadsheet();
-    const summaryStats = this.aggregateWeeklyData(ss);
+    const summaryStats = this.aggregateWeeklyData();
     const weekLabel = getISOWeekLabel(new Date());
+    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
 
-    NotificationAdapter.sendWeeklyManagerDigest(summaryStats, weekLabel, ss.getUrl());
+    NotificationAdapter.sendWeeklyManagerDigest(summaryStats, weekLabel, publicWebAppUrl);
   },
 
   /**

@@ -18,8 +18,10 @@ function doGet(e) {
   const allowed = { 
     index: 'index', 
     general: 'general', 
+    dynamicform: 'dynamicform',
     admin: 'admin', 
-    dashboard: 'dashboard' 
+    dashboard: 'dashboard',
+    forms: 'forms'
   };
 
   const userRole = AuthService.getUserRole();
@@ -42,15 +44,15 @@ function doGet(e) {
   }
 
   // Access control: strict per-role RBAC for internal console pages
-  if ((file === 'admin' || file === 'dashboard') && !isInternalDeployment) {
+  if ((file === 'admin' || file === 'dashboard' || file === 'forms') && !isInternalDeployment) {
     return renderAccessRestricted(
       'Akses Internal Console Tidak Tersedia di Deployment Ini',
-      'Halaman Admin Queue dan Manager Dashboard hanya tersedia melalui Deployment B (Internal Operations Console). ' +
+      'Halaman Internal Console (Admin Queue, Dashboard Manajer, dan Manajemen Form) hanya tersedia melalui Deployment B. ' +
       'Gunakan tautan internal resmi yang memiliki akses Google account.'
     );
   }
 
-  if (file === 'admin' || file === 'dashboard') {
+  if (file === 'admin' || file === 'dashboard' || file === 'forms') {
     if (!userRole) {
       return renderAccessRestricted(
         '🔒 Akses Internal Console Terbatas',
@@ -76,8 +78,18 @@ function doGet(e) {
   const template = HtmlService.createTemplateFromFile(file);
   const webAppUrl = AuthService.getCanonicalWebAppUrl();
 
+  let userEmail = '';
+  if (templateUserRole) {
+    try {
+      userEmail = (Session.getActiveUser().getEmail() || '').trim();
+    } catch (e) {
+      userEmail = '';
+    }
+  }
+
   template.webAppUrl = webAppUrl;
   template.userRole = templateUserRole;
+  template.userEmail = userEmail;
   template.currentPage = file;
   template.urgentKeywordsJson = JSON.stringify(typeof URGENT_KEYWORDS !== 'undefined' ? URGENT_KEYWORDS : []);
   template.warningKeywordsJson = JSON.stringify(typeof WARNING_KEYWORDS !== 'undefined' ? WARNING_KEYWORDS : []);
@@ -168,3 +180,28 @@ function includeHeader(userRole, currentPage, webAppUrl) {
 
   return template.evaluate().getContent();
 }
+
+/**
+ * Evaluates the shared sidebar partial for internal console pages.
+ * @param {'admin' | 'manager' | 'both' | null} userRole 
+ * @param {string} currentPage 
+ * @param {string} webAppUrl 
+ * @returns {string}
+ */
+function includeSidebar(userRole, currentPage, webAppUrl) {
+  const template = HtmlService.createTemplateFromFile('sidebar');
+  template.userRole = userRole || '';
+  template.currentPage = currentPage || '';
+  template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
+
+  let userEmail = '';
+  try {
+    userEmail = (Session.getActiveUser().getEmail() || '').trim();
+  } catch (e) {
+    userEmail = '';
+  }
+  template.userEmail = userEmail;
+
+  return template.evaluate().getContent();
+}
+
