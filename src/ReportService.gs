@@ -163,5 +163,107 @@ const ReportService = {
     }
 
     return { success: true, reportId: reportId };
+  },
+
+  /**
+   * Processes native Google Form submit event for Daily Operational Form.
+   * @param {Object} e - Event object.
+   */
+  processDailyFormSubmit: function(e) {
+    try {
+      if (!e || !e.range) return;
+      const range = e.range;
+      const sheet = range.getSheet();
+      const row = range.getRow();
+      const lastCol = sheet.getLastColumn();
+      let rowData = sheet.getRange(row, 1, 1, lastCol).getValues()[0];
+
+      Logger.log('ReportService: Processing Daily Form Submit at row: ' + row);
+
+      const reportId = SpreadsheetRepository.ensureReportId(sheet, row, rowData);
+      rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+      // Form Response row format after ensureReportId:
+      // [0:Report_ID, 1:Timestamp, 2:Emp_ID, 3:Site, 4:Date, 5:Task_Status, 6:Yield_Kg, 7:Issues, ...]
+      const empId = rowData[2] || '';
+      const site = rowData[3] || '';
+      const date = rowData[4] || '';
+      const taskStatus = rowData[5] || '';
+      const yieldKg = rowData[6] || '';
+      const issues = rowData[7] || '';
+
+      const flag = TriageEngine.evaluate([empId, site, date, taskStatus, yieldKg, issues]);
+
+      if (sheet.getLastColumn() >= 12) {
+        sheet.getRange(row, 9, 1, 4).setValues([[
+          flag.severity,
+          flag.keywords.join(', '),
+          flag.isUrgent ? 'YES' : 'NO',
+          ReviewStatus.UNREVIEWED
+        ]]);
+      }
+
+      SpreadsheetRepository.applyRowHighlighting(sheet, row, flag.severity);
+
+      if (flag.severity === ReportSeverity.URGENT) {
+        NotificationAdapter.sendUrgentAlert('Laporan Harian (Native Form)', row, rowData, flag);
+      }
+    } catch (err) {
+      Logger.log('ReportService Error in processDailyFormSubmit: ' + err.toString());
+    }
+  },
+
+  /**
+   * Processes native Google Form submit event for General Report Form.
+   * @param {Object} e - Event object.
+   */
+  processGeneralFormSubmit: function(e) {
+    try {
+      if (!e || !e.range) return;
+      const range = e.range;
+      const sheet = range.getSheet();
+      const row = range.getRow();
+      const lastCol = sheet.getLastColumn();
+      let rowData = sheet.getRange(row, 1, 1, lastCol).getValues()[0];
+
+      Logger.log('ReportService: Processing General Form Submit at row: ' + row);
+
+      const reportId = SpreadsheetRepository.ensureReportId(sheet, row, rowData);
+      rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+      // Form Response row format after ensureReportId:
+      // [0:Report_ID, 1:Timestamp, 2:Emp_ID, 3:Site, 4:Date, 5:Details, 6:Sensitive_Flag, ...]
+      const empId = rowData[2] || '';
+      const site = rowData[3] || '';
+      const date = rowData[4] || '';
+      const details = rowData[5] || '';
+      const sensitiveText = rowData[6] || '';
+
+      const flag = TriageEngine.evaluate([empId, site, date, details]);
+      const isSensitive = TriageEngine.isSensitiveRow([details, sensitiveText]);
+
+      if (isSensitive) {
+        const info = SpreadsheetRepository.moveRowToSensitiveTab(sheet, row, rowData);
+        NotificationAdapter.sendSensitiveAlert(info);
+        return;
+      }
+
+      if (sheet.getLastColumn() >= 11) {
+        sheet.getRange(row, 8, 1, 4).setValues([[
+          flag.severity,
+          flag.keywords.join(', '),
+          flag.isUrgent ? 'YES' : 'NO',
+          ReviewStatus.UNREVIEWED
+        ]]);
+      }
+
+      SpreadsheetRepository.applyRowHighlighting(sheet, row, flag.severity);
+
+      if (flag.severity === ReportSeverity.URGENT) {
+        NotificationAdapter.sendUrgentAlert('Laporan Umum (Native Form)', row, rowData, flag);
+      }
+    } catch (err) {
+      Logger.log('ReportService Error in processGeneralFormSubmit: ' + err.toString());
+    }
   }
 };

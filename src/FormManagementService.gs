@@ -5,7 +5,7 @@
  * Clean Architecture Layer: APPLICATION / SERVICE
  * Responsibility: Manages reporting form registrations, Google Forms API provisioning, 
  * per-form dedicated Spreadsheet & Drive folder creation, metadata inspection, 
- * and form CRUD operations for internal administrators.
+ * photo attachment support, exact tab URL redirection (#gid), and form CRUD operations for internal administrators.
  */
 
 const FormManagementService = {
@@ -14,32 +14,36 @@ const FormManagementService = {
 
   /**
    * Retrieves all registered forms metadata array.
-   * Guarantees default Daily and General forms are always present and provisioned.
+   * Auto-provisions storage if missing or pointing to stale main spreadsheet, and enriches metadata.
    * @returns {Array<Object>} List of form objects.
    */
   getFormList: function() {
     let forms = [];
+    let isInitialRun = false;
     try {
       const rawJson = ConfigRepository.getProperty(this.REGISTERED_FORMS_KEY);
       if (rawJson) {
         forms = JSON.parse(rawJson);
+      } else {
+        isInitialRun = true;
       }
     } catch (e) {
       Logger.log('FormManagementService Error parsing registered forms JSON: ' + e.toString());
       forms = [];
+      isInitialRun = true;
     }
 
     if (!Array.isArray(forms)) forms = [];
 
     const dailyId = ConfigRepository.getDailyFormId();
     const generalId = ConfigRepository.getGeneralFormId();
+    const mainSsId = ConfigRepository.getSpreadsheetId();
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
     const baseUrl = publicWebAppUrl ? publicWebAppUrl.split('?')[0] : '';
 
-    // Guarantee default Daily Form exists
-    const hasDaily = forms.some(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily);
-    if (!hasDaily) {
-      forms.unshift({
+    // Seed default forms ONLY on initial system setup (when script property is empty)
+    if (isInitialRun && forms.length === 0) {
+      forms.push({
         id: dailyId || 'DEFAULT_DAILY_FORM',
         title: 'Laporan Operasional Harian',
         description: 'Formulir pelaporan harian aktivitas operasional pertanian, peternakan, dan pabrik.',
@@ -51,24 +55,7 @@ const FormManagementService = {
         isDefault: true,
         isDefaultDaily: true
       });
-    } else {
-      const dForm = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily);
-      if (dForm) {
-        dForm.isDefault = true;
-        dForm.isDefaultDaily = true;
-        if (dailyId && (dForm.id === 'DEFAULT_DAILY_FORM' || !dForm.id)) {
-          dForm.id = dailyId;
-        }
-        if (dForm.id && dForm.id !== 'DEFAULT_DAILY_FORM') {
-          dForm.editUrl = `https://docs.google.com/forms/d/${dForm.id}/edit`;
-        }
-        dForm.publicUrl = baseUrl ? `${baseUrl}?page=index` : '?page=index';
-      }
-    }
 
-    // Guarantee default General Form exists
-    const hasGeneral = forms.some(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral);
-    if (!hasGeneral) {
       forms.push({
         id: generalId || 'DEFAULT_GENERAL_FORM',
         title: 'Laporan Umum & Catatan Lapangan',
@@ -81,42 +68,66 @@ const FormManagementService = {
         isDefault: true,
         isDefaultGeneral: true
       });
-    } else {
-      const gForm = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral);
-      if (gForm) {
-        gForm.isDefault = true;
-        gForm.isDefaultGeneral = true;
-        if (generalId && (gForm.id === 'DEFAULT_GENERAL_FORM' || !gForm.id)) {
-          gForm.id = generalId;
-        }
-        if (gForm.id && gForm.id !== 'DEFAULT_GENERAL_FORM') {
-          gForm.editUrl = `https://docs.google.com/forms/d/${gForm.id}/edit`;
-        }
-        gForm.publicUrl = baseUrl ? `${baseUrl}?page=general` : '?page=general';
-      }
     }
 
-    // Defensively provision missing dedicated storage (sheetId / driveFolderId)
+    // Auto-provision dedicated Spreadsheet for forms that lack one or point to the central sheet
+    let registryNeedsSaving = false;
     forms.forEach(f => {
-      if (!f.sheetId) {
+      if (!f.sheetId || f.sheetId === mainSsId || f.sheetId === 'DEFAULT_SPREADSHEET') {
         try {
           const storage = this.provisionDedicatedFormStorage_(f.title, f.id);
           f.sheetId = storage.sheetId;
           f.driveFolderId = storage.driveFolderId;
+          registryNeedsSaving = true;
         } catch (e) {
-          Logger.log(`FormManagementService Warning: Unable to provision storage for ${f.id}: ${e.toString()}`);
+          Logger.log(`FormManagementService Warning: Unable to provision dedicated storage for ${f.id}: ${e.toString()}`);
+        }
+      }
+
+      // Ensure dedicated Spreadsheet permissions allow direct view access
+      if (f.sheetId && f.sheetId !== mainSsId) {
+        try {
+          const ssFile = DriveApp.getFileById(f.sheetId);
+          ssFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (e) {}
+      }
+
+      // Re-point Google Form destination to dedicated Spreadsheet if not yet repointed
+      if (f.type !== 'kustom' && f.id && f.sheetId && f.sheetId !== mainSsId && !f.destinationRepointed && f.id !== 'DEFAULT_DAILY_FORM' && f.id !== 'DEFAULT_GENERAL_FORM') {
+        try {
+          const gForm = FormApp.openById(f.id);
+          gForm.setDestination(FormApp.DestinationType.SPREADSHEET, f.sheetId);
+          f.destinationRepointed = true;
+          registryNeedsSaving = true;
+
+          // Normalize auto-created Google Forms response tab name to Form Title
+          Utilities.sleep(1000);
+          const ss = SpreadsheetApp.openById(f.sheetId);
+          const responseSheet = ss.getSheets().find(s => s.getName().includes('Form Responses') || s.getName().includes('Jawaban Formulir'));
+          if (responseSheet) {
+            const formTitle = (f.title || 'Raw').trim();
+            const rawSheet = ss.getSheetByName(formTitle) || ss.getSheetByName('Raw');
+            if (rawSheet && rawSheet.getLastRow() <= 1) {
+              try { ss.deleteSheet(rawSheet); } catch (err) {}
+            }
+            responseSheet.setName(formTitle);
+          }
+        } catch (err) {
+          Logger.log(`FormManagementService Notice: Unable to re-point destination for ${f.id}: ${err.toString()}`);
         }
       }
     });
 
-    // Persist normalized registry defensively
-    try {
-      this.saveFormList_(forms);
-    } catch (e) {
-      Logger.log('FormManagementService Notice: Unable to persist form list: ' + e.toString());
+    // Persist updated registry if changes were made
+    if (registryNeedsSaving || isInitialRun) {
+      try {
+        this.saveFormList_(forms);
+      } catch (e) {
+        Logger.log('FormManagementService Notice: Unable to persist form list: ' + e.toString());
+      }
     }
 
-    // Enrich metadata with live attributes & sheet row counts
+    // Enrich metadata with live attributes, direct tab GID URLs, & sheet row counts
     return forms.map(f => {
       try {
         return this.enrichFormMetadata_(f);
@@ -128,7 +139,8 @@ const FormManagementService = {
 
   /**
    * Provisions a dedicated Drive folder and dedicated Spreadsheet file for a form.
-   * Creates Raw and Sensitive tabs following standardized system header structures.
+   * Tab 1 is named after the Form's title (e.g. Laporan Operasional Harian).
+   * Dedicated spreadsheet contains ONLY tabs for this form, with Photo support.
    * @private
    * @param {string} title 
    * @param {string} formId 
@@ -149,58 +161,71 @@ const FormManagementService = {
     }
 
     const shortId = String(formId || Date.now()).substring(0, 8);
-    const formFolderName = `${title} (${shortId})`;
-    const formFolder = parentFolder.createFolder(formFolderName);
+    const cleanTitle = (title || 'Form Laporan').trim();
+    const formFolderName = `${cleanTitle} (${shortId})`;
+    let formFolder;
+    try {
+      formFolder = parentFolder.createFolder(formFolderName);
+    } catch (e) {
+      formFolder = parentFolder;
+    }
 
     // Create dedicated Spreadsheet inside form folder
-    const ssName = `${title} — Data Sheet`;
+    const ssName = `${cleanTitle} — Dedicated Data Sheet`;
     const ss = SpreadsheetApp.create(ssName);
     const ssId = ss.getId();
 
-    // Move created Spreadsheet file to formFolder
+    // Set permissions and move created Spreadsheet file to formFolder using moveTo
     try {
       const ssFile = DriveApp.getFileById(ssId);
-      formFolder.addFile(ssFile);
-      DriveApp.getRootFolder().removeFile(ssFile);
+      try { ssFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (sErr) {}
+      if (formFolder && formFolder.getId() !== parentFolder.getId()) {
+        try {
+          ssFile.moveTo(formFolder);
+        } catch (movErr) {
+          try { formFolder.addFile(ssFile); } catch (e2) {}
+        }
+      }
     } catch (e) {}
 
-    // Initialize Raw and Sensitive sheets
+    // Initialize dedicated primary response sheet named after the form
     const sheets = ss.getSheets();
     const rawSheet = sheets[0];
-    rawSheet.setName('Raw');
+    rawSheet.setName(cleanTitle);
 
     const sensitiveSheet = ss.insertSheet('Sensitive');
 
-    // Remove any default extra sheets if present
+    // Remove default extra sheet if present
     const defaultSheet = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembur1');
     if (defaultSheet && ss.getSheets().length > 2) {
       try { ss.deleteSheet(defaultSheet); } catch (e) {}
     }
 
-    // Set standard headers for Raw
+    // Set standard headers for primary response sheet (with Foto_Lampiran column for photo uploads)
     rawSheet.getRange('A1:L1').setValues([[
-      'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Task_Status', 
-      'Yield_Kg', 'Issues', 'Severity', 'Flagged_Keywords', 'Auto_Routed', 'Reviewed'
+      'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Task_Status_Or_Details', 
+      'Yield_Kg', 'Issues', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
     ]]);
     rawSheet.getRange('A1:L1').setFontWeight('bold').setBackground('#f1f5f9');
     rawSheet.setFrozenRows(1);
 
-    // Set standard headers for Sensitive
-    sensitiveSheet.getRange('A1:J1').setValues([[
+    // Set standard headers for Sensitive (with Foto_Lampiran column for photo uploads)
+    sensitiveSheet.getRange('A1:K1').setValues([[
       'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-      'Sensitive_Flag', 'Severity', 'Flagged_Keywords', 'Reviewed'
+      'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
     ]]);
-    sensitiveSheet.getRange('A1:J1').setFontWeight('bold').setBackground('#fef2f2');
+    sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
     sensitiveSheet.setFrozenRows(1);
 
     return {
       sheetId: ssId,
-      driveFolderId: formFolder.getId()
+      driveFolderId: formFolder ? formFolder.getId() : ''
     };
   },
 
   /**
-   * Enriches a form record with live metadata and dedicated sheet row counts.
+   * Enriches a form record with live metadata, exact sheet tab GID URL, and row counts.
+   * Automatically renames response tab to match form title.
    * @private
    * @param {Object} formRecord 
    * @returns {Object} Enriched form object.
@@ -210,17 +235,48 @@ const FormManagementService = {
     const formId = formRecord.id;
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
     const baseUrl = publicWebAppUrl ? publicWebAppUrl.split('?')[0] : '';
+    const mainSsId = ConfigRepository.getSpreadsheetId();
 
-    let calculatedResponseCount = 0;
-    if (formRecord.sheetId) {
+    let effectiveSheetId = formRecord.sheetId || '';
+    if (!effectiveSheetId || effectiveSheetId === mainSsId) {
       try {
-        const ss = SpreadsheetApp.openById(formRecord.sheetId);
-        const rawSheet = ss.getSheetByName('Raw') || ss.getSheets()[0];
+        const storage = this.provisionDedicatedFormStorage_(formRecord.title || 'Form Laporan', formId);
+        effectiveSheetId = storage.sheetId;
+        formRecord.sheetId = storage.sheetId;
+        formRecord.driveFolderId = storage.driveFolderId;
+      } catch (e) {
+        effectiveSheetId = mainSsId || '';
+      }
+    }
+
+    let sheetUrl = '';
+    let calculatedResponseCount = 0;
+
+    if (effectiveSheetId) {
+      try {
+        const ss = SpreadsheetApp.openById(effectiveSheetId);
+        const cleanTitle = (formRecord.title || '').trim();
+        
+        // Find or rename primary response sheet to match current form title
+        let rawSheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || 
+                       ss.getSheetByName('Daily_Raw') || 
+                       ss.getSheetByName('General_Raw') || 
+                       ss.getSheetByName('Raw') || 
+                       ss.getSheets()[0];
+                       
         if (rawSheet) {
+          if (cleanTitle && rawSheet.getName() !== cleanTitle && rawSheet.getName() !== 'Sensitive') {
+            try { rawSheet.setName(cleanTitle); } catch (e) {}
+          }
           calculatedResponseCount = Math.max(0, rawSheet.getLastRow() - 1);
+          const gid = rawSheet.getSheetId();
+          sheetUrl = `https://docs.google.com/spreadsheets/d/${effectiveSheetId}/edit#gid=${gid}`;
+        } else {
+          sheetUrl = `https://docs.google.com/spreadsheets/d/${effectiveSheetId}/edit`;
         }
       } catch (e) {
         calculatedResponseCount = formRecord.responseCount || 0;
+        sheetUrl = `https://docs.google.com/spreadsheets/d/${effectiveSheetId}/edit`;
       }
     }
 
@@ -233,37 +289,54 @@ const FormManagementService = {
       publicUrl = baseUrl ? `${baseUrl}?page=general` : '?page=general';
     }
 
-    const sheetUrl = formRecord.sheetId ? `https://docs.google.com/spreadsheets/d/${formRecord.sheetId}/edit` : '';
+    const enriched = Object.assign({}, formRecord, {
+      sheetId: effectiveSheetId,
+      publicUrl: publicUrl,
+      sheetUrl: sheetUrl,
+      responseCount: calculatedResponseCount,
+      isAccessible: true
+    });
 
-    if (!formId || formId === 'DEFAULT_DAILY_FORM' || formId === 'DEFAULT_GENERAL_FORM' || formRecord.type === 'kustom') {
-      return Object.assign({}, formRecord, {
-        publicUrl: publicUrl,
-        sheetUrl: sheetUrl,
-        responseCount: calculatedResponseCount,
-        isAccessible: true
-      });
+    if (formId && formId !== 'DEFAULT_DAILY_FORM' && formId !== 'DEFAULT_GENERAL_FORM' && formRecord.type !== 'kustom') {
+      try {
+        const gForm = FormApp.openById(formId);
+        enriched.title = gForm.getTitle() || formRecord.title || 'Form Laporan';
+        enriched.description = gForm.getDescription() || formRecord.description || '';
+        enriched.editUrl = gForm.getEditUrl() || `https://docs.google.com/forms/d/${formId}/edit`;
+      } catch (err) {
+        enriched.editUrl = formRecord.editUrl || `https://docs.google.com/forms/d/${formId}/edit`;
+      }
     }
 
-    try {
-      const gForm = FormApp.openById(formId);
-      return Object.assign({}, formRecord, {
-        title: gForm.getTitle() || formRecord.title || 'Form Laporan',
-        description: gForm.getDescription() || formRecord.description || '',
-        editUrl: gForm.getEditUrl() || `https://docs.google.com/forms/d/${formId}/edit`,
-        publicUrl: publicUrl,
-        sheetUrl: sheetUrl,
-        responseCount: calculatedResponseCount,
-        isAccessible: true
-      });
-    } catch (err) {
-      return Object.assign({}, formRecord, {
-        editUrl: formRecord.editUrl || `https://docs.google.com/forms/d/${formId}/edit`,
-        publicUrl: publicUrl,
-        sheetUrl: sheetUrl,
-        responseCount: calculatedResponseCount,
-        isAccessible: false
-      });
+    return enriched;
+  },
+
+  /**
+   * Retrieves or provisions exact dedicated tab URL (#gid) for a specific form.
+   * @param {string} formId 
+   * @returns {string} Spreadsheet edit URL with #gid anchor.
+   */
+  getFormSheetUrl: function(formId) {
+    const mainSsId = ConfigRepository.getSpreadsheetId();
+    const forms = this.getFormList();
+
+    let target = forms.find(f => f.id === formId);
+    if (!target) {
+      if (formId === 'DEFAULT_DAILY_FORM' || formId.toLowerCase().includes('daily')) {
+        target = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily);
+      } else if (formId === 'DEFAULT_GENERAL_FORM' || formId.toLowerCase().includes('general')) {
+        target = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral);
+      }
     }
+
+    if (target) {
+      try {
+        const enriched = this.enrichFormMetadata_(target);
+        if (enriched.sheetUrl) return enriched.sheetUrl;
+      } catch (e) {}
+    }
+
+    return mainSsId ? `https://docs.google.com/spreadsheets/d/${mainSsId}/edit` : '';
   },
 
   /**
@@ -293,7 +366,6 @@ const FormManagementService = {
 
     let newFormId = '';
     let editUrl = '';
-    let publishedUrl = '';
 
     if (formType === 'kustom') {
       newFormId = `FORM_KUSTOM_${Date.now()}`;
@@ -352,19 +424,28 @@ const FormManagementService = {
 
       newFormId = gForm.getId();
       editUrl = gForm.getEditUrl();
-      publishedUrl = gForm.getPublishedUrl();
     }
 
     // Provision dedicated storage (Drive Folder & Spreadsheet)
     const storage = this.provisionDedicatedFormStorage_(title, newFormId);
 
-    // If native Google Form, re-point destination to dedicated Spreadsheet
+    // If native Google Form, re-point destination to dedicated Spreadsheet & register trigger
     if (formType !== 'kustom' && newFormId) {
       try {
         const gForm = FormApp.openById(newFormId);
         gForm.setDestination(FormApp.DestinationType.SPREADSHEET, storage.sheetId);
       } catch (e) {
         Logger.log('FormManagementService Notice: Unable to set form destination: ' + e.toString());
+      }
+
+      try {
+        const handlerName = (formType === 'harian') ? 'onDailyFormSubmit' : 'onGeneralFormSubmit';
+        ScriptApp.newTrigger(handlerName)
+          .forForm(FormApp.openById(newFormId))
+          .onFormSubmit()
+          .create();
+      } catch (e) {
+        Logger.log(`FormManagementService Notice: Unable to register trigger for ${newFormId}: ${e.toString()}`);
       }
     }
 
@@ -406,6 +487,7 @@ const FormManagementService = {
 
   /**
    * Updates title, description, form ID, status, and fields schema of an existing form.
+   * Renames spreadsheet primary response tab if title changed.
    * @param {string} originalId 
    * @param {Object} updates 
    * @returns {Object} Updated form object.
@@ -418,11 +500,26 @@ const FormManagementService = {
     if (idx === -1) throw new Error('Form tidak ditemukan dalam registri.');
 
     const target = forms[idx];
+    const oldTitle = (target.title || '').trim();
 
     if (updates.title) target.title = updates.title.trim();
     if (updates.description) target.description = updates.description.trim();
     if (updates.status) target.status = updates.status.toLowerCase().trim();
     if (updates.fields && Array.isArray(updates.fields)) target.fields = updates.fields;
+
+    // Sync tab name in dedicated spreadsheet if title changed
+    if (updates.title && target.sheetId) {
+      try {
+        const ss = SpreadsheetApp.openById(target.sheetId);
+        const cleanNewTitle = updates.title.trim();
+        const sheet = (oldTitle ? ss.getSheetByName(oldTitle) : null) || ss.getSheetByName('Raw') || ss.getSheets()[0];
+        if (sheet && sheet.getName() !== 'Sensitive') {
+          sheet.setName(cleanNewTitle);
+        }
+      } catch (e) {
+        Logger.log('FormManagementService Notice: Unable to rename sheet tab on title update: ' + e.toString());
+      }
+    }
 
     if (updates.newFormId && updates.newFormId.trim() && updates.newFormId.trim() !== target.id) {
       const newId = updates.newFormId.trim();
@@ -454,8 +551,8 @@ const FormManagementService = {
   },
 
   /**
-   * Deletes a form from registry.
-   * Protects default Daily and General forms from accidental deletion.
+   * Deletes any form registration from registry (including Daily and General forms if requested by admin).
+   * Optionally trashes Drive files if requested.
    * @param {string} formId 
    * @param {boolean} deleteDriveFile 
    * @returns {boolean} True if successfully deleted.
@@ -467,21 +564,27 @@ const FormManagementService = {
     const target = forms.find(f => f.id === formId);
     if (!target) throw new Error('Form tidak ditemukan.');
 
-    if (target.isDefault || target.isDefaultDaily || target.isDefaultGeneral || formId === 'DEFAULT_DAILY_FORM' || formId === 'DEFAULT_GENERAL_FORM') {
-      throw new Error('Form utama (Default Daily / General) tidak dapat dihapus.');
-    }
-
     // Remove from array registry
     forms = forms.filter(f => f.id !== formId);
     this.saveFormList_(forms);
 
-    // Optionally trash Google Form file if applicable
-    if (deleteDriveFile && target.type !== 'kustom' && target.id) {
-      try {
-        const file = DriveApp.getFileById(target.id);
-        file.setTrashed(true);
-      } catch (e) {
-        Logger.log(`FormManagementService Warning: Could not trash file ${formId}: ${e.toString()}`);
+    // Optionally trash Google Form file and dedicated Spreadsheet file if requested
+    if (deleteDriveFile) {
+      if (target.id && target.type !== 'kustom' && target.id !== 'DEFAULT_DAILY_FORM' && target.id !== 'DEFAULT_GENERAL_FORM') {
+        try {
+          const file = DriveApp.getFileById(target.id);
+          file.setTrashed(true);
+        } catch (e) {
+          Logger.log(`FormManagementService Warning: Could not trash form file ${target.id}: ${e.toString()}`);
+        }
+      }
+      if (target.sheetId) {
+        try {
+          const sheetFile = DriveApp.getFileById(target.sheetId);
+          sheetFile.setTrashed(true);
+        } catch (e) {
+          Logger.log(`FormManagementService Warning: Could not trash sheet file ${target.sheetId}: ${e.toString()}`);
+        }
       }
     }
 
@@ -526,7 +629,7 @@ const FormManagementService = {
     if (oldDailySheet && oldDailySheet.getLastRow() > 1) {
       const dailyData = oldDailySheet.getRange(2, 1, oldDailySheet.getLastRow() - 1, oldDailySheet.getLastColumn()).getValues();
       const targetDailySs = SpreadsheetApp.openById(dailyForm.sheetId);
-      const targetDailySheet = targetDailySs.getSheetByName('Raw') || targetDailySs.getSheets()[0];
+      const targetDailySheet = targetDailySs.getSheetByName(dailyForm.title) || targetDailySs.getSheetByName('Raw') || targetDailySs.getSheets()[0];
 
       dailyData.forEach(row => {
         if (row[0] || row[1]) {
@@ -540,7 +643,7 @@ const FormManagementService = {
     if (oldGeneralSheet && oldGeneralSheet.getLastRow() > 1) {
       const generalData = oldGeneralSheet.getRange(2, 1, oldGeneralSheet.getLastRow() - 1, oldGeneralSheet.getLastColumn()).getValues();
       const targetGeneralSs = SpreadsheetApp.openById(generalForm.sheetId);
-      const targetGeneralSheet = targetGeneralSs.getSheetByName('Raw') || targetGeneralSs.getSheets()[0];
+      const targetGeneralSheet = targetGeneralSs.getSheetByName(generalForm.title) || targetGeneralSs.getSheetByName('Raw') || targetGeneralSs.getSheets()[0];
 
       generalData.forEach(row => {
         if (row[0] || row[1]) {

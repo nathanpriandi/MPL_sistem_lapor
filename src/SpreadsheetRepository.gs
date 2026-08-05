@@ -1,182 +1,161 @@
 /**
- * SpreadsheetRepository.gs — Central Data Access Object (DAO) for SpreadsheetApp
+ * SpreadsheetRepository.gs — Database Abstraction & Data Access Object (DAO)
  * Digital Reporting System for Integrated Agriculture Company
  * 
- * Clean Architecture Layer: INFRASTRUCTURE
- * Responsibility: Manages sheet schemas, range operations, row highlighting, and multi-sheet queries.
- * Eliminates magic column numbers and scattered SpreadsheetApp calls.
+ * Clean Architecture Layer: INFRASTRUCTURE / REPOSITORY
+ * Responsibility: Performs all low-level Google Sheets API reads, writes, schema lookups,
+ * multi-sheet queue aggregation across per-form dedicated spreadsheets, historical data migration triggers, 
+ * and row highlighting formatting.
  */
 
-const SHEET_NAMES = Object.freeze({
-  DAILY_RAW: 'Daily_Raw',
-  GENERAL_RAW: 'General_Raw',
-  SENSITIVE_RESTRICTED: 'Sensitive_Restricted',
-  ADMIN_QUEUE: 'Admin_Queue',
-  WEEKLY_SUMMARY: 'Weekly_Summary',
-  ARCHIVE_REPORTS: 'Archive_Reports'
-});
-
 const SpreadsheetRepository = {
+
   /**
-   * Opens central spreadsheet using SPREADSHEET_ID from ConfigRepository.
-   * Parameterized to accept a specific spreadsheetId if provided.
-   * @param {string} [spreadsheetId]
-   * @returns {Spreadsheet} Spreadsheet object.
+   * Returns central Spreadsheet instance.
+   * @returns {Spreadsheet}
    */
-  getSpreadsheet: function(spreadsheetId) {
-    const ssId = spreadsheetId || ConfigRepository.getSpreadsheetId();
+  getSpreadsheet: function() {
+    const ssId = ConfigRepository.getSpreadsheetId();
     if (!ssId) {
-      throw new Error('SPREADSHEET_ID missing in Script Properties.');
+      throw new Error('Spreadsheet ID belum dikonfigurasi di Script Properties.');
     }
     return SpreadsheetApp.openById(ssId);
   },
 
   /**
-   * Returns sheet by name or null if missing.
-   * @param {string} sheetName 
-   * @param {string} [spreadsheetId]
-   * @returns {Sheet|null}
+   * Generates a UUID string v4.
+   * @returns {string} UUID
    */
-  getSheet: function(sheetName, spreadsheetId) {
-    try {
-      const ss = this.getSpreadsheet(spreadsheetId);
-      return ss.getSheetByName(sheetName);
-    } catch (e) {
-      Logger.log(`SpreadsheetRepository Error getting sheet ${sheetName}: ${e.toString()}`);
-      return null;
-    }
+  generateUUID: function() {
+    return Utilities.getUuid();
   },
 
   /**
    * Ensures row has a Report_ID UUID in Col 1.
-   * If row came from Google Form (where Col 1 is Timestamp), shifts data right by 1 column.
+   * If Col 1 is a Timestamp or missing, generates a UUID and prepends/sets it.
    * @param {Sheet} sheet 
    * @param {number} row 
    * @param {Array} rowData 
-   * @returns {string} Report UUID.
+   * @returns {string} Report_ID UUID
    */
   ensureReportId: function(sheet, row, rowData) {
-    if (typeof rowData[0] === 'string' && rowData[0].length === 36 && rowData[0].includes('-')) {
-      return rowData[0];
+    const firstCell = String(rowData[0] || '').trim();
+    
+    // Check if firstCell is already a UUID (36 chars with hyphens)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(firstCell);
+    
+    if (isUuid) {
+      return firstCell;
     }
-    const reportId = Utilities.getUuid();
-    const shiftedRowData = [reportId].concat(rowData);
-    sheet.getRange(row, 1, 1, shiftedRowData.length).setValues([shiftedRowData]);
-    return reportId;
+
+    const uuid = this.generateUUID();
+
+    if (!firstCell || firstCell.includes('-') && firstCell.includes(':') || !isNaN(Date.parse(firstCell))) {
+      sheet.insertColumnBefore(1);
+      sheet.getRange(row, 1).setValue(uuid);
+      sheet.getRange(1, 1).setValue('Report_ID');
+      Logger.log(`SpreadsheetRepository: Prepended UUID ${uuid} at row ${row}`);
+    } else {
+      sheet.getRange(row, 1).setValue(uuid);
+      Logger.log(`SpreadsheetRepository: Replaced Col 1 with UUID ${uuid} at row ${row}`);
+    }
+
+    return uuid;
   },
 
   /**
-   * Applies soft background color based on severity.
+   * Applies soft background row highlighting based on triage severity level.
    * @param {Sheet} sheet 
    * @param {number} row 
-   * @param {'urgent'|'warning'|'normal'} severity 
+   * @param {string} severity 
    */
   applyRowHighlighting: function(sheet, row, severity) {
-    if (!sheet) return;
+    if (!sheet || row <= 1) return;
+    
     const lastCol = sheet.getLastColumn();
     const range = sheet.getRange(row, 1, 1, lastCol);
+    const sev = (severity || 'normal').toLowerCase();
+
+    let hexColor = '#ffffff'; // Normal / routine default
+    if (sev === ReportSeverity.URGENT) {
+      hexColor = '#fecaca'; // Soft red highlight
+    } else if (sev === ReportSeverity.WARNING) {
+      hexColor = '#fef08a'; // Soft yellow highlight
+    }
+
+    range.setBackground(hexColor);
+  },
+
+  /**
+   * Relocates a sensitive report row from its source sheet to the Sensitive tab of its spreadsheet.
+   * Deletes original row from source sheet.
+   * @param {Sheet} sourceSheet 
+   * @param {number} sourceRow 
+   * @param {Array} rowData 
+   * @returns {{ reportId: string, empId: string, site: string, date: string, details: string }}
+   */
+  moveRowToSensitiveTab: function(sourceSheet, sourceRow, rowData) {
+    const ss = sourceSheet.getParent();
+    let sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
     
-    if (severity === ReportSeverity.URGENT) {
-      range.setBackground('#fce8e6'); // Light red
-    } else if (severity === ReportSeverity.WARNING) {
-      range.setBackground('#fef7e0'); // Light yellow
-    }
-  },
-
-  /**
-   * Appends and annotates a new Daily Report row into target dedicated sheet.
-   * @param {Object} report - DailyReport object.
-   * @param {Object} flag - TriageResult object.
-   * @param {string} [targetSheetId] - Dedicated Spreadsheet ID.
-   * @returns {{ success: boolean, reportId: string }}
-   */
-  saveDailyReport: function(report, flag, targetSheetId) {
-    const ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : this.getSpreadsheet();
-    const sheet = ss.getSheetByName('Raw') || ss.getSheetByName(SHEET_NAMES.DAILY_RAW) || ss.getSheets()[0];
-    const nowStr = formatDate(new Date());
-    const reportId = report.reportId || Utilities.getUuid();
-
-    const rowData = [
-      reportId,
-      nowStr,
-      report.empId,
-      report.site,
-      report.date,
-      report.taskStatus,
-      report.yieldKg || 0,
-      report.issues,
-      flag.severity,
-      flag.keywords.join(', '),
-      flag.isUrgent ? 'YES' : 'NO',
-      ReviewStatus.UNREVIEWED
-    ];
-
-    sheet.appendRow(rowData);
-    const newRow = sheet.getLastRow();
-    this.applyRowHighlighting(sheet, newRow, flag.severity);
-
-    return { success: true, reportId: reportId };
-  },
-
-  /**
-   * Appends and annotates a new General Report row into target dedicated sheet.
-   * If sensitive, routes to Sensitive tab.
-   * @param {Object} report - GeneralReport object.
-   * @param {Object} flag - TriageResult object.
-   * @param {string} [targetSheetId] - Dedicated Spreadsheet ID.
-   * @returns {{ success: boolean, reportId: string, isSensitive?: boolean }}
-   */
-  saveGeneralReport: function(report, flag, targetSheetId) {
-    const ss = targetSheetId ? SpreadsheetApp.openById(targetSheetId) : this.getSpreadsheet();
-    const reportId = report.reportId || Utilities.getUuid();
-    const nowStr = formatDate(new Date());
-
-    if (report.isSensitive) {
-      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED) || ss.getSheets()[1];
-      const sensitiveRowData = [
-        reportId,
-        nowStr,
-        report.empId,
-        report.site,
-        report.date,
-        report.details,
-        'YES',
-        flag.severity,
-        flag.rank,
-        flag.category,
-        ReviewStatus.UNREVIEWED_SENSITIVE
-      ];
-
-      sensitiveSheet.appendRow(sensitiveRowData);
-      return { success: true, reportId: reportId, isSensitive: true };
+    if (!sensitiveSheet) {
+      sensitiveSheet = ss.insertSheet('Sensitive');
+      sensitiveSheet.getRange('A1:K1').setValues([[
+        'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
+        'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
+      ]]);
+      sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
+      sensitiveSheet.setFrozenRows(1);
     }
 
-    const rawSheet = ss.getSheetByName('Raw') || ss.getSheetByName(SHEET_NAMES.GENERAL_RAW) || ss.getSheets()[0];
-    const rawRowData = [
+    const reportId = rowData[0] || this.generateUUID();
+    const timestamp = rowData[1] || formatDate(new Date());
+    const empId = rowData[2] || '';
+    const site = rowData[3] || '';
+    const date = rowData[4] || '';
+    const details = rowData[5] || '';
+    const sensitiveFlag = 'YES (Routed to Sensitive)';
+    const photoUrl = rowData[8] || '';
+
+    const sensitiveRow = [
       reportId,
-      nowStr,
-      report.empId,
-      report.site,
-      report.date,
-      report.details,
-      'NO',
-      flag.severity,
-      flag.keywords.join(', '),
-      flag.isUrgent ? 'YES' : 'NO',
-      ReviewStatus.UNREVIEWED
+      timestamp,
+      empId,
+      site,
+      date,
+      details,
+      sensitiveFlag,
+      photoUrl,
+      ReportSeverity.WARNING,
+      'SENSITIVE',
+      ReviewStatus.UNREVIEWED_SENSITIVE
     ];
 
-    rawSheet.appendRow(rawRowData);
-    const newRow = rawSheet.getLastRow();
-    this.applyRowHighlighting(rawSheet, newRow, flag.severity);
+    sensitiveSheet.appendRow(sensitiveRow);
+    const newRowIndex = sensitiveSheet.getLastRow();
+    this.applyRowHighlighting(sensitiveSheet, newRowIndex, ReportSeverity.WARNING);
 
-    return { success: true, reportId: reportId, isSensitive: false };
+    // Delete row from raw source sheet
+    try {
+      sourceSheet.deleteRow(sourceRow);
+    } catch (e) {
+      Logger.log('SpreadsheetRepository Warning: Failed to delete row from source sheet: ' + e.toString());
+    }
+
+    return {
+      reportId: reportId,
+      empId: empId,
+      site: site,
+      date: date,
+      details: details
+    };
   },
 
   /**
-   * Reads Admin Queue rows across all registered forms' dedicated spreadsheets.
-   * Dynamically merges and sorts queue items by timestamp descending.
-   * @returns {Array} Array of QueueItem objects.
+   * Fetches unified Admin Triage Queue across all per-form dedicated spreadsheets.
+   * Auto-triggers historical data migration if per-form dedicated spreadsheets are empty.
+   * Merges, ranks, and sorts report items chronologically.
+   * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
     const forms = FormManagementService.getFormList();
@@ -186,9 +165,15 @@ const SpreadsheetRepository = {
       if (!f.sheetId) return;
       try {
         const ss = SpreadsheetApp.openById(f.sheetId);
+        const cleanTitle = (f.title || '').trim();
         
-        // 1. Read Raw sheet
-        const rawSheet = ss.getSheetByName('Raw') || ss.getSheetByName(SHEET_NAMES.DAILY_RAW) || ss.getSheetByName(SHEET_NAMES.GENERAL_RAW) || ss.getSheets()[0];
+        // 1. Read primary response sheet
+        const rawSheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || 
+                         ss.getSheetByName('Raw') || 
+                         ss.getSheetByName(SHEET_NAMES.DAILY_RAW) || 
+                         ss.getSheetByName(SHEET_NAMES.GENERAL_RAW) || 
+                         ss.getSheets()[0];
+
         if (rawSheet && rawSheet.getLastRow() > 1) {
           const rawValues = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
           rawValues.forEach(row => {
@@ -241,37 +226,18 @@ const SpreadsheetRepository = {
       }
     });
 
-    // Fallback: If no dedicated per-form sheet rows were found, read old central spreadsheet
+    // Auto-migrate historical rows from central spreadsheet if per-form sheets were empty
     if (mergedQueue.length === 0) {
       try {
-        const oldSsId = ConfigRepository.getSpreadsheetId();
-        if (oldSsId) {
-          const oldSs = SpreadsheetApp.openById(oldSsId);
-          const legacyQueue = oldSs.getSheetByName(SHEET_NAMES.ADMIN_QUEUE);
-          if (legacyQueue && legacyQueue.getLastRow() > 1) {
-            const values = legacyQueue.getDataRange().getValues().slice(1);
-            values.forEach(row => {
-              if (row[0] || row[1]) {
-                mergedQueue.push(QueueItem({
-                  source: row[0],
-                  reportId: row[1],
-                  timestamp: row[2],
-                  empId: row[3],
-                  site: row[4],
-                  date: row[5],
-                  detail: row[6],
-                  yieldOrSensitive: row[7],
-                  issues: row[8],
-                  severity: row[9],
-                  rank: row[10],
-                  category: row[11],
-                  reviewStatus: row[12]
-                }));
-              }
-            });
-          }
+        Logger.log('SpreadsheetRepository: No per-form rows found. Triggering historical data migration...');
+        const migrationResult = FormManagementService.migrateHistoricalDataToPerFormSheets();
+        if (migrationResult.dailyCount > 0 || migrationResult.generalCount > 0 || migrationResult.sensitiveCount > 0) {
+          // Re-run getAdminQueueData recursively once to read the newly migrated rows!
+          return this.getAdminQueueData();
         }
-      } catch (e) {}
+      } catch (migrationErr) {
+        Logger.log('SpreadsheetRepository Warning: Auto-migration failed: ' + migrationErr.toString());
+      }
     }
 
     // Sort queue items by timestamp descending
@@ -298,33 +264,38 @@ const SpreadsheetRepository = {
 
         for (let s = 0; s < sheets.length; s++) {
           const sheet = sheets[s];
-          const values = sheet.getDataRange().getValues();
-          if (!values || values.length <= 1) continue;
+          if (sheet.getLastRow() <= 1) continue;
 
-          for (let r = 1; r < values.length; r++) {
-            if (String(values[r][0]) === String(reportId)) {
-              const lastCol = sheet.getLastColumn();
+          const data = sheet.getDataRange().getValues();
+          const lastCol = sheet.getLastColumn();
+
+          for (let r = 1; r < data.length; r++) {
+            if (String(data[r][0] || '').trim() === String(reportId).trim()) {
               sheet.getRange(r + 1, lastCol).setValue(newStatus);
-              Logger.log(`SpreadsheetRepository: Updated report ${reportId} in sheet ${form.sheetId} (${sheet.getName()}) row ${r + 1} to status: ${newStatus}`);
-              return { success: true, reportId: reportId, sheet: sheet.getName(), updatedStatus: newStatus };
+              Logger.log(`SpreadsheetRepository: Updated Report_ID ${reportId} status to ${newStatus} in sheet ${form.sheetId} (${sheet.getName()})`);
+              return {
+                success: true,
+                reportId: reportId,
+                sheet: sheet.getName(),
+                updatedStatus: newStatus
+              };
             }
           }
         }
       } catch (err) {
-        Logger.log(`SpreadsheetRepository Notice: Error searching sheet ${form.sheetId}: ${err.toString()}`);
+        Logger.log(`SpreadsheetRepository Notice: Error updating review status for form ${form.id}: ${err.toString()}`);
       }
     }
 
-    return { success: false, error: 'Report_ID not found in dedicated sheets.' };
+    return { success: false, reportId: reportId, error: 'Report_ID tidak ditemukan di spreadsheet manapun.' };
   },
 
   /**
-   * Aggregates stats for Executive Dashboard across all dedicated per-form spreadsheets.
-   * @returns {Object|null} Stats object.
+   * Calculates dashboard summary statistics across all per-form dedicated spreadsheets.
+   * @returns {Object} Dashboard stats payload.
    */
   getDashboardStatsData: function() {
     const forms = FormManagementService.getFormList();
-
     let totalReports = 0;
     let totalYieldKg = 0;
     let urgentCount = 0;
@@ -336,7 +307,6 @@ const SpreadsheetRepository = {
       'Site C — Pabrik Pengolahan & Pakan': 0,
       'Site D — Logistik & Gudang': 0
     };
-
     const yieldBreakdown = { normal: 0, warning: 0, urgent: 0 };
     const severityDist = { normal: 0, warning: 0, urgent: 0 };
 
@@ -344,9 +314,10 @@ const SpreadsheetRepository = {
       if (!f.sheetId) return;
       try {
         const ss = SpreadsheetApp.openById(f.sheetId);
+        const cleanTitle = (f.title || '').trim();
         
-        // 1. Process Raw sheet
-        const rawSheet = ss.getSheetByName('Raw') || ss.getSheets()[0];
+        // 1. Process primary response sheet
+        const rawSheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || ss.getSheetByName('Raw') || ss.getSheets()[0];
         if (rawSheet && rawSheet.getLastRow() > 1) {
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
           values.forEach(row => {
@@ -407,5 +378,67 @@ const SpreadsheetRepository = {
       yieldBreakdown: yieldBreakdown,
       severityDist: severityDist
     };
+  },
+
+  /**
+   * Archives closed reports older than retentionDays across all dedicated per-form spreadsheets.
+   * @param {number} retentionDays 
+   * @returns {{ success: boolean, totalArchived: number }}
+   */
+  archiveClosedReports: function(retentionDays = 30) {
+    const forms = FormManagementService.getFormList();
+    const cutoffTime = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+    let totalArchived = 0;
+
+    forms.forEach(form => {
+      if (!form.sheetId) return;
+
+      try {
+        const ss = SpreadsheetApp.openById(form.sheetId);
+        let archiveSheet = ss.getSheetByName(SHEET_NAMES.ARCHIVE_REPORTS);
+        if (!archiveSheet) {
+          archiveSheet = ss.insertSheet(SHEET_NAMES.ARCHIVE_REPORTS);
+          archiveSheet.getRange('A1:M1').setValues([[
+            'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
+            'Yield_Kg_Or_Sensitive', 'Issues', 'Severity', 'Rank', 'Category', 'Review_Status', 'Archived_At'
+          ]]);
+          archiveSheet.getRange('A1:M1').setFontWeight('bold').setBackground('#e2e8f0');
+          archiveSheet.setFrozenRows(1);
+        }
+
+        const cleanTitle = (form.title || '').trim();
+        const primarySheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || ss.getSheetByName('Raw') || ss.getSheets()[0];
+        const sensitiveSheet = ss.getSheetByName('Sensitive');
+
+        const sheetsToScan = [primarySheet, sensitiveSheet].filter(Boolean);
+        sheetsToScan.forEach(sheet => {
+          if (!sheet || sheet.getLastRow() <= 1) return;
+
+          const values = sheet.getDataRange().getValues();
+          const lastCol = sheet.getLastColumn();
+
+          for (let r = values.length - 1; r >= 1; r--) {
+            const row = values[r];
+            const status = String(row[lastCol - 1] || '').toLowerCase().trim();
+            const dateVal = row[4] || row[1];
+            const rowTime = dateVal ? new Date(dateVal).getTime() : 0;
+
+            if (status === 'closed' || status === 'ditutup' || status === 'reviewed') {
+              if (rowTime && rowTime < cutoffTime) {
+                const archiveRowData = row.concat([formatDate(new Date())]);
+                archiveSheet.appendRow(archiveRowData);
+                sheet.deleteRow(r + 1);
+                totalArchived++;
+              }
+            }
+          }
+        });
+      } catch (err) {
+        Logger.log(`SpreadsheetRepository Error archiving sheet ${form.sheetId}: ${err.toString()}`);
+      }
+    });
+
+    Logger.log(`SpreadsheetRepository: Archived ${totalArchived} closed reports.`);
+    return { success: true, totalArchived: totalArchived };
   }
 };

@@ -150,3 +150,12 @@ function deleteReportingForm(formId, deleteDriveFile = false) {
 function runHistoricalMigration() {
   return FormManagementService.migrateHistoricalDataToPerFormSheets();
 }
+
+/**
+ * Retrieves or provisions dedicated spreadsheet URL for a specific form.
+ * @param {string} formId 
+ * @returns {string} Spreadsheet edit URL.
+ */
+function getFormSheetUrl(formId) {
+  return FormManagementService.getFormSheetUrl(formId);
+}
