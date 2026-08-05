@@ -66,7 +66,7 @@
           <div class="metric-card">
             <span class="metric-label">Total Form Terdaftar</span>
             <span class="metric-value" id="metricTotalForms">0</span>
-            <span class="metric-trend metric-trend-neutral">Formulir Aktif &amp; Terintegrasi</span>
+            <span class="metric-trend metric-trend-neutral">Formulir Terintegrasi</span>
           </div>
           <div class="metric-card">
             <span class="metric-label">Form Status Aktif</span>
@@ -74,14 +74,9 @@
             <span class="metric-trend metric-trend-up">Siap Menerima Laporan</span>
           </div>
           <div class="metric-card">
-            <span class="metric-label">Form Harian &amp; Umum</span>
-            <span class="metric-value" id="metricDailyForms">0</span>
-            <span class="metric-trend metric-trend-neutral">Form Utama Inti Sistem</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">Form Kustom Lapangan</span>
-            <span class="metric-value" id="metricGeneralForms">0</span>
-            <span class="metric-trend metric-trend-neutral">Form Kustom Tambahan</span>
+            <span class="metric-label">Total Respons Laporan</span>
+            <span class="metric-value" id="metricTotalResponses">0</span>
+            <span class="metric-trend metric-trend-neutral">Entri Terakumulasi</span>
           </div>
         </div>
 
@@ -144,7 +139,7 @@
   <div class="modal-overlay" id="editFormModalOverlay" style="display: none;">
     <div class="modal-card" style="max-width: 520px;">
       <div class="modal-header">
-        <h3 class="modal-title">Edit Konfigurasi Form</h3>
+        <h3 class="modal-title">Edit Tampilan Form</h3>
         <button class="modal-close-btn" onclick="closeEditFormModal()">&times;</button>
       </div>
       <form id="editFormEl" onsubmit="handleEditFormSubmit(event)">
@@ -301,18 +296,15 @@
     function renderFormMetrics() {
       var total = registeredForms.length;
       var active = registeredForms.filter(function(f) { return (f.status || '').toLowerCase() === 'aktif'; }).length;
-      var defaultsCount = registeredForms.filter(function(f) { return f.isDefault || f.isDefaultDaily || f.isDefaultGeneral || f.type === 'harian' || f.type === 'umum'; }).length;
-      var kustomCount = total - defaultsCount;
+      var totalResponses = registeredForms.reduce(function(sum, f) { return sum + (f.responseCount || 0); }, 0);
 
       var elTotal = document.getElementById('metricTotalForms');
       var elActive = document.getElementById('metricActiveForms');
-      var elDaily = document.getElementById('metricDailyForms');
-      var elGeneral = document.getElementById('metricGeneralForms');
+      var elResponses = document.getElementById('metricTotalResponses');
 
       if (elTotal) elTotal.innerText = total;
       if (elActive) elActive.innerText = active;
-      if (elDaily) elDaily.innerText = defaultsCount;
-      if (elGeneral) elGeneral.innerText = kustomCount;
+      if (elResponses) elResponses.innerText = totalResponses;
     }
 
     function renderFormsList() {
@@ -353,18 +345,16 @@
 
         html += '<div class="card card-no-margin" style="border-left: 4px solid ' + (isActive ? 'var(--primary)' : 'var(--border-strong)') + '; padding: 1.25rem;">' +
           '<div class="flex-between-wrap" style="margin-bottom: 0.75rem;">' +
-            '<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">' +
-              '<span class="badge ' + (isActive ? 'badge-primary' : 'badge-normal') + '">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
-              '<span class="badge badge-normal">' + typeLabel + '</span>' +
-              (isDefault ? '<span class="badge badge-normal" style="background:#e0f2fe; color:#0369a1;">Form Utama</span>' : '') +
+            '<div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">' +
               '<h3 class="card-title-sm" style="margin: 0;">' + escapeHtml(f.title || 'Form Tanpa Judul') + '</h3>' +
+              '<span class="badge ' + (isActive ? 'badge-primary' : 'badge-normal') + '">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
             '</div>' +
             '<div class="button-group-flex" style="align-items: center;">' +
               previewBtnHtml +
               sheetBtnHtml +
-              '<button class="btn btn-secondary table-btn-sm" onclick="openEditFormModal(\'' + f.id + '\')" title="Edit Konfigurasi Form">' +
+              '<button class="btn btn-secondary table-btn-sm" onclick="openEditFormModal(\'' + f.id + '\')" title="Edit Tampilan Form">' +
                 '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
-                '<span>Edit Settings</span>' +
+                '<span>Edit Tampilan</span>' +
               '</button>' +
               editorBtnHtml +
               deleteBtnHtml +
