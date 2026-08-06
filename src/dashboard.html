@@ -45,9 +45,9 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <div class="flex-between-wrap" style="margin-bottom: 1.5rem;">
+        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
           <div>
-            <h1 class="card-title" style="margin-bottom: 0.25rem;">Dashboard Eksekutif Manajer</h1>
+            <h1 class="card-title" style="margin-bottom: 0.25rem; line-height: 1.25;">Dashboard Eksekutif Manajer</h1>
             <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi rekapitulasi operasional agribisnis terintegrasi.</p>
           </div>
           <div class="button-group-flex" style="align-items: center;">
@@ -146,29 +146,6 @@
     let severityChartInstance = null;
     let siteChartInstance = null;
     let cachedStats = null;
-
-    function navigateToQueue(filter) {
-      let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
-      if (!baseUrl && typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
-        baseUrl = document.referrer.split('?')[0];
-      }
-      if (!baseUrl) {
-        try { baseUrl = (window.top || window).location.href.split('?')[0]; } catch(e) {}
-      }
-      if (!baseUrl) baseUrl = window.location.href.split('?')[0];
-
-      const targetUrl = `${baseUrl}?page=admin&filter=${filter}`;
-      try {
-        if (window.top && window.top.location) {
-          window.top.location.href = targetUrl;
-        } else {
-          window.location.href = targetUrl;
-        }
-      } catch (e) {
-        window.location.href = targetUrl;
-      }
-    }
-
     let lastFetchedTimestamp = null;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -196,7 +173,6 @@
       if (siteChartInstance) siteChartInstance.resize();
     });
 
-    let windowResizeTimeout = null;
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
       if (sidebar) {
@@ -205,7 +181,7 @@
     }
 
     function updateFreshnessTag() {
-      const tag = document.getElementById('lastUpdatedTag');
+      const tag = document.getElementById('dashLastUpdatedTag');
       if (!tag || !lastFetchedTimestamp) return;
       const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
       const elapsedMin = Math.floor(elapsedSec / 60);
@@ -238,8 +214,6 @@
       }
     }
 
-
-
     async function renderDashboard(isManualRefresh = false) {
       let totalReports = 0;
       let totalYield = 0;
@@ -255,12 +229,22 @@
           if (stats) {
             cachedStats = stats;
             totalReports = stats.totalReports || 0;
-            totalYield = stats.totalYield || 0;
-            urgentCount = stats.urgentCount || 0;
+            totalYield = (typeof stats.totalYieldKg !== 'undefined' ? stats.totalYieldKg : stats.totalYield) || 0;
+            urgentCount = typeof stats.urgentCount !== 'undefined' ? stats.urgentCount : (stats.severityDist ? stats.severityDist.urgent : 0);
             sensitiveCount = stats.sensitiveCount || 0;
-            normalCount = stats.normalCount || 0;
-            warningCount = stats.warningCount || 0;
-            siteCounts = stats.siteCounts || [0, 0, 0, 0];
+            normalCount = typeof stats.normalCount !== 'undefined' ? stats.normalCount : (stats.severityDist ? stats.severityDist.normal : 0);
+            warningCount = typeof stats.warningCount !== 'undefined' ? stats.warningCount : (stats.severityDist ? stats.severityDist.warning : 0);
+
+            if (Array.isArray(stats.siteCounts) && stats.siteCounts.length === 4) {
+              siteCounts = stats.siteCounts;
+            } else if (stats.siteBreakdown) {
+              siteCounts = [
+                stats.siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
+                stats.siteBreakdown['Site B — Peternakan & Kandang'] || 0,
+                stats.siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
+                stats.siteBreakdown['Site D — Logistik & Gudang'] || 0
+              ];
+            }
           }
         } catch (err) {
           console.error('Server error fetching dashboard stats:', err);
@@ -327,19 +311,24 @@
         }
       }
 
-      // Render Charts with safety checks
+      // Render Charts with safety checks and zero-data fallbacks
       if (typeof Chart !== 'undefined') {
         try {
           if (severityChartInstance) severityChartInstance.destroy();
           const ctx1 = document.getElementById('severityChart');
           if (ctx1) {
+            const totalSeverity = normalCount + warningCount + urgentCount;
+            const chartData = (totalSeverity > 0) ? [normalCount, warningCount, urgentCount] : [1];
+            const chartColors = (totalSeverity > 0) ? ['#15803D', '#B45309', '#DC2626'] : ['#E2E8F0'];
+            const chartLabels = (totalSeverity > 0) ? ['Rutin / Normal', 'Peringatan / Warning', 'Mendesak / Insiden'] : ['Belum Ada Data'];
+
             severityChartInstance = new Chart(ctx1.getContext('2d'), {
               type: 'doughnut',
               data: {
-                labels: ['Rutin / Normal', 'Peringatan / Warning', 'Mendesak / Insiden'],
+                labels: chartLabels,
                 datasets: [{
-                  data: [normalCount, warningCount, urgentCount],
-                  backgroundColor: ['#15803D', '#B45309', '#DC2626'],
+                  data: chartData,
+                  backgroundColor: chartColors,
                   borderWidth: 2,
                   borderColor: '#ffffff'
                 }]
@@ -349,7 +338,16 @@
                 maintainAspectRatio: false,
                 animation: false,
                 plugins: {
-                  legend: { position: 'bottom', labels: { color: '#475569', font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 } } }
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      color: '#475569',
+                      font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 }
+                    }
+                  },
+                  tooltip: {
+                    enabled: totalSeverity > 0
+                  }
                 }
               }
             });
@@ -380,8 +378,22 @@
                 maintainAspectRatio: false,
                 animation: false,
                 scales: {
-                  x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { display: false } },
-                  y: { ticks: { color: '#475569', precision: 0 }, grid: { color: '#F1F5F9' } }
+                  x: {
+                    ticks: {
+                      color: '#475569',
+                      font: { size: 11 },
+                      maxRotation: 0,
+                      minRotation: 0,
+                      autoSkip: false
+                    },
+                    grid: { display: false }
+                  },
+                  y: {
+                    ticks: { color: '#475569', precision: 0 },
+                    grid: { color: '#F1F5F9' },
+                    beginAtZero: true,
+                    suggestedMax: 5
+                  }
                 },
                 plugins: {
                   legend: { display: false }
@@ -409,15 +421,15 @@
       const headers = ['Metrik', 'Nilai'];
       const rows = [
         ['Total Laporan Masuk', cachedStats.totalReports],
-        ['Total Hasil Panen (Kg)', cachedStats.totalYield],
+        ['Total Hasil Panen (Kg)', cachedStats.totalYield || cachedStats.totalYieldKg || 0],
         ['Insiden Urgent Flagged', cachedStats.urgentCount],
         ['Laporan Warning Flagged', cachedStats.warningCount],
         ['Laporan Normal Flagged', cachedStats.normalCount],
         ['Laporan Sensitif Restriksi', cachedStats.sensitiveCount],
-        ['Laporan Site A (Kebun)', cachedStats.siteCounts[0] || 0],
-        ['Laporan Site B (Peternakan)', cachedStats.siteCounts[1] || 0],
-        ['Laporan Site C (Pabrik)', cachedStats.siteCounts[2] || 0],
-        ['Laporan Site D (Logistik)', cachedStats.siteCounts[3] || 0]
+        ['Laporan Site A (Kebun)', (cachedStats.siteCounts && cachedStats.siteCounts[0]) || 0],
+        ['Laporan Site B (Peternakan)', (cachedStats.siteCounts && cachedStats.siteCounts[1]) || 0],
+        ['Laporan Site C (Pabrik)', (cachedStats.siteCounts && cachedStats.siteCounts[2]) || 0],
+        ['Laporan Site D (Logistik)', (cachedStats.siteCounts && cachedStats.siteCounts[3]) || 0]
       ];
 
       downloadCSV(`Executive_Dashboard_Summary_${Date.now()}.csv`, headers, rows);

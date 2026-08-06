@@ -61,7 +61,7 @@
           </div>
         </div>
 
-        <!-- Metrics Summary Grid -->
+        <!-- Metrics Summary Grid (Fixed 4-column layout) -->
         <div class="metrics-grid">
           <div class="metric-card">
             <span class="metric-label">Total Form Terdaftar</span>
@@ -74,9 +74,14 @@
             <span class="metric-trend metric-trend-up">Siap Menerima Laporan</span>
           </div>
           <div class="metric-card">
-            <span class="metric-label">Total Respons Laporan</span>
-            <span class="metric-value" id="metricTotalResponses">0</span>
-            <span class="metric-trend metric-trend-neutral">Entri Terakumulasi</span>
+            <span class="metric-label">Form Harian &amp; Umum</span>
+            <span class="metric-value" id="metricNativeForms">0</span>
+            <span class="metric-trend metric-trend-neutral">Google Forms Native</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Form Kustom Lapangan</span>
+            <span class="metric-value" id="metricCustomForms">0</span>
+            <span class="metric-trend metric-trend-up">Dynamic Form Builder</span>
           </div>
         </div>
 
@@ -94,37 +99,49 @@
 
   <!-- Modal: Buat Form Baru -->
   <div class="modal-overlay" id="createFormModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 580px;">
+    <div class="modal-card" style="max-width: 620px;">
       <div class="modal-header">
         <h3 class="modal-title">Buat Form Laporan Baru</h3>
         <button class="modal-close-btn" onclick="closeCreateFormModal()">&times;</button>
       </div>
       <form id="createFormEl" onsubmit="handleCreateFormSubmit(event)">
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="newFormTitle">Judul Form <span class="text-danger">*</span></label>
-            <input type="text" id="newFormTitle" class="form-input" placeholder="contoh: Form Laporan Pemeliharaan Alat" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="newFormDesc">Deskripsi Form</label>
-            <textarea id="newFormDesc" class="form-input" rows="3" placeholder="Jelaskan tujuan dan petunjuk pengisian form ini..."></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="newFormType">Tipe Form / Template <span class="text-danger">*</span></label>
-            <select id="newFormType" class="form-input" onchange="toggleCustomFieldBuilder()" required>
-              <option value="harian">Form Harian (Google Form Native - Status Tugas, Hasil Panen)</option>
-              <option value="umum">Form Umum (Google Form Native - Narasi Deskriptif, Insiden)</option>
-              <option value="kustom">Form Kustom Lapangan (Dynamic Form Builder + Foto)</option>
-            </select>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- Section 1: Form Details -->
+          <div>
+            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.35rem;">1. Detail &amp; Identitas Form</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="newFormTitle">Judul Form <span class="text-danger">*</span></label>
+                <input type="text" id="newFormTitle" class="form-input" placeholder="contoh: Form Laporan Pemeliharaan Alat" required>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="newFormDesc">Deskripsi Form</label>
+                <textarea id="newFormDesc" class="form-input" rows="2" placeholder="Jelaskan tujuan dan petunjuk pengisian form ini..."></textarea>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="newFormType">Tipe Form / Template <span class="text-danger">*</span></label>
+                <select id="newFormType" class="form-input" onchange="toggleCustomFieldBuilder()" required>
+                  <option value="harian">Form Harian (Google Form Native - Status Tugas, Hasil Panen)</option>
+                  <option value="umum">Form Umum (Google Form Native - Narasi Deskriptif, Insiden)</option>
+                  <option value="kustom">Form Kustom Lapangan (Dynamic Form Builder + Foto)</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <!-- Dynamic Field Builder (for kustom forms) -->
-          <div id="customFieldBuilder" style="display: none; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-            <div class="flex-between-wrap" style="margin-bottom: 0.5rem;">
-              <label class="form-label" style="margin: 0;">Rancangan Field Pertanyaan Kustom</label>
-              <button type="button" class="btn btn-secondary table-btn-sm" onclick="addCustomFieldRow()">+ Tambah Field</button>
+          <!-- Section 2: Dynamic Field Builder (for kustom forms) -->
+          <div id="customFieldBuilder" style="display: none; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+            <div class="flex-between-wrap" style="margin-bottom: 0.75rem; align-items: flex-start;">
+              <div>
+                <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">2. Susun Pertanyaan Form</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">Tambahkan dan konfigurasi bidang pertanyaan kustom untuk formulir ini.</p>
+              </div>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="addCustomFieldRow()" style="display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Tambah Field</span>
+              </button>
             </div>
-            <div id="customFieldsList" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+            <div id="customFieldsList" class="custom-fields-scroll-container" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
           </div>
         </div>
         <div class="modal-footer" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -296,15 +313,21 @@
     function renderFormMetrics() {
       var total = registeredForms.length;
       var active = registeredForms.filter(function(f) { return (f.status || '').toLowerCase() === 'aktif'; }).length;
-      var totalResponses = registeredForms.reduce(function(sum, f) { return sum + (f.responseCount || 0); }, 0);
+      var nativeForms = registeredForms.filter(function(f) {
+        var t = (f.type || '').toLowerCase();
+        return t === 'harian' || t === 'umum';
+      }).length;
+      var customForms = registeredForms.filter(function(f) { return (f.type || '').toLowerCase() === 'kustom'; }).length;
 
       var elTotal = document.getElementById('metricTotalForms');
       var elActive = document.getElementById('metricActiveForms');
-      var elResponses = document.getElementById('metricTotalResponses');
+      var elNative = document.getElementById('metricNativeForms');
+      var elCustom = document.getElementById('metricCustomForms');
 
       if (elTotal) elTotal.innerText = total;
       if (elActive) elActive.innerText = active;
-      if (elResponses) elResponses.innerText = totalResponses;
+      if (elNative) elNative.innerText = nativeForms;
+      if (elCustom) elCustom.innerText = customForms;
     }
 
     function renderFormsList() {
@@ -312,15 +335,31 @@
       if (!container) return;
 
       if (!registeredForms || registeredForms.length === 0) {
-        container.innerHTML = '<div class="text-muted-center" style="padding: 2rem;"><p>Belum ada form terdaftar.</p><button class="btn btn-primary" onclick="openCreateFormModal()">Buat Form Pertama</button></div>';
+        container.innerHTML = '<div class="empty-state-card" style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">' +
+          '<svg class="svg-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>' +
+          '<h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Belum Ada Form Terdaftar</h3>' +
+          '<p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.5rem auto; line-height: 1.5;">Kelola formulir pelaporan digital Anda di sini. Buat form kustom baru atau perbarui daftar form yang terintegrasi.</p>' +
+          '<button class="btn btn-primary" onclick="openCreateFormModal()" style="display: inline-flex; align-items: center; gap: 0.5rem;">' +
+            '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+            '<span>Buat Form Pertama</span>' +
+          '</button>' +
+        '</div>';
         return;
       }
 
       var html = '';
       registeredForms.forEach(function(f) {
         var isActive = (f.status || 'aktif').toLowerCase() === 'aktif';
-        var typeLabel = (f.type || 'kustom').toUpperCase();
-        var isDefault = f.isDefault || f.isDefaultDaily || f.isDefaultGeneral;
+        var formType = (f.type || 'kustom').toLowerCase();
+        var badgeClass = 'badge-kustom';
+        var typeText = 'KUSTOM';
+        if (formType === 'harian') {
+          badgeClass = 'badge-harian';
+          typeText = 'HARIAN';
+        } else if (formType === 'umum') {
+          badgeClass = 'badge-umum';
+          typeText = 'UMUM';
+        }
 
         var targetSheetUrl = f.sheetUrl || (f.sheetId ? 'https://docs.google.com/spreadsheets/d/' + f.sheetId + '/edit' : '');
         var sheetBtnHtml = '';
@@ -332,7 +371,7 @@
 
         var editorBtnHtml = '';
         if (f.editUrl) {
-          editorBtnHtml = '<a href="' + f.editUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Buka Editor Google Form Native"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Google Form Editor</span></a>';
+          editorBtnHtml = '<a href="' + f.editUrl + '" target="_blank" class="btn btn-ghost table-btn-sm" title="Buka Editor Google Form Native"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Google Form Editor</span></a>';
         }
 
         var previewBtnHtml = '';
@@ -341,12 +380,13 @@
         }
 
         var safeTitle = escapeHtml(f.title || 'Form Tanpa Judul').replace(/'/g, "\\'");
-        var deleteBtnHtml = '<button class="btn btn-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        var deleteBtnHtml = '<button class="btn btn-ghost-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
 
         html += '<div class="card card-no-margin" style="border-left: 4px solid ' + (isActive ? 'var(--primary)' : 'var(--border-strong)') + '; padding: 1.25rem;">' +
           '<div class="flex-between-wrap" style="margin-bottom: 0.75rem;">' +
-            '<div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">' +
+            '<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">' +
               '<h3 class="card-title-sm" style="margin: 0;">' + escapeHtml(f.title || 'Form Tanpa Judul') + '</h3>' +
+              '<span class="badge ' + badgeClass + '">' + typeText + '</span>' +
               '<span class="badge ' + (isActive ? 'badge-primary' : 'badge-normal') + '">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
             '</div>' +
             '<div class="button-group-flex" style="align-items: center;">' +
@@ -387,25 +427,28 @@
       var list = document.getElementById('customFieldsList');
       if (!list) return;
 
-      var rowIdx = list.children.length;
       var row = document.createElement('div');
-      row.className = 'custom-field-row';
+      row.className = 'custom-field-row fade-in-highlight';
       row.style.display = 'flex';
+      row.style.flexDirection = 'column';
       row.style.gap = '0.5rem';
-      row.style.alignItems = 'center';
 
       row.innerHTML = '' +
-        '<input type="text" class="form-input f-label" placeholder="Label Pertanyaan (e.g. Kondisi Alat)" required style="flex: 2;">' +
-        '<select class="form-input f-type" style="flex: 1.5;">' +
-          '<option value="text">Teks Singkat</option>' +
-          '<option value="textarea">Paragraf / Textarea</option>' +
-          '<option value="select">Dropdown Options</option>' +
-          '<option value="checkbox">Checkbox Multi-Select</option>' +
-          '<option value="date">Tanggal</option>' +
-          '<option value="photo">Foto Lampiran</option>' +
-        '</select>' +
-        '<input type="text" class="form-input f-options" placeholder="Options (opsional, pisahkan koma)" style="flex: 2; display: none;">' +
-        '<button type="button" class="btn btn-danger table-btn-sm" onclick="this.parentElement.remove()">&times;</button>';
+        '<div style="display: flex; gap: 0.5rem; align-items: center;">' +
+          '<input type="text" class="form-input f-label" placeholder="Label Pertanyaan (e.g. Kondisi Alat Lapangan)" required style="flex: 2; height: 38px;">' +
+          '<select class="form-input f-type" style="flex: 1.5; height: 38px;">' +
+            '<option value="text">Teks Singkat</option>' +
+            '<option value="textarea">Paragraf / Textarea</option>' +
+            '<option value="select">Pilihan Dropdown</option>' +
+            '<option value="checkbox">Pilihan Checkbox (Multi-select)</option>' +
+            '<option value="date">Tanggal</option>' +
+            '<option value="photo">Foto Lampiran Lapangan</option>' +
+          '</select>' +
+          '<button type="button" class="btn btn-ghost-danger table-btn-sm" onclick="this.closest(\'.custom-field-row\').remove()" title="Hapus Pertanyaan" style="height: 38px; width: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">' +
+            '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<input type="text" class="form-input f-options" placeholder="Opsi Pilihan (pisahkan koma, contoh: Baik, Perlu Perbaikan, Rusak)" style="display: none; height: 36px; font-size: 0.85rem;">';
 
       var selectEl = row.querySelector('.f-type');
       var optionsEl = row.querySelector('.f-options');
@@ -418,6 +461,7 @@
       });
 
       list.appendChild(row);
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     // Modal Control Functions

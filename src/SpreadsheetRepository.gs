@@ -463,9 +463,18 @@ const SpreadsheetRepository = {
     return {
       totalReports: totalReports,
       totalYieldKg: Math.round(totalYieldKg * 100) / 100,
+      totalYield: Math.round(totalYieldKg * 100) / 100,
       urgentCount: urgentCount,
       sensitiveCount: sensitiveCount,
+      normalCount: severityDist.normal,
+      warningCount: severityDist.warning,
       siteBreakdown: siteBreakdown,
+      siteCounts: [
+        siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
+        siteBreakdown['Site B — Peternakan & Kandang'] || 0,
+        siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
+        siteBreakdown['Site D — Logistik & Gudang'] || 0
+      ],
       yieldBreakdown: yieldBreakdown,
       severityDist: severityDist
     };
