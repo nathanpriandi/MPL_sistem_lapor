@@ -309,21 +309,22 @@ function getDB() {
   let db = localStorage.getItem('MPL_REPORTING_DB');
   if (!db) {
     const defaultData = {
-      dailyReports: [
-        { id: 'REC-001', timestamp: '2026-07-23 08:30', empId: 'EMP-101', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Completed', yield: 1450, issues: ['None'], severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Unreviewed' },
-        { id: 'REC-002', timestamp: '2026-07-23 09:15', empId: 'EMP-102', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Delayed', yield: 800, issues: ['Weather'], severity: 'warning', rank: 2, category: 'weather_impact', reviewStatus: 'Unreviewed' },
-        { id: 'REC-003', timestamp: '2026-07-23 10:00', empId: 'EMP-201', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', status: 'Completed', yield: 0, issues: ['None'], severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Closed' },
-        { id: 'REC-004', timestamp: '2026-07-23 11:20', empId: 'EMP-302', site: 'Site C — Pabrik Pengolahan & Pakan', date: '2026-07-23', status: 'Delayed', yield: 1100, issues: ['Equipment'], severity: 'urgent', rank: 1, category: 'equipment_breakdown', reviewStatus: 'Unreviewed' }
-      ],
-      generalReports: [
-        { id: 'REC-101', timestamp: '2026-07-23 09:45', empId: 'EMP-203', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', details: 'Ada kecelakaan kerja ringan saat pembersihan kandang 2. Korban sudah ditangani tim P3K.', isSensitive: false, severity: 'urgent', rank: 1, category: 'incident', reviewStatus: 'Unreviewed' },
-        { id: 'REC-102', timestamp: '2026-07-23 13:00', empId: 'EMP-401', site: 'Site D — Logistik & Gudang', date: '2026-07-23', details: 'Laporan audit internal biaya operasional dan efisiensi bahan bakar armada.', isSensitive: true, severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Unreviewed (Sensitive)' }
-      ]
+      dailyReports: [],
+      generalReports: [],
+      operationalReports: []
     };
     localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(defaultData));
     return defaultData;
   }
-  return JSON.parse(db);
+  const parsed = JSON.parse(db);
+  // Purge old prototype mockup reports if present in local storage
+  if (parsed.dailyReports && parsed.dailyReports.some(r => r.id === 'REC-001' || r.yield === 1450)) {
+    parsed.dailyReports = [];
+    parsed.generalReports = [];
+    parsed.operationalReports = [];
+    localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(parsed));
+  }
+  return parsed;
 }
 
 function saveDB(db) {

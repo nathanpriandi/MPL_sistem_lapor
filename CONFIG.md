@@ -13,12 +13,11 @@ After running `setupReportingSystem()`, you must set the following properties in
 | `ADMIN_EMAIL` | `admin.operasional@perusahaan-agri.co.id` | Receives urgent incident alerts and daily 17:00 WIB digests |
 | `MANAGER_EMAIL` | `general.manager@perusahaan-agri.co.id` | Receives weekly Monday 08:00 WIB executive summary digests |
 | `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` |
-| `DAILY_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` |
-| `GENERAL_FORM_ID` | `1K2l3M4n5O...` | Generated automatically by `Setup.gs` |
+| `MAIN_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` for the unified Operational Form |
 | `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment A URL for the public field-staff portal. Set manually after Deployment A is created. |
 | `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment B URL for Admin Queue and Manager Dashboard. Set manually after Deployment B is created. |
 
-`WEB_APP_URL` is retired. Use the explicit `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` properties instead so public quick links and internal navigation cannot be confused.
+`WEB_APP_URL`, `DAILY_FORM_ID`, and `GENERAL_FORM_ID` are retired. Use `MAIN_FORM_ID` alongside explicit `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` properties instead.
 
 ## 1.1 Google Script Properties (Optional Operational Tuning)
 

@@ -284,25 +284,13 @@
       var baseUrl = window.SERVER_WEB_APP_URL ? window.SERVER_WEB_APP_URL.split('?')[0] : '';
       return [
         {
-          id: 'DEFAULT_DAILY_FORM',
-          title: 'Laporan Operasional Harian',
-          description: 'Isi laporan harian aktivitas operasional pertanian, peternakan, dan pabrik.',
-          type: 'harian',
+          id: 'DEFAULT_MAIN_FORM',
+          title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+          description: 'Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.',
+          type: 'operasional',
           status: 'aktif',
           editUrl: '',
           publicUrl: baseUrl ? baseUrl + '?page=index' : '?page=index',
-          responseCount: 0,
-          isAccessible: false,
-          isDefault: true
-        },
-        {
-          id: 'DEFAULT_GENERAL_FORM',
-          title: 'Laporan Umum & Catatan Lapangan',
-          description: 'Laporan kejadian umum, kondisi lapangan, atau insiden.',
-          type: 'umum',
-          status: 'aktif',
-          editUrl: '',
-          publicUrl: baseUrl ? baseUrl + '?page=general' : '?page=general',
           responseCount: 0,
           isAccessible: false,
           isDefault: true
@@ -315,7 +303,7 @@
       var active = registeredForms.filter(function(f) { return (f.status || '').toLowerCase() === 'aktif'; }).length;
       var nativeForms = registeredForms.filter(function(f) {
         var t = (f.type || '').toLowerCase();
-        return t === 'harian' || t === 'umum';
+        return t === 'operasional' || t === 'harian' || t === 'umum';
       }).length;
       var customForms = registeredForms.filter(function(f) { return (f.type || '').toLowerCase() === 'kustom'; }).length;
 
@@ -369,7 +357,7 @@
           previewBtnHtml = '<a href="' + f.publicUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Pratinjau Form Publik"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg><span>Pratinjau</span></a>';
         }
 
-        var isDefault = f.isDefault || f.isDefaultDaily || f.isDefaultGeneral || f.id === 'DEFAULT_DAILY_FORM' || f.id === 'DEFAULT_GENERAL_FORM';
+        var isDefault = f.isDefault || f.isDefaultMain || f.id === 'DEFAULT_MAIN_FORM';
         var safeTitle = escapeHtml(f.title || 'Form Tanpa Judul').replace(/'/g, "\\'");
         var deleteBtnHtml = isDefault ? '' :
           '<button class="btn btn-ghost-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';

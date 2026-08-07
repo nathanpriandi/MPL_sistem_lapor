@@ -53,30 +53,6 @@ const NotificationAdapter = {
   },
 
   /**
-   * Sends email notification for isolated sensitive report.
-   * @param {Object} info - { reportId, site, empId, date }
-   */
-  sendSensitiveAlert: function(info) {
-    const adminEmail = ConfigRepository.getAdminEmail();
-    if (!adminEmail) return;
-
-    const subject = '[SENSITIVE REPORT RECEIVED] New entry in Sensitive_Restricted';
-    const body = 
-      `Laporan sensitif baru diserahkan.\n\n` +
-      `Report ID: ${info.reportId}\n` +
-      `Lokasi: ${info.site}\n` +
-      `Kode Karyawan: ${info.empId}\n` +
-      `Tanggal: ${info.date}`;
-
-    try {
-      MailApp.sendEmail({ to: adminEmail, subject: subject, body: body });
-      Logger.log('NotificationAdapter: Sensitive report alert sent to: ' + adminEmail);
-    } catch (e) {
-      Logger.log(`NotificationAdapter Error sending sensitive alert: ${e.toString()}`);
-    }
-  },
-
-  /**
    * Sends Daily Admin Digest email.
    * @param {number} totalPending 
    * @param {number} urgentCount 

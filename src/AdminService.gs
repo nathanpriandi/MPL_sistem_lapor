@@ -128,24 +128,6 @@ const AdminService = {
             }
           });
         }
-
-        // Scan Sensitive sheet if present
-        const sensitiveSheet = targetSs.getSheetByName('Sensitive');
-        if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-          const values = sensitiveSheet.getDataRange().getValues().slice(1);
-          values.forEach(row => {
-            const reportDate = row[4] || row[1];
-            if (!isRowInCurrentWeek(reportDate)) return;
-
-            const site = row[3];
-            if (siteStatsMap[site]) {
-              siteStatsMap[site].sensitiveCount++;
-              const severity = String(row[7] || '').toLowerCase();
-              if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
-              else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
-            }
-          });
-        }
       } catch (err) {
         Logger.log(`AdminService Warning: Unable to aggregate weekly data for sheet ${f.sheetId}: ${err.toString()}`);
       }

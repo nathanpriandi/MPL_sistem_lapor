@@ -3,56 +3,56 @@
  * Digital Reporting System for Integrated Agriculture Company
  * 
  * Clean Architecture Layer: UTILITIES / TESTING SEEDER
- * Responsibility: Seeds sample realistic Indonesian agriculture daily and general reports into Spreadsheet tabs.
+ * Responsibility: Seeds sample realistic Indonesian agriculture operational reports into Spreadsheet tabs.
  */
 
 /**
- * Seeds sample realistic Indonesian agriculture daily and general reports into Spreadsheet tabs.
+ * Seeds sample realistic Indonesian agriculture operational reports into Spreadsheet tabs.
  * Useful for reviewing system behavior, triggers, and Looker Studio views without manual entry.
  */
 function seedMockData() {
   Logger.log('Seeding mock operational data...');
   const ss = SpreadsheetRepository.getSpreadsheet();
 
-  const dailySheet = ss.getSheetByName(SHEET_NAMES.DAILY_RAW);
-  const generalSheet = ss.getSheetByName(SHEET_NAMES.GENERAL_RAW);
-  const sensitiveSheet = ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
+  const forms = FormManagementService.getFormList();
+  const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+  const mainSheet = FormManagementService.resolveFormTab_(ss, opForm);
+  const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
 
   const now = new Date();
   const todayStr = formatDate(now);
+  const dateOnly = todayStr.split(' ')[0];
 
-  // 1. Seed Daily Operational Reports
-  const dailySamples = [
-    [todayStr, 'EMP-101', 'Site A — Kebun & Lahan Pertanian', todayStr, 'Completed', 1450, 'None', ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE, ReviewStatus.UNREVIEWED],
-    [todayStr, 'EMP-102', 'Site A — Kebun & Lahan Pertanian', todayStr, 'Delayed', 800, 'Weather', ReportSeverity.WARNING, SeverityRank.WARNING, ReportCategory.WEATHER_IMPACT, ReviewStatus.UNREVIEWED],
-    [todayStr, 'EMP-201', 'Site B — Peternakan & Kandang', todayStr, 'Completed', 0, 'None', ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE, ReviewStatus.UNREVIEWED],
-    [todayStr, 'EMP-202', 'Site B — Peternakan & Kandang', todayStr, 'Delayed', 0, 'Equipment', ReportSeverity.WARNING, SeverityRank.WARNING, ReportCategory.MINOR_EQUIPMENT, ReviewStatus.UNREVIEWED],
-    [todayStr, 'EMP-301', 'Site C — Pabrik Pengolahan & Pakan', todayStr, 'Completed', 3200, 'None', ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE, ReviewStatus.UNREVIEWED],
-    [todayStr, 'EMP-302', 'Site C — Pabrik Pengolahan & Pakan', todayStr, 'Delayed', 1100, 'Equipment', ReportSeverity.URGENT, SeverityRank.URGENT, ReportCategory.EQUIPMENT_BREAKDOWN, ReviewStatus.UNREVIEWED]
+  // Seed Operational Reports (26 columns schema)
+  const mockRows = [
+    [
+      Utilities.getUuid(), 'AGR-KEBUNA-20260807-01', '', todayStr, 'Budi Santoso', 
+      'Agro (Pertanian/Perkebunan)', 'Kebun A - Blok 3', 'Penanaman Bibit Sawit', 'Target 500 bibit', 
+      12.5, 500, dateOnly, '', '2026-11-15', '2026-08-07', 1500, '2026-08-07', 15000, 100, 1500000, 
+      'Pompa irigasi tersumbat', 'Pembersihan filter irigasi secara manual', '', 
+      ReportSeverity.WARNING, 'layu, terkontaminasi', ReviewStatus.UNREVIEWED
+    ],
+    [
+      Utilities.getUuid(), 'TRN-KANDB-20260807-02', '', todayStr, 'Siti Rahma', 
+      'Ternak (Peternakan)', 'Kandang Ayam B-2', 'Pemberian Pakan & Cek Kesehatan', 'Pakan 1.2 Ton', 
+      0, 2500, '', dateOnly, '2026-09-01', '', 0, '', 0, 0, 0, 
+      'Suhu kandang naik 3 derajat', 'Penambahan kipas blower cadangan', '', 
+      ReportSeverity.NORMAL, '', ReviewStatus.UNREVIEWED
+    ],
+    [
+      Utilities.getUuid(), 'IKN-KOLAMC-20260807-03', '', todayStr, 'Ahmad Hidayat', 
+      'Ikan (Perikanan)', 'Kolam Lele C-1', 'Panen Parsial & Penjualan', 'Panen 800 kg', 
+      2.0, 10000, '', dateOnly, '2026-08-07', '2026-08-07', 800, '2026-08-07', 22000, 800, 17600000, 
+      'Permintaan tengkulak tinggi', 'Koordinasi armada penjemputan', '', 
+      ReportSeverity.NORMAL, '', ReviewStatus.CLOSED
+    ]
   ];
 
-  dailySamples.forEach(row => {
-    const reportId = Utilities.getUuid();
-    dailySheet.appendRow([reportId].concat(row));
+  mockRows.forEach(row => {
+    mainSheet.appendRow(row);
+    SpreadsheetRepository.applyRowHighlighting(mainSheet, mainSheet.getLastRow(), row[23]);
   });
-  Logger.log(`Appended ${dailySamples.length} rows to Daily_Raw.`);
+  Logger.log(`Appended ${mockRows.length} rows to ${mainSheet.getName()}.`);
 
-  // 2. Seed General Reports
-  const generalSamples = [
-    [todayStr, 'EMP-103', 'Site A — Kebun & Lahan Pertanian', todayStr, 'Ditemukan indikasi awal pestisida berkurang di gudang kebun A. Pemantauan dilanjutkan.', 'Tidak', ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE, ReviewStatus.UNREVIEWED],
-    [todayStr, 'EMP-203', 'Site B — Peternakan & Kandang', todayStr, 'Ada kecelakaan kerja ringan saat pembersihan kandang 2. Korban sudah ditangani tim P3K.', 'Tidak', ReportSeverity.URGENT, SeverityRank.URGENT, ReportCategory.INCIDENT, ReviewStatus.UNREVIEWED]
-  ];
-
-  generalSamples.forEach(row => {
-    const reportId = Utilities.getUuid();
-    generalSheet.appendRow([reportId].concat(row));
-  });
-
-  // 3. Seed Sensitive Report directly to Sensitive_Restricted
-  const sensitiveReportId = Utilities.getUuid();
-  const sensitiveSample = [sensitiveReportId, todayStr, 'EMP-401', 'Site D — Logistik & Gudang', todayStr, 'Laporan audit internal biaya operasional dan efisiensi bahan bakar armada.', 'Ya / Yes (Laporan ini berisi data sensitif/privat)', ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE, ReviewStatus.UNREVIEWED_SENSITIVE];
-  sensitiveSheet.appendRow(sensitiveSample);
-
-  Logger.log(`Appended ${generalSamples.length} rows to General_Raw and 1 row to Sensitive_Restricted.`);
   Logger.log('=== MOCK DATA SEEDING COMPLETE ===');
 }

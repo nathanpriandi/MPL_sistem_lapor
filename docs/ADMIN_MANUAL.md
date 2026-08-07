@@ -8,12 +8,11 @@ Dokumen ini panduan operasional bagi **Admin Operasional** dalam mengelola siste
 
 Sistem pelaporan ini terpusat pada satu Google Spreadsheet utama: **`Sistem Pelaporan Digital Operasional`**.
 
-Spreadsheet ini memiliki 5 Tab utama:
-1. **`Daily_Raw`**: Data mentah laporan harian operasional (Auto-populated).
-2. **`General_Raw`**: Data mentah laporan umum / catatan lapangan (Auto-populated).
-3. **`Admin_Queue`**: **Tampilan Kerja Utama Admin**. Menyaring seluruh laporan dari `Daily_Raw` dan `General_Raw` yang belum selesai (`Review_Status != "Closed"`), diurutkan berdasarkan tingkat keparahan (Urgent paling atas).
-4. **`Sensitive_Restricted`**: Laporan yang ditandai sensitif oleh pelapor. **Akses terbatas khusus Admin & Manager**.
-5. **`Weekly_Summary`**: Rekapitulasi mingguan untuk dibaca oleh Looker Studio Manager Dashboard.
+Spreadsheet ini memiliki tab utama:
+1. **`Laporan_Operasional_Raw`**: Data mentah laporan operasional harian, kegiatan, panen, dan penjualan (Auto-populated).
+2. **`Admin_Queue`**: **Tampilan Kerja Utama Admin**. Menyaring seluruh laporan dari `Laporan_Operasional_Raw` yang belum selesai (`Review_Status != "Closed"`), diurutkan berdasarkan tingkat keparahan (Urgent paling atas).
+3. **`Sensitive_Restricted`**: Laporan yang ditandai sensitif oleh pelapor. **Akses terbatas khusus Admin & Manager**.
+4. **`Weekly_Summary`**: Rekapitulasi mingguan untuk dibaca oleh Manager Dashboard.
 
 ---
 

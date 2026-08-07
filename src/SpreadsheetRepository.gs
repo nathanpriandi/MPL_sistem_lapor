@@ -11,6 +11,50 @@
 const SpreadsheetRepository = {
 
   /**
+   * Sets up header rows and formatting for all sheets during system setup.
+   * @param {Sheet} mainSheet 
+   * @param {Sheet} adminQueueSheet 
+   * @param {Sheet} summarySheet 
+   */
+  setupSheetHeaders: function(mainSheet, adminQueueSheet, summarySheet) {
+    // 1. Operational Raw Sheet (26 columns schema)
+    if (mainSheet) {
+      const opHeaders = [
+        'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+        'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Target_Kegiatan', 'Luas_Area_Ha', 'Jumlah_Populasi', 
+        'Tgl_Tanam', 'Tgl_CheckIn_Tebar', 'Tgl_Perkiraan_Panen', 'Tgl_Panen', 'Jumlah_Panen', 
+        'Tgl_Penjualan', 'Harga_Jual', 'Jumlah_Penjualan_Unit', 'Nilai_Penjualan_Rp', 'Kendala', 
+        'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+      ];
+      mainSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+      mainSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
+      mainSheet.setFrozenRows(1);
+    }
+
+    // 2. Admin Queue Sheet
+    if (adminQueueSheet) {
+      const queueHeaders = [
+        'Sumber', 'Kode_Kegiatan', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+        'Lokasi_Kegiatan', 'Ringkasan', 'Tingkat_Keparahan', 'Kategori', 'Status_Peninjauan', 'Foto_URL'
+      ];
+      adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]);
+      adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
+      adminQueueSheet.setFrozenRows(1);
+    }
+
+    // 3. Weekly Summary Sheet
+    if (summarySheet) {
+      const summaryHeaders = [
+        'Week_Label', 'Site_Location', 'Daily_Reports_Count', 'General_Reports_Count', 
+        'Total_Yield_Kg', 'Urgent_Incidents_Count', 'Warning_Reports_Count', 'Last_Updated'
+      ];
+      summarySheet.getRange(1, 1, 1, summaryHeaders.length).setValues([summaryHeaders]);
+      summarySheet.getRange(1, 1, 1, summaryHeaders.length).setFontWeight('bold').setBackground('#e2e8f0');
+      summarySheet.setFrozenRows(1);
+    }
+  },
+
+  /**
    * Returns central Integrated Spreadsheet instance.
    * @returns {Spreadsheet}
    */
@@ -152,30 +196,44 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Saves a new Daily Operational Report into integrated spreadsheet.
+   * Saves a new Operational Report into integrated spreadsheet.
    * @param {Object} report 
    * @param {Object} flag 
-   * @returns {{ reportId: string, row: number }}
+   * @returns {{ reportId: string, row: number, kodeKegiatan: string }}
    */
-  saveDailyReport: function(report, flag) {
+  saveOperationalReport: function(report, flag) {
     const ss = this.getSpreadsheet();
     const forms = FormManagementService.getFormList();
-    const dForm = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily) || { title: 'Laporan Operasional Harian' };
-    const sheet = FormManagementService.resolveFormTab_(ss, dForm);
+    const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+    const sheet = FormManagementService.resolveFormTab_(ss, opForm);
 
-    const reportId = this.generateUUID();
+    const reportId = report.reportId || this.generateUUID();
     const rowData = [
       reportId,
-      formatDate(new Date()),
-      report.empId,
-      report.site,
-      report.date,
-      report.taskStatus,
-      report.yieldKg,
-      report.issues,
-      report.photoUrl || '',
-      flag.severity,
-      flag.keywords.join(', '),
+      report.kodeKegiatan || '',
+      report.kodeKegiatanRef || '',
+      report.timestamp || formatDate(new Date()),
+      report.namaPic || '',
+      report.bidangDivisi || '',
+      report.lokasiKegiatan || '',
+      report.jenisKegiatan || '',
+      report.targetKegiatan || '',
+      report.luasAreaHa || '',
+      report.jumlahPopulasi || '',
+      report.tglTanam || '',
+      report.tglCheckInTebar || '',
+      report.tglPerkiraanPanen || '',
+      report.tglPanen || '',
+      report.jumlahPanen || '',
+      report.tglPenjualan || '',
+      report.hargaJual || '',
+      report.jumlahPenjualanUnit || '',
+      report.nilaiPenjualanRp || '',
+      report.kendala || '',
+      report.upaya || '',
+      report.fotoUrl || '',
+      flag.severity || ReportSeverity.NORMAL,
+      (flag.keywords || []).join(', '),
       ReviewStatus.UNREVIEWED
     ];
 
@@ -183,75 +241,7 @@ const SpreadsheetRepository = {
     const newRowIndex = sheet.getLastRow();
     this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
 
-    return { reportId: reportId, row: newRowIndex };
-  },
-
-  /**
-   * Saves a new General Report into integrated spreadsheet.
-   * @param {Object} report 
-   * @param {Object} flag 
-   * @returns {{ reportId: string, row: number }}
-   */
-  saveGeneralReport: function(report, flag) {
-    const ss = this.getSpreadsheet();
-    const forms = FormManagementService.getFormList();
-    const gForm = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral) || { title: 'Laporan Umum & Catatan Lapangan' };
-
-    const reportId = this.generateUUID();
-
-    if (report.isSensitive) {
-      let sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-      if (!sensitiveSheet) {
-        sensitiveSheet = ss.insertSheet('Sensitive');
-        sensitiveSheet.getRange('A1:K1').setValues([[
-          'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-          'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
-        ]]);
-        sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
-        sensitiveSheet.setFrozenRows(1);
-      }
-
-      const rowData = [
-        reportId,
-        formatDate(new Date()),
-        report.empId,
-        report.site,
-        report.date,
-        report.details,
-        'YES',
-        report.photoUrl || '',
-        flag.severity,
-        flag.keywords.join(', '),
-        ReviewStatus.UNREVIEWED_SENSITIVE
-      ];
-
-      sensitiveSheet.appendRow(rowData);
-      const newRowIndex = sensitiveSheet.getLastRow();
-      this.applyRowHighlighting(sensitiveSheet, newRowIndex, flag.severity);
-      return { reportId: reportId, row: newRowIndex };
-    }
-
-    const sheet = FormManagementService.resolveFormTab_(ss, gForm);
-    const rowData = [
-      reportId,
-      formatDate(new Date()),
-      report.empId,
-      report.site,
-      report.date,
-      report.details,
-      'NO',
-      'None',
-      report.photoUrl || '',
-      flag.severity,
-      flag.keywords.join(', '),
-      ReviewStatus.UNREVIEWED
-    ];
-
-    sheet.appendRow(rowData);
-    const newRowIndex = sheet.getLastRow();
-    this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
-
-    return { reportId: reportId, row: newRowIndex };
+    return { reportId: reportId, row: newRowIndex, kodeKegiatan: report.kodeKegiatan };
   },
 
   /**
@@ -274,24 +264,44 @@ const SpreadsheetRepository = {
         if (rawSheet && rawSheet.getLastRow() > 1) {
           const rawValues = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
           rawValues.forEach(row => {
-            if (row[0] || row[1]) {
-              const photoVal = String(row[8] || '');
-              const severityVal = String(row[9] || row[8] || ReportSeverity.NORMAL).toLowerCase();
+            if (row[0] || row[1] || row[3]) {
+              const is26Col = row.length >= 24 || String(row[1] || '').includes('AGR-') || String(row[1] || '').includes('TRN-') || String(row[1] || '').includes('IKN-');
+              
+              let reportId = String(row[0] || '');
+              let kodeKegiatan = is26Col ? String(row[1] || '-') : '-';
+              let timestamp = formatDate(row[is26Col ? 3 : 1] || new Date());
+              let namaPic = String(row[is26Col ? 4 : 2] || '-');
+              let divisi = String(row[is26Col ? 5 : 3] || '-');
+              let lokasi = String(row[is26Col ? 6 : 3] || '-');
+              let jenis = is26Col ? String(row[7] || '') : String(row[5] || '');
+              let jumlahPanen = is26Col ? parseFloat(row[15]) || 0 : 0;
+              let nilaiPenjualan = is26Col ? parseFloat(row[19]) || 0 : 0;
+              
+              let ringkasan = jenis;
+              if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen}`;
+              if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
+              if (!ringkasan) ringkasan = String(row[5] || 'Laporan Operasional');
+
+              let photoVal = String(row[is26Col ? 22 : 8] || '');
+              let severityVal = String(row[is26Col ? 23 : 9] || ReportSeverity.NORMAL).toLowerCase();
+              let keywordsVal = String(row[is26Col ? 24 : 10] || '');
+              let reviewStatusVal = String(row[is26Col ? 25 : 11] || ReviewStatus.UNREVIEWED);
+
               mergedQueue.push(QueueItem({
-                source: f.title || 'Form Laporan',
-                reportId: String(row[0] || ''),
-                timestamp: formatDate(row[1] || new Date()),
-                empId: String(row[2] || ''),
-                site: String(row[3] || ''),
-                date: formatDate(row[4] || new Date()),
-                detail: String(row[5] || '-'),
-                yieldOrSensitive: String(row[6] || '-'),
-                issues: String(row[7] || '-'),
+                source: is26Col ? 'Operasional' : (f.title || 'Form Laporan'),
+                reportId: reportId,
+                kodeKegiatan: kodeKegiatan,
+                timestamp: timestamp,
+                namaPic: namaPic,
+                divisi: divisi,
+                lokasi: lokasi,
+                ringkasan: ringkasan,
                 photoUrl: photoVal.startsWith('http') ? photoVal : '',
                 severity: severityVal,
                 rank: (severityVal === ReportSeverity.URGENT) ? 1 : ((severityVal === ReportSeverity.WARNING) ? 2 : 3),
-                category: String(row[10] || 'ROUTINE'),
-                reviewStatus: String(row[11] || row[10] || ReviewStatus.UNREVIEWED)
+                category: keywordsVal || 'ROUTINE',
+                reviewStatus: reviewStatusVal,
+                raw: row
               }));
             }
           });
@@ -300,36 +310,6 @@ const SpreadsheetRepository = {
         Logger.log(`SpreadsheetRepository Notice: Could not read sheet tab for form ${f.id}: ${err.toString()}`);
       }
     });
-
-    // Process single shared Sensitive sheet
-    try {
-      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-      if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-        const sensitiveValues = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
-        sensitiveValues.forEach(row => {
-          if (row[0] || row[1]) {
-            const photoVal = String(row[7] || '');
-            const severityVal = String(row[8] || ReportSeverity.WARNING).toLowerCase();
-            mergedQueue.push(QueueItem({
-              source: `Laporan Sensitif / Insiden`,
-              reportId: String(row[0] || ''),
-              timestamp: formatDate(row[1] || new Date()),
-              empId: String(row[2] || ''),
-              site: String(row[3] || ''),
-              date: formatDate(row[4] || new Date()),
-              detail: String(row[5] || '-'),
-              yieldOrSensitive: String(row[6] || 'YES'),
-              issues: 'Informasi Sensitif',
-              photoUrl: photoVal.startsWith('http') ? photoVal : '',
-              severity: severityVal,
-              rank: 2,
-              category: String(row[9] || 'RESTRICTED'),
-              reviewStatus: String(row[10] || ReviewStatus.UNREVIEWED_SENSITIVE)
-            }));
-          }
-        });
-      }
-    } catch (e) {}
 
     // Sort queue items by timestamp descending
     mergedQueue.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
@@ -391,17 +371,19 @@ const SpreadsheetRepository = {
     const forms = FormManagementService.getFormList();
 
     let totalReports = 0;
-    let totalYieldKg = 0;
+    let totalActiveKegiatan = 0;
+    let totalPanenVolume = 0;
+    let totalNilaiPenjualanRp = 0;
     let urgentCount = 0;
+    let warningCount = 0;
+    let normalCount = 0;
     let sensitiveCount = 0;
 
-    const siteBreakdown = {
-      'Site A — Kebun & Lahan Pertanian': 0,
-      'Site B — Peternakan & Kandang': 0,
-      'Site C — Pabrik Pengolahan & Pakan': 0,
-      'Site D — Logistik & Gudang': 0
+    const divisiBreakdown = {
+      'Agro (Pertanian/Perkebunan)': 0,
+      'Ternak (Peternakan)': 0,
+      'Ikan (Perikanan)': 0
     };
-    const yieldBreakdown = { normal: 0, warning: 0, urgent: 0 };
     const severityDist = { normal: 0, warning: 0, urgent: 0 };
 
     forms.forEach(f => {
@@ -410,25 +392,36 @@ const SpreadsheetRepository = {
         if (rawSheet && rawSheet.getLastRow() > 1) {
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
           values.forEach(row => {
-            if (row[0] || row[1]) {
+            if (row[0] || row[1] || row[3]) {
               totalReports++;
-              const site = String(row[3] || '');
-              if (siteBreakdown.hasOwnProperty(site)) siteBreakdown[site]++;
+              const is26Col = row.length >= 24 || String(row[1] || '').includes('AGR-') || String(row[1] || '').includes('TRN-') || String(row[1] || '').includes('IKN-');
 
-              const yieldVal = parseFloat(row[6]) || 0;
-              totalYieldKg += yieldVal;
+              const divisi = String(row[is26Col ? 5 : 3] || '');
+              if (divisi.includes('Agro') || divisi.includes('Pertanian')) divisiBreakdown['Agro (Pertanian/Perkebunan)']++;
+              else if (divisi.includes('Ternak') || divisi.includes('Peternakan')) divisiBreakdown['Ternak (Peternakan)']++;
+              else if (divisi.includes('Ikan') || divisi.includes('Perikanan')) divisiBreakdown['Ikan (Perikanan)']++;
+              else if (divisiBreakdown.hasOwnProperty(divisi)) divisiBreakdown[divisi]++;
 
-              const severity = String(row[9] || row[8] || 'normal').toLowerCase();
+              const jumlahPanen = is26Col ? (parseFloat(row[15]) || 0) : (parseFloat(row[6]) || 0);
+              const nilaiPenjualan = is26Col ? (parseFloat(row[19]) || 0) : 0;
+              
+              totalPanenVolume += jumlahPanen;
+              totalNilaiPenjualanRp += nilaiPenjualan;
+
+              if (jumlahPanen === 0 && (!row[14] || row[14] === '')) {
+                totalActiveKegiatan++;
+              }
+
+              const severity = String(row[is26Col ? 23 : 9] || 'normal').toLowerCase();
               if (severity === ReportSeverity.URGENT) {
                 urgentCount++;
                 severityDist.urgent++;
-                yieldBreakdown.urgent += yieldVal;
               } else if (severity === ReportSeverity.WARNING) {
+                warningCount++;
                 severityDist.warning++;
-                yieldBreakdown.warning += yieldVal;
               } else {
+                normalCount++;
                 severityDist.normal++;
-                yieldBreakdown.normal += yieldVal;
               }
             }
           });
@@ -436,46 +429,15 @@ const SpreadsheetRepository = {
       } catch (err) {}
     });
 
-    // Process single shared Sensitive sheet
-    try {
-      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-      if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-        const values = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
-        values.forEach(row => {
-          if (row[0] || row[1]) {
-            totalReports++;
-            sensitiveCount++;
-            const site = String(row[3] || '');
-            if (siteBreakdown.hasOwnProperty(site)) siteBreakdown[site]++;
-
-            const severity = String(row[8] || row[7] || 'warning').toLowerCase();
-            if (severity === ReportSeverity.URGENT) {
-              urgentCount++;
-              severityDist.urgent++;
-            } else {
-              severityDist.warning++;
-            }
-          }
-        });
-      }
-    } catch (err) {}
-
     return {
       totalReports: totalReports,
-      totalYieldKg: Math.round(totalYieldKg * 100) / 100,
-      totalYield: Math.round(totalYieldKg * 100) / 100,
+      totalActiveKegiatan: totalActiveKegiatan,
+      totalPanenVolume: Math.round(totalPanenVolume * 100) / 100,
+      totalNilaiPenjualanRp: totalNilaiPenjualanRp,
       urgentCount: urgentCount,
-      sensitiveCount: sensitiveCount,
-      normalCount: severityDist.normal,
-      warningCount: severityDist.warning,
-      siteBreakdown: siteBreakdown,
-      siteCounts: [
-        siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
-        siteBreakdown['Site B — Peternakan & Kandang'] || 0,
-        siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
-        siteBreakdown['Site D — Logistik & Gudang'] || 0
-      ],
-      yieldBreakdown: yieldBreakdown,
+      warningCount: warningCount,
+      normalCount: normalCount,
+      divisiBreakdown: divisiBreakdown,
       severityDist: severityDist
     };
   },

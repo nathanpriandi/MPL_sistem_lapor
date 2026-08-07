@@ -8,21 +8,34 @@
  */
 
 /**
- * Submits a new Daily Operational Report from Web App.
- * @param {Object} payload - { empId, site, date, taskStatus, yieldKg, issues }
- * @returns {{ success: boolean, reportId: string }}
+ * Submits a new Operational Report (Kegiatan, Panen & Penjualan) from Web App.
+ * @param {Object} payload 
+ * @returns {{ success: boolean, reportId: string, kodeKegiatan: string }}
  */
-function submitDailyReport(payload) {
-  return ReportService.submitDailyReport(payload);
+function submitOperationalReport(payload) {
+  return ReportService.submitOperationalReport(payload);
 }
 
 /**
- * Submits a new General Narrative & Incident Report from Web App.
- * @param {Object} payload - { empId, site, date, details, isSensitive }
- * @returns {{ success: boolean, reportId: string, isSensitive: boolean }}
+ * Returns recent activity codes (Kode Kegiatan) for reference autocomplete.
+ * @returns {Array<string>}
+ */
+function getRecentActivityCodes() {
+  return ReportService.getRecentActivityCodes();
+}
+
+/**
+ * Backward compatibility alias for submitDailyReport.
+ */
+function submitDailyReport(payload) {
+  return submitOperationalReport(payload);
+}
+
+/**
+ * Backward compatibility alias for submitGeneralReport.
  */
 function submitGeneralReport(payload) {
-  return ReportService.submitGeneralReport(payload);
+  return submitOperationalReport(payload);
 }
 
 /**
@@ -92,7 +105,7 @@ function getDashboardStats() {
 
 /**
  * Returns direct quick links for Admin/Manager workspace resources.
- * @returns {{ spreadsheetUrl: string, dailyFormEditUrl: string, generalFormEditUrl: string, publicWebAppUrl: string }}
+ * @returns {{ publicWebAppUrl: string }}
  */
 function getAdminQuickLinks() {
   return AdminService.getAdminQuickLinks();
