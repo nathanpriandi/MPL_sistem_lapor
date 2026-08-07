@@ -245,9 +245,45 @@ const SpreadsheetRepository = {
   },
 
   /**
+   * Builds a map of column header name to 0-based column index from row 1 of a sheet.
+   * @param {Sheet} sheet 
+   * @returns {Object.<string, number>}
+   */
+  getHeaderMap_: function(sheet) {
+    if (!sheet || sheet.getLastColumn() === 0) return {};
+    try {
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const map = {};
+      headers.forEach((h, idx) => {
+        if (h) {
+          map[String(h).trim()] = idx;
+        }
+      });
+      return map;
+    } catch (e) {
+      return {};
+    }
+  },
+
+  /**
+   * Safely gets cell value from row array using header map, with positional fallback.
+   * @param {Array} row 
+   * @param {Object.<string, number>} headerMap 
+   * @param {string} headerName 
+   * @param {number} [fallbackIndex] 
+   * @returns {*}
+   */
+  getCellValue_: function(row, headerMap, headerName, fallbackIndex) {
+    if (headerMap && headerMap.hasOwnProperty(headerName)) {
+      const idx = headerMap[headerName];
+      return (idx !== undefined && idx < row.length) ? row[idx] : '';
+    }
+    return (fallbackIndex !== undefined && fallbackIndex < row.length) ? row[fallbackIndex] : '';
+  },
+
+  /**
    * Fetches unified Admin Triage Queue across all form tabs inside the single integrated spreadsheet.
-   * Merges, ranks, and sorts report items chronologically.
-   * Single file open performance optimization.
+   * Reads fields dynamically by header name.
    * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
@@ -262,33 +298,34 @@ const SpreadsheetRepository = {
       try {
         const rawSheet = FormManagementService.resolveFormTab_(ss, f);
         if (rawSheet && rawSheet.getLastRow() > 1) {
+          const headerMap = this.getHeaderMap_(rawSheet);
           const rawValues = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
-          rawValues.forEach(row => {
-            if (row[0] || row[1] || row[3]) {
-              const is26Col = row.length >= 24 || String(row[1] || '').includes('AGR-') || String(row[1] || '').includes('TRN-') || String(row[1] || '').includes('IKN-');
-              
-              let reportId = String(row[0] || '');
-              let kodeKegiatan = is26Col ? String(row[1] || '-') : '-';
-              let timestamp = formatDate(row[is26Col ? 3 : 1] || new Date());
-              let namaPic = String(row[is26Col ? 4 : 2] || '-');
-              let divisi = String(row[is26Col ? 5 : 3] || '-');
-              let lokasi = String(row[is26Col ? 6 : 3] || '-');
-              let jenis = is26Col ? String(row[7] || '') : String(row[5] || '');
-              let jumlahPanen = is26Col ? parseFloat(row[15]) || 0 : 0;
-              let nilaiPenjualan = is26Col ? parseFloat(row[19]) || 0 : 0;
-              
-              let ringkasan = jenis;
-              if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen}`;
-              if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
-              if (!ringkasan) ringkasan = String(row[5] || 'Laporan Operasional');
 
-              let photoVal = String(row[is26Col ? 22 : 8] || '');
-              let severityVal = String(row[is26Col ? 23 : 9] || ReportSeverity.NORMAL).toLowerCase();
-              let keywordsVal = String(row[is26Col ? 24 : 10] || '');
-              let reviewStatusVal = String(row[is26Col ? 25 : 11] || ReviewStatus.UNREVIEWED);
+          rawValues.forEach(row => {
+            let reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '');
+            let kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '-');
+            let timestamp = formatDate(this.getCellValue_(row, headerMap, 'Timestamp', 3) || new Date());
+            let namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '-');
+            let divisi = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '-');
+            let lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '-');
+            let jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '');
+            let tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 14);
+            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
+            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
+
+            if (reportId || kodeKegiatan !== '-' || namaPic !== '-') {
+              let ringkasan = jenis;
+              if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen} Kg`;
+              if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
+              if (!ringkasan) ringkasan = 'Laporan Operasional';
+
+              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 22) || '');
+              let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 23) || ReportSeverity.NORMAL).toLowerCase();
+              let keywordsVal = String(this.getCellValue_(row, headerMap, 'Flagged_Keywords', 24) || '');
+              let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 25) || ReviewStatus.UNREVIEWED);
 
               mergedQueue.push(QueueItem({
-                source: is26Col ? 'Operasional' : (f.title || 'Form Laporan'),
+                source: 'Operasional',
                 reportId: reportId,
                 kodeKegiatan: kodeKegiatan,
                 timestamp: timestamp,
@@ -298,8 +335,8 @@ const SpreadsheetRepository = {
                 ringkasan: ringkasan,
                 photoUrl: photoVal.startsWith('http') ? photoVal : '',
                 severity: severityVal,
-                rank: (severityVal === ReportSeverity.URGENT) ? 1 : ((severityVal === ReportSeverity.WARNING) ? 2 : 3),
-                category: keywordsVal || 'ROUTINE',
+                rank: severityVal === ReportSeverity.URGENT ? 1 : (severityVal === ReportSeverity.WARNING ? 2 : 3),
+                category: keywordsVal ? keywordsVal : 'ROUTINE',
                 reviewStatus: reviewStatusVal,
                 raw: row
               }));
@@ -311,21 +348,21 @@ const SpreadsheetRepository = {
       }
     });
 
-    // Sort queue items by timestamp descending
     mergedQueue.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     return mergedQueue;
   },
 
   /**
    * Updates Review_Status of a report by matching Report_ID across all tabs of integrated spreadsheet.
-   * Single file open performance optimization.
    * @param {string} reportId 
    * @param {string} newStatus 
    * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string, error?: string }}
    */
   updateReviewStatus: function(reportId, newStatus) {
     const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return { success: false, error: 'Spreadsheet ID belum dikonfigurasi.' };
+    if (!mainSsId) {
+      throw new Error('Spreadsheet ID belum dikonfigurasi.');
+    }
 
     try {
       const ss = SpreadsheetApp.openById(mainSsId);
@@ -360,7 +397,7 @@ const SpreadsheetRepository = {
 
   /**
    * Calculates dashboard summary statistics across all form tabs inside integrated spreadsheet.
-   * Single file open performance optimization.
+   * Reads fields dynamically by header name.
    * @returns {Object} Dashboard stats payload.
    */
   getDashboardStatsData: function() {
@@ -377,7 +414,6 @@ const SpreadsheetRepository = {
     let urgentCount = 0;
     let warningCount = 0;
     let normalCount = 0;
-    let sensitiveCount = 0;
 
     const divisiBreakdown = {
       'Agro (Pertanian/Perkebunan)': 0,
@@ -390,29 +426,35 @@ const SpreadsheetRepository = {
       try {
         const rawSheet = FormManagementService.resolveFormTab_(ss, f);
         if (rawSheet && rawSheet.getLastRow() > 1) {
+          const headerMap = this.getHeaderMap_(rawSheet);
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
-          values.forEach(row => {
-            if (row[0] || row[1] || row[3]) {
-              totalReports++;
-              const is26Col = row.length >= 24 || String(row[1] || '').includes('AGR-') || String(row[1] || '').includes('TRN-') || String(row[1] || '').includes('IKN-');
 
-              const divisi = String(row[is26Col ? 5 : 3] || '');
+          values.forEach(row => {
+            const reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '');
+            const kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '');
+            const namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '');
+
+            if (reportId || kodeKegiatan || namaPic) {
+              totalReports++;
+              const divisi = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '');
+
               if (divisi.includes('Agro') || divisi.includes('Pertanian')) divisiBreakdown['Agro (Pertanian/Perkebunan)']++;
               else if (divisi.includes('Ternak') || divisi.includes('Peternakan')) divisiBreakdown['Ternak (Peternakan)']++;
               else if (divisi.includes('Ikan') || divisi.includes('Perikanan')) divisiBreakdown['Ikan (Perikanan)']++;
               else if (divisiBreakdown.hasOwnProperty(divisi)) divisiBreakdown[divisi]++;
 
-              const jumlahPanen = is26Col ? (parseFloat(row[15]) || 0) : (parseFloat(row[6]) || 0);
-              const nilaiPenjualan = is26Col ? (parseFloat(row[19]) || 0) : 0;
+              const tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 14);
+              const jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
+              const nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
               
               totalPanenVolume += jumlahPanen;
               totalNilaiPenjualanRp += nilaiPenjualan;
 
-              if (jumlahPanen === 0 && (!row[14] || row[14] === '')) {
+              if (jumlahPanen === 0 && (!tglPanen || String(tglPanen).trim() === '')) {
                 totalActiveKegiatan++;
               }
 
-              const severity = String(row[is26Col ? 23 : 9] || 'normal').toLowerCase();
+              const severity = String(this.getCellValue_(row, headerMap, 'Severity', 23) || 'normal').toLowerCase();
               if (severity === ReportSeverity.URGENT) {
                 urgentCount++;
                 severityDist.urgent++;
@@ -426,7 +468,9 @@ const SpreadsheetRepository = {
             }
           });
         }
-      } catch (err) {}
+      } catch (err) {
+        Logger.log(`SpreadsheetRepository Error in getDashboardStatsData for form ${f.id}: ${err.toString()}`);
+      }
     });
 
     return {

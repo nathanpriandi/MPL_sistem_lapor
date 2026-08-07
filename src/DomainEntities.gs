@@ -126,7 +126,6 @@ function WeeklyStat(divisiName) {
     totalPanen: 0,
     totalPenjualanRp: 0,
     urgentCount: 0,
-    warningCount: 0,
-    sensitiveCount: 0
+    warningCount: 0
   };
 }

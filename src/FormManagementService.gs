@@ -440,8 +440,7 @@ const FormManagementService = {
       }
 
       try {
-        const handlerName = (formType === 'harian') ? 'onDailyFormSubmit' : 'onGeneralFormSubmit';
-        ScriptApp.newTrigger(handlerName)
+        ScriptApp.newTrigger('onFormSubmit')
           .forForm(FormApp.openById(newFormId))
           .onFormSubmit()
           .create();

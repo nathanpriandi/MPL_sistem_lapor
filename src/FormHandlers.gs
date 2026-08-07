@@ -28,6 +28,7 @@ function onFormSubmit(e) {
 
 /**
  * Backward compatibility alias for onDailyFormSubmit.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy triggers.
  */
 function onDailyFormSubmit(e) {
   onFormSubmit(e);
@@ -35,6 +36,7 @@ function onDailyFormSubmit(e) {
 
 /**
  * Backward compatibility alias for onGeneralFormSubmit.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy triggers.
  */
 function onGeneralFormSubmit(e) {
   onFormSubmit(e);

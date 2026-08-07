@@ -26,6 +26,7 @@ function getRecentActivityCodes() {
 
 /**
  * Backward compatibility alias for submitDailyReport.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
  */
 function submitDailyReport(payload) {
   return submitOperationalReport(payload);
@@ -33,6 +34,7 @@ function submitDailyReport(payload) {
 
 /**
  * Backward compatibility alias for submitGeneralReport.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
  */
 function submitGeneralReport(payload) {
   return submitOperationalReport(payload);

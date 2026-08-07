@@ -14,10 +14,12 @@
  * @returns {HtmlOutput} Evaluated HTML response.
  */
 function doGet(e) {
-  const pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : '').toLowerCase().trim();
+  let pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : '').toLowerCase().trim();
+  if (pageParam === 'general' || pageParam === 'harian') {
+    pageParam = 'index';
+  }
   const allowed = { 
     index: 'index', 
-    general: 'general', 
     dynamicform: 'dynamicform',
     admin: 'admin', 
     dashboard: 'dashboard',
