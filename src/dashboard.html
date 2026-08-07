@@ -63,8 +63,23 @@
           </div>
         </div>
 
-        <!-- Key Metrics Cards (Headline + Breakdown Pattern) -->
+        <!-- Key Metrics Cards (Ordered by Decision Priority) -->
         <div class="metrics-grid">
+          <!-- 1. Urgent Incidents (Action Priority Rank 1) -->
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Antrean Admin ke Insiden Mendesak">
+            <span class="metric-label">Insiden Mendesak Flagged</span>
+            <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
+            <span class="metric-trend metric-trend-down" id="trendUrgent">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Perlu Penanganan</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownUrgent">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Prioritas Triage</span><span class="kpi-breakdown-val">Rank 1</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Ter-Rute Otomatis</span><span class="kpi-breakdown-val" id="bUrgentRouted">0</span></div>
+            </div>
+          </div>
+
+          <!-- 2. Total Pending Queue -->
           <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk membuka Antrean Admin (Semua Pending)">
             <span class="metric-label">Total Laporan Masuk</span>
             <span class="metric-value" id="kpiTotalReports">0</span>
@@ -80,6 +95,21 @@
             </div>
           </div>
 
+          <!-- 3. Sensitive Restricted Reports -->
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Antrean Admin ke Laporan Sensitif">
+            <span class="metric-label">Laporan Sensitif Restriksi</span>
+            <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendSensitive">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Tab Terisolasi</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownSensitive">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Sheet Terpisah</span><span class="kpi-breakdown-val">Restricted</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Hak Akses</span><span class="kpi-breakdown-val" id="bSensitiveRole">Manager</span></div>
+            </div>
+          </div>
+
+          <!-- 4. Total Production Yield -->
           <div class="metric-card">
             <span class="metric-label">Total Hasil Panen (Kg)</span>
             <span class="metric-value" id="kpiTotalYield">0</span>
@@ -91,32 +121,6 @@
               <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Rutin</span><span class="kpi-breakdown-val" id="bYieldNormal">0</span></div>
               <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Peringatan</span><span class="kpi-breakdown-val" id="bYieldWarning">0</span></div>
               <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Mendesak</span><span class="kpi-breakdown-val" id="bYieldUrgent">0</span></div>
-            </div>
-          </div>
-
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Antrean Admin ke Insiden Mendesak">
-            <span class="metric-label">Insiden Mendesak Flagged</span>
-            <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
-            <span class="metric-trend metric-trend-down" id="trendUrgent">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Perlu Penanganan</span>
-            </span>
-            <div class="kpi-breakdown-list" id="breakdownUrgent">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Prioritas Triage</span><span class="kpi-breakdown-val">Rank 1</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Ter-Rute Otomatis</span><span class="kpi-breakdown-val" id="bUrgentRouted">0</span></div>
-            </div>
-          </div>
-
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Antrean Admin ke Laporan Sensitif">
-            <span class="metric-label">Laporan Sensitif Restriksi</span>
-            <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendSensitive">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span>Tab Terisolasi</span>
-            </span>
-            <div class="kpi-breakdown-list" id="breakdownSensitive">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Sheet Terpisah</span><span class="kpi-breakdown-val">Restricted</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Hak Akses</span><span class="kpi-breakdown-val" id="bSensitiveRole">Manager</span></div>
             </div>
           </div>
         </div>

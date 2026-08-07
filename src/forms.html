@@ -350,23 +350,13 @@
       var html = '';
       registeredForms.forEach(function(f) {
         var isActive = (f.status || 'aktif').toLowerCase() === 'aktif';
-        var formType = (f.type || 'kustom').toLowerCase();
-        var badgeClass = 'badge-kustom';
-        var typeText = 'KUSTOM';
-        if (formType === 'harian') {
-          badgeClass = 'badge-harian';
-          typeText = 'HARIAN';
-        } else if (formType === 'umum') {
-          badgeClass = 'badge-umum';
-          typeText = 'UMUM';
-        }
-
         var targetSheetUrl = f.sheetUrl || (f.sheetId ? 'https://docs.google.com/spreadsheets/d/' + f.sheetId + '/edit' : '');
+        
         var sheetBtnHtml = '';
         if (targetSheetUrl) {
-          sheetBtnHtml = '<a href="' + targetSheetUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Buka Spreadsheet Data Dedicated"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Buka Sheet Data</span></a>';
+          sheetBtnHtml = '<a href="' + targetSheetUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Buka Spreadsheet Data"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Buka Sheet Data</span></a>';
         } else {
-          sheetBtnHtml = '<button class="btn btn-secondary table-btn-sm" onclick="openFormSheetData(\'' + f.id + '\')" title="Buka Spreadsheet Data Dedicated"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Buka Sheet Data</span></button>';
+          sheetBtnHtml = '<button class="btn btn-secondary table-btn-sm" onclick="openFormSheetData(\'' + f.id + '\')" title="Buka Spreadsheet Data"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Buka Sheet Data</span></button>';
         }
 
         var editorBtnHtml = '';
@@ -379,17 +369,22 @@
           previewBtnHtml = '<a href="' + f.publicUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Pratinjau Form Publik"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg><span>Pratinjau</span></a>';
         }
 
+        var isDefault = f.isDefault || f.isDefaultDaily || f.isDefaultGeneral || f.id === 'DEFAULT_DAILY_FORM' || f.id === 'DEFAULT_GENERAL_FORM';
         var safeTitle = escapeHtml(f.title || 'Form Tanpa Judul').replace(/'/g, "\\'");
-        var deleteBtnHtml = '<button class="btn btn-ghost-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        var deleteBtnHtml = isDefault ? '' :
+          '<button class="btn btn-ghost-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
 
-        html += '<div class="card card-no-margin" style="border-left: 4px solid ' + (isActive ? 'var(--primary)' : 'var(--border-strong)') + '; padding: 1.25rem;">' +
-          '<div class="flex-between-wrap" style="margin-bottom: 0.75rem;">' +
-            '<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">' +
-              '<h3 class="card-title-sm" style="margin: 0;">' + escapeHtml(f.title || 'Form Tanpa Judul') + '</h3>' +
-              '<span class="badge ' + badgeClass + '">' + typeText + '</span>' +
-              '<span class="badge ' + (isActive ? 'badge-primary' : 'badge-normal') + '">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
+        html += '<div class="card card-no-margin" style="border-left: 4px solid ' + (isActive ? 'var(--primary)' : 'var(--border-strong)') + '; padding: 1.25rem 1.5rem;">' +
+          '<div class="flex-between-wrap" style="align-items: center; gap: 1rem;">' +
+            '<div style="flex: 1; min-width: 260px;">' +
+              '<div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; flex-wrap: wrap;">' +
+                '<h3 class="card-title-sm" style="margin: 0; font-size: 1.1rem; font-weight: 700;">' + escapeHtml(f.title || 'Form Tanpa Judul') + '</h3>' +
+                '<span class="badge ' + (isActive ? 'badge-primary' : 'badge-normal') + '">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
+                '<span class="badge badge-neutral" style="font-size: 0.75rem; font-weight: 600;">' + (f.responseCount || 0) + ' Respons</span>' +
+              '</div>' +
+              '<p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0; line-height: 1.4;">' + escapeHtml(f.description || 'Tidak ada deskripsi.') + '</p>' +
             '</div>' +
-            '<div class="button-group-flex" style="align-items: center;">' +
+            '<div class="button-group-flex" style="align-items: center; gap: 0.5rem;">' +
               previewBtnHtml +
               sheetBtnHtml +
               '<button class="btn btn-secondary table-btn-sm" onclick="openEditFormModal(\'' + f.id + '\')" title="Edit Tampilan Form">' +
@@ -399,12 +394,6 @@
               editorBtnHtml +
               deleteBtnHtml +
             '</div>' +
-          '</div>' +
-          '<p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">' + escapeHtml(f.description || 'Tidak ada deskripsi.') + '</p>' +
-          '<div style="display: flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap;">' +
-            '<span><strong>Form ID:</strong> <code>' + f.id + '</code></span>' +
-            '<span><strong>Total Respons:</strong> ' + (f.responseCount || 0) + ' entri</span>' +
-            (f.sheetId ? '<span><strong>Spreadsheet ID:</strong> <code>' + f.sheetId + '</code></span>' : '') +
           '</div>' +
         '</div>';
       });
