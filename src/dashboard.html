@@ -45,9 +45,9 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <div class="flex-between-wrap" style="margin-bottom: 1.5rem;">
+        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
           <div>
-            <h1 class="card-title" style="margin-bottom: 0.25rem;">Dashboard Eksekutif Manajer</h1>
+            <h1 class="card-title" style="margin-bottom: 0.25rem; line-height: 1.25;">Dashboard Eksekutif Manajer</h1>
             <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi rekapitulasi operasional agribisnis terintegrasi.</p>
           </div>
           <div class="button-group-flex" style="align-items: center;">
@@ -63,8 +63,23 @@
           </div>
         </div>
 
-        <!-- Key Metrics Cards (Headline + Breakdown Pattern) -->
+        <!-- Key Metrics Cards (Ordered by Decision Priority) -->
         <div class="metrics-grid">
+          <!-- 1. Urgent Incidents (Action Priority Rank 1) -->
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Antrean Admin ke Insiden Mendesak">
+            <span class="metric-label">Insiden Mendesak Flagged</span>
+            <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
+            <span class="metric-trend metric-trend-down" id="trendUrgent">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Perlu Penanganan</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownUrgent">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Prioritas Triage</span><span class="kpi-breakdown-val">Rank 1</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Ter-Rute Otomatis</span><span class="kpi-breakdown-val" id="bUrgentRouted">0</span></div>
+            </div>
+          </div>
+
+          <!-- 2. Total Pending Queue -->
           <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk membuka Antrean Admin (Semua Pending)">
             <span class="metric-label">Total Laporan Masuk</span>
             <span class="metric-value" id="kpiTotalReports">0</span>
@@ -80,6 +95,21 @@
             </div>
           </div>
 
+          <!-- 3. Sensitive Restricted Reports -->
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Antrean Admin ke Laporan Sensitif">
+            <span class="metric-label">Laporan Sensitif Restriksi</span>
+            <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendSensitive">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Tab Terisolasi</span>
+            </span>
+            <div class="kpi-breakdown-list" id="breakdownSensitive">
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Sheet Terpisah</span><span class="kpi-breakdown-val">Restricted</span></div>
+              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Hak Akses</span><span class="kpi-breakdown-val" id="bSensitiveRole">Manager</span></div>
+            </div>
+          </div>
+
+          <!-- 4. Total Production Yield -->
           <div class="metric-card">
             <span class="metric-label">Total Hasil Panen (Kg)</span>
             <span class="metric-value" id="kpiTotalYield">0</span>
@@ -91,32 +121,6 @@
               <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Rutin</span><span class="kpi-breakdown-val" id="bYieldNormal">0</span></div>
               <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Peringatan</span><span class="kpi-breakdown-val" id="bYieldWarning">0</span></div>
               <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Mendesak</span><span class="kpi-breakdown-val" id="bYieldUrgent">0</span></div>
-            </div>
-          </div>
-
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Antrean Admin ke Insiden Mendesak">
-            <span class="metric-label">Insiden Mendesak Flagged</span>
-            <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
-            <span class="metric-trend metric-trend-down" id="trendUrgent">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Perlu Penanganan</span>
-            </span>
-            <div class="kpi-breakdown-list" id="breakdownUrgent">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Prioritas Triage</span><span class="kpi-breakdown-val">Rank 1</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Ter-Rute Otomatis</span><span class="kpi-breakdown-val" id="bUrgentRouted">0</span></div>
-            </div>
-          </div>
-
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Antrean Admin ke Laporan Sensitif">
-            <span class="metric-label">Laporan Sensitif Restriksi</span>
-            <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendSensitive">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span>Tab Terisolasi</span>
-            </span>
-            <div class="kpi-breakdown-list" id="breakdownSensitive">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Sheet Terpisah</span><span class="kpi-breakdown-val">Restricted</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Hak Akses</span><span class="kpi-breakdown-val" id="bSensitiveRole">Manager</span></div>
             </div>
           </div>
         </div>
@@ -146,29 +150,6 @@
     let severityChartInstance = null;
     let siteChartInstance = null;
     let cachedStats = null;
-
-    function navigateToQueue(filter) {
-      let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
-      if (!baseUrl && typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
-        baseUrl = document.referrer.split('?')[0];
-      }
-      if (!baseUrl) {
-        try { baseUrl = (window.top || window).location.href.split('?')[0]; } catch(e) {}
-      }
-      if (!baseUrl) baseUrl = window.location.href.split('?')[0];
-
-      const targetUrl = `${baseUrl}?page=admin&filter=${filter}`;
-      try {
-        if (window.top && window.top.location) {
-          window.top.location.href = targetUrl;
-        } else {
-          window.location.href = targetUrl;
-        }
-      } catch (e) {
-        window.location.href = targetUrl;
-      }
-    }
-
     let lastFetchedTimestamp = null;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -196,7 +177,6 @@
       if (siteChartInstance) siteChartInstance.resize();
     });
 
-    let windowResizeTimeout = null;
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
       if (sidebar) {
@@ -205,7 +185,7 @@
     }
 
     function updateFreshnessTag() {
-      const tag = document.getElementById('lastUpdatedTag');
+      const tag = document.getElementById('dashLastUpdatedTag');
       if (!tag || !lastFetchedTimestamp) return;
       const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
       const elapsedMin = Math.floor(elapsedSec / 60);
@@ -238,8 +218,6 @@
       }
     }
 
-
-
     async function renderDashboard(isManualRefresh = false) {
       let totalReports = 0;
       let totalYield = 0;
@@ -255,12 +233,22 @@
           if (stats) {
             cachedStats = stats;
             totalReports = stats.totalReports || 0;
-            totalYield = stats.totalYield || 0;
-            urgentCount = stats.urgentCount || 0;
+            totalYield = (typeof stats.totalYieldKg !== 'undefined' ? stats.totalYieldKg : stats.totalYield) || 0;
+            urgentCount = typeof stats.urgentCount !== 'undefined' ? stats.urgentCount : (stats.severityDist ? stats.severityDist.urgent : 0);
             sensitiveCount = stats.sensitiveCount || 0;
-            normalCount = stats.normalCount || 0;
-            warningCount = stats.warningCount || 0;
-            siteCounts = stats.siteCounts || [0, 0, 0, 0];
+            normalCount = typeof stats.normalCount !== 'undefined' ? stats.normalCount : (stats.severityDist ? stats.severityDist.normal : 0);
+            warningCount = typeof stats.warningCount !== 'undefined' ? stats.warningCount : (stats.severityDist ? stats.severityDist.warning : 0);
+
+            if (Array.isArray(stats.siteCounts) && stats.siteCounts.length === 4) {
+              siteCounts = stats.siteCounts;
+            } else if (stats.siteBreakdown) {
+              siteCounts = [
+                stats.siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
+                stats.siteBreakdown['Site B — Peternakan & Kandang'] || 0,
+                stats.siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
+                stats.siteBreakdown['Site D — Logistik & Gudang'] || 0
+              ];
+            }
           }
         } catch (err) {
           console.error('Server error fetching dashboard stats:', err);
@@ -327,19 +315,24 @@
         }
       }
 
-      // Render Charts with safety checks
+      // Render Charts with safety checks and zero-data fallbacks
       if (typeof Chart !== 'undefined') {
         try {
           if (severityChartInstance) severityChartInstance.destroy();
           const ctx1 = document.getElementById('severityChart');
           if (ctx1) {
+            const totalSeverity = normalCount + warningCount + urgentCount;
+            const chartData = (totalSeverity > 0) ? [normalCount, warningCount, urgentCount] : [1];
+            const chartColors = (totalSeverity > 0) ? ['#15803D', '#B45309', '#DC2626'] : ['#E2E8F0'];
+            const chartLabels = (totalSeverity > 0) ? ['Rutin / Normal', 'Peringatan / Warning', 'Mendesak / Insiden'] : ['Belum Ada Data'];
+
             severityChartInstance = new Chart(ctx1.getContext('2d'), {
               type: 'doughnut',
               data: {
-                labels: ['Rutin / Normal', 'Peringatan / Warning', 'Mendesak / Insiden'],
+                labels: chartLabels,
                 datasets: [{
-                  data: [normalCount, warningCount, urgentCount],
-                  backgroundColor: ['#15803D', '#B45309', '#DC2626'],
+                  data: chartData,
+                  backgroundColor: chartColors,
                   borderWidth: 2,
                   borderColor: '#ffffff'
                 }]
@@ -349,7 +342,16 @@
                 maintainAspectRatio: false,
                 animation: false,
                 plugins: {
-                  legend: { position: 'bottom', labels: { color: '#475569', font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 } } }
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      color: '#475569',
+                      font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 }
+                    }
+                  },
+                  tooltip: {
+                    enabled: totalSeverity > 0
+                  }
                 }
               }
             });
@@ -380,8 +382,22 @@
                 maintainAspectRatio: false,
                 animation: false,
                 scales: {
-                  x: { ticks: { color: '#475569', font: { size: 11 } }, grid: { display: false } },
-                  y: { ticks: { color: '#475569', precision: 0 }, grid: { color: '#F1F5F9' } }
+                  x: {
+                    ticks: {
+                      color: '#475569',
+                      font: { size: 11 },
+                      maxRotation: 0,
+                      minRotation: 0,
+                      autoSkip: false
+                    },
+                    grid: { display: false }
+                  },
+                  y: {
+                    ticks: { color: '#475569', precision: 0 },
+                    grid: { color: '#F1F5F9' },
+                    beginAtZero: true,
+                    suggestedMax: 5
+                  }
                 },
                 plugins: {
                   legend: { display: false }
@@ -409,15 +425,15 @@
       const headers = ['Metrik', 'Nilai'];
       const rows = [
         ['Total Laporan Masuk', cachedStats.totalReports],
-        ['Total Hasil Panen (Kg)', cachedStats.totalYield],
+        ['Total Hasil Panen (Kg)', cachedStats.totalYield || cachedStats.totalYieldKg || 0],
         ['Insiden Urgent Flagged', cachedStats.urgentCount],
         ['Laporan Warning Flagged', cachedStats.warningCount],
         ['Laporan Normal Flagged', cachedStats.normalCount],
         ['Laporan Sensitif Restriksi', cachedStats.sensitiveCount],
-        ['Laporan Site A (Kebun)', cachedStats.siteCounts[0] || 0],
-        ['Laporan Site B (Peternakan)', cachedStats.siteCounts[1] || 0],
-        ['Laporan Site C (Pabrik)', cachedStats.siteCounts[2] || 0],
-        ['Laporan Site D (Logistik)', cachedStats.siteCounts[3] || 0]
+        ['Laporan Site A (Kebun)', (cachedStats.siteCounts && cachedStats.siteCounts[0]) || 0],
+        ['Laporan Site B (Peternakan)', (cachedStats.siteCounts && cachedStats.siteCounts[1]) || 0],
+        ['Laporan Site C (Pabrik)', (cachedStats.siteCounts && cachedStats.siteCounts[2]) || 0],
+        ['Laporan Site D (Logistik)', (cachedStats.siteCounts && cachedStats.siteCounts[3]) || 0]
       ];
 
       downloadCSV(`Executive_Dashboard_Summary_${Date.now()}.csv`, headers, rows);

@@ -3,7 +3,7 @@
  * Digital Reporting System for Integrated Agriculture Company
  * 
  * Clean Architecture Layer: APPLICATION / SERVICE
- * Responsibility: Coordinates validation, triage evaluation, persistence, and notifications.
+ * Responsibility: Coordinates validation, triage evaluation, persistence, photo attachment handling, and notifications.
  */
 
 const ReportService = {
@@ -74,7 +74,7 @@ const ReportService = {
   },
 
   /**
-   * Uploads base64 encoded photo attachment into form's dedicated Drive folder.
+   * Uploads base64 encoded photo attachment into form's per-form Drive folder (Approach 5a).
    * @param {string} base64Data 
    * @param {string} mimeType 
    * @param {string} formId 
@@ -87,15 +87,10 @@ const ReportService = {
     const form = forms.find(f => f.id === formId);
     let targetFolder;
 
-    if (form && form.driveFolderId) {
-      try {
-        targetFolder = DriveApp.getFolderById(form.driveFolderId);
-      } catch (e) {}
-    }
-    if (!targetFolder) {
-      const parentFolderName = 'Reporting System Data';
-      const folderIter = DriveApp.getFoldersByName(parentFolderName);
-      targetFolder = folderIter.hasNext() ? folderIter.next() : DriveApp.getRootFolder();
+    if (form) {
+      targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
+    } else {
+      targetFolder = FormManagementService.provisionPhotoFolder_('Form Laporan', formId || 'GENERAL');
     }
 
     const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
@@ -107,7 +102,8 @@ const ReportService = {
   },
 
   /**
-   * Submits a dynamic custom form response into form's dedicated sheet.
+   * Submits a dynamic custom form response into form's tab inside integrated spreadsheet.
+   * Recognizes photo key specifically and places Drive link in dedicated Foto_Lampiran column (Col 9).
    * @param {string} formId 
    * @param {Object} payload 
    * @returns {{ success: boolean, reportId: string }}
@@ -125,10 +121,18 @@ const ReportService = {
     const site = payload.site || payload.lokasi || 'Site A — Kebun & Lahan Pertanian';
     const date = payload.date || payload.tanggal || formatDate(new Date());
 
-    // Combine custom fields into structured details text
+    // Extract photo attachment URL if present
+    let photoUrl = '';
+    const photoKey = Object.keys(payload).find(k => ['foto', 'photo', 'foto_lampiran', 'attachment'].includes(k.toLowerCase()));
+    if (photoKey) {
+      photoUrl = String(payload[photoKey] || '');
+    }
+
+    // Combine remaining custom fields into structured details text (excluding empId, site, date, photo keys)
     const textPieces = [];
     Object.keys(payload).forEach(k => {
-      if (!['empId', 'site', 'date', 'kode_karyawan', 'lokasi', 'tanggal'].includes(k)) {
+      const lowerKey = k.toLowerCase();
+      if (!['empId', 'site', 'date', 'kode_karyawan', 'lokasi', 'tanggal', 'foto', 'photo', 'foto_lampiran', 'attachment'].includes(lowerKey)) {
         textPieces.push(`${k}: ${payload[k]}`);
       }
     });
@@ -136,11 +140,11 @@ const ReportService = {
 
     const flag = TriageEngine.evaluate([empId, site, date, details]);
 
-    const targetSsId = form.sheetId;
+    const targetSsId = ConfigRepository.getSpreadsheetId();
     if (!targetSsId) throw new Error('Sheet data form belum terkonfigurasi.');
 
     const ss = SpreadsheetApp.openById(targetSsId);
-    const rawSheet = ss.getSheetByName('Raw') || ss.getSheets()[0];
+    const targetSheet = FormManagementService.resolveFormTab_(ss, form);
 
     const rowData = [
       reportId,
@@ -149,17 +153,18 @@ const ReportService = {
       site,
       date,
       details,
-      'NO',
+      'NO',        // Task_Status_Or_Details / Yield_Kg / Sensitive
+      'None',      // Issues
+      photoUrl,    // Col 9: Foto_Lampiran
       flag.severity,
       flag.keywords.join(', '),
-      flag.isUrgent ? 'YES' : 'NO',
       ReviewStatus.UNREVIEWED
     ];
 
-    rawSheet.appendRow(rowData);
+    targetSheet.appendRow(rowData);
 
     if (flag.severity === ReportSeverity.URGENT) {
-      NotificationAdapter.sendUrgentAlert(form.title || 'Form Kustom', rawSheet.getLastRow(), rowData, flag);
+      NotificationAdapter.sendUrgentAlert(form.title || 'Form Kustom', targetSheet.getLastRow(), rowData, flag);
     }
 
     return { success: true, reportId: reportId };
@@ -183,8 +188,6 @@ const ReportService = {
       const reportId = SpreadsheetRepository.ensureReportId(sheet, row, rowData);
       rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-      // Form Response row format after ensureReportId:
-      // [0:Report_ID, 1:Timestamp, 2:Emp_ID, 3:Site, 4:Date, 5:Task_Status, 6:Yield_Kg, 7:Issues, ...]
       const empId = rowData[2] || '';
       const site = rowData[3] || '';
       const date = rowData[4] || '';
@@ -231,8 +234,6 @@ const ReportService = {
       const reportId = SpreadsheetRepository.ensureReportId(sheet, row, rowData);
       rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-      // Form Response row format after ensureReportId:
-      // [0:Report_ID, 1:Timestamp, 2:Emp_ID, 3:Site, 4:Date, 5:Details, 6:Sensitive_Flag, ...]
       const empId = rowData[2] || '';
       const site = rowData[3] || '';
       const date = rowData[4] || '';

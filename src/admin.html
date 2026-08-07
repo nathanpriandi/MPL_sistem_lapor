@@ -66,17 +66,17 @@
 
               <button class="btn btn-secondary table-btn-sm" onclick="toggleAdvancedFilters()" id="btnToggleAdvancedFilter">
                 <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                <span>Filter Lanjutan ▾</span>
+                <span id="btnFilterLabel">Filter Lanjutan ▾</span>
               </button>
 
               <div class="toolbar-divider"></div>
 
               <div class="toolbar-cluster">
                 <span id="lastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.25rem;"></span>
-                <button class="btn-icon-ghost" onclick="exportAdminCSV()" title="Ekspor CSV Data Antrean">
+                <button class="btn-icon-ghost" onclick="exportAdminCSV()" title="Ekspor CSV Data Antrean" aria-label="Ekspor CSV Data Antrean">
                   <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
-                <button class="btn-icon-ghost" onclick="fetchAndRenderQueue(true)" title="Perbarui Data Antrean">
+                <button class="btn-icon-ghost" onclick="fetchAndRenderQueue(true)" title="Perbarui Data Antrean" aria-label="Perbarui Data Antrean">
                   <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                 </button>
               </div>
@@ -104,19 +104,25 @@
             </div>
           </div>
 
-          <div class="table-responsive">
+          <div class="table-responsive" id="tableContainer">
             <table class="table-sticky-col responsive-card-table">
               <thead>
                 <tr>
                   <th>Sumber</th>
-                  <th>Waktu Submit</th>
+                  <th onclick="toggleSort('timestamp')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan waktu">
+                    Waktu Submit <span id="sort-timestamp">↕</span>
+                  </th>
                   <th>Kode Karyawan</th>
                   <th>Lokasi / Site</th>
                   <th>Rincian / Status</th>
-                  <th>Tingkat Keparahan</th>
+                  <th onclick="toggleSort('severity')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan keparahan">
+                    Tingkat Keparahan <span id="sort-severity">↕</span>
+                  </th>
                   <th>Kategori</th>
-                  <th>Status Peninjauan</th>
-                  <th>Aksi</th>
+                  <th onclick="toggleSort('reviewStatus')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan status">
+                    Status Peninjauan <span id="sort-reviewStatus">↕</span>
+                  </th>
+                  <th style="text-align: center;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="queueBody">
@@ -163,6 +169,8 @@
     let currentPage = 1;
     const pageSize = 25;
     let autoRefreshInterval = null;
+    let currentSortCol = 'severity';
+    let currentSortDir = 'asc';
 
     let lastFetchedTimestamp = null;
 
@@ -177,6 +185,21 @@
       loadQuickLinks();
       loadDiagnostics();
       fetchAndRenderQueue();
+
+      // Table scroll-triggered shadow
+      const container = document.getElementById('tableContainer');
+      if (container) {
+        container.addEventListener('scroll', () => {
+          const thead = container.querySelector('thead');
+          if (thead) {
+            if (container.scrollTop > 5) {
+              thead.classList.add('table-scrolled');
+            } else {
+              thead.classList.remove('table-scrolled');
+            }
+          }
+        });
+      }
 
       // Soft auto-refresh every 60 seconds
       autoRefreshInterval = setInterval(() => {
@@ -209,20 +232,41 @@
       }
     }
 
-
-
     function toggleAdvancedFilters() {
       const filterBar = document.getElementById('advancedFilterBar');
-      const btn = document.getElementById('btnToggleAdvancedFilter');
-      if (!filterBar || !btn) return;
+      const btnLabel = document.getElementById('btnFilterLabel');
+      if (!filterBar || !btnLabel) return;
 
       if (filterBar.style.display === 'none' || !filterBar.style.display) {
         filterBar.style.display = 'flex';
-        btn.innerHTML = '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg><span>Sembunyikan Filter ▴</span>';
+        btnLabel.innerText = 'Sembunyikan Filter ▴';
       } else {
         filterBar.style.display = 'none';
-        btn.innerHTML = '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg><span>Filter Lanjutan ▾</span>';
+        btnLabel.innerText = 'Filter Lanjutan ▾';
       }
+    }
+
+    function toggleSort(col) {
+      if (currentSortCol === col) {
+        currentSortDir = (currentSortDir === 'asc') ? 'desc' : 'asc';
+      } else {
+        currentSortCol = col;
+        currentSortDir = 'asc';
+      }
+      updateSortIcons();
+      applyFilters();
+    }
+
+    function updateSortIcons() {
+      ['timestamp', 'severity', 'reviewStatus'].forEach(col => {
+        const el = document.getElementById(`sort-${col}`);
+        if (!el) return;
+        if (currentSortCol === col) {
+          el.innerText = (currentSortDir === 'asc') ? '▲' : '▼';
+        } else {
+          el.innerText = '↕';
+        }
+      });
     }
 
     async function fetchAndRenderQueue(manualRefresh = false) {
@@ -323,6 +367,22 @@
       const startDateVal = document.getElementById('startDateFilter').value;
       const endDateVal = document.getElementById('endDateFilter').value;
 
+      // Update active filter badge on trigger button (Task 6)
+      let activeFilterCount = 0;
+      if (searchVal) activeFilterCount++;
+      if (siteVal) activeFilterCount++;
+      if (startDateVal) activeFilterCount++;
+      if (endDateVal) activeFilterCount++;
+
+      const btnLabel = document.getElementById('btnFilterLabel');
+      if (btnLabel) {
+        if (activeFilterCount > 0) {
+          btnLabel.innerHTML = `Filter Lanjutan <span class="filter-active-badge">${activeFilterCount}</span> ▾`;
+        } else {
+          btnLabel.innerText = 'Filter Lanjutan ▾';
+        }
+      }
+
       let filtered = [...rawQueueData];
 
       // Quick Filter
@@ -366,12 +426,25 @@
         );
       }
 
-      // Sort: Urgent (rank 1) -> Warning (rank 2) -> Normal (rank 3)
+      // Column Sorting (Task 7)
       filtered.sort((a, b) => {
-        const order = { urgent: 1, warning: 2, normal: 3 };
-        const rankA = a.rank || order[a.severity] || 3;
-        const rankB = b.rank || order[b.severity] || 3;
-        return rankA - rankB;
+        let valA, valB;
+        if (currentSortCol === 'timestamp') {
+          valA = a.timestamp || a.date || '';
+          valB = b.timestamp || b.date || '';
+        } else if (currentSortCol === 'reviewStatus') {
+          valA = a.reviewStatus || '';
+          valB = b.reviewStatus || '';
+        } else {
+          // Default: Severity order (Urgent=1, Warning=2, Normal=3)
+          const order = { urgent: 1, warning: 2, normal: 3 };
+          valA = a.rank || order[a.severity] || 3;
+          valB = b.rank || order[b.severity] || 3;
+        }
+
+        if (valA < valB) return (currentSortDir === 'asc') ? -1 : 1;
+        if (valA > valB) return (currentSortDir === 'asc') ? 1 : -1;
+        return 0;
       });
 
       currentFilteredData = filtered;
@@ -392,7 +465,7 @@
       const pageSlice = currentFilteredData.slice(startIndex, endIndex);
 
       if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
         document.getElementById('paginationInfo').innerText = 'Menampilkan 0 laporan';
         document.getElementById('pageIndicator').innerText = 'Halaman 1 dari 1';
         document.getElementById('btnPrevPage').disabled = true;
@@ -414,14 +487,14 @@
           <td data-label="Severity"><span class="badge ${badgeClass}">${item.severity}</span></td>
           <td data-label="Kategori">${item.category}</td>
           <td data-label="Review Status">
-            <select onchange="updateStatus('${item.type}', '${item.reportId}', this.value)" class="table-select">
+            <select onchange="updateStatus('${item.type}', '${item.reportId}', this.value)" class="table-select" aria-label="Ubah Review Status">
               <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
               <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
               <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
               <option value="Closed" ${item.reviewStatus==='Closed'?'selected':''}>Closed (Selesai)</option>
             </select>
           </td>
-          <td data-label="Aksi">
+          <td data-label="Aksi" style="text-align: center;">
             <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})">Lihat</button>
           </td>
         `;

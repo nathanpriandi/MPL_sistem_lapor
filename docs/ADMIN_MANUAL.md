@@ -78,6 +78,17 @@ Spreadsheet ini memiliki 5 Tab utama:
 - Laporan yang ditandai sensitif secara otomatis diisolasi ke tab **`Sensitive_Restricted`** dan **tidak akan pernah muncul di `Admin_Queue`** demi menjaga kerahasiaan data.
 - Admin yang berwenang wajib meninjau tab sensitif melalui tombol filter *Sensitif* atau membuka tab spreadsheet `Sensitive_Restricted` secara berkala.
 
+### 8. Manajemen Form & Custom Form Builder (`forms.html`)
+- **Kartu Metrik Summary**: Menampilkan metrik terpusat (*Total Form Terdaftar*, *Form Status Aktif*, *Form Harian & Umum*, *Form Kustom Lapangan*) dalam grid 4-kolom responsif.
+- **Tautan Spreadsheet Dedicated (`Buka Sheet Data`)**: Setiap kartu formulir memiliki tombol dedicated *Buka Sheet Data* yang mengarahkan langsung ke Google Spreadsheet / tab data khusus dari form tersebut.
+- **Pembuatan Form Kustom Lapangan**:
+  - Klik **Buat Form Baru** untuk membuka modal multi-seksi (*Detail & Identitas Form* dan *Susun Pertanyaan Form*).
+  - Pilihan Tipe Pertanyaan Kustom: *Teks Singkat*, *Paragraf / Textarea*, *Pilihan Dropdown*, *Pilihan Checkbox (Multi-select)*, *Tanggal*, dan *Foto Lampiran Lapangan*.
+  - Penyusunan bidang dilengkapi fitur tambah row beranimasi, scrollbar mandiri, serta pratinjau foto interaktif pada `dynamicform.html`.
+- **Pratinjau & Akses Publik**:
+  - Tombol **Pratinjau** pada setiap kartu form membuka tampilan publik form yang siap digunakan staf lapangan.
+  - Opsi **Google Form Editor** dan tombol utilitas hapus terisolasi dengan hierarki visual yang rapi.
+
 ---
 
 ## 🚨 Penanganan Notifikasi Urgent & Laporan Sensitif

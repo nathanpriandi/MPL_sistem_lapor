@@ -16,36 +16,50 @@
     </header>
 
     <div class="alert-banner" id="formAlertBanner" hidden></div>
+    <div class="alert-banner alert-warning" id="errorSummaryBanner" style="display: none; margin-bottom: 1rem;"></div>
 
-    <form id="dynamicFormEl" class="form-card" onsubmit="handleDynamicSubmit(event)">
-      <!-- Standard Required Fields -->
-      <div class="form-group">
-        <label class="form-label" for="empId">Kode Karyawan / Employee ID <span class="text-danger">*</span></label>
-        <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: EMP-102" required>
-        <span class="form-help">Masukkan ID resmi karyawan Anda.</span>
+    <form id="dynamicFormEl" class="form-card" onsubmit="handleDynamicSubmit(event)" novalidate>
+      <div id="standardFieldsSection">
+        <div id="standardSectionHeader" style="display: none;" class="form-section-header">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Informasi Utama Pelapor</span>
+        </div>
+
+        <!-- Standard Required Fields -->
+        <div class="form-group">
+          <label class="form-label" for="empId">Kode Karyawan / Employee ID <span class="text-danger">*</span></label>
+          <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: EMP-102" required>
+          <span class="form-help">Masukkan ID resmi karyawan Anda.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="site">Lokasi / Site Operasional <span class="text-danger">*</span></label>
+          <select id="site" name="site" class="form-input" required>
+            <option value="" disabled selected>-- Pilih Lokasi / Site --</option>
+            <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
+            <option value="Site B — Peternakan & Kandang">Site B — Peternakan &amp; Kandang</option>
+            <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
+            <option value="Site D — Logistik & Gudang">Site D — Logistik &amp; Gudang</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="date">Tanggal Pelaporan / Date <span class="text-danger">*</span></label>
+          <input type="date" id="date" name="date" class="form-input" required>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="site">Lokasi / Site Operasional <span class="text-danger">*</span></label>
-        <select id="site" name="site" class="form-input" required>
-          <option value="" disabled selected>-- Pilih Lokasi / Site --</option>
-          <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
-          <option value="Site B — Peternakan & Kandang">Site B — Peternakan &amp; Kandang</option>
-          <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
-          <option value="Site D — Logistik & Gudang">Site D — Logistik &amp; Gudang</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="date">Tanggal Pelaporan / Date <span class="text-danger">*</span></label>
-        <input type="date" id="date" name="date" class="form-input" required>
+      <!-- Dynamic Fields Section Header (shown if grouped) -->
+      <div id="customSectionHeader" style="display: none;" class="form-section-header">
+        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Rincian Pertanyaan Lapangan</span>
       </div>
 
       <!-- Dynamic Fields Container -->
       <div id="dynamicFieldsContainer"></div>
 
-      <div class="form-actions">
-        <button type="submit" id="btnSubmitDynamic" class="btn btn-primary btn-block">
+      <div class="form-actions" style="margin-top: 1.5rem; position: sticky; bottom: 1rem; z-index: 90; background: var(--bg-surface); padding: 0.75rem 0; border-top: 1px solid var(--border-color);">
+        <button type="submit" id="btnSubmitDynamic" class="btn btn-primary btn-block" style="height: 48px; font-size: 1rem;">
           <span>Kirim Laporan</span>
         </button>
       </div>
@@ -109,8 +123,19 @@
       if (!container) return;
 
       var fields = schema.fields || [];
+      var totalFieldsCount = fields.length + 3; // 3 standard fields (empId, site, date)
+
+      // Section Grouping Rule: if total fields > 6, display section headers
+      if (totalFieldsCount > 6) {
+        document.getElementById('standardSectionHeader').style.display = 'flex';
+        document.getElementById('customSectionHeader').style.display = 'flex';
+      } else {
+        document.getElementById('standardSectionHeader').style.display = 'none';
+        document.getElementById('customSectionHeader').style.display = 'none';
+      }
+
       if (fields.length === 0) {
-        container.innerHTML = '<div class="form-group"><label class="form-label">Rincian Laporan <span class="text-danger">*</span></label><textarea id="field_rincian" name="rincian" class="form-input" rows="4" required placeholder="Tuliskan rincian laporan Anda..."></textarea></div>';
+        container.innerHTML = '<div class="form-group"><label class="form-label" for="field_rincian">Rincian Laporan <span class="text-danger">*</span></label><textarea id="field_rincian" name="rincian" class="form-input" rows="4" required placeholder="Tuliskan rincian laporan Anda..."></textarea></div>';
         return;
       }
 
@@ -125,10 +150,10 @@
         html += '<label class="form-label" for="' + fieldId + '">' + label + reqMark + '</label>';
 
         if (f.type === 'textarea') {
-          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" ' + reqAttr + '></textarea>';
+          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" placeholder="Tuliskan rincian..." ' + reqAttr + '></textarea>';
         } else if (f.type === 'select') {
           html += '<select id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
-          html += '<option value="" disabled selected>-- Pilih Options --</option>';
+          html += '<option value="" disabled selected>-- Pilih Opsi --</option>';
           (f.options || []).forEach(function(opt) {
             html += '<option value="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</option>';
           });
@@ -144,10 +169,24 @@
         } else if (f.type === 'date') {
           html += '<input type="date" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
         } else if (f.type === 'photo') {
-          html += '<input type="file" id="' + fieldId + '" data-photofield="' + f.key + '" class="form-input" accept="image/*" ' + reqAttr + '>';
-          html += '<span class="form-help">Unggah foto bukti lapangan (format JPEG/PNG, maks 5MB).</span>';
+          html += '<div class="photo-upload-zone" onclick="document.getElementById(\'' + fieldId + '\').click()">' +
+            '<svg class="svg-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 0.35rem;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>' +
+            '<div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">Ketuk untuk mengambil / memilih foto</div>' +
+            '<div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.2rem;">Format JPEG/PNG, maksimal 5MB</div>' +
+            '<input type="file" id="' + fieldId + '" data-photofield="' + f.key + '" class="form-input" accept="image/*" style="display: none;" ' + reqAttr + ' onchange="handlePhotoSelect(this, \'' + fieldId + '\')">' +
+          '</div>' +
+          '<div id="' + fieldId + '_preview" class="photo-preview-container" style="display: none;">' +
+            '<img id="' + fieldId + '_img" class="photo-thumbnail" src="" alt="Pratinjau Foto">' +
+            '<div style="flex: 1; display: flex; flex-direction: column; gap: 0.25rem;">' +
+              '<span id="' + fieldId + '_name" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>' +
+              '<button type="button" class="btn btn-ghost-danger table-btn-sm" onclick="clearPhotoSelection(\'' + fieldId + '\')" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 0.35rem;">' +
+                '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+                '<span>Hapus / Ambil Ulang</span>' +
+              '</button>' +
+            '</div>' +
+          '</div>';
         } else {
-          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
+          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" placeholder="Masukkan jawaban..." ' + reqAttr + '>';
         }
 
         html += '</div>';
@@ -156,14 +195,96 @@
       container.innerHTML = html;
     }
 
+    function handlePhotoSelect(input, fieldId) {
+      if (input.files && input.files[0]) {
+        var file = input.files[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var previewContainer = document.getElementById(fieldId + '_preview');
+          var previewImg = document.getElementById(fieldId + '_img');
+          var previewName = document.getElementById(fieldId + '_name');
+
+          if (previewImg) previewImg.src = e.target.result;
+          if (previewName) previewName.innerText = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+          if (previewContainer) previewContainer.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function clearPhotoSelection(fieldId) {
+      var input = document.getElementById(fieldId);
+      var previewContainer = document.getElementById(fieldId + '_preview');
+      var previewImg = document.getElementById(fieldId + '_img');
+      var previewName = document.getElementById(fieldId + '_name');
+
+      if (input) input.value = '';
+      if (previewImg) previewImg.src = '';
+      if (previewName) previewName.innerText = '';
+      if (previewContainer) previewContainer.style.display = 'none';
+    }
+
     function renderFormNotFound(msg) {
       document.getElementById('formHeaderTitle').innerText = 'Form Tidak Ditemukan';
       document.getElementById('formHeaderDesc').innerText = msg || 'Formulir pelaporan tidak tersedia.';
       document.getElementById('dynamicFormEl').style.display = 'none';
     }
 
+    function validateDynamicForm() {
+      var missing = [];
+      var empIdEl = document.getElementById('empId');
+      var siteEl = document.getElementById('site');
+      var dateEl = document.getElementById('date');
+
+      if (empIdEl && !empIdEl.value.trim()) missing.push('Kode Karyawan / Employee ID');
+      if (siteEl && !siteEl.value) missing.push('Lokasi / Site Operasional');
+      if (dateEl && !dateEl.value) missing.push('Tanggal Pelaporan');
+
+      var fields = (currentSchema && currentSchema.fields) ? currentSchema.fields : [];
+      fields.forEach(function(f, idx) {
+        if (!f.required) return;
+        var key = f.key || 'field_' + idx;
+        var label = f.label || ('Field ' + (idx + 1));
+
+        if (f.type === 'photo') {
+          var photoInput = document.querySelector('[data-photofield="' + key + '"]');
+          if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+            missing.push(label);
+          }
+        } else if (f.type === 'checkbox') {
+          var chks = document.querySelectorAll('input[name="' + key + '"]:checked');
+          if (chks.length === 0) {
+            missing.push(label);
+          }
+        } else {
+          var input = document.getElementById('field_' + key);
+          if (!input || !input.value.trim()) {
+            missing.push(label);
+          }
+        }
+      });
+
+      return missing;
+    }
+
     async function handleDynamicSubmit(e) {
       e.preventDefault();
+      var summaryBanner = document.getElementById('errorSummaryBanner');
+      if (summaryBanner) summaryBanner.style.display = 'none';
+
+      // Top Error Summary Banner pattern
+      var missingFields = validateDynamicForm();
+      if (missingFields.length > 0) {
+        if (summaryBanner) {
+          summaryBanner.innerHTML = '<strong>Mohon lengkapi bidang wajib berikut:</strong><ul style="margin: 0.35rem 0 0 1.25rem; padding: 0;">' +
+            missingFields.map(function(m) { return '<li>' + escapeHtml(m) + '</li>'; }).join('') +
+            '</ul>';
+          summaryBanner.style.display = 'block';
+          summaryBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
       var btn = document.getElementById('btnSubmitDynamic');
       btn.disabled = true;
       btn.innerHTML = '<span>Mengirim Laporan...</span>';
@@ -208,6 +329,8 @@
         }
 
         document.getElementById('dynamicFormEl').reset();
+        // Clear all photo previews
+        document.querySelectorAll('.photo-preview-container').forEach(function(el) { el.style.display = 'none'; });
       } catch (err) {
         console.error('Submit error:', err);
         showErrorBanner('Gagal mengirim laporan: ' + err.message);

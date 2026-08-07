@@ -4,14 +4,14 @@
  * 
  * Clean Architecture Layer: INFRASTRUCTURE / REPOSITORY
  * Responsibility: Performs all low-level Google Sheets API reads, writes, schema lookups,
- * multi-sheet queue aggregation across per-form dedicated spreadsheets, historical data migration triggers, 
+ * multi-tab queue aggregation within single integrated spreadsheet, historical data migration, 
  * and row highlighting formatting.
  */
 
 const SpreadsheetRepository = {
 
   /**
-   * Returns central Spreadsheet instance.
+   * Returns central Integrated Spreadsheet instance.
    * @returns {Spreadsheet}
    */
   getSpreadsheet: function() {
@@ -87,7 +87,7 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Relocates a sensitive report row from its source sheet to the Sensitive tab of its spreadsheet.
+   * Relocates a sensitive report row from its source sheet to the single shared Sensitive tab of the integrated spreadsheet.
    * Deletes original row from source sheet.
    * @param {Sheet} sourceSheet 
    * @param {number} sourceRow 
@@ -152,32 +152,131 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Fetches unified Admin Triage Queue across all per-form dedicated spreadsheets.
-   * Auto-triggers historical data migration if per-form dedicated spreadsheets are empty.
+   * Saves a new Daily Operational Report into integrated spreadsheet.
+   * @param {Object} report 
+   * @param {Object} flag 
+   * @returns {{ reportId: string, row: number }}
+   */
+  saveDailyReport: function(report, flag) {
+    const ss = this.getSpreadsheet();
+    const forms = FormManagementService.getFormList();
+    const dForm = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily) || { title: 'Laporan Operasional Harian' };
+    const sheet = FormManagementService.resolveFormTab_(ss, dForm);
+
+    const reportId = this.generateUUID();
+    const rowData = [
+      reportId,
+      formatDate(new Date()),
+      report.empId,
+      report.site,
+      report.date,
+      report.taskStatus,
+      report.yieldKg,
+      report.issues,
+      report.photoUrl || '',
+      flag.severity,
+      flag.keywords.join(', '),
+      ReviewStatus.UNREVIEWED
+    ];
+
+    sheet.appendRow(rowData);
+    const newRowIndex = sheet.getLastRow();
+    this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
+
+    return { reportId: reportId, row: newRowIndex };
+  },
+
+  /**
+   * Saves a new General Report into integrated spreadsheet.
+   * @param {Object} report 
+   * @param {Object} flag 
+   * @returns {{ reportId: string, row: number }}
+   */
+  saveGeneralReport: function(report, flag) {
+    const ss = this.getSpreadsheet();
+    const forms = FormManagementService.getFormList();
+    const gForm = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral) || { title: 'Laporan Umum & Catatan Lapangan' };
+
+    const reportId = this.generateUUID();
+
+    if (report.isSensitive) {
+      let sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
+      if (!sensitiveSheet) {
+        sensitiveSheet = ss.insertSheet('Sensitive');
+        sensitiveSheet.getRange('A1:K1').setValues([[
+          'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
+          'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
+        ]]);
+        sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
+        sensitiveSheet.setFrozenRows(1);
+      }
+
+      const rowData = [
+        reportId,
+        formatDate(new Date()),
+        report.empId,
+        report.site,
+        report.date,
+        report.details,
+        'YES',
+        report.photoUrl || '',
+        flag.severity,
+        flag.keywords.join(', '),
+        ReviewStatus.UNREVIEWED_SENSITIVE
+      ];
+
+      sensitiveSheet.appendRow(rowData);
+      const newRowIndex = sensitiveSheet.getLastRow();
+      this.applyRowHighlighting(sensitiveSheet, newRowIndex, flag.severity);
+      return { reportId: reportId, row: newRowIndex };
+    }
+
+    const sheet = FormManagementService.resolveFormTab_(ss, gForm);
+    const rowData = [
+      reportId,
+      formatDate(new Date()),
+      report.empId,
+      report.site,
+      report.date,
+      report.details,
+      'NO',
+      'None',
+      report.photoUrl || '',
+      flag.severity,
+      flag.keywords.join(', '),
+      ReviewStatus.UNREVIEWED
+    ];
+
+    sheet.appendRow(rowData);
+    const newRowIndex = sheet.getLastRow();
+    this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
+
+    return { reportId: reportId, row: newRowIndex };
+  },
+
+  /**
+   * Fetches unified Admin Triage Queue across all form tabs inside the single integrated spreadsheet.
    * Merges, ranks, and sorts report items chronologically.
+   * Single file open performance optimization.
    * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
+    const mainSsId = ConfigRepository.getSpreadsheetId();
+    if (!mainSsId) return [];
+
+    const ss = SpreadsheetApp.openById(mainSsId);
     const forms = FormManagementService.getFormList();
     const mergedQueue = [];
 
     forms.forEach(f => {
-      if (!f.sheetId) return;
       try {
-        const ss = SpreadsheetApp.openById(f.sheetId);
-        const cleanTitle = (f.title || '').trim();
-        
-        // 1. Read primary response sheet
-        const rawSheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || 
-                         ss.getSheetByName('Raw') || 
-                         ss.getSheetByName(SHEET_NAMES.DAILY_RAW) || 
-                         ss.getSheetByName(SHEET_NAMES.GENERAL_RAW) || 
-                         ss.getSheets()[0];
-
+        const rawSheet = FormManagementService.resolveFormTab_(ss, f);
         if (rawSheet && rawSheet.getLastRow() > 1) {
           const rawValues = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
           rawValues.forEach(row => {
             if (row[0] || row[1]) {
+              const photoVal = String(row[8] || '');
+              const severityVal = String(row[9] || row[8] || ReportSeverity.NORMAL).toLowerCase();
               mergedQueue.push(QueueItem({
                 source: f.title || 'Form Laporan',
                 reportId: String(row[0] || ''),
@@ -188,57 +287,49 @@ const SpreadsheetRepository = {
                 detail: String(row[5] || '-'),
                 yieldOrSensitive: String(row[6] || '-'),
                 issues: String(row[7] || '-'),
-                severity: String(row[8] || ReportSeverity.NORMAL).toLowerCase(),
-                rank: (row[8] === ReportSeverity.URGENT) ? 1 : ((row[8] === ReportSeverity.WARNING) ? 2 : 3),
-                category: String(row[9] || 'ROUTINE'),
+                photoUrl: photoVal.startsWith('http') ? photoVal : '',
+                severity: severityVal,
+                rank: (severityVal === ReportSeverity.URGENT) ? 1 : ((severityVal === ReportSeverity.WARNING) ? 2 : 3),
+                category: String(row[10] || 'ROUTINE'),
                 reviewStatus: String(row[11] || row[10] || ReviewStatus.UNREVIEWED)
               }));
             }
           });
         }
-
-        // 2. Read Sensitive sheet if present
-        const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-        if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-          const sensitiveValues = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
-          sensitiveValues.forEach(row => {
-            if (row[0] || row[1]) {
-              mergedQueue.push(QueueItem({
-                source: `${f.title || 'Form Laporan'} (Sensitif)`,
-                reportId: String(row[0] || ''),
-                timestamp: formatDate(row[1] || new Date()),
-                empId: String(row[2] || ''),
-                site: String(row[3] || ''),
-                date: formatDate(row[4] || new Date()),
-                detail: String(row[5] || '-'),
-                yieldOrSensitive: String(row[6] || 'YES'),
-                issues: 'Informasi Sensitif',
-                severity: String(row[7] || ReportSeverity.WARNING).toLowerCase(),
-                rank: 2,
-                category: String(row[9] || 'RESTRICTED'),
-                reviewStatus: String(row[10] || ReviewStatus.UNREVIEWED_SENSITIVE)
-              }));
-            }
-          });
-        }
       } catch (err) {
-        Logger.log(`SpreadsheetRepository Notice: Could not read sheet ${f.sheetId} for form ${f.id}: ${err.toString()}`);
+        Logger.log(`SpreadsheetRepository Notice: Could not read sheet tab for form ${f.id}: ${err.toString()}`);
       }
     });
 
-    // Auto-migrate historical rows from central spreadsheet if per-form sheets were empty
-    if (mergedQueue.length === 0) {
-      try {
-        Logger.log('SpreadsheetRepository: No per-form rows found. Triggering historical data migration...');
-        const migrationResult = FormManagementService.migrateHistoricalDataToPerFormSheets();
-        if (migrationResult.dailyCount > 0 || migrationResult.generalCount > 0 || migrationResult.sensitiveCount > 0) {
-          // Re-run getAdminQueueData recursively once to read the newly migrated rows!
-          return this.getAdminQueueData();
-        }
-      } catch (migrationErr) {
-        Logger.log('SpreadsheetRepository Warning: Auto-migration failed: ' + migrationErr.toString());
+    // Process single shared Sensitive sheet
+    try {
+      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
+      if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
+        const sensitiveValues = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
+        sensitiveValues.forEach(row => {
+          if (row[0] || row[1]) {
+            const photoVal = String(row[7] || '');
+            const severityVal = String(row[8] || ReportSeverity.WARNING).toLowerCase();
+            mergedQueue.push(QueueItem({
+              source: `Laporan Sensitif / Insiden`,
+              reportId: String(row[0] || ''),
+              timestamp: formatDate(row[1] || new Date()),
+              empId: String(row[2] || ''),
+              site: String(row[3] || ''),
+              date: formatDate(row[4] || new Date()),
+              detail: String(row[5] || '-'),
+              yieldOrSensitive: String(row[6] || 'YES'),
+              issues: 'Informasi Sensitif',
+              photoUrl: photoVal.startsWith('http') ? photoVal : '',
+              severity: severityVal,
+              rank: 2,
+              category: String(row[9] || 'RESTRICTED'),
+              reviewStatus: String(row[10] || ReviewStatus.UNREVIEWED_SENSITIVE)
+            }));
+          }
+        });
       }
-    }
+    } catch (e) {}
 
     // Sort queue items by timestamp descending
     mergedQueue.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
@@ -246,56 +337,59 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Updates Review_Status of a report by matching Report_ID across all per-form dedicated spreadsheets.
+   * Updates Review_Status of a report by matching Report_ID across all tabs of integrated spreadsheet.
+   * Single file open performance optimization.
    * @param {string} reportId 
    * @param {string} newStatus 
    * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string, error?: string }}
    */
   updateReviewStatus: function(reportId, newStatus) {
-    const forms = FormManagementService.getFormList();
+    const mainSsId = ConfigRepository.getSpreadsheetId();
+    if (!mainSsId) return { success: false, error: 'Spreadsheet ID belum dikonfigurasi.' };
 
-    for (let f = 0; f < forms.length; f++) {
-      const form = forms[f];
-      if (!form.sheetId) continue;
+    try {
+      const ss = SpreadsheetApp.openById(mainSsId);
+      const sheets = ss.getSheets();
 
-      try {
-        const ss = SpreadsheetApp.openById(form.sheetId);
-        const sheets = ss.getSheets();
+      for (let s = 0; s < sheets.length; s++) {
+        const sheet = sheets[s];
+        if (sheet.getLastRow() <= 1) continue;
 
-        for (let s = 0; s < sheets.length; s++) {
-          const sheet = sheets[s];
-          if (sheet.getLastRow() <= 1) continue;
+        const data = sheet.getDataRange().getValues();
+        const lastCol = sheet.getLastColumn();
 
-          const data = sheet.getDataRange().getValues();
-          const lastCol = sheet.getLastColumn();
-
-          for (let r = 1; r < data.length; r++) {
-            if (String(data[r][0] || '').trim() === String(reportId).trim()) {
-              sheet.getRange(r + 1, lastCol).setValue(newStatus);
-              Logger.log(`SpreadsheetRepository: Updated Report_ID ${reportId} status to ${newStatus} in sheet ${form.sheetId} (${sheet.getName()})`);
-              return {
-                success: true,
-                reportId: reportId,
-                sheet: sheet.getName(),
-                updatedStatus: newStatus
-              };
-            }
+        for (let r = 1; r < data.length; r++) {
+          if (String(data[r][0] || '').trim() === String(reportId).trim()) {
+            sheet.getRange(r + 1, lastCol).setValue(newStatus);
+            Logger.log(`SpreadsheetRepository: Updated Report_ID ${reportId} status to ${newStatus} in sheet tab ${sheet.getName()}`);
+            return {
+              success: true,
+              reportId: reportId,
+              sheet: sheet.getName(),
+              updatedStatus: newStatus
+            };
           }
         }
-      } catch (err) {
-        Logger.log(`SpreadsheetRepository Notice: Error updating review status for form ${form.id}: ${err.toString()}`);
       }
+    } catch (err) {
+      Logger.log(`SpreadsheetRepository Notice: Error updating review status: ${err.toString()}`);
     }
 
-    return { success: false, reportId: reportId, error: 'Report_ID tidak ditemukan di spreadsheet manapun.' };
+    return { success: false, reportId: reportId, error: 'Report_ID tidak ditemukan di sheet.' };
   },
 
   /**
-   * Calculates dashboard summary statistics across all per-form dedicated spreadsheets.
+   * Calculates dashboard summary statistics across all form tabs inside integrated spreadsheet.
+   * Single file open performance optimization.
    * @returns {Object} Dashboard stats payload.
    */
   getDashboardStatsData: function() {
+    const mainSsId = ConfigRepository.getSpreadsheetId();
+    if (!mainSsId) return {};
+
+    const ss = SpreadsheetApp.openById(mainSsId);
     const forms = FormManagementService.getFormList();
+
     let totalReports = 0;
     let totalYieldKg = 0;
     let urgentCount = 0;
@@ -311,13 +405,8 @@ const SpreadsheetRepository = {
     const severityDist = { normal: 0, warning: 0, urgent: 0 };
 
     forms.forEach(f => {
-      if (!f.sheetId) return;
       try {
-        const ss = SpreadsheetApp.openById(f.sheetId);
-        const cleanTitle = (f.title || '').trim();
-        
-        // 1. Process primary response sheet
-        const rawSheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || ss.getSheetByName('Raw') || ss.getSheets()[0];
+        const rawSheet = FormManagementService.resolveFormTab_(ss, f);
         if (rawSheet && rawSheet.getLastRow() > 1) {
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
           values.forEach(row => {
@@ -329,7 +418,7 @@ const SpreadsheetRepository = {
               const yieldVal = parseFloat(row[6]) || 0;
               totalYieldKg += yieldVal;
 
-              const severity = String(row[8] || 'normal').toLowerCase();
+              const severity = String(row[9] || row[8] || 'normal').toLowerCase();
               if (severity === ReportSeverity.URGENT) {
                 urgentCount++;
                 severityDist.urgent++;
@@ -344,99 +433,107 @@ const SpreadsheetRepository = {
             }
           });
         }
-
-        // 2. Process Sensitive sheet if present
-        const sensitiveSheet = ss.getSheetByName('Sensitive');
-        if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-          const values = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
-          values.forEach(row => {
-            if (row[0] || row[1]) {
-              totalReports++;
-              sensitiveCount++;
-              const site = String(row[3] || '');
-              if (siteBreakdown.hasOwnProperty(site)) siteBreakdown[site]++;
-
-              const severity = String(row[7] || 'warning').toLowerCase();
-              if (severity === ReportSeverity.URGENT) {
-                urgentCount++;
-                severityDist.urgent++;
-              } else {
-                severityDist.warning++;
-              }
-            }
-          });
-        }
       } catch (err) {}
     });
+
+    // Process single shared Sensitive sheet
+    try {
+      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
+      if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
+        const values = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
+        values.forEach(row => {
+          if (row[0] || row[1]) {
+            totalReports++;
+            sensitiveCount++;
+            const site = String(row[3] || '');
+            if (siteBreakdown.hasOwnProperty(site)) siteBreakdown[site]++;
+
+            const severity = String(row[8] || row[7] || 'warning').toLowerCase();
+            if (severity === ReportSeverity.URGENT) {
+              urgentCount++;
+              severityDist.urgent++;
+            } else {
+              severityDist.warning++;
+            }
+          }
+        });
+      }
+    } catch (err) {}
 
     return {
       totalReports: totalReports,
       totalYieldKg: Math.round(totalYieldKg * 100) / 100,
+      totalYield: Math.round(totalYieldKg * 100) / 100,
       urgentCount: urgentCount,
       sensitiveCount: sensitiveCount,
+      normalCount: severityDist.normal,
+      warningCount: severityDist.warning,
       siteBreakdown: siteBreakdown,
+      siteCounts: [
+        siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
+        siteBreakdown['Site B — Peternakan & Kandang'] || 0,
+        siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
+        siteBreakdown['Site D — Logistik & Gudang'] || 0
+      ],
       yieldBreakdown: yieldBreakdown,
       severityDist: severityDist
     };
   },
 
   /**
-   * Archives closed reports older than retentionDays across all dedicated per-form spreadsheets.
+   * Archives closed reports older than retentionDays across all tabs in integrated spreadsheet.
+   * Single file open performance optimization.
    * @param {number} retentionDays 
    * @returns {{ success: boolean, totalArchived: number }}
    */
   archiveClosedReports: function(retentionDays = 30) {
-    const forms = FormManagementService.getFormList();
+    const mainSsId = ConfigRepository.getSpreadsheetId();
+    if (!mainSsId) return { success: false, totalArchived: 0 };
+
     const cutoffTime = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
     let totalArchived = 0;
 
-    forms.forEach(form => {
-      if (!form.sheetId) return;
+    try {
+      const ss = SpreadsheetApp.openById(mainSsId);
+      let archiveSheet = ss.getSheetByName(SHEET_NAMES.ARCHIVE_REPORTS);
+      if (!archiveSheet) {
+        archiveSheet = ss.insertSheet(SHEET_NAMES.ARCHIVE_REPORTS);
+        archiveSheet.getRange('A1:M1').setValues([[
+          'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
+          'Yield_Kg_Or_Sensitive', 'Issues', 'Foto_Lampiran', 'Severity', 'Rank', 'Category', 'Review_Status', 'Archived_At'
+        ]]);
+        archiveSheet.getRange('A1:M1').setFontWeight('bold').setBackground('#e2e8f0');
+        archiveSheet.setFrozenRows(1);
+      }
 
-      try {
-        const ss = SpreadsheetApp.openById(form.sheetId);
-        let archiveSheet = ss.getSheetByName(SHEET_NAMES.ARCHIVE_REPORTS);
-        if (!archiveSheet) {
-          archiveSheet = ss.insertSheet(SHEET_NAMES.ARCHIVE_REPORTS);
-          archiveSheet.getRange('A1:M1').setValues([[
-            'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-            'Yield_Kg_Or_Sensitive', 'Issues', 'Severity', 'Rank', 'Category', 'Review_Status', 'Archived_At'
-          ]]);
-          archiveSheet.getRange('A1:M1').setFontWeight('bold').setBackground('#e2e8f0');
-          archiveSheet.setFrozenRows(1);
-        }
+      const forms = FormManagementService.getFormList();
+      const sheetsToScan = forms.map(f => FormManagementService.resolveFormTab_(ss, f)).concat([ss.getSheetByName('Sensitive')]).filter(Boolean);
 
-        const cleanTitle = (form.title || '').trim();
-        const primarySheet = (cleanTitle ? ss.getSheetByName(cleanTitle) : null) || ss.getSheetByName('Raw') || ss.getSheets()[0];
-        const sensitiveSheet = ss.getSheetByName('Sensitive');
+      sheetsToScan.forEach(sheet => {
+        if (!sheet || sheet.getLastRow() <= 1) return;
 
-        const sheetsToScan = [primarySheet, sensitiveSheet].filter(Boolean);
-        sheetsToScan.forEach(sheet => {
-          if (!sheet || sheet.getLastRow() <= 1) return;
+        const values = sheet.getDataRange().getValues();
+        const lastCol = sheet.getLastColumn();
 
-          const values = sheet.getDataRange().getValues();
-          const lastCol = sheet.getLastColumn();
+        for (let r = values.length - 1; r >= 1; r--) {
+          const row = values[r];
+          const status = String(row[lastCol - 1] || '').toLowerCase().trim();
+          const dateVal = row[4] || row[1];
+          const rowTime = dateVal ? new Date(dateVal).getTime() : 0;
 
-          for (let r = values.length - 1; r >= 1; r--) {
-            const row = values[r];
-            const status = String(row[lastCol - 1] || '').toLowerCase().trim();
-            const dateVal = row[4] || row[1];
-            const rowTime = dateVal ? new Date(dateVal).getTime() : 0;
-
-            if (status === 'closed' || status === 'ditutup' || status === 'reviewed') {
-              if (rowTime && rowTime < cutoffTime) {
-                const archiveRowData = row.concat([formatDate(new Date())]);
-                archiveSheet.appendRow(archiveRowData);
-                sheet.deleteRow(r + 1);
-                totalArchived++;
-              }
+          if (status === 'closed' || status === 'ditutup' || status === 'reviewed') {
+            if (rowTime && rowTime < cutoffTime) {
+              const archiveRowData = row.concat([formatDate(new Date())]);
+              archiveSheet.appendRow(archiveRowData);
+              sheet.deleteRow(r + 1);
+              totalArchived++;
             }
           }
-        });
-      } catch (err) {
-        Logger.log(`SpreadsheetRepository Error archiving sheet ${form.sheetId}: ${err.toString()}`);
-      }
-    });
+        }
+      });
+    } catch (err) {
+      Logger.log(`SpreadsheetRepository Error archiving closed reports: ${err.toString()}`);
+    }
 
     Logger.log(`SpreadsheetRepository: Archived ${totalArchived} closed reports.`);
     return { success: true, totalArchived: totalArchived };
