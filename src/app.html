@@ -130,9 +130,9 @@ function runServer(fnName, ...args) {
       const timeoutTimer = setTimeout(() => {
         if (!isSettled) {
           isSettled = true;
-          reject(new Error(`Server RPC '${fnName}' timed out after 8s`));
+          reject(new Error(`Server RPC '${fnName}' timed out after 25s`));
         }
-      }, 8000);
+      }, 25000);
 
       google.script.run
         .withSuccessHandler((res) => {

@@ -23,27 +23,58 @@ function seedMockData() {
   const todayStr = formatDate(now);
   const dateOnly = todayStr.split(' ')[0];
 
-  // Seed Operational Reports (26 columns schema)
+  // Seed Realistic Multi-Scenario Operational Reports (26 columns schema)
+  const past18Days = new Date(Date.now() - 18 * 24 * 60 * 60 * 1000);
+  const past10Days = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+  const past5Days = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+
   const mockRows = [
+    // 1. Root Activity: Agro Kebun A
     [
-      Utilities.getUuid(), 'AGR-KEBUNA-20260807-01', '', todayStr, 'Budi Santoso', 
+      Utilities.getUuid(), 'AGR-KEBUNA-202608-01', '', formatDate(past5Days), 'Budi Santoso', 
       'Agro (Pertanian/Perkebunan)', 'Kebun A - Blok 3', 'Penanaman Bibit Sawit', 'Target 500 bibit', 
-      12.5, 500, dateOnly, '', '2026-11-15', '2026-08-07', 1500, '2026-08-07', 15000, 100, 1500000, 
+      12.5, 500, formatDate(past5Days).split(' ')[0], '', '2026-11-15', '', 0, '', 0, 0, 0, 
       'Pompa irigasi tersumbat', 'Pembersihan filter irigasi secara manual', '', 
-      ReportSeverity.WARNING, 'layu, terkontaminasi', ReviewStatus.UNREVIEWED
+      ReportSeverity.WARNING, 'irigasi, tersumbat', ReviewStatus.UNREVIEWED
     ],
+    // 2. Continuation Report of Activity 1 (Matches Kode_Kegiatan_Ref -> folds into AGR-KEBUNA-202608-01)
     [
-      Utilities.getUuid(), 'TRN-KANDB-20260807-02', '', todayStr, 'Siti Rahma', 
-      'Ternak (Peternakan)', 'Kandang Ayam B-2', 'Pemberian Pakan & Cek Kesehatan', 'Pakan 1.2 Ton', 
-      0, 2500, '', dateOnly, '2026-09-01', '', 0, '', 0, 0, 0, 
-      'Suhu kandang naik 3 derajat', 'Penambahan kipas blower cadangan', '', 
+      Utilities.getUuid(), 'AGR-KEBUNA-202608-01-C1', 'AGR-KEBUNA-202608-01', todayStr, 'Budi Santoso', 
+      'Agro (Pertanian/Perkebunan)', 'Kebun A - Blok 3', 'Pemupukan Lanjutan Sawit', 'Aplikasi 200 kg NPK', 
+      12.5, 500, '', '', '2026-11-15', dateOnly, 1200, dateOnly, 15000, 80, 1200000, 
+      '', '', '', 
       ReportSeverity.NORMAL, '', ReviewStatus.UNREVIEWED
     ],
+    // 3. Urgent Overdue Harvest (>15 days late, no Tgl_Panen)
     [
-      Utilities.getUuid(), 'IKN-KOLAMC-20260807-03', '', todayStr, 'Ahmad Hidayat', 
-      'Ikan (Perikanan)', 'Kolam Lele C-1', 'Panen Parsial & Penjualan', 'Panen 800 kg', 
-      2.0, 10000, '', dateOnly, '2026-08-07', '2026-08-07', 800, '2026-08-07', 22000, 800, 17600000, 
-      'Permintaan tengkulak tinggi', 'Koordinasi armada penjemputan', '', 
+      Utilities.getUuid(), 'TRN-KANDB-202608-02', '', formatDate(past18Days), 'Siti Rahma', 
+      'Ternak (Peternakan)', 'Kandang Ayam B-2', 'Pembesaran Broiler Periode 4', 'Target 2500 ekor', 
+      0, 2500, '', formatDate(past18Days).split(' ')[0], formatDate(past18Days).split(' ')[0], '', 0, '', 0, 0, 0, 
+      'Pakan formula lambat datang', 'Pemberian pakan alternatif darurat', '', 
+      ReportSeverity.WARNING, 'pakan, lambat', ReviewStatus.UNREVIEWED
+    ],
+    // 4. Open Obstacle with NO Upaya (Urgent attention item)
+    [
+      Utilities.getUuid(), 'IKN-KOLAMC-202608-03', '', todayStr, 'Ahmad Hidayat', 
+      'Ikan (Perikanan)', 'Kolam Lele C-1', 'Pemeliharaan Benih Lele', 'Tebar 10.000 benih', 
+      2.0, 10000, '', dateOnly, '2026-10-01', '', 0, '', 0, 0, 0, 
+      'Kualitas air kolam keruh & pH drop drastis', '', '', 
+      ReportSeverity.URGENT, 'mati masal, terkontaminasi', ReviewStatus.UNREVIEWED
+    ],
+    // 5. Warning Overdue Harvest (8-14 days late, no Tgl_Panen)
+    [
+      Utilities.getUuid(), 'AGR-SITEC-202608-04', '', formatDate(past10Days), 'Dedi Kurniawan', 
+      'Agro (Pertanian/Perkebunan)', 'Lahan Jagung C-4', 'Budidaya Jagung Hibrida', 'Panen 5 Ton', 
+      4.0, 15000, formatDate(past10Days).split(' ')[0], '', formatDate(past10Days).split(' ')[0], '', 0, '', 0, 0, 0, 
+      '', '', '', 
+      ReportSeverity.NORMAL, '', ReviewStatus.UNREVIEWED
+    ],
+    // 6. Completed Harvest & High Sales (Perikanan)
+    [
+      Utilities.getUuid(), 'IKN-TAMBAKD-202608-05', '', todayStr, 'Eko Prasetyo', 
+      'Ikan (Perikanan)', 'Tambak Udang D-1', 'Panen Total & Penjualan', 'Panen 850 kg Vaname', 
+      1.5, 50000, '', dateOnly, dateOnly, dateOnly, 850, dateOnly, 85000, 850, 72250000, 
+      '', '', '', 
       ReportSeverity.NORMAL, '', ReviewStatus.CLOSED
     ]
   ];
@@ -52,7 +83,7 @@ function seedMockData() {
     mainSheet.appendRow(row);
     SpreadsheetRepository.applyRowHighlighting(mainSheet, mainSheet.getLastRow(), row[23]);
   });
-  Logger.log(`Appended ${mockRows.length} rows to ${mainSheet.getName()}.`);
+  Logger.log(`Appended ${mockRows.length} sample operational rows to ${mainSheet.getName()}.`);
 
   Logger.log('=== MOCK DATA SEEDING COMPLETE ===');
 }

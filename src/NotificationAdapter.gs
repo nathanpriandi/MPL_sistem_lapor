@@ -84,34 +84,64 @@ const NotificationAdapter = {
 
   /**
    * Sends Weekly Executive Summary email to Manager.
-   * @param {Array} summaryStats 
-   * @param {string} weekLabel 
-   * @param {string} spreadsheetUrl 
+   * Formats comprehensive multi-division metrics, revenue, overdue harvests, and open obstacles.
+   * @param {Object} stats - Dashboard stats object from SpreadsheetRepository.getDashboardStatsData()
+   * @param {string} periodLabel - Period label string (e.g., "Agustus 2026")
+   * @param {string} [webAppUrl] - Web App access URL
    */
-  sendWeeklyManagerDigest: function(summaryStats, weekLabel, spreadsheetUrl) {
+  sendWeeklyManagerDigest: function(stats, periodLabel, webAppUrl) {
     const managerEmail = ConfigRepository.getManagerEmail();
-    const subject = `📈 [Weekly Executive Summary] Laporan Operasional Minggu ${weekLabel}`;
+    const period = periodLabel || formatDate(new Date());
+    const subject = `📈 [Executive Digest] Rekapitulasi Operasional Agribisnis — ${period}`;
     
-    let body = 
-      `RINGKASAN EKSEKUTIF MINGGUAN OPERASIONAL AGRIBISNIS\n` +
-      `Minggu: ${weekLabel}\n` +
-      `--------------------------------------------------\n\n` +
-      `REKAPITULASI DUA MINGGU TERAKHIR / SITE:\n\n`;
+    const divAgro = (stats && stats.divisiBreakdown && stats.divisiBreakdown['Agro (Pertanian/Perkebunan)']) || { panenVolume: 0, activityCount: 0, nilaiPenjualanRp: 0 };
+    const divTernak = (stats && stats.divisiBreakdown && stats.divisiBreakdown['Ternak (Peternakan)']) || { panenVolume: 0, activityCount: 0, nilaiPenjualanRp: 0 };
+    const divIkan = (stats && stats.divisiBreakdown && stats.divisiBreakdown['Ikan (Perikanan)']) || { panenVolume: 0, activityCount: 0, nilaiPenjualanRp: 0 };
 
-    summaryStats.forEach(stat => {
-      body += 
-        `📍 Site: ${stat.site}\n` +
-        `   - Total Laporan Harian: ${stat.dailyCount}\n` +
-        `   - Total Laporan Catatan Umum: ${stat.generalCount}\n` +
-        `   - Total Insiden Urgent: ${stat.urgentCount}\n` +
-        `   - Total Peringatan Warning: ${stat.warningCount}\n` +
-        `   - Total Hasil Panen / Produksi: ${stat.totalYield.toLocaleString('id-ID')} kg\n\n`;
-    });
+    const distinctActivities = (stats && stats.distinctActivityCount) || 0;
+    const totalReports = (stats && stats.totalReports) || 0;
+    const totalSales = (stats && stats.totalNilaiPenjualanRp) || 0;
+    const salesTrend = (stats && stats.salesTrendPercent !== null && stats.salesTrendPercent !== undefined) 
+      ? `${stats.salesTrendPercent > 0 ? '+' : ''}${stats.salesTrendPercent}% vs bulan lalu` 
+      : 'Bulan berjalan';
+    const activeWaiting = (stats && stats.totalActiveKegiatan) || 0;
+    const overdueTotal = (stats && stats.overdueCounts && stats.overdueCounts.total) || 0;
+    const overdueUrgent = (stats && stats.overdueCounts && stats.overdueCounts.urgent) || 0;
+    const openObstacles = (stats && stats.openObstaclesCount) || 0;
+    const unansweredObstacles = (stats && stats.unansweredObstaclesCount) || 0;
+
+    let body = 
+      `RINGKASAN EKSEKUTIF OPERASIONAL AGRIBISNIS\n` +
+      `Periode: ${period}\n` +
+      `==================================================\n\n` +
+      `📊 1. METRIK UTAMA OPERASIONAL:\n` +
+      `   - Total Aktivitas Berjalan : ${distinctActivities} kegiatan (${totalReports} total laporan masuk)\n` +
+      `   - Total Nilai Penjualan    : Rp ${totalSales.toLocaleString('id-ID')} (${salesTrend})\n` +
+      `   - Kegiatan Menunggu Panen  : ${activeWaiting} aktivitas aktif\n\n` +
+      `🌱 2. HASIL PANEN & PERFORMA PER DIVISI:\n` +
+      `   - Agro (Pertanian)  : ${divAgro.panenVolume.toLocaleString('id-ID')} Kg | ${divAgro.activityCount} aktivitas | Rp ${divAgro.nilaiPenjualanRp.toLocaleString('id-ID')}\n` +
+      `   - Ternak (Kandang)  : ${divTernak.panenVolume.toLocaleString('id-ID')} Ekor/Unit | ${divTernak.activityCount} aktivitas | Rp ${divTernak.nilaiPenjualanRp.toLocaleString('id-ID')}\n` +
+      `   - Ikan (Perikanan)  : ${divIkan.panenVolume.toLocaleString('id-ID')} Kg | ${divIkan.activityCount} aktivitas | Rp ${divIkan.nilaiPenjualanRp.toLocaleString('id-ID')}\n\n` +
+      `⚠️ 3. STATUS PERHATIAN & KENDALA:\n` +
+      `   - Panen Terlambat   : ${overdueTotal} kegiatan (${overdueUrgent} sangat mendesak >14 hari)\n` +
+      `   - Kendala Terbuka   : ${openObstacles} kendala dilaporkan (${unansweredObstacles} belum ada upaya)\n\n`;
+
+    const attentionItems = (stats && stats.attentionList) || [];
+    if (attentionItems.length > 0) {
+      body += `🚨 DAFTAR PERHATIAN PRIORITAS (TOP ${Math.min(5, attentionItems.length)}):\n`;
+      attentionItems.slice(0, 5).forEach((item, idx) => {
+        const sevTag = item.severity === 'urgent' ? '[URGENT]' : '[WARNING]';
+        body += `   ${idx + 1}. ${sevTag} ${item.badgeLabel || item.title}\n` +
+                `      Lokasi: ${item.lokasi} | PIC: ${item.pic} | Divisi: ${item.divisi}\n` +
+                `      Detail: ${item.details}\n`;
+      });
+      body += '\n';
+    }
 
     body += 
-      `--------------------------------------------------\n` +
-      `Dashboard Looker Studio dapat diakses untuk visualisasi interaktif.\n` +
-      `Link Spreadsheet Central: ${spreadsheetUrl}`;
+      `==================================================\n` +
+      `Buka Dashboard Manajer untuk visualisasi interaktif dan grafik tren mingguan:\n` +
+      `${webAppUrl || ConfigRepository.getPublicWebAppUrl() || 'Aplikasi Sistem Pelaporan Digital'}`;
 
     try {
       MailApp.sendEmail({ to: managerEmail, subject: subject, body: body });

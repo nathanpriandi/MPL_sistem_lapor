@@ -72,85 +72,27 @@ const AdminService = {
   },
 
   /**
-   * Aggregates weekly data across all dedicated per-form spreadsheets.
+   * Aggregates weekly trend data live across integrated spreadsheet tabs.
+   * Produces divisional sales and harvest volume broken down by weeks.
    * @param {Spreadsheet} [ss] 
-   * @returns {Array} List of WeeklyStat objects.
+   * @returns {Array} List of weekly trend buckets.
    */
   aggregateWeeklyData: function(ss) {
-    const referenceDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    const weekLabel = getISOWeekLabel(referenceDate);
-    const sites = [
-      'Site A — Kebun & Lahan Pertanian', 
-      'Site B — Peternakan & Kandang', 
-      'Site C — Pabrik Pengolahan & Pakan', 
-      'Site D — Logistik & Gudang'
-    ];
-
-    const siteStatsMap = {};
-    sites.forEach(site => {
-      siteStatsMap[site] = WeeklyStat(site);
-    });
-
-    function isRowInCurrentWeek(dateVal) {
-      if (!dateVal) return false;
-      try {
-        return getISOWeekLabel(new Date(dateVal)) === weekLabel;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    const forms = FormManagementService.getFormList();
-    forms.forEach(f => {
-      if (!f.sheetId) return;
-      try {
-        const targetSs = SpreadsheetApp.openById(f.sheetId);
-        
-        // Scan Raw sheet
-        const rawSheet = targetSs.getSheetByName('Raw') || targetSs.getSheets()[0];
-        if (rawSheet && rawSheet.getLastRow() > 1) {
-          const values = rawSheet.getDataRange().getValues().slice(1);
-          values.forEach(row => {
-            const reportDate = row[4] || row[1];
-            if (!isRowInCurrentWeek(reportDate)) return;
-
-            const site = row[3];
-            if (siteStatsMap[site]) {
-              if ((f.type || '').toLowerCase() === 'harian') {
-                siteStatsMap[site].dailyCount++;
-                siteStatsMap[site].totalYield += parseFloat(row[6]) || 0;
-              } else {
-                siteStatsMap[site].generalCount++;
-              }
-              const severity = String(row[8] || '').toLowerCase();
-              if (severity === ReportSeverity.URGENT) siteStatsMap[site].urgentCount++;
-              else if (severity === ReportSeverity.WARNING) siteStatsMap[site].warningCount++;
-            }
-          });
-        }
-      } catch (err) {
-        Logger.log(`AdminService Warning: Unable to aggregate weekly data for sheet ${f.sheetId}: ${err.toString()}`);
-      }
-    });
-
-    const resultStats = [];
-    sites.forEach(site => {
-      resultStats.push(siteStatsMap[site]);
-    });
-
-    return resultStats;
+    const stats = SpreadsheetRepository.getDashboardStatsData();
+    return stats.weeklyTrend || [];
   },
 
   /**
    * Weekly Manager Digest scheduled trigger action (Mondays 08:00 WIB).
+   * Gathers live monthly/weekly operational metrics and dispatches executive email.
    */
   sendWeeklyManagerDigest: function() {
     Logger.log('AdminService: Running sendWeeklyManagerDigest...');
-    const summaryStats = this.aggregateWeeklyData();
-    const weekLabel = getISOWeekLabel(new Date());
+    const stats = SpreadsheetRepository.getDashboardStatsData();
+    const periodLabel = stats.currentPeriodLabel || getISOWeekLabel(new Date());
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
 
-    NotificationAdapter.sendWeeklyManagerDigest(summaryStats, weekLabel, publicWebAppUrl);
+    NotificationAdapter.sendWeeklyManagerDigest(stats, periodLabel, publicWebAppUrl);
   },
 
   /**

@@ -46,11 +46,42 @@ const FormManagementService = {
   },
 
   /**
+   * Lightweight form list reader without Spreadsheet/FormApp I/O overhead.
+   * Directly parses stored JSON registry — ideal for high-frequency data reads.
+   * @returns {Array<Object>}
+   */
+  getRegisteredFormsRaw_: function() {
+    let forms = [];
+    try {
+      const rawJson = ConfigRepository.getProperty(this.REGISTERED_FORMS_KEY);
+      if (rawJson) forms = JSON.parse(rawJson);
+    } catch (e) {
+      forms = [];
+    }
+    if (!Array.isArray(forms) || forms.length === 0) {
+      const mainFormId = ConfigRepository.getMainFormId();
+      return [{
+        id: mainFormId || 'DEFAULT_MAIN_FORM',
+        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        type: 'operasional',
+        isDefault: true,
+        isDefaultMain: true
+      }];
+    }
+    return forms;
+  },
+
+  /**
    * Retrieves all registered forms metadata array.
    * Auto-provisions tabs in integrated spreadsheet if missing, and enriches metadata.
+   * @param {Object} [options] - { lightweight: boolean }
    * @returns {Array<Object>} List of form objects.
    */
-  getFormList: function() {
+  getFormList: function(options = {}) {
+    if (options && options.lightweight) {
+      return this.getRegisteredFormsRaw_();
+    }
+
     let forms = [];
     let isInitialRun = false;
     try {
@@ -109,6 +140,16 @@ const FormManagementService = {
       } catch (e) {}
     }
 
+    // Open spreadsheet ONCE for all forms to avoid repeated I/O overhead
+    let ss = null;
+    if (mainSsId) {
+      try {
+        ss = SpreadsheetApp.openById(mainSsId);
+      } catch (err) {
+        Logger.log(`FormManagementService Notice: Could not open spreadsheet ${mainSsId}: ${err.toString()}`);
+      }
+    }
+
     // Auto-provision tab in integrated spreadsheet for forms that lack tabGid
     let registryNeedsSaving = false;
     forms.forEach(f => {
@@ -116,7 +157,7 @@ const FormManagementService = {
 
       if (f.tabGid === undefined || f.tabGid === null) {
         try {
-          const tabStorage = this.provisionFormTab_(f.title, f.id);
+          const tabStorage = this.provisionFormTab_(f.title, f.id, ss);
           f.tabGid = tabStorage.tabGid;
           registryNeedsSaving = true;
         } catch (e) {
@@ -149,7 +190,7 @@ const FormManagementService = {
     // Enrich metadata with live attributes, direct tab GID URLs, & sheet row counts
     return forms.map(f => {
       try {
-        return this.enrichFormMetadata_(f);
+        return this.enrichFormMetadata_(f, ss);
       } catch (err) {
         return f;
       }
@@ -162,13 +203,14 @@ const FormManagementService = {
    * @private
    * @param {string} title 
    * @param {string} formId 
+   * @param {Spreadsheet} [ssInstance]
    * @returns {{ sheetId: string, tabGid: number }}
    */
-  provisionFormTab_: function(title, formId) {
+  provisionFormTab_: function(title, formId, ssInstance) {
     const mainSsId = ConfigRepository.getSpreadsheetId();
     if (!mainSsId) throw new Error('SPREADSHEET_ID tidak dikonfigurasi.');
 
-    const ss = SpreadsheetApp.openById(mainSsId);
+    const ss = ssInstance || SpreadsheetApp.openById(mainSsId);
     const cleanTitle = (title || 'Form Laporan').trim();
     const shortId = String(formId || Date.now()).substring(0, 8);
 
@@ -253,9 +295,10 @@ const FormManagementService = {
    * Automatically renames response tab to match form title.
    * @private
    * @param {Object} formRecord 
+   * @param {Spreadsheet} [ssInstance]
    * @returns {Object} Enriched form object.
    */
-  enrichFormMetadata_: function(formRecord) {
+  enrichFormMetadata_: function(formRecord, ssInstance) {
     if (!formRecord) return formRecord;
     const formId = formRecord.id;
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
@@ -269,7 +312,7 @@ const FormManagementService = {
 
     if (mainSsId) {
       try {
-        const ss = SpreadsheetApp.openById(mainSsId);
+        const ss = ssInstance || SpreadsheetApp.openById(mainSsId);
         const rawSheet = this.resolveFormTab_(ss, formRecord);
                        
         if (rawSheet) {
