@@ -62,8 +62,8 @@ The triage engine in `src/Automation.gs` categorizes incoming field reports into
 ## 4. Key Architecture & Policy Decisions
 
 - **Attachment Handling (Option A)**:
-  Forms do not enforce Google Login to keep friction zero for non-tech-savvy field staff. Photo evidence for general/incident reports is submitted via site WhatsApp directly to the operational admin referencing timestamp and Site location.
+  Forms do not enforce Google Login to keep friction zero for non-tech-savvy field staff. Photo evidence for operational reports can be attached directly via Web App or submitted to the operational admin.
 - **Sensitive Data Isolation**:
-  General reports with the **Informasi sensitif? / Contains sensitive info?** checkbox enabled are automatically removed from `General_Raw` and appended exclusively to `Sensitive_Restricted`.
-- **Looker Studio Integration**:
-  Looker Studio connects directly to the `Weekly_Summary` tab (which is aggregated automatically by the weekly trigger script).
+  Sensitive reports are routed exclusively to the restricted tab / access layer.
+- **Looker Studio & Analytics Integration**:
+  Looker Studio or external BI tools connect directly to the operational raw tab (`Laporan_Operasional_Raw`) for granular drill-downs, while executive metrics are computed in real-time by the Manager Web Dashboard and weekly email trigger.

@@ -192,7 +192,7 @@ nav {
   margin-bottom: var(--space-4);
 }
 
-label {
+label, .form-label {
   display: block;
   font-weight: 600;
   font-size: 0.9rem;
@@ -200,12 +200,13 @@ label {
   color: var(--text-primary);
 }
 
-label .required {
+label .required, .text-danger {
   color: var(--urgent);
   margin-left: 2px;
+  font-weight: 600;
 }
 
-.help-text {
+.help-text, .form-help {
   font-size: 0.825rem;
   color: var(--text-muted);
   margin-bottom: var(--space-2);
@@ -215,7 +216,8 @@ input[type="text"],
 input[type="number"],
 input[type="date"],
 select,
-textarea {
+textarea,
+.form-input {
   width: 100%;
   padding: 0.7rem 0.9rem;
   background: var(--bg-surface);
@@ -228,7 +230,7 @@ textarea {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus, select:focus, textarea:focus, .form-input:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-tint);
@@ -561,6 +563,19 @@ tr:hover td {
   gap: var(--space-2);
 }
 
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .form-row-2col {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
 /* Error Summary Banner */
 .error-summary {
   background: var(--urgent-tint);
@@ -597,6 +612,227 @@ tr:hover td {
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* Success Confirmation Card Component */
+.success-confirmation-card {
+  text-align: center;
+}
+
+.success-icon-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+}
+
+.success-card-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  text-align: center;
+}
+
+.success-card-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  text-align: center;
+  max-width: 460px;
+  margin: 0 auto var(--space-4);
+  line-height: 1.5;
+}
+
+.activity-code-callout {
+  background: var(--primary-tint);
+  border: 1px solid var(--primary);   /* 1px hairline border per design standards */
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  text-align: center;
+  max-width: 420px;
+  margin: var(--space-4) auto var(--space-5);
+}
+
+.activity-code-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.activity-code-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 1px;
+  margin: var(--space-2) 0;
+  font-family: monospace;
+}
+
+.success-card-actions {
+  text-align: center;
+  margin-top: var(--space-4);
+}
+
+.btn-success-reset {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: auto;
+  padding: 0.7rem 1.5rem;
+}
+
+/* Public & Dynamic Form Components */
+.public-form-body {
+  background: var(--bg-app);
+  min-height: 100vh;
+}
+
+.public-form-container {
+  max-width: 640px;
+  margin: var(--space-5) auto;
+  padding: 0 var(--space-4);
+}
+
+.public-header {
+  text-align: center;
+  margin-bottom: var(--space-5);
+}
+
+.header-badge {
+  display: inline-block;
+  background: var(--primary-tint);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.header-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.form-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-actions-sticky {
+  margin-top: var(--space-5);
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 90;
+  background: var(--bg-surface);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-submit-dynamic {
+  min-height: 48px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.dynamic-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.dynamic-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.dynamic-checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.photo-upload-icon {
+  margin-bottom: var(--space-1);
+}
+
+.photo-upload-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.photo-upload-hint {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.photo-preview-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.photo-preview-filename {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photo-remove-btn {
+  align-self: flex-start;
+}
+
+.photo-preview-box {
+  margin-top: var(--space-3);
+  text-align: center;
+}
+
+.photo-preview-image {
+  max-height: 180px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.dynamic-error-list {
+  margin: var(--space-1) 0 0 var(--space-5);
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.dynamic-error-list li {
+  margin-bottom: var(--space-1);
 }
 
 /* Secondary / Demoted Nav Links for Internal Mode */
@@ -1759,7 +1995,7 @@ thead.table-scrolled th {
 }
 
 .drilldown-banner {
-  background: linear-gradient(135deg, #15803D 0%, #166534 100%);
+  background: var(--primary);
   color: #FFFFFF;
   border-radius: var(--radius-md);
   padding: 1.25rem 1.5rem;

@@ -16,7 +16,7 @@ function sendDailyDigest() {
 
 /**
  * Weekly Manager Digest — Scheduled every Monday at 08:00 WIB.
- * Aggregates summary into Weekly_Summary tab and sends email digest to Manager.
+ * Gathers live operational metrics and sends weekly executive email digest to Manager.
  */
 function sendWeeklyManagerDigest() {
   AdminService.sendWeeklyManagerDigest();

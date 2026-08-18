@@ -14,9 +14,8 @@ const SpreadsheetRepository = {
    * Sets up header rows and formatting for all sheets during system setup.
    * @param {Sheet} mainSheet 
    * @param {Sheet} adminQueueSheet 
-   * @param {Sheet} summarySheet 
    */
-  setupSheetHeaders: function(mainSheet, adminQueueSheet, summarySheet) {
+  setupSheetHeaders: function(mainSheet, adminQueueSheet) {
     // 1. Operational Raw Sheet (26 columns schema)
     if (mainSheet) {
       const opHeaders = [
@@ -40,17 +39,6 @@ const SpreadsheetRepository = {
       adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]);
       adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
       adminQueueSheet.setFrozenRows(1);
-    }
-
-    // 3. Weekly Summary Sheet
-    if (summarySheet) {
-      const summaryHeaders = [
-        'Week_Label', 'Site_Location', 'Daily_Reports_Count', 'General_Reports_Count', 
-        'Total_Yield_Kg', 'Urgent_Incidents_Count', 'Warning_Reports_Count', 'Last_Updated'
-      ];
-      summarySheet.getRange(1, 1, 1, summaryHeaders.length).setValues([summaryHeaders]);
-      summarySheet.getRange(1, 1, 1, summaryHeaders.length).setFontWeight('bold').setBackground('#e2e8f0');
-      summarySheet.setFrozenRows(1);
     }
   },
 

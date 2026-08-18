@@ -9,7 +9,6 @@
 const SHEET_NAMES = Object.freeze({
   OPERATIONAL_RAW: 'Laporan_Operasional_Raw',
   ADMIN_QUEUE: 'Admin_Queue',
-  WEEKLY_SUMMARY: 'Weekly_Summary',
   ARCHIVE_REPORTS: 'Archive_Reports'
 });
 
@@ -46,7 +45,6 @@ function setupReportingSystem() {
   mainSheet.setName(SHEET_NAMES.OPERATIONAL_RAW);
 
   const adminQueueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE) || ss.insertSheet(SHEET_NAMES.ADMIN_QUEUE);
-  const summarySheet = ss.getSheetByName(SHEET_NAMES.WEEKLY_SUMMARY) || ss.insertSheet(SHEET_NAMES.WEEKLY_SUMMARY);
 
   // Remove default "Sheet1" if present
   const defaultSheet = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembur1') || ss.getSheetByName('Sheet 1');
@@ -55,7 +53,7 @@ function setupReportingSystem() {
   }
 
   // 4. Define and Set Headers via SpreadsheetRepository
-  setupSheetHeaders(mainSheet, adminQueueSheet, summarySheet);
+  setupSheetHeaders(mainSheet, adminQueueSheet);
 
   // 5. Store Properties via ConfigRepository
   ConfigRepository.setProperties({
@@ -73,8 +71,8 @@ function setupReportingSystem() {
 /**
  * Configure Headers and Formulas for all Tabs
  */
-function setupSheetHeaders(mainSheet, adminQueueSheet, summarySheet) {
-  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, summarySheet);
+function setupSheetHeaders(mainSheet, adminQueueSheet) {
+  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet);
 }
 
 /**
