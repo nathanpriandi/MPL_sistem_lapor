@@ -835,6 +835,70 @@ tr:hover td {
   margin-bottom: var(--space-1);
 }
 
+/* Privacy Consent & PDP Notice */
+.privacy-consent-note {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  line-height: 1.45;
+}
+
+.privacy-consent-note a {
+  color: var(--primary);
+  text-decoration: underline;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.privacy-consent-note a:hover {
+  color: var(--primary-hover);
+}
+
+/* Skeleton Loading Shimmer & Layout Placeholders */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.skeleton-box {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+.skeleton-table-cell {
+  height: 14px;
+  background: var(--border-color);
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.skeleton-form-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
 /* Secondary / Demoted Nav Links for Internal Mode */
 .nav-link-secondary {
   color: var(--text-muted);

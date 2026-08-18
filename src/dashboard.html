@@ -100,15 +100,24 @@
             <span class="metric-label">Hasil Panen per Divisi</span>
             <div class="kpi-division-grid">
               <div class="kpi-division-item" title="Divisi Agro (Pertanian/Perkebunan)">
-                <span class="kpi-division-name">Agro</span>
+                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
+                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+                  <span>Agro</span>
+                </span>
                 <span class="kpi-division-val" id="kpiPanenAgro">0 Kg</span>
               </div>
               <div class="kpi-division-item" title="Divisi Ternak (Peternakan)">
-                <span class="kpi-division-name">Ternak</span>
+                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
+                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
+                  <span>Ternak</span>
+                </span>
                 <span class="kpi-division-val" id="kpiPanenTernak">0 Unit</span>
               </div>
               <div class="kpi-division-item" title="Divisi Ikan (Perikanan)">
-                <span class="kpi-division-name">Ikan</span>
+                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
+                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
+                  <span>Ikan</span>
+                </span>
                 <span class="kpi-division-val" id="kpiPanenIkan">0 Kg</span>
               </div>
             </div>
@@ -174,7 +183,22 @@
                 </thead>
                 <tbody id="divisiTableBody">
                   <tr>
-                    <td colspan="4" style="text-align: center; color: var(--text-muted);">Memuat data divisi...</td>
+                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
                   </tr>
                 </tbody>
               </table>
@@ -192,9 +216,15 @@
             </div>
 
             <div id="attentionListContainer" class="attention-container">
-              <div class="attention-empty">
-                <svg class="svg-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 0.5rem; opacity: 0.5;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <p style="margin: 0; font-size: 0.875rem; font-weight: 500;">Memuat daftar perhatian...</p>
+              <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+                <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+                <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+                <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+              </div>
+              <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+                <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+                <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+                <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
               </div>
             </div>
           </div>
@@ -419,19 +449,37 @@
 
       tbody.innerHTML = `
         <tr>
-          <td><strong style="color: #15803D;">🌱 Agro</strong> <span style="font-size: 0.75rem; color: var(--text-muted);">(Pertanian)</span></td>
+          <td>
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+              <strong style="color: #15803D;">Agro</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">(Pertanian)</span>
+            </div>
+          </td>
           <td style="text-align: center; font-weight: 600;">${agro.activityCount || 0}</td>
           <td style="text-align: right; font-weight: 600;">${(agro.panenVolume || 0).toLocaleString('id-ID')} Kg</td>
           <td style="text-align: right; font-weight: 600;">Rp ${(agro.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
         </tr>
         <tr>
-          <td><strong style="color: #D97706;">🐄 Ternak</strong> <span style="font-size: 0.75rem; color: var(--text-muted);">(Peternakan)</span></td>
+          <td>
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
+              <strong style="color: #D97706;">Ternak</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">(Peternakan)</span>
+            </div>
+          </td>
           <td style="text-align: center; font-weight: 600;">${ternak.activityCount || 0}</td>
           <td style="text-align: right; font-weight: 600;">${(ternak.panenVolume || 0).toLocaleString('id-ID')} Unit</td>
           <td style="text-align: right; font-weight: 600;">Rp ${(ternak.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
         </tr>
         <tr>
-          <td><strong style="color: #2563EB;">🐟 Ikan</strong> <span style="font-size: 0.75rem; color: var(--text-muted);">(Perikanan)</span></td>
+          <td>
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
+              <strong style="color: #2563EB;">Ikan</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">(Perikanan)</span>
+            </div>
+          </td>
           <td style="text-align: center; font-weight: 600;">${ikan.activityCount || 0}</td>
           <td style="text-align: right; font-weight: 600;">${(ikan.panenVolume || 0).toLocaleString('id-ID')} Kg</td>
           <td style="text-align: right; font-weight: 600;">Rp ${(ikan.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>

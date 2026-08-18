@@ -164,6 +164,10 @@
           </div>
         </div>
 
+        <p class="privacy-consent-note">
+          Data pelaporan diproses secara aman untuk operasional perusahaan sesuai <a href="javascript:void(0)" onclick="openPrivacyModal()">Ketentuan Privasi &amp; Pelindungan Data (UU PDP)</a>.
+        </p>
+
         <button type="submit" class="btn btn-primary">Kirim Laporan Operasional</button>
       </form>
     </div>
@@ -194,10 +198,54 @@
     </div>
   </div>
 
+  <!-- Modal: Pemberitahuan Privasi & Pelindungan Data (UU PDP) -->
+  <div class="modal-overlay" id="privacyNoticeModal" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Pemberitahuan Privasi Data (UU PDP)</h3>
+        <button type="button" class="modal-close-btn" onclick="closePrivacyModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; display: flex; flex-direction: column; gap: 0.85rem; max-height: 65vh; overflow-y: auto; padding: 1.25rem;">
+        <p style="margin: 0; font-size: 0.825rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          Sesuai dengan Undang-Undang Republik Indonesia Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP).
+        </p>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">1. Data yang Dikumpulkan</strong>
+          <p style="margin: 0;">Sistem mengumpulkan Nama PIC / Pelapor, Lokasi Kegiatan, rincian aktivitas operasional, hasil panen, transaksi penjualan, dan foto bukti lapangan.</p>
+        </div>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">2. Tujuan Pengolahan Data</strong>
+          <p style="margin: 0;">Data digunakan semata-mata untuk pemantauan produktivitas harian, penanganan kendala atau insiden di lapangan, dan evaluasi manajemen internal.</p>
+        </div>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">3. Pelindungan Data Sensitif</strong>
+          <p style="margin: 0;">Laporan yang berisi informasi sensitif diisolasi secara otomatis dan hanya dapat diakses oleh Admin Operasional Terbatas dan Manajemen.</p>
+        </div>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">4. Masa Retensi &amp; Pengarsipan</strong>
+          <p style="margin: 0;">Laporan yang telah selesai diverifikasi dipindahkan ke arsip setelah periode retensi 90 hari sesuai prinsip minimisasi data Pasal 16 UU PDP.</p>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary table-btn-sm" onclick="closePrivacyModal()">Saya Mengerti</button>
+      </div>
+    </div>
+  </div>
+
   <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
   <script>
     let photoBase64Data = '';
     let photoMimeTypeData = '';
+
+    function openPrivacyModal() {
+      const m = document.getElementById('privacyNoticeModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closePrivacyModal() {
+      const m = document.getElementById('privacyNoticeModal');
+      if (m) m.style.display = 'none';
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
       // Load recent activity codes for autocomplete

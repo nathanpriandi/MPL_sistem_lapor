@@ -121,7 +121,66 @@
                 </tr>
               </thead>
               <tbody id="queueBody">
-                <!-- Rendered dynamically -->
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -255,10 +314,33 @@
       });
     }
 
+    function renderQueueSkeleton() {
+      const tbody = document.getElementById('queueBody');
+      if (!tbody) return;
+      let html = '';
+      for (let i = 0; i < 5; i++) {
+        html += `
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = html;
+    }
+
     async function fetchAndRenderQueue(manualRefresh = false) {
       const tbody = document.getElementById('queueBody');
       if (!manualRefresh && rawQueueData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-muted-center">Memuat antrean triage...</td></tr>';
+        renderQueueSkeleton();
       }
 
       rawQueueData = [];

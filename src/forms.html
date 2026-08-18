@@ -82,7 +82,34 @@
           <h2 class="card-title-sm" style="margin-bottom: 1rem;">Daftar Form Laporan Terdaftar</h2>
           
           <div id="formsContainer" class="button-group-flex" style="flex-direction: column; gap: 1rem;">
-            <div class="text-muted-center">Memuat daftar form...</div>
+            <div class="skeleton-form-card">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>
+                <div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                  <div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>
+                  <div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>
+                <div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>
+              </div>
+            </div>
+            <div class="skeleton-form-card">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>
+                <div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                  <div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>
+                  <div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>
+                <div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -222,10 +249,33 @@
       }
     }
 
+    function renderFormsSkeleton() {
+      var container = document.getElementById('formsContainer');
+      if (!container) return;
+      var html = '';
+      for (var i = 0; i < 3; i++) {
+        html += '<div class="skeleton-form-card">' +
+          '<div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">' +
+            '<div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>' +
+            '<div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>' +
+            '<div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">' +
+              '<div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>' +
+              '<div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display: flex; gap: 0.5rem;">' +
+            '<div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>' +
+            '<div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
     async function fetchAndRenderForms(isManual) {
       var container = document.getElementById('formsContainer');
       if (!isManual && container) {
-        container.innerHTML = '<div class="text-muted-center">Memuat daftar form terdaftar...</div>';
+        renderFormsSkeleton();
       }
 
       registeredForms = [];
