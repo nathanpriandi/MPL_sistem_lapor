@@ -84,16 +84,29 @@ function setupOperationalForm(ssId) {
   try { form.setCollectEmail(false); } catch (e) {}
   try { form.setRequireLogin(false); } catch (e) {}
 
+  // Page 1: Identitas Pelapor & Pilihan Divisi
   form.addTextItem()
     .setTitle('Nama PIC Lokasi')
     .setHelpText('Masukkan nama penanggung jawab lokasi / pelapor')
     .setRequired(true);
 
-  const pageAgro = form.addPageBreakItem().setTitle('Detail Kegiatan Agro');
-  const pageTernakIkan = form.addPageBreakItem().setTitle('Detail Kegiatan Ternak/Ikan');
-  const pageLanjutan = form.addPageBreakItem().setTitle('Estimasi & Data Panen/Penjualan Opsional');
+  const divisiItem = form.addMultipleChoiceItem()
+    .setTitle('Bidang/Divisi')
+    .setRequired(true);
 
-  const divisiItem = form.addMultipleChoiceItem().setTitle('Bidang/Divisi').setRequired(true);
+  // Page 2: Branch Agro
+  const pageAgro = form.addPageBreakItem().setTitle('Detail Jadwal (Divisi Agro)');
+  form.addDateItem().setTitle('Jadwal/Tgl Tanam').setRequired(true);
+
+  // Page 3: Branch Ternak & Ikan
+  const pageTernakIkan = form.addPageBreakItem().setTitle('Detail Jadwal (Divisi Ternak & Ikan)');
+  form.addDateItem().setTitle('Jadwal/Tgl Check in/Tebar').setRequired(true);
+
+  // Page 4: Detail Kegiatan Lapangan
+  const pageDetail = form.addPageBreakItem().setTitle('Detail Kegiatan Lapangan');
+  pageAgro.setGoToPage(pageDetail);
+  pageTernakIkan.setGoToPage(pageDetail);
+
   divisiItem.setChoices([
     divisiItem.createChoice('Agro (Pertanian/Perkebunan)', pageAgro),
     divisiItem.createChoice('Ternak (Peternakan)', pageTernakIkan),
@@ -120,19 +133,11 @@ function setupOperationalForm(ssId) {
     .setTitle('Jumlah Populasi Tanaman/Bibit/Ternak')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
 
-  // Page Agro branch
-  pageAgro.setGoToPage(pageLanjutan);
-  form.addDateItem().setTitle('Jadwal/Tgl Tanam').setRequired(true);
-
-  // Page Ternak/Ikan branch
-  pageTernakIkan.setGoToPage(pageLanjutan);
-  form.addDateItem().setTitle('Jadwal/Tgl Check in/Tebar').setRequired(true);
-
-  // Page Lanjutan - common estimation & optional harvest/sales fields
   form.addDateItem().setTitle('Jadwal/Perkiraan Panen Tgl').setRequired(true);
-  
-  // Optional Panen & Penjualan fields
   form.addTextItem().setTitle('Kode Kegiatan Referensi (jika laporan lanjutan)');
+
+  // Page 5: Data Panen & Penjualan (Opsional)
+  form.addPageBreakItem().setTitle('Data Panen & Penjualan (Opsional)');
   form.addDateItem().setTitle('Tgl Panen (Opsional)');
   form.addTextItem()
     .setTitle('Jumlah Panen (Opsional)')
@@ -148,7 +153,8 @@ function setupOperationalForm(ssId) {
     .setTitle('Nilai Penjualan Rp (Opsional)')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
 
-  // Optional Kendala & Upaya
+  // Page 6: Kendala & Catatan Bukti
+  form.addPageBreakItem().setTitle('Kendala & Catatan Pelaporan');
   form.addParagraphTextItem().setTitle('Kendala Kegiatan (jika ada)');
   form.addParagraphTextItem().setTitle('Upaya Yang Dilakukan (jika ada)');
 

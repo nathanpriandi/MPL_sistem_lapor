@@ -563,6 +563,20 @@ tr:hover td {
   gap: var(--space-2);
 }
 
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .form-row-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -574,6 +588,146 @@ tr:hover td {
     grid-template-columns: 1fr;
     gap: var(--space-3);
   }
+}
+
+/* Wizard Form Step Layout & Progress */
+.wizard-progress-container {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wizard-step-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+  font-size: 0.875rem;
+}
+
+.wizard-step-counter {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.wizard-step-title {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.wizard-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.wizard-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 9999px;
+  transition: width 0.25s ease;
+}
+
+.wizard-step {
+  display: none;
+}
+
+.wizard-step.active {
+  display: block;
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
+.wizard-actions .btn {
+  width: auto;
+  min-width: 130px;
+}
+
+@media (max-width: 500px) {
+  .wizard-actions {
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+  }
+  .wizard-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Wizard Review Step Summary Boxes */
+.review-section-box {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.review-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.review-section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.btn-review-edit {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 2px 6px;
+  font-family: var(--font-base);
+}
+
+.btn-review-edit:hover {
+  color: var(--primary-hover);
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  font-size: 0.85rem;
+}
+
+.review-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-label {
+  font-size: 0.725rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+.review-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  word-break: break-word;
+  margin-top: 1px;
 }
 
 /* Error Summary Banner */
@@ -897,6 +1051,30 @@ tr:hover td {
   align-items: center;
   gap: 1rem;
   box-shadow: var(--shadow-sm);
+}
+
+.skeleton-chart-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding: 1.5rem 1.5rem 1rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  z-index: 2;
+}
+
+.skeleton-chart-bar {
+  width: 14%;
+  background: var(--border-color);
+  border-radius: 4px 4px 0 0;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
 /* Secondary / Demoted Nav Links for Internal Mode */

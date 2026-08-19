@@ -75,9 +75,9 @@
           <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk melihat semua aktivitas laporan di Antrean Admin">
             <span class="metric-label">Total Aktivitas (Distinct)</span>
             <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="metric-value" id="kpiDistinctActivities">0</span>
+              <span class="metric-value" id="kpiDistinctActivities"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
             </div>
-            <span class="metric-sublabel" id="kpiRawReports">0 total laporan masuk</span>
+            <span class="metric-sublabel" id="kpiRawReports"><span class="skeleton-box" style="width: 110px; height: 12px; vertical-align: middle;"></span></span>
             <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
               <span>Siklus Kegiatan</span>
@@ -87,9 +87,9 @@
           <!-- 2. Total Nilai Penjualan (Rp) -->
           <div class="metric-card">
             <span class="metric-label">Total Nilai Penjualan (Rp)</span>
-            <span class="metric-value" id="kpiTotalPenjualan" style="font-size: 1.45rem; word-break: break-all;">Rp 0</span>
-            <span class="metric-sublabel" id="kpiPriorMonthSub">Bulan berjalan</span>
-            <span class="metric-trend metric-trend-up" id="trendSales" style="margin-top: 0.5rem;">
+            <span class="metric-value" id="kpiTotalPenjualan" style="font-size: 1.45rem; word-break: break-all;"><span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span></span>
+            <span class="metric-sublabel" id="kpiPriorMonthSub"><span class="skeleton-box" style="width: 80px; height: 12px; vertical-align: middle;"></span></span>
+            <span class="metric-trend metric-trend-neutral" id="trendSales" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
               <span id="kpiSalesTrendText">Pendapatan Penjualan</span>
             </span>
@@ -104,21 +104,21 @@
                   <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
                   <span>Agro</span>
                 </span>
-                <span class="kpi-division-val" id="kpiPanenAgro">0 Kg</span>
+                <span class="kpi-division-val" id="kpiPanenAgro"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
               </div>
               <div class="kpi-division-item" title="Divisi Ternak (Peternakan)">
                 <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
                   <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
                   <span>Ternak</span>
                 </span>
-                <span class="kpi-division-val" id="kpiPanenTernak">0 Unit</span>
+                <span class="kpi-division-val" id="kpiPanenTernak"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
               </div>
               <div class="kpi-division-item" title="Divisi Ikan (Perikanan)">
                 <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
                   <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
                   <span>Ikan</span>
                 </span>
-                <span class="kpi-division-val" id="kpiPanenIkan">0 Kg</span>
+                <span class="kpi-division-val" id="kpiPanenIkan"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
               </div>
             </div>
             <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
@@ -130,7 +130,7 @@
           <!-- 4. Kegiatan Menunggu Panen -->
           <div class="metric-card">
             <span class="metric-label">Menunggu Panen</span>
-            <span class="metric-value" id="kpiActiveKegiatan">0</span>
+            <span class="metric-value" id="kpiActiveKegiatan"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
             <span class="metric-sublabel">Aktivitas belum panen</span>
             <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -141,8 +141,8 @@
           <!-- 5. Kendala Lapangan Terbuka -->
           <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk meninjau kendala & insiden di Antrean Admin">
             <span class="metric-label">Kendala Terbuka</span>
-            <span class="metric-value" id="kpiOpenObstacles">0</span>
-            <span class="metric-sublabel" id="kpiUnansweredSub">0 belum ada respon</span>
+            <span class="metric-value" id="kpiOpenObstacles"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
+            <span class="metric-sublabel" id="kpiUnansweredSub"><span class="skeleton-box" style="width: 100px; height: 12px; vertical-align: middle;"></span></span>
             <span class="metric-trend metric-trend-neutral" id="trendObstacles" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <span id="kpiObstaclesTrendText">Kendala Terlaporkan</span>
@@ -167,6 +167,11 @@
 
             <!-- Grouped Bar Chart -->
             <div class="chart-container" style="position: relative; height: 230px; max-height: 230px; width: 100%; overflow: hidden; margin-bottom: 1.25rem;">
+              <div id="divisiChartSkeleton" class="skeleton-chart-box">
+                <div class="skeleton-chart-bar" style="height: 65%;"></div>
+                <div class="skeleton-chart-bar" style="height: 40%;"></div>
+                <div class="skeleton-chart-bar" style="height: 85%;"></div>
+              </div>
               <canvas id="divisiComparisonChart" height="230" style="max-height: 230px; height: 230px; width: 100%; display: block;"></canvas>
             </div>
 
@@ -243,6 +248,12 @@
           </div>
 
           <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
+            <div id="weeklyTrendSkeleton" class="skeleton-chart-box">
+              <div class="skeleton-chart-bar" style="height: 35%;"></div>
+              <div class="skeleton-chart-bar" style="height: 55%;"></div>
+              <div class="skeleton-chart-bar" style="height: 75%;"></div>
+              <div class="skeleton-chart-bar" style="height: 90%;"></div>
+            </div>
             <canvas id="weeklyTrendChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
           </div>
         </div>
@@ -331,7 +342,92 @@
       updateDivisiChart();
     }
 
+    function renderDashboardSkeletons() {
+      const periodLabel = document.getElementById('dashPeriodLabel');
+      if (periodLabel) periodLabel.innerText = 'Memuat...';
+
+      const kpiDistinct = document.getElementById('kpiDistinctActivities');
+      if (kpiDistinct) kpiDistinct.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
+
+      const kpiRaw = document.getElementById('kpiRawReports');
+      if (kpiRaw) kpiRaw.innerHTML = '<span class="skeleton-box" style="width: 110px; height: 12px; vertical-align: middle;"></span>';
+
+      const kpiSales = document.getElementById('kpiTotalPenjualan');
+      if (kpiSales) kpiSales.innerHTML = '<span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span>';
+
+      const priorMonthSub = document.getElementById('kpiPriorMonthSub');
+      if (priorMonthSub) priorMonthSub.innerHTML = '<span class="skeleton-box" style="width: 80px; height: 12px; vertical-align: middle;"></span>';
+
+      const panenAgro = document.getElementById('kpiPanenAgro');
+      if (panenAgro) panenAgro.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
+
+      const panenTernak = document.getElementById('kpiPanenTernak');
+      if (panenTernak) panenTernak.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
+
+      const panenIkan = document.getElementById('kpiPanenIkan');
+      if (panenIkan) panenIkan.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
+
+      const kpiActive = document.getElementById('kpiActiveKegiatan');
+      if (kpiActive) kpiActive.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
+
+      const kpiObstacles = document.getElementById('kpiOpenObstacles');
+      if (kpiObstacles) kpiObstacles.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
+
+      const kpiUnanswered = document.getElementById('kpiUnansweredSub');
+      if (kpiUnanswered) kpiUnanswered.innerHTML = '<span class="skeleton-box" style="width: 100px; height: 12px; vertical-align: middle;"></span>';
+
+      const divisiSkel = document.getElementById('divisiChartSkeleton');
+      if (divisiSkel) divisiSkel.style.display = 'flex';
+
+      const trendSkel = document.getElementById('weeklyTrendSkeleton');
+      if (trendSkel) trendSkel.style.display = 'flex';
+
+      const divisiBody = document.getElementById('divisiTableBody');
+      if (divisiBody) {
+        divisiBody.innerHTML = `
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+          </tr>
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+          </tr>
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+          </tr>
+        `;
+      }
+
+      const attContainer = document.getElementById('attentionListContainer');
+      if (attContainer) {
+        attContainer.innerHTML = `
+          <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+            <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+            <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+            <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+          </div>
+          <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+            <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+            <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+            <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+          </div>
+        `;
+      }
+    }
+
     async function renderDashboard(isManualRefresh = false) {
+      if (isManualRefresh) {
+        renderDashboardSkeletons();
+      }
+
       let stats = null;
 
       if (isLiveServer()) {
@@ -579,6 +675,9 @@
       const chartLabel = isSales ? 'Nilai Penjualan (Rp)' : 'Jumlah Aktivitas';
 
       try {
+        const skel = document.getElementById('divisiChartSkeleton');
+        if (skel) skel.style.display = 'none';
+
         if (divisiComparisonChartInstance) divisiComparisonChartInstance.destroy();
         divisiComparisonChartInstance = new Chart(ctx.getContext('2d'), {
           type: 'bar',
@@ -647,6 +746,9 @@
       const ikanData = weeklyTrend.map(w => w.ikanSales || 0);
 
       try {
+        const skel = document.getElementById('weeklyTrendSkeleton');
+        if (skel) skel.style.display = 'none';
+
         if (weeklyTrendChartInstance) weeklyTrendChartInstance.destroy();
         weeklyTrendChartInstance = new Chart(ctx.getContext('2d'), {
           type: 'line',
