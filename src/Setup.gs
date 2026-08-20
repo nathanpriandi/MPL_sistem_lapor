@@ -79,8 +79,8 @@ function setupSheetHeaders(mainSheet, adminQueueSheet) {
  * Creates and configures the Unified Operational Form (Kegiatan, Panen & Penjualan)
  */
 function setupOperationalForm(ssId) {
-  const form = FormApp.create('Laporan Operasional (Kegiatan, Panen & Penjualan)');
-  form.setDescription('Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.');
+  const form = FormApp.create('Laporan Harian MPL');
+  form.setDescription('Formulir harian operasional kegiatan beserta panen dan penjualan.');
   try { form.setCollectEmail(false); } catch (e) {}
   try { form.setRequireLogin(false); } catch (e) {}
 
@@ -91,15 +91,15 @@ function setupOperationalForm(ssId) {
     .setRequired(true);
 
   const divisiItem = form.addMultipleChoiceItem()
-    .setTitle('Bidang/Divisi')
+    .setTitle('Divisi')
     .setRequired(true);
 
   // Page 2: Branch Agro
-  const pageAgro = form.addPageBreakItem().setTitle('Detail Jadwal (Divisi Agro)');
+  const pageAgro = form.addPageBreakItem().setTitle('Divisi Agro');
   form.addDateItem().setTitle('Jadwal/Tgl Tanam').setRequired(true);
 
   // Page 3: Branch Ternak & Ikan
-  const pageTernakIkan = form.addPageBreakItem().setTitle('Detail Jadwal (Divisi Ternak & Ikan)');
+  const pageTernakIkan = form.addPageBreakItem().setTitle('Divisi Ternak & Ikan');
   form.addDateItem().setTitle('Jadwal/Tgl Check in/Tebar').setRequired(true);
 
   // Page 4: Detail Kegiatan Lapangan
@@ -108,9 +108,10 @@ function setupOperationalForm(ssId) {
   pageTernakIkan.setGoToPage(pageDetail);
 
   divisiItem.setChoices([
-    divisiItem.createChoice('Agro (Pertanian/Perkebunan)', pageAgro),
-    divisiItem.createChoice('Ternak (Peternakan)', pageTernakIkan),
-    divisiItem.createChoice('Ikan (Perikanan)', pageTernakIkan)
+    divisiItem.createChoice('Agro', pageAgro),
+    divisiItem.createChoice('Ternak', pageTernakIkan),
+    divisiItem.createChoice('Ikan', pageTernakIkan),
+    divisiItem.createChoice('Lainnya', pageDetail)
   ]);
 
   form.addTextItem()
@@ -126,35 +127,46 @@ function setupOperationalForm(ssId) {
     .setRequired(true);
 
   form.addTextItem()
-    .setTitle('Luas Area Kegiatan (Ha)')
+    .setTitle('Luas Area Kegiatan')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
 
   form.addTextItem()
     .setTitle('Jumlah Populasi Tanaman/Bibit/Ternak')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
 
-  form.addDateItem().setTitle('Jadwal/Perkiraan Panen Tgl').setRequired(true);
-  form.addTextItem().setTitle('Kode Kegiatan Referensi (jika laporan lanjutan)');
+  form.addDateItem().setTitle('Jadwal/Perkiraan Panen Tanggal').setRequired(true);
 
-  // Page 5: Data Panen & Penjualan (Opsional)
-  form.addPageBreakItem().setTitle('Data Panen & Penjualan (Opsional)');
-  form.addDateItem().setTitle('Tgl Panen (Opsional)');
+  // Branch Question for Harvest/Sales
+  const pagePanen = form.addPageBreakItem().setTitle('Data Panen & Penjualan');
+  const pageKendala = form.addPageBreakItem().setTitle('Kendala & Catatan Pelaporan');
+
+  const isPanenItem = form.addMultipleChoiceItem()
+    .setTitle('Apakah Melakukan Kegiatan Panen/Penjualan ?')
+    .setChoices([
+      form.createChoice ? form.createChoice('Ya', pagePanen) : isPanenItem.createChoice('Ya', pagePanen),
+      form.createChoice ? form.createChoice('Tidak', pageKendala) : isPanenItem.createChoice('Tidak', pageKendala)
+    ]);
+
+  pageDetail.setGoToPage(pagePanen);
+
+  // Page 5: Data Panen & Penjualan
+  pagePanen.setGoToPage(pageKendala);
+  form.addDateItem().setTitle('Tanggal Panen');
   form.addTextItem()
-    .setTitle('Jumlah Panen (Opsional)')
+    .setTitle('Jumlah Panen')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
-  form.addDateItem().setTitle('Tgl Penjualan (Opsional)');
+  form.addDateItem().setTitle('Tgl Penjualan');
   form.addTextItem()
-    .setTitle('Harga Jual (Opsional)')
+    .setTitle('Harga Jual')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
   form.addTextItem()
-    .setTitle('Jumlah Penjualan Unit (Opsional)')
+    .setTitle('Jumlah Penjualan Unit')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
   form.addTextItem()
-    .setTitle('Nilai Penjualan Rp (Opsional)')
+    .setTitle('Nilai Penjualan Rp')
     .setValidation(FormApp.createTextValidation().requireNumber().build());
 
-  // Page 6: Kendala & Catatan Bukti
-  form.addPageBreakItem().setTitle('Kendala & Catatan Pelaporan');
+  // Page 6: Kendala & Catatan Pelaporan
   form.addParagraphTextItem().setTitle('Kendala Kegiatan (jika ada)');
   form.addParagraphTextItem().setTitle('Upaya Yang Dilakukan (jika ada)');
 
