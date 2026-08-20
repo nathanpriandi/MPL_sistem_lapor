@@ -36,10 +36,10 @@ function getISOWeekLabel(date) {
 }
 
 /**
- * Aggregates data from Daily_Raw, General_Raw, and Sensitive_Restricted into Weekly_Summary tab.
+ * Aggregates live operational summary statistics.
  * Backward compatibility wrapper delegating to AdminService.
  * @param {Spreadsheet} [ss] - Active Spreadsheet object.
- * @returns {Array} List of aggregated site statistics objects.
+ * @returns {Array} List of aggregated weekly trend statistics objects.
  */
 function aggregateWeeklyData(ss) {
   return AdminService.aggregateWeeklyData(ss);

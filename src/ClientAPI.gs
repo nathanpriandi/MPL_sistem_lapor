@@ -8,21 +8,36 @@
  */
 
 /**
- * Submits a new Daily Operational Report from Web App.
- * @param {Object} payload - { empId, site, date, taskStatus, yieldKg, issues }
- * @returns {{ success: boolean, reportId: string }}
+ * Submits a new Operational Report (Kegiatan, Panen & Penjualan) from Web App.
+ * @param {Object} payload 
+ * @returns {{ success: boolean, reportId: string, kodeKegiatan: string }}
  */
-function submitDailyReport(payload) {
-  return ReportService.submitDailyReport(payload);
+function submitOperationalReport(payload) {
+  return ReportService.submitOperationalReport(payload);
 }
 
 /**
- * Submits a new General Narrative & Incident Report from Web App.
- * @param {Object} payload - { empId, site, date, details, isSensitive }
- * @returns {{ success: boolean, reportId: string, isSensitive: boolean }}
+ * Returns recent activity codes (Kode Kegiatan) for reference autocomplete.
+ * @returns {Array<string>}
+ */
+function getRecentActivityCodes() {
+  return ReportService.getRecentActivityCodes();
+}
+
+/**
+ * Backward compatibility alias for submitDailyReport.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
+ */
+function submitDailyReport(payload) {
+  return submitOperationalReport(payload);
+}
+
+/**
+ * Backward compatibility alias for submitGeneralReport.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
  */
 function submitGeneralReport(payload) {
-  return ReportService.submitGeneralReport(payload);
+  return submitOperationalReport(payload);
 }
 
 /**
@@ -43,14 +58,33 @@ function uploadReportAttachment(base64Data, mimeType, formId) {
  */
 function getFormSchema(formId) {
   const forms = FormManagementService.getFormList();
-  const form = forms.find(f => f.id === formId);
-  if (!form) throw new Error('Form tidak ditemukan.');
+  let formRecord = forms.find(f => f.id === formId);
+
+  if (!formRecord && (formId === 'DEFAULT_MAIN_FORM' || !formId)) {
+    const mainId = ConfigRepository.getMainFormId();
+    if (mainId) formRecord = forms.find(f => f.id === mainId);
+  }
+
+  const targetFormId = formRecord ? formRecord.id : formId;
+
+  // Try parsing live Google Form if formId is a valid Google Form ID (not a FORM_KUSTOM_ string)
+  if (targetFormId && typeof targetFormId === 'string' && !targetFormId.startsWith('FORM_KUSTOM_')) {
+    try {
+      const gForm = FormApp.openById(targetFormId);
+      const parsedSchema = FormManagementService.parseGoogleFormToSchema(gForm);
+      if (parsedSchema) return parsedSchema;
+    } catch (e) {
+      Logger.log('getFormSchema live FormApp parsing notice: ' + e.toString());
+    }
+  }
+
+  if (!formRecord) throw new Error('Form tidak ditemukan.');
   return JSON.parse(JSON.stringify({
-    id: form.id,
-    title: form.title || 'Form Laporan Kustom',
-    description: form.description || '',
-    type: form.type || 'kustom',
-    fields: form.fields || []
+    id: formRecord.id,
+    title: formRecord.title || 'Form Laporan Kustom',
+    description: formRecord.description || '',
+    type: formRecord.type || 'kustom',
+    fields: formRecord.fields || []
   }));
 }
 
@@ -92,7 +126,7 @@ function getDashboardStats() {
 
 /**
  * Returns direct quick links for Admin/Manager workspace resources.
- * @returns {{ spreadsheetUrl: string, dailyFormEditUrl: string, generalFormEditUrl: string, publicWebAppUrl: string }}
+ * @returns {{ publicWebAppUrl: string }}
  */
 function getAdminQuickLinks() {
   return AdminService.getAdminQuickLinks();

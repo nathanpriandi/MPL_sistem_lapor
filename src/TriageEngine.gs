@@ -11,13 +11,15 @@
 const URGENT_KEYWORDS = [
   'kecelakaan', 'kebakaran', 'banjir', 'darurat', 'cedera', 'korban',
   'rusak berat', 'bocor', 'meledak', 'mati total', 'patah', 'tumbang',
-  'hama', 'wabah', 'penyakit', 'mati masal', 'terkontaminasi', 'keracunan', 'pestisida'
+  'hama', 'wabah', 'penyakit', 'mati masal', 'terkontaminasi', 'keracunan', 'pestisida',
+  'gagal panen', 'busuk', 'serangan hama masal', 'mortalitas tinggi', 'rugi besar', 'pencurian', 'bencana alam'
 ];
 
 const WARNING_KEYWORDS = [
   'kurang', 'terlambat', 'lambat', 'habis', 'tertunda', 'stok tipis',
   'mogok', 'rusak ringan', 'bising', 'bocor halus', 'baterai lemah',
-  'hujan deras', 'angin kencang', 'becek', 'akses tertutup', 'equipment'
+  'hujan deras', 'angin kencang', 'becek', 'akses tertutup', 'equipment',
+  'layu', 'harga anjlok', 'penurunan hasil', 'terlambat panen', 'stok menumpuk', 'kendala cuaca', 'kerusakan alat'
 ];
 
 const TriageEngine = {
@@ -64,30 +66,6 @@ const TriageEngine = {
 
     // 3. Default to NORMAL / Routine
     return TriageResult(ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE);
-  },
-
-  /**
-   * Checks whether a row or payload in General_Raw is marked as sensitive.
-   * Handles raw row data arrays, payload objects, or cell values.
-   * @param {Array|string|Object} rowData 
-   * @returns {boolean} True if marked sensitive.
-   */
-  isSensitiveRow: function(rowData) {
-    if (!rowData) return false;
-    
-    if (Array.isArray(rowData)) {
-      // Spreadsheet row array (length >= 6)
-      if (rowData.length >= 6) {
-        const val = String(rowData[6] || rowData[5] || '').toLowerCase();
-        return val.includes('ya') || val.includes('yes') || val === 'true' || val === '1';
-      }
-      // Smaller array passed explicitly e.g. [details, sensitiveText]
-      const fullText = rowData.join(' ').toLowerCase();
-      return fullText.includes('ya / yes') || fullText.includes('sensitif') || fullText.includes('yes') || fullText === 'true';
-    }
-    
-    const str = String(rowData).toLowerCase();
-    return str.includes('ya') || str.includes('yes') || str === 'true' || str === '1';
   }
 };
 
@@ -98,13 +76,4 @@ const TriageEngine = {
  */
 function evaluateFlags(rowData) {
   return TriageEngine.evaluate(rowData);
-}
-
-/**
- * Backward compatibility wrapper for existing calls to isSensitiveRow.
- * @param {Array} rowData 
- * @returns {boolean}
- */
-function isSensitiveRow(rowData) {
-  return TriageEngine.isSensitiveRow(rowData);
 }

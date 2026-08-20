@@ -130,9 +130,9 @@ function runServer(fnName, ...args) {
       const timeoutTimer = setTimeout(() => {
         if (!isSettled) {
           isSettled = true;
-          reject(new Error(`Server RPC '${fnName}' timed out after 8s`));
+          reject(new Error(`Server RPC '${fnName}' timed out after 25s`));
         }
-      }, 8000);
+      }, 25000);
 
       google.script.run
         .withSuccessHandler((res) => {
@@ -309,21 +309,22 @@ function getDB() {
   let db = localStorage.getItem('MPL_REPORTING_DB');
   if (!db) {
     const defaultData = {
-      dailyReports: [
-        { id: 'REC-001', timestamp: '2026-07-23 08:30', empId: 'EMP-101', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Completed', yield: 1450, issues: ['None'], severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Unreviewed' },
-        { id: 'REC-002', timestamp: '2026-07-23 09:15', empId: 'EMP-102', site: 'Site A — Kebun & Lahan Pertanian', date: '2026-07-23', status: 'Delayed', yield: 800, issues: ['Weather'], severity: 'warning', rank: 2, category: 'weather_impact', reviewStatus: 'Unreviewed' },
-        { id: 'REC-003', timestamp: '2026-07-23 10:00', empId: 'EMP-201', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', status: 'Completed', yield: 0, issues: ['None'], severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Closed' },
-        { id: 'REC-004', timestamp: '2026-07-23 11:20', empId: 'EMP-302', site: 'Site C — Pabrik Pengolahan & Pakan', date: '2026-07-23', status: 'Delayed', yield: 1100, issues: ['Equipment'], severity: 'urgent', rank: 1, category: 'equipment_breakdown', reviewStatus: 'Unreviewed' }
-      ],
-      generalReports: [
-        { id: 'REC-101', timestamp: '2026-07-23 09:45', empId: 'EMP-203', site: 'Site B — Peternakan & Kandang', date: '2026-07-23', details: 'Ada kecelakaan kerja ringan saat pembersihan kandang 2. Korban sudah ditangani tim P3K.', isSensitive: false, severity: 'urgent', rank: 1, category: 'incident', reviewStatus: 'Unreviewed' },
-        { id: 'REC-102', timestamp: '2026-07-23 13:00', empId: 'EMP-401', site: 'Site D — Logistik & Gudang', date: '2026-07-23', details: 'Laporan audit internal biaya operasional dan efisiensi bahan bakar armada.', isSensitive: true, severity: 'normal', rank: 3, category: 'routine', reviewStatus: 'Unreviewed (Sensitive)' }
-      ]
+      dailyReports: [],
+      generalReports: [],
+      operationalReports: []
     };
     localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(defaultData));
     return defaultData;
   }
-  return JSON.parse(db);
+  const parsed = JSON.parse(db);
+  // Purge old prototype mockup reports if present in local storage
+  if (parsed.dailyReports && parsed.dailyReports.some(r => r.id === 'REC-001' || r.yield === 1450)) {
+    parsed.dailyReports = [];
+    parsed.generalReports = [];
+    parsed.operationalReports = [];
+    localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(parsed));
+  }
+  return parsed;
 }
 
 function saveDB(db) {
@@ -362,24 +363,76 @@ async function loadQuickLinks() {
   const container = document.getElementById('sidebarQuickLinks');
   if (!container) return;
 
+  let publicUrl = '';
   if (isLiveServer()) {
     try {
       const links = await runServer('getAdminQuickLinks');
-      if (links) {
-        const publicUrl = links.publicWebAppUrl || (window.SERVER_WEB_APP_URL ? `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index` : '');
-        let linksHtml = '';
-        if (publicUrl) {
-          linksHtml += `<a href="${publicUrl}" target="_blank" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Publik</span></a>`;
-        }
-        container.innerHTML = linksHtml;
-        return;
+      if (links && links.publicWebAppUrl) {
+        publicUrl = links.publicWebAppUrl;
       }
     } catch (e) {
       console.error('Failed to load quick links:', e);
     }
   }
 
-  container.innerHTML = '<span class="sidebar-link-loading">Local Mode — Quick links live di Google Apps Script</span>';
+  if (!publicUrl && window.SERVER_WEB_APP_URL) {
+    publicUrl = `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index`;
+  }
+
+  let linksHtml = '';
+  if (publicUrl) {
+    linksHtml += `<a href="${publicUrl}" target="_blank" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Publik</span></a>`;
+  }
+  linksHtml += `<a href="javascript:void(0)" onclick="openAdminManualModal()" class="sidebar-link-item" title="Panduan Operasional Administrator &amp; Manajer"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Panduan Singkat</span></a>`;
+  
+  container.innerHTML = linksHtml;
+}
+
+function openAdminManualModal() {
+  let modal = document.getElementById('adminManualModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'adminManualModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-card" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3 class="modal-title">Panduan Ringkas Konsol Internal</h3>
+          <button type="button" class="modal-close-btn" onclick="closeAdminManualModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; display: flex; flex-direction: column; gap: 0.85rem; max-height: 65vh; overflow-y: auto; padding: 1.25rem;">
+          <div>
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">1. Tingkat Keparahan (Triage)</strong>
+            <p style="margin: 0;"><span class="badge badge-urgent" style="margin-right: 4px;">Mendesak</span> Insiden kecelakaan, kebakaran, atau wabah penyakit (notifikasi otomatis ke Telegram/WhatsApp).<br>
+            <span class="badge badge-warning" style="margin-right: 4px; margin-top: 4px;">Perhatian</span> Kerusakan ringan, cuaca buruk, atau panen mendekati batas waktu.<br>
+            <span class="badge badge-normal" style="margin-right: 4px; margin-top: 4px;">Rutin</span> Laporan aktivitas penanaman, pemeliharaan, dan penjualan harian normal.</p>
+          </div>
+          <div>
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">2. Siklus Kode Kegiatan</strong>
+            <p style="margin: 0;">Setiap awal siklus (tanam/tebar) menghasilkan Kode Kegiatan unik (contoh: <code>AGR-KEBUNA-20260807-01</code>). Laporan panen dan penjualan lanjutan menggunakan kode referensi tersebut untuk menghubungkan seluruh riwayat siklus.</p>
+          </div>
+          <div>
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">3. Data Sensitif &amp; Hak Akses (RBAC)</strong>
+            <p style="margin: 0;">Laporan yang ditandai sensitif diisolasi ke tab <em>Sensitive_Restricted</em> dan hanya dapat ditinjau oleh Admin dan Manajer berwenang.</p>
+          </div>
+          <div>
+            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">4. Penanganan Akun &amp; Sesi Browser</strong>
+            <p style="margin: 0;">Gunakan profil Google Chrome/Edge terpisah khusus akun kerja untuk mencegah konflik multi-akun Google Workspace.</p>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-primary table-btn-sm" onclick="closeAdminManualModal()">Tutup</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+}
+
+function closeAdminManualModal() {
+  const m = document.getElementById('adminManualModal');
+  if (m) m.style.display = 'none';
 }
 
 async function loadDiagnostics() {
@@ -390,7 +443,8 @@ async function loadDiagnostics() {
     try {
       const diag = await runServer('getDeploymentDiagnostics');
       if (diag) {
-        container.innerText = `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
+        container.innerText = `Build Release : v2.5.0-phase15 (2026-08-20)\n` +
+          `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
           `Executing ID  : ${diag.executingDeploymentId || '(none)'}\n` +
           `Public URL    : ${diag.configuredPublicUrl || '(belum dikonfigurasi)'}\n` +
           `Public ID     : ${diag.publicDeploymentId || '(none)'}\n` +
@@ -401,11 +455,11 @@ async function loadDiagnostics() {
         return;
       }
     } catch (e) {
-      container.innerText = 'Gagal memuat diagnosa: ' + e.message;
+      container.innerText = 'Build Release : v2.5.0-phase15 (2026-08-20)\nGagal memuat diagnosa: ' + e.message;
       return;
     }
   }
 
-  container.innerText = 'Local Mode Preview — Server diagnostics live di Google Apps Script.';
+  container.innerText = 'Build Release : v2.5.0-phase15 (2026-08-20)\nLocal Mode Preview — Server diagnostics live di Google Apps Script.';
 }
 </script>

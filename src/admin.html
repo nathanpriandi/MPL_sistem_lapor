@@ -38,7 +38,6 @@
                 <span class="badge badge-normal">Executive Manager</span>
               <? } ?>
             </div>
-            <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
       </header>
@@ -48,7 +47,7 @@
           <div class="flex-between-wrap">
             <div>
               <h1 class="card-title">Antrean Triage Admin</h1>
-              <p class="card-subtitle">Laporan yang belum selesai disortir berdasarkan tingkat keparahan (Mendesak paling atas).</p>
+              <p class="card-subtitle">Laporan operasional yang memerlukan peninjauan, disortir berdasarkan tingkat keparahan.</p>
             </div>
             <div class="button-group-flex" style="align-items: center;">
               <!-- Segmented Control for Quick Filters -->
@@ -57,10 +56,6 @@
                 <button class="segmented-item" onclick="setQuickFilter('urgent', this)" id="segBtn-urgent" role="tab">
                   <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
                   <span>Mendesak</span>
-                </button>
-                <button class="segmented-item" onclick="setQuickFilter('sensitive', this)" id="segBtn-sensitive" role="tab">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  <span>Sensitif</span>
                 </button>
               </div>
 
@@ -83,18 +78,17 @@
             </div>
           </div>
 
-          <!-- Advanced Filter Bar (Collapsible, default closed) -->
+          <!-- Advanced Filter Bar -->
           <div class="filter-bar" id="advancedFilterBar" style="display: none;">
             <div class="filter-group">
-              <input type="text" id="searchInput" class="filter-input" placeholder="Cari Kode Karyawan / Text Detail / ID..." oninput="applyFilters()">
+              <input type="text" id="searchInput" class="filter-input" placeholder="Cari Kode Kegiatan / PIC / Detail..." oninput="applyFilters()">
             </div>
             <div class="filter-group">
               <select id="siteFilter" class="filter-input" onchange="applyFilters()">
-                <option value="">-- Semua Lokasi / Site --</option>
-                <option value="Site A — Kebun &amp; Lahan Pertanian">Site A — Kebun</option>
-                <option value="Site B — Peternakan &amp; Kandang">Site B — Peternakan</option>
-                <option value="Site C — Pabrik Pengolahan &amp; Pakan">Site C — Pabrik</option>
-                <option value="Site D — Logistik &amp; Gudang">Site D — Logistik</option>
+                <option value="">-- Semua Divisi --</option>
+                <option value="Agro (Pertanian/Perkebunan)">Agro (Pertanian/Perkebunan)</option>
+                <option value="Ternak (Peternakan)">Ternak (Peternakan)</option>
+                <option value="Ikan (Perikanan)">Ikan (Perikanan)</option>
               </select>
             </div>
             <div class="filter-group">
@@ -108,17 +102,18 @@
             <table class="table-sticky-col responsive-card-table">
               <thead>
                 <tr>
-                  <th>Sumber</th>
+                  <th>Kode Kegiatan</th>
                   <th onclick="toggleSort('timestamp')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan waktu">
                     Waktu Submit <span id="sort-timestamp">↕</span>
                   </th>
-                  <th>Kode Karyawan</th>
-                  <th>Lokasi / Site</th>
-                  <th>Rincian / Status</th>
+                  <th>PIC Pelapor</th>
+                  <th>Divisi</th>
+                  <th>Lokasi</th>
+                  <th>Ringkasan (Kegiatan/Panen)</th>
                   <th onclick="toggleSort('severity')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan keparahan">
                     Tingkat Keparahan <span id="sort-severity">↕</span>
                   </th>
-                  <th>Kategori</th>
+                  <th>Kategori Triage</th>
                   <th onclick="toggleSort('reviewStatus')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan status">
                     Status Peninjauan <span id="sort-reviewStatus">↕</span>
                   </th>
@@ -126,7 +121,66 @@
                 </tr>
               </thead>
               <tbody id="queueBody">
-                <!-- Rendered dynamically -->
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
+                <tr>
+                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -147,9 +201,9 @@
 
   <!-- Report Detail Modal -->
   <div id="reportDetailModal" class="modal-overlay" hidden>
-    <div class="modal-container">
+    <div class="modal-container" style="max-width: 680px;">
       <div class="modal-header">
-        <h3 class="modal-title">Detail Laporan Operations</h3>
+        <h3 class="modal-title">Detail Laporan Operasional</h3>
         <button class="modal-close" onclick="closeDetailModal()">&times;</button>
       </div>
       <div class="modal-body" id="modalBody">
@@ -175,7 +229,6 @@
     let lastFetchedTimestamp = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Parse optional initial filter from URL query param (e.g. ?page=admin&filter=urgent)
       const urlParams = new URLSearchParams(window.location.search);
       const initialFilter = urlParams.get('filter');
       if (initialFilter) {
@@ -186,7 +239,6 @@
       loadDiagnostics();
       fetchAndRenderQueue();
 
-      // Table scroll-triggered shadow
       const container = document.getElementById('tableContainer');
       if (container) {
         container.addEventListener('scroll', () => {
@@ -201,7 +253,6 @@
         });
       }
 
-      // Soft auto-refresh every 60 seconds
       autoRefreshInterval = setInterval(() => {
         const modal = document.getElementById('reportDetailModal');
         if (modal && modal.hasAttribute('hidden')) {
@@ -209,15 +260,12 @@
         }
       }, 60000);
 
-      // Update data freshness UI every 30 seconds
       setInterval(updateFreshnessTag, 30000);
     });
 
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('sidebar-open');
-      }
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
     }
 
     function updateFreshnessTag() {
@@ -225,11 +273,8 @@
       if (!tag || !lastFetchedTimestamp) return;
       const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
       const elapsedMin = Math.floor(elapsedSec / 60);
-      if (elapsedMin < 1) {
-        tag.innerText = 'Diperbarui baru saja';
-      } else {
-        tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
-      }
+      if (elapsedMin < 1) tag.innerText = 'Diperbarui baru saja';
+      else tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
     }
 
     function toggleAdvancedFilters() {
@@ -269,10 +314,33 @@
       });
     }
 
+    function renderQueueSkeleton() {
+      const tbody = document.getElementById('queueBody');
+      if (!tbody) return;
+      let html = '';
+      for (let i = 0; i < 5; i++) {
+        html += `
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
+            <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = html;
+    }
+
     async function fetchAndRenderQueue(manualRefresh = false) {
       const tbody = document.getElementById('queueBody');
       if (!manualRefresh && rawQueueData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center">Memuat antrean triage...</td></tr>';
+        renderQueueSkeleton();
       }
 
       rawQueueData = [];
@@ -282,19 +350,21 @@
           const queueRows = await runServer('getAdminQueueData');
           (queueRows || []).forEach(r => {
             rawQueueData.push({
-              source: r.source,
+              source: r.source || 'Operasional',
               reportId: r.reportId,
+              kodeKegiatan: r.kodeKegiatan || '-',
               timestamp: r.timestamp,
-              empId: r.empId,
-              site: r.site,
-              date: r.date,
-              detail: r.detail,
+              empId: r.namaPic || r.empId || '-',
+              divisi: r.divisi || r.site || '-',
+              lokasi: r.lokasi || r.site || '-',
+              ringkasan: r.ringkasan || r.detail || '-',
               severity: (r.severity || 'normal').toLowerCase(),
               rank: r.rank || 3,
               category: r.category,
               reviewStatus: r.reviewStatus,
-              isSensitive: String(r.source).includes('Sensitive'),
-              type: String(r.source).includes('Daily') ? 'daily' : 'general'
+              photoUrl: r.photoUrl || '',
+              raw: r.raw || null,
+              isSensitive: String(r.source).includes('Sensitive')
             });
           });
         } catch (err) {
@@ -303,39 +373,21 @@
         }
       } else {
         const db = getDB();
-        db.dailyReports.forEach(r => {
+        (db.operationalReports || []).forEach(r => {
           rawQueueData.push({
-            source: 'Daily_Raw',
+            source: 'Laporan_Operasional_Raw',
             reportId: r.id,
+            kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
             timestamp: r.timestamp,
-            empId: r.empId,
-            site: r.site,
-            date: r.date,
-            detail: `Status: ${r.status} | Panen: ${r.yield} kg | Issues: ${(r.issues||[]).join(', ')}`,
-            severity: r.severity,
+            empId: r.namaPic || r.empId || 'EMP-101',
+            divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
+            lokasi: r.lokasi || r.site || 'Site A',
+            ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
+            severity: r.severity || 'normal',
             rank: r.rank || 3,
-            category: r.category,
-            reviewStatus: r.reviewStatus,
-            isSensitive: false,
-            type: 'daily'
-          });
-        });
-
-        db.generalReports.forEach(r => {
-          rawQueueData.push({
-            source: r.isSensitive ? 'Sensitive_Restricted' : 'General_Raw',
-            reportId: r.id,
-            timestamp: r.timestamp,
-            empId: r.empId,
-            site: r.site,
-            date: r.date,
-            detail: r.details,
-            severity: r.severity,
-            rank: r.rank || 3,
-            category: r.category,
-            reviewStatus: r.reviewStatus,
-            isSensitive: r.isSensitive,
-            type: 'general'
+            category: r.category || 'ROUTINE',
+            reviewStatus: r.reviewStatus || 'Unreviewed',
+            isSensitive: false
           });
         });
       }
@@ -367,7 +419,6 @@
       const startDateVal = document.getElementById('startDateFilter').value;
       const endDateVal = document.getElementById('endDateFilter').value;
 
-      // Update active filter badge on trigger button (Task 6)
       let activeFilterCount = 0;
       if (searchVal) activeFilterCount++;
       if (siteVal) activeFilterCount++;
@@ -385,58 +436,46 @@
 
       let filtered = [...rawQueueData];
 
-      // Quick Filter
       if (currentQuickFilter === 'urgent') {
         filtered = filtered.filter(x => x.severity === 'urgent');
       } else if (currentQuickFilter === 'sensitive') {
         filtered = filtered.filter(x => x.isSensitive);
       } else {
-        // Exclude closed unless specifically searched
         if (!searchVal) {
           filtered = filtered.filter(x => x.reviewStatus !== 'Closed');
         }
       }
 
-      // Site Filter
       if (siteVal) {
-        filtered = filtered.filter(x => x.site === siteVal);
+        filtered = filtered.filter(x => x.divisi.includes(siteVal) || x.lokasi.includes(siteVal));
       }
 
-      // Date Range Filter
       if (startDateVal) {
-        filtered = filtered.filter(x => {
-          const itemDate = x.date || (x.timestamp ? x.timestamp.split(' ')[0] : '');
-          return itemDate >= startDateVal;
-        });
+        filtered = filtered.filter(x => (x.timestamp ? x.timestamp.split(' ')[0] : '') >= startDateVal);
       }
       if (endDateVal) {
-        filtered = filtered.filter(x => {
-          const itemDate = x.date || (x.timestamp ? x.timestamp.split(' ')[0] : '');
-          return itemDate <= endDateVal;
-        });
+        filtered = filtered.filter(x => (x.timestamp ? x.timestamp.split(' ')[0] : '') <= endDateVal);
       }
 
-      // Search Query
       if (searchVal) {
         filtered = filtered.filter(x => 
           (x.empId || '').toLowerCase().includes(searchVal) ||
-          (x.detail || '').toLowerCase().includes(searchVal) ||
-          (x.reportId || '').toLowerCase().includes(searchVal) ||
-          (x.category || '').toLowerCase().includes(searchVal)
+          (x.kodeKegiatan || '').toLowerCase().includes(searchVal) ||
+          (x.ringkasan || '').toLowerCase().includes(searchVal) ||
+          (x.lokasi || '').toLowerCase().includes(searchVal) ||
+          (x.reportId || '').toLowerCase().includes(searchVal)
         );
       }
 
-      // Column Sorting (Task 7)
       filtered.sort((a, b) => {
         let valA, valB;
         if (currentSortCol === 'timestamp') {
-          valA = a.timestamp || a.date || '';
-          valB = b.timestamp || b.date || '';
+          valA = a.timestamp || '';
+          valB = b.timestamp || '';
         } else if (currentSortCol === 'reviewStatus') {
           valA = a.reviewStatus || '';
           valB = b.reviewStatus || '';
         } else {
-          // Default: Severity order (Urgent=1, Warning=2, Normal=3)
           const order = { urgent: 1, warning: 2, normal: 3 };
           valA = a.rank || order[a.severity] || 3;
           valB = b.rank || order[b.severity] || 3;
@@ -465,7 +504,7 @@
       const pageSlice = currentFilteredData.slice(startIndex, endIndex);
 
       if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
         document.getElementById('paginationInfo').innerText = 'Menampilkan 0 laporan';
         document.getElementById('pageIndicator').innerText = 'Halaman 1 dari 1';
         document.getElementById('btnPrevPage').disabled = true;
@@ -479,15 +518,16 @@
         const itemGlobalIndex = startIndex + index;
 
         tr.innerHTML = `
-          <td data-label="Sumber"><span class="badge badge-neutral">${item.source}</span></td>
-          <td data-label="Waktu">${item.timestamp || item.date || '-'}</td>
-          <td data-label="Kode Karyawan"><strong>${item.empId}</strong></td>
-          <td data-label="Lokasi">${item.site}</td>
-          <td data-label="Rincian" class="max-w-details">${item.detail}</td>
+          <td data-label="Kode Kegiatan"><code>${item.kodeKegiatan}</code></td>
+          <td data-label="Waktu">${item.timestamp || '-'}</td>
+          <td data-label="PIC Pelapor"><strong>${item.empId}</strong></td>
+          <td data-label="Divisi">${item.divisi}</td>
+          <td data-label="Lokasi">${item.lokasi}</td>
+          <td data-label="Ringkasan" class="max-w-details">${item.ringkasan}</td>
           <td data-label="Severity"><span class="badge ${badgeClass}">${item.severity}</span></td>
-          <td data-label="Kategori">${item.category}</td>
+          <td data-label="Kategori Triage">${item.category}</td>
           <td data-label="Review Status">
-            <select onchange="updateStatus('${item.type}', '${item.reportId}', this.value)" class="table-select" aria-label="Ubah Review Status">
+            <select onchange="updateStatus('operasional', '${item.reportId}', this.value)" class="table-select" aria-label="Ubah Review Status">
               <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
               <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
               <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
@@ -519,8 +559,9 @@
 
       const modal = document.getElementById('reportDetailModal');
       const modalBody = document.getElementById('modalBody');
-
       const badgeClass = `badge-${item.severity}`;
+      const raw = item.raw || [];
+
       modalBody.innerHTML = `
         <div class="detail-grid">
           <div class="detail-item">
@@ -528,36 +569,67 @@
             <span class="detail-value"><code>${item.reportId}</code></span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Sumber Sheet</span>
-            <span class="detail-value"><span class="badge badge-neutral">${item.source}</span></span>
+            <span class="detail-label">Kode Kegiatan</span>
+            <span class="detail-value"><code>${item.kodeKegiatan}</code></span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Kode Karyawan</span>
+            <span class="detail-label">PIC Pelapor</span>
             <span class="detail-value"><strong>${item.empId}</strong></span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Lokasi / Site</span>
-            <span class="detail-value">${item.site}</span>
+            <span class="detail-label">Bidang / Divisi</span>
+            <span class="detail-value">${item.divisi}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Lokasi Kegiatan</span>
+            <span class="detail-value">${item.lokasi}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">Waktu Submit</span>
-            <span class="detail-value">${item.timestamp || item.date || '-'}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Triage Flag</span>
-            <span class="detail-value">
-              <span class="badge ${badgeClass}">${item.severity.toUpperCase()}</span>
-              <span class="badge badge-neutral">${item.category}</span>
-            </span>
+            <span class="detail-value">${item.timestamp}</span>
           </div>
         </div>
 
-        <div class="detail-item">
-          <span class="detail-label">Rincian Laporan / Kronologi</span>
-          <div class="detail-value-box">${item.detail}</div>
+        <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Ringkasan &amp; Status</h4>
+          <div class="detail-value-box">${item.ringkasan}</div>
         </div>
 
-        <div class="detail-item" style="margin-top: 0.5rem;">
+        ${raw && raw.length >= 20 ? `
+          <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Data Panen &amp; Penjualan</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Tanggal Panen</span>
+                <span class="detail-value">${raw[14] || '-'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Jumlah Panen</span>
+                <span class="detail-value">${raw[15] ? raw[15] + ' Kg/Unit' : '-'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Tanggal Penjualan</span>
+                <span class="detail-value">${raw[16] || '-'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Nilai Penjualan Total</span>
+                <span class="detail-value">${raw[19] ? 'Rp ' + Number(raw[19]).toLocaleString('id-ID') : '-'}</span>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${item.photoUrl ? `
+          <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Foto Bukti Lampiran</h4>
+            <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span>Buka Foto di Drive</span>
+            </a>
+          </div>
+        ` : ''}
+
+        <div class="detail-item" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
           <label for="modalStatusSelect" class="detail-label">Update Review Status</label>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
             <select id="modalStatusSelect" style="max-width: 260px;">
@@ -566,7 +638,7 @@
               <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
               <option value="Closed" ${item.reviewStatus==='Closed'?'selected':''}>Closed (Selesai)</option>
             </select>
-            <button class="btn btn-primary table-btn-sm" onclick="saveModalStatus('${item.type}', '${item.reportId}')">Simpan Status</button>
+            <button class="btn btn-primary table-btn-sm" onclick="saveModalStatus('${item.reportId}')">Simpan Status</button>
           </div>
         </div>
       `;
@@ -579,11 +651,11 @@
       modal.setAttribute('hidden', 'true');
     }
 
-    async function saveModalStatus(type, reportId) {
+    async function saveModalStatus(reportId) {
       const select = document.getElementById('modalStatusSelect');
       if (!select) return;
       const newStatus = select.value;
-      await updateStatus(type, reportId, newStatus);
+      await updateStatus('operasional', reportId, newStatus);
       closeDetailModal();
     }
 
@@ -593,13 +665,8 @@
           await runServer('updateReviewStatus', reportId, newStatus);
         } else {
           const db = getDB();
-          if (type === 'daily') {
-            const item = db.dailyReports.find(x => String(x.id) === String(reportId));
-            if (item) item.reviewStatus = newStatus;
-          } else {
-            const item = db.generalReports.find(x => String(x.id) === String(reportId));
-            if (item) item.reviewStatus = newStatus;
-          }
+          const item = (db.operationalReports || []).find(x => String(x.id) === String(reportId));
+          if (item) item.reviewStatus = newStatus;
           saveDB(db);
         }
 
@@ -617,14 +684,15 @@
         return;
       }
 
-      const headers = ['Report_ID', 'Sumber_Sheet', 'Timestamp', 'Kode_Karyawan', 'Lokasi_Site', 'Detail', 'Severity', 'Kategori', 'Review_Status'];
+      const headers = ['Report_ID', 'Kode_Kegiatan', 'Timestamp', 'PIC_Pelapor', 'Divisi', 'Lokasi', 'Ringkasan', 'Severity', 'Kategori_Triage', 'Review_Status'];
       const rows = currentFilteredData.map(item => [
         item.reportId,
-        item.source,
-        item.timestamp || item.date || '',
+        item.kodeKegiatan,
+        item.timestamp || '',
         item.empId,
-        item.site,
-        item.detail,
+        item.divisi,
+        item.lokasi,
+        item.ringkasan,
         item.severity,
         item.category,
         item.reviewStatus

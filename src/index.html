@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laporan Operasional Harian — Sistem Pelaporan Digital</title>
+  <title>Laporan Operasional — Sistem Pelaporan Digital</title>
   <?!= include('style'); ?>
 </head>
 <body>
@@ -11,155 +11,603 @@
   <?!= includeHeader(userRole, currentPage, webAppUrl); ?>
 
   <div class="container">
-    <div class="card">
-      <h1 class="card-title">Laporan Operasional Harian</h1>
-      <p class="card-subtitle">Silakan isi laporan aktivitas harian Anda. Pengisian memerlukan waktu &lt; 2 menit.</p>
+    <div class="card" id="formCard">
+      <h1 class="card-title">Laporan Harian MPL</h1>
+      <p class="card-subtitle">Formulir harian operasional kegiatan beserta panen dan penjualan.</p>
 
-      <form id="dailyForm" novalidate>
+      <!-- Wizard Step Progress Indicator -->
+      <div class="wizard-progress-container">
+        <div class="wizard-step-info">
+          <span class="wizard-step-counter" id="stepCounterText">Langkah 1 dari 6</span>
+          <span class="wizard-step-title" id="stepTitleText">Identitas Pelapor</span>
+        </div>
+        <div class="wizard-progress-bar">
+          <div class="wizard-progress-fill" id="wizardProgressFill" style="width: 16.66%;"></div>
+        </div>
+      </div>
+
+      <form id="operationalForm" onsubmit="handleFormSubmit(event)" novalidate>
+        <!-- Error Summary Alert Box -->
         <div id="errorSummary" class="error-summary" style="display: none;">
           <div class="error-summary-title">
             <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Mohon perbaiki formulir sebelum mengirim:
+            <span id="errorSummaryHeading">Mohon perbaiki isian formulir:</span>
           </div>
           <ul id="errorSummaryList" class="error-summary-list"></ul>
         </div>
 
-        <!-- Section 1: Identitas Pelapor -->
-        <div class="form-section">
+        <!-- Step 1: Identitas Pelapor & Pilihan Divisi -->
+        <div class="wizard-step active" id="step1">
           <div class="form-section-title">
-            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            1. Informasi Pelapor &amp; Lokasi
-          </div>
-          <div class="form-group">
-            <label for="empId">Kode Karyawan / Employee ID <span class="required">*</span></label>
-            <div class="help-text">Masukkan kode resmi karyawan Anda (contoh: EMP-101)</div>
-            <input type="text" id="empId" placeholder="EMP-101" required>
+            <span class="step-badge">1</span>
+            <span>Identitas Pelapor &amp; Divisi</span>
           </div>
 
           <div class="form-group">
-            <label for="site">Lokasi / Site <span class="required">*</span></label>
-            <select id="site" required>
-              <option value="">-- Pilih Lokasi Kerja --</option>
-              <option value="Site A — Kebun &amp; Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
-              <option value="Site B — Peternakan &amp; Kandang">Site B — Peternakan &amp; Kandang</option>
-              <option value="Site C — Pabrik Pengolahan &amp; Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
-              <option value="Site D — Logistik &amp; Gudang">Site D — Logistik &amp; Gudang</option>
+            <label for="namaPic">Nama PIC Lokasi <span class="required">*</span></label>
+            <input type="text" id="namaPic" placeholder="Masukkan nama pelapor / PIC lokasi" required>
+          </div>
+
+          <div class="form-group">
+            <label for="bidangDivisi">Divisi <span class="required">*</span></label>
+            <select id="bidangDivisi" required onchange="handleDivisiChange(this.value)">
+              <option value="">-- Pilih Divisi --</option>
+              <option value="Agro">Agro</option>
+              <option value="Ternak">Ternak</option>
+              <option value="Ikan">Ikan</option>
+              <option value="Lainnya">Lainnya</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="reportDate">Tanggal Laporan <span class="required">*</span></label>
-            <input type="date" id="reportDate" required>
+          <div class="wizard-actions" style="justify-content: flex-end;">
+            <button type="button" class="btn btn-primary" onclick="nextStep(1)">
+              <span>Lanjutkan</span>
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
           </div>
         </div>
 
-        <!-- Section 2: Detail Aktivitas -->
-        <div class="form-section">
+        <!-- Step 2: Jenis & Lokasi Kegiatan -->
+        <div class="wizard-step" id="step2">
           <div class="form-section-title">
-            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            2. Detail Laporan Aktivitas
-          </div>
-          <div class="form-group">
-            <label for="taskStatus">Status Tugas / Target <span class="required">*</span></label>
-            <select id="taskStatus" required>
-              <option value="Completed">Completed (Selesai Sesuai Target)</option>
-              <option value="In Progress">In Progress (Sedang Berjalan)</option>
-              <option value="Delayed">Delayed (Tertunda / Ada Hambatan)</option>
-            </select>
+            <span class="step-badge">2</span>
+            <span>Jenis &amp; Lokasi Kegiatan</span>
           </div>
 
           <div class="form-group">
-            <label for="yieldKg">Hasil Panen / Produksi (Kg)</label>
-            <div class="help-text">Isi total kilogram hasil panen hari ini (opsional)</div>
-            <input type="number" id="yieldKg" placeholder="0" min="0">
+            <label for="lokasiKegiatan">Lokasi Kegiatan <span class="required">*</span></label>
+            <input type="text" id="lokasiKegiatan" placeholder="Ketikkan nama atau blok lokasi" required>
           </div>
 
           <div class="form-group">
-            <label>Ada Masalah Hari Ini? (Issues)</label>
-            <div class="checkbox-group">
-              <label class="checkbox-card">
-                <input type="checkbox" name="issues" value="Equipment"> Equipment (Alat)
-              </label>
-              <label class="checkbox-card">
-                <input type="checkbox" name="issues" value="Weather"> Weather (Cuaca)
-              </label>
-              <label class="checkbox-card">
-                <input type="checkbox" name="issues" value="Shortage"> Shortage (Stok)
-              </label>
-              <label class="checkbox-card">
-                <input type="checkbox" name="issues" value="None" checked> None (Lancar)
-              </label>
+            <label for="jenisKegiatan">Jenis Kegiatan <span class="required">*</span></label>
+            <input type="text" id="jenisKegiatan" placeholder="Ketikkan aktivitas kegiatan" required>
+          </div>
+
+          <div class="form-group">
+            <label for="targetKegiatan">Target Kegiatan <span class="required">*</span></label>
+            <textarea id="targetKegiatan" rows="2" placeholder="Tuliskan target operasional kegiatan..." required></textarea>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(2)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Kembali</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+              <span>Lanjutkan</span>
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Skala & Jadwal Kegiatan -->
+        <div class="wizard-step" id="step3">
+          <div class="form-section-title">
+            <span class="step-badge">3</span>
+            <span>Skala &amp; Jadwal Kegiatan</span>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="luasAreaHa">Luas Area (Ha)</label>
+              <input type="number" id="luasAreaHa" step="0.1" placeholder="0.0">
+            </div>
+            <div class="form-group">
+              <label for="jumlahPopulasi">Jumlah Populasi</label>
+              <input type="number" id="jumlahPopulasi" placeholder="0">
             </div>
           </div>
+
+          <div class="form-group" id="groupTglTanam" style="display: none;">
+            <label for="tglTanam">Tanggal Tanam <span class="required">*</span></label>
+            <input type="date" id="tglTanam">
+          </div>
+
+          <div class="form-group" id="groupTglCheckIn" style="display: none;">
+            <label for="tglCheckInTebar">Tanggal Check-in / Tebar <span class="required">*</span></label>
+            <input type="date" id="tglCheckInTebar">
+          </div>
+
+          <div class="form-group">
+            <label for="tglPerkiraanPanen">Perkiraan Tanggal Panen <span class="required">*</span></label>
+            <input type="date" id="tglPerkiraanPanen" required>
+          </div>
+
+          <div class="form-group">
+            <label for="apakahAdaPanenPenjualan">Apakah Melakukan Kegiatan Panen/Penjualan ? <span class="required">*</span></label>
+            <select id="apakahAdaPanenPenjualan" class="form-input" required>
+              <option value="Tidak" selected>Tidak (Lanjut ke Kendala &amp; Foto)</option>
+              <option value="Ya">Ya (Mengisi Data Panen &amp; Penjualan)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="kodeKegiatanRef">Kode Kegiatan Referensi</label>
+            <input type="text" id="kodeKegiatanRef" list="recentCodesDatalist" placeholder="Masukkan kode referensi jika laporan lanjutan...">
+            <datalist id="recentCodesDatalist"></datalist>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(3)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Kembali</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+              <span>Lanjutkan</span>
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Kirim Laporan Harian</button>
+        <!-- Step 4: Data Panen & Penjualan -->
+        <div class="wizard-step" id="step4">
+          <div class="form-section-title">
+            <span class="step-badge">4</span>
+            <span>Data Panen &amp; Penjualan</span>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="tglPanen">Tanggal Panen</label>
+              <input type="date" id="tglPanen">
+            </div>
+            <div class="form-group">
+              <label for="jumlahPanen">Jumlah Panen (Kg / Unit)</label>
+              <input type="number" id="jumlahPanen" step="0.1" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="tglPenjualan">Tanggal Penjualan</label>
+              <input type="date" id="tglPenjualan">
+            </div>
+            <div class="form-group">
+              <label for="hargaJual">Harga Jual per Unit (Rp)</label>
+              <input type="number" id="hargaJual" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="jumlahPenjualanUnit">Jumlah Penjualan (Unit)</label>
+              <input type="number" id="jumlahPenjualanUnit" step="0.1" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label for="nilaiPenjualanRp">Nilai Penjualan Total (Rp)</label>
+              <input type="number" id="nilaiPenjualanRp" placeholder="0">
+            </div>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(4)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Kembali</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(4)">
+              <span>Lanjutkan</span>
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 5: Kendala & Bukti Foto -->
+        <div class="wizard-step" id="step5">
+          <div class="form-section-title">
+            <span class="step-badge">5</span>
+            <span>Kendala, Upaya &amp; Bukti Foto</span>
+          </div>
+
+          <div class="form-group">
+            <label for="kendala">Kendala Kegiatan</label>
+            <textarea id="kendala" rows="2" placeholder="Catat kendala atau hambatan di lapangan jika ada..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="upaya">Upaya Yang Dilakukan</label>
+            <textarea id="upaya" rows="2" placeholder="Catat solusi atau tindakan penanganan jika ada..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="photoInput">Foto Bukti Kegiatan <span class="required">*</span></label>
+            <input type="file" id="photoInput" accept="image/*" required onchange="handlePhotoSelect(this)">
+            <div id="photoPreview" class="photo-preview-box" style="display: none;">
+              <img id="previewImg" class="photo-preview-image" src="" alt="Preview Foto">
+            </div>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(5)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Kembali</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(5)">
+              <span>Tinjau Laporan</span>
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 6: Tinjau & Kirim -->
+        <div class="wizard-step" id="step6">
+          <div class="form-section-title">
+            <span class="step-badge">6</span>
+            <span>Tinjau Laporan &amp; Konfirmasi Pengiriman</span>
+          </div>
+          <p class="help-text" style="margin-bottom: 1rem;">Periksa kembali seluruh informasi laporan sebelum mengirimkan ke database terpusat.</p>
+
+          <!-- Review Box 1: Identitas Pelapor -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">1. Identitas Pelapor</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(1)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item">
+                <span class="review-label">Nama PIC / Pelapor</span>
+                <span class="review-value" id="revNamaPic">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Box 2: Jenis & Lokasi Kegiatan -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">2. Jenis &amp; Lokasi Kegiatan</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(2)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item">
+                <span class="review-label">Bidang / Divisi</span>
+                <span class="review-value" id="revBidangDivisi">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Lokasi Kegiatan</span>
+                <span class="review-value" id="revLokasiKegiatan">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Jenis Kegiatan</span>
+                <span class="review-value" id="revJenisKegiatan">-</span>
+              </div>
+              <div class="review-item" style="grid-column: 1 / -1;">
+                <span class="review-label">Target Kegiatan</span>
+                <span class="review-value" id="revTargetKegiatan">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Box 3: Skala & Jadwal Kegiatan -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">3. Skala &amp; Jadwal Kegiatan</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(3)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item" id="revGroupTglTanam" style="display: none;">
+                <span class="review-label">Tgl Tanam</span>
+                <span class="review-value" id="revTglTanam">-</span>
+              </div>
+              <div class="review-item" id="revGroupTglCheckIn" style="display: none;">
+                <span class="review-label">Tgl Check-in / Tebar</span>
+                <span class="review-value" id="revTglCheckIn">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Perkiraan Tgl Panen</span>
+                <span class="review-value" id="revTglPerkiraanPanen">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Luas Area (Ha)</span>
+                <span class="review-value" id="revLuasAreaHa">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Jumlah Populasi</span>
+                <span class="review-value" id="revJumlahPopulasi">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Kode Kegiatan Referensi</span>
+                <span class="review-value" id="revKodeKegiatanRef">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Box 4: Data Panen & Penjualan -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">4. Data Panen &amp; Penjualan</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(4)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item">
+                <span class="review-label">Tgl Panen</span>
+                <span class="review-value" id="revTglPanen">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Jumlah Panen</span>
+                <span class="review-value" id="revJumlahPanen">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Tgl Penjualan</span>
+                <span class="review-value" id="revTglPenjualan">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Harga Jual / Unit</span>
+                <span class="review-value" id="revHargaJual">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Jumlah Penjualan</span>
+                <span class="review-value" id="revJumlahPenjualan">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Total Penjualan (Rp)</span>
+                <span class="review-value" id="revNilaiPenjualan">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Box 5: Kendala & Bukti Foto -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">5. Kendala &amp; Bukti Foto</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(5)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item" style="grid-column: 1 / -1;">
+                <span class="review-label">Kendala</span>
+                <span class="review-value" id="revKendala">-</span>
+              </div>
+              <div class="review-item" style="grid-column: 1 / -1;">
+                <span class="review-label">Upaya Penanganan</span>
+                <span class="review-value" id="revUpaya">-</span>
+              </div>
+              <div class="review-item" style="grid-column: 1 / -1;">
+                <span class="review-label">Foto Bukti Kegiatan</span>
+                <div id="revPhotoContainer" style="margin-top: 0.35rem;">
+                  <span class="review-value" id="revPhotoStatus">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="privacy-consent-note">
+            Data pelaporan diproses secara aman untuk operasional perusahaan sesuai <a href="javascript:void(0)" onclick="openPrivacyModal()">Ketentuan Privasi &amp; Pelindungan Data (UU PDP)</a>.
+          </p>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(6)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Kembali</span>
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitOperational">
+              <span>Kirim Laporan Operasional</span>
+            </button>
+          </div>
+        </div>
       </form>
     </div>
+
+    <!-- Success Confirmation Card -->
     <div id="successCard" class="card success-confirmation-card" style="display: none;">
-      <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
-        <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center;">
-          <svg class="svg-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      <div class="success-icon-badge">
+        <svg class="svg-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="success-card-title">Laporan Operasional Berhasil Terkirim!</h2>
+      <p class="success-card-desc">Data laporan Anda telah dicatat ke database terpusat dan antrean triage internal.</p>
+
+      <div class="activity-code-callout">
+        <div class="activity-code-label">Kode Kegiatan Anda</div>
+        <div id="displayKodeKegiatan" class="activity-code-value">-</div>
+        <button type="button" class="btn btn-secondary table-btn-sm" onclick="copyKodeKegiatan()">
+          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copyBtnText">Salin Kode</span>
+        </button>
+      </div>
+
+      <div class="success-card-actions">
+        <button type="button" class="btn btn-primary btn-success-reset" onclick="resetFormForNewSubmission()">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Isi Laporan Baru</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pemberitahuan Privasi & Pelindungan Data (UU PDP) -->
+  <div class="modal-overlay" id="privacyNoticeModal" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Pemberitahuan Privasi Data (UU PDP)</h3>
+        <button type="button" class="modal-close-btn" onclick="closePrivacyModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; display: flex; flex-direction: column; gap: 0.85rem; max-height: 65vh; overflow-y: auto; padding: 1.25rem;">
+        <p style="margin: 0; font-size: 0.825rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          Sesuai dengan Undang-Undang Republik Indonesia Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP).
+        </p>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">1. Data yang Dikumpulkan</strong>
+          <p style="margin: 0;">Sistem mengumpulkan Nama PIC / Pelapor, Lokasi Kegiatan, rincian aktivitas operasional, hasil panen, transaksi penjualan, dan foto bukti lapangan.</p>
+        </div>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">2. Tujuan Pengolahan Data</strong>
+          <p style="margin: 0;">Data digunakan semata-mata untuk pemantauan produktivitas harian, penanganan kendala atau insiden di lapangan, dan evaluasi manajemen internal.</p>
+        </div>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">3. Pelindungan Data Sensitif</strong>
+          <p style="margin: 0;">Laporan yang berisi informasi sensitif diisolasi secara otomatis dan hanya dapat diakses oleh Admin Operasional Terbatas dan Manajemen.</p>
+        </div>
+        <div>
+          <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">4. Masa Retensi &amp; Pengarsipan</strong>
+          <p style="margin: 0;">Laporan yang telah selesai diverifikasi dipindahkan ke arsip setelah periode retensi 90 hari sesuai prinsip minimisasi data Pasal 16 UU PDP.</p>
         </div>
       </div>
-      <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">Laporan Harian Berhasil Terkirim!</h2>
-      <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 460px; margin: 0 auto 1.5rem auto;">Data laporan operasional Anda telah dicatat ke dalam database terpusat dan diteruskan ke antrean triage internal.</p>
-      <button type="button" class="btn btn-primary" onclick="resetFormForNewSubmission()" style="min-height: 44px; display: inline-flex; align-items: center; gap: 0.5rem;">
-        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>Isi Laporan Baru</span>
-      </button>
+      <div class="modal-footer" style="padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary table-btn-sm" onclick="closePrivacyModal()">Saya Mengerti</button>
+      </div>
     </div>
   </div>
 
   <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('reportDate').valueAsDate = new Date();
+    let photoBase64Data = '';
+    let photoMimeTypeData = '';
+    let currentStep = 1;
+    const TOTAL_STEPS = 6;
+    const STEP_TITLES = [
+      'Identitas Pelapor',
+      'Jenis & Lokasi Kegiatan',
+      'Skala & Jadwal Kegiatan',
+      'Data Panen & Penjualan',
+      'Kendala & Bukti Foto',
+      'Tinjau & Kirim'
+    ];
 
-      // Inline validation on blur (Task 17)
-      ['empId', 'site', 'reportDate'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-          input.addEventListener('blur', () => {
-            validateFieldInline(input);
-          });
-        }
-      });
+    function openPrivacyModal() {
+      const m = document.getElementById('privacyNoticeModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closePrivacyModal() {
+      const m = document.getElementById('privacyNoticeModal');
+      if (m) m.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Load recent activity codes for autocomplete
+      if (isLiveServer()) {
+        try {
+          const codes = await runServer('getRecentActivityCodes');
+          if (Array.isArray(codes)) {
+            const dl = document.getElementById('recentCodesDatalist');
+            if (dl) {
+              dl.innerHTML = '';
+              codes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                dl.appendChild(opt);
+              });
+            }
+          }
+        } catch (e) {}
+      }
     });
 
-    function validateFieldInline(input) {
-      if (input.hasAttribute('required') && !input.value.trim()) {
-        input.style.borderColor = 'var(--urgent)';
+    function handleDivisiChange(val) {
+      const gAgro = document.getElementById('groupTglTanam');
+      const gTernak = document.getElementById('groupTglCheckIn');
+      const inputTanam = document.getElementById('tglTanam');
+      const inputCheckIn = document.getElementById('tglCheckInTebar');
+
+      if (!gAgro || !gTernak || !inputTanam || !inputCheckIn) return;
+
+      if (val && val.includes('Agro')) {
+        gAgro.style.display = 'block';
+        gTernak.style.display = 'none';
+        inputTanam.setAttribute('required', 'true');
+        inputCheckIn.removeAttribute('required');
+      } else if (val && (val.includes('Ternak') || val.includes('Ikan'))) {
+        gAgro.style.display = 'none';
+        gTernak.style.display = 'block';
+        inputCheckIn.setAttribute('required', 'true');
+        inputTanam.removeAttribute('required');
       } else {
-        input.style.borderColor = 'var(--border-strong)';
+        gAgro.style.display = 'none';
+        gTernak.style.display = 'none';
+        inputTanam.removeAttribute('required');
+        inputCheckIn.removeAttribute('required');
       }
     }
 
-    function validateDailyForm() {
+    function handlePhotoSelect(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        photoMimeTypeData = file.type || 'image/jpeg';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          photoBase64Data = e.target.result;
+          document.getElementById('previewImg').src = photoBase64Data;
+          document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function validateStep(stepNum) {
       const summary = document.getElementById('errorSummary');
       const list = document.getElementById('errorSummaryList');
+      const heading = document.getElementById('errorSummaryHeading');
       list.innerHTML = '';
       const errors = [];
 
-      const empId = document.getElementById('empId');
-      if (!empId.value.trim()) {
-        errors.push({ id: 'empId', text: 'Kode Karyawan / Employee ID wajib diisi.' });
-        empId.style.borderColor = 'var(--urgent)';
-      }
+      if (stepNum === 1) {
+        const namaPic = document.getElementById('namaPic');
+        if (!namaPic.value.trim()) {
+          errors.push({ id: 'namaPic', text: 'Nama PIC Lokasi wajib diisi.' });
+        }
+        const bidangDivisi = document.getElementById('bidangDivisi');
+        if (!bidangDivisi.value) {
+          errors.push({ id: 'bidangDivisi', text: 'Divisi wajib dipilih.' });
+        }
+      } else if (stepNum === 2) {
+        const lokasiKegiatan = document.getElementById('lokasiKegiatan');
+        if (!lokasiKegiatan.value.trim()) {
+          errors.push({ id: 'lokasiKegiatan', text: 'Lokasi Kegiatan wajib diisi.' });
+        }
 
-      const site = document.getElementById('site');
-      if (!site.value) {
-        errors.push({ id: 'site', text: 'Lokasi / Site kerja wajib dipilih.' });
-        site.style.borderColor = 'var(--urgent)';
-      }
+        const jenisKegiatan = document.getElementById('jenisKegiatan');
+        if (!jenisKegiatan.value.trim()) {
+          errors.push({ id: 'jenisKegiatan', text: 'Jenis Kegiatan wajib diisi.' });
+        }
 
-      const reportDate = document.getElementById('reportDate');
-      if (!reportDate.value) {
-        errors.push({ id: 'reportDate', text: 'Tanggal Laporan wajib diisi.' });
-        reportDate.style.borderColor = 'var(--urgent)';
+        const targetKegiatan = document.getElementById('targetKegiatan');
+        if (!targetKegiatan.value.trim()) {
+          errors.push({ id: 'targetKegiatan', text: 'Target Kegiatan wajib diisi.' });
+        }
+      } else if (stepNum === 3) {
+        const bidangDivisi = document.getElementById('bidangDivisi');
+        if (bidangDivisi && bidangDivisi.value.includes('Agro')) {
+          const tglTanam = document.getElementById('tglTanam');
+          if (!tglTanam.value) errors.push({ id: 'tglTanam', text: 'Jadwal / Tanggal Tanam wajib diisi untuk Divisi Agro.' });
+        } else if (bidangDivisi && (bidangDivisi.value.includes('Ternak') || bidangDivisi.value.includes('Ikan'))) {
+          const tglCheckIn = document.getElementById('tglCheckInTebar');
+          if (!tglCheckIn.value) errors.push({ id: 'tglCheckInTebar', text: 'Jadwal / Tanggal Check-in / Tebar wajib diisi.' });
+        }
+
+        const tglPerkiraanPanen = document.getElementById('tglPerkiraanPanen');
+        if (!tglPerkiraanPanen.value) {
+          errors.push({ id: 'tglPerkiraanPanen', text: 'Jadwal / Perkiraan Tanggal Panen wajib diisi.' });
+        }
+      } else if (stepNum === 4) {
+        // Step 4 is optional — advancing with empty fields is allowed
+      } else if (stepNum === 5) {
+        const photoInput = document.getElementById('photoInput');
+        if ((!photoInput.files || photoInput.files.length === 0) && !photoBase64Data) {
+          errors.push({ id: 'photoInput', text: 'Foto Bukti Kegiatan wajib dilampirkan.' });
+        }
       }
 
       if (errors.length > 0) {
+        if (heading) heading.innerText = `Mohon lengkapi bagian ${STEP_TITLES[stepNum - 1]}:`;
         errors.forEach(err => {
           const li = document.createElement('li');
           li.innerHTML = `<span class="error-summary-link" onclick="focusField('${err.id}')">${err.text}</span>`;
@@ -174,6 +622,120 @@
       return true;
     }
 
+    function goToStep(stepNum) {
+      if (stepNum < 1 || stepNum > TOTAL_STEPS) return;
+      currentStep = stepNum;
+
+      for (let i = 1; i <= TOTAL_STEPS; i++) {
+        const stepEl = document.getElementById(`step${i}`);
+        if (stepEl) {
+          if (i === stepNum) {
+            stepEl.classList.add('active');
+          } else {
+            stepEl.classList.remove('active');
+          }
+        }
+      }
+
+      // Re-verify conditional visibility across step transitions
+      const divVal = document.getElementById('bidangDivisi') ? document.getElementById('bidangDivisi').value : '';
+      handleDivisiChange(divVal);
+
+      const summary = document.getElementById('errorSummary');
+      if (summary) summary.style.display = 'none';
+
+      const counter = document.getElementById('stepCounterText');
+      if (counter) counter.innerText = `Langkah ${stepNum} dari ${TOTAL_STEPS}`;
+
+      const title = document.getElementById('stepTitleText');
+      if (title) title.innerText = STEP_TITLES[stepNum - 1];
+
+      const fill = document.getElementById('wizardProgressFill');
+      if (fill) fill.style.width = `${(stepNum / TOTAL_STEPS) * 100}%`;
+
+      if (stepNum === 6) {
+        populateReviewSummary();
+      }
+
+      const formCard = document.getElementById('formCard');
+      if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function nextStep(fromStep) {
+      if (!validateStep(fromStep)) return;
+      if (fromStep === 3) {
+        const isPanenVal = document.getElementById('apakahAdaPanenPenjualan') ? document.getElementById('apakahAdaPanenPenjualan').value : 'Tidak';
+        if (isPanenVal === 'Tidak') {
+          goToStep(5);
+          return;
+        }
+      }
+      goToStep(fromStep + 1);
+    }
+
+    function prevStep(fromStep) {
+      if (fromStep === 5) {
+        const isPanenVal = document.getElementById('apakahAdaPanenPenjualan') ? document.getElementById('apakahAdaPanenPenjualan').value : 'Tidak';
+        if (isPanenVal === 'Tidak') {
+          goToStep(3);
+          return;
+        }
+      }
+      goToStep(fromStep - 1);
+    }
+
+    function populateReviewSummary() {
+      // Step 1
+      document.getElementById('revNamaPic').innerText = document.getElementById('namaPic').value || '-';
+
+      // Step 2
+      const divVal = document.getElementById('bidangDivisi').value;
+      document.getElementById('revBidangDivisi').innerText = divVal || '-';
+      document.getElementById('revLokasiKegiatan').innerText = document.getElementById('lokasiKegiatan').value || '-';
+      document.getElementById('revJenisKegiatan').innerText = document.getElementById('jenisKegiatan').value || '-';
+      document.getElementById('revTargetKegiatan').innerText = document.getElementById('targetKegiatan').value || '-';
+
+      // Step 3
+      const revTanamGroup = document.getElementById('revGroupTglTanam');
+      const revCheckInGroup = document.getElementById('revGroupTglCheckIn');
+      if (divVal.includes('Agro')) {
+        if (revTanamGroup) revTanamGroup.style.display = 'flex';
+        if (revCheckInGroup) revCheckInGroup.style.display = 'none';
+        document.getElementById('revTglTanam').innerText = document.getElementById('tglTanam').value || '-';
+      } else if (divVal.includes('Ternak') || divVal.includes('Ikan')) {
+        if (revTanamGroup) revTanamGroup.style.display = 'none';
+        if (revCheckInGroup) revCheckInGroup.style.display = 'flex';
+        document.getElementById('revTglCheckIn').innerText = document.getElementById('tglCheckInTebar').value || '-';
+      } else {
+        if (revTanamGroup) revTanamGroup.style.display = 'none';
+        if (revCheckInGroup) revCheckInGroup.style.display = 'none';
+      }
+
+      document.getElementById('revTglPerkiraanPanen').innerText = document.getElementById('tglPerkiraanPanen').value || '-';
+      document.getElementById('revLuasAreaHa').innerText = document.getElementById('luasAreaHa').value ? `${document.getElementById('luasAreaHa').value} Ha` : '-';
+      document.getElementById('revJumlahPopulasi').innerText = document.getElementById('jumlahPopulasi').value ? `${document.getElementById('jumlahPopulasi').value}` : '-';
+      document.getElementById('revKodeKegiatanRef').innerText = document.getElementById('kodeKegiatanRef').value || '(Tidak ada - Siklus Baru)';
+
+      // Step 4
+      document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '(Nihil)';
+      document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value}` : '(Nihil)';
+      document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '(Nihil)';
+      document.getElementById('revHargaJual').innerText = document.getElementById('hargaJual').value ? `Rp ${parseFloat(document.getElementById('hargaJual').value).toLocaleString('id-ID')}` : '(Nihil)';
+      document.getElementById('revJumlahPenjualan').innerText = document.getElementById('jumlahPenjualanUnit').value ? `${document.getElementById('jumlahPenjualanUnit').value}` : '(Nihil)';
+      document.getElementById('revNilaiPenjualan').innerText = document.getElementById('nilaiPenjualanRp').value ? `Rp ${parseFloat(document.getElementById('nilaiPenjualanRp').value).toLocaleString('id-ID')}` : '(Nihil)';
+
+      // Step 5
+      document.getElementById('revKendala').innerText = document.getElementById('kendala').value || '(Tidak ada kendala)';
+      document.getElementById('revUpaya').innerText = document.getElementById('upaya').value || '(Tidak ada)';
+      
+      const photoContainer = document.getElementById('revPhotoContainer');
+      if (photoBase64Data) {
+        photoContainer.innerHTML = `<img src="${photoBase64Data}" alt="Foto Bukti" class="photo-preview-image" style="max-height: 120px; display: block; margin-top: 4px;">`;
+      } else {
+        photoContainer.innerHTML = `<span class="review-value" style="color: var(--urgent);">Belum ada foto</span>`;
+      }
+    }
+
     function focusField(id) {
       const el = document.getElementById(id);
       if (el) {
@@ -182,73 +744,113 @@
       }
     }
 
+    function copyKodeKegiatan() {
+      const text = document.getElementById('displayKodeKegiatan').innerText;
+      if (text && text !== '-') {
+        navigator.clipboard.writeText(text).then(() => {
+          document.getElementById('copyBtnText').innerText = 'Tersalin!';
+          setTimeout(() => {
+            document.getElementById('copyBtnText').innerText = 'Salin Kode';
+          }, 2000);
+        });
+      }
+    }
+
     function resetFormForNewSubmission() {
-      const formCard = document.querySelector('.card:not(#successCard)');
+      const formCard = document.getElementById('formCard');
       const successCard = document.getElementById('successCard');
       if (formCard) formCard.style.display = 'block';
       if (successCard) successCard.style.display = 'none';
 
-      document.getElementById('dailyForm').reset();
-      document.getElementById('reportDate').valueAsDate = new Date();
+      document.getElementById('operationalForm').reset();
+      document.getElementById('photoPreview').style.display = 'none';
+      photoBase64Data = '';
+      photoMimeTypeData = '';
+      goToStep(1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    document.getElementById('dailyForm').addEventListener('submit', async function(e) {
+    document.getElementById('operationalForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      if (!validateDailyForm()) return;
-
-      const submitBtn = this.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Mengirim...';
-
-      const empId = document.getElementById('empId').value;
-      const site = document.getElementById('site').value;
-      const date = document.getElementById('reportDate').value;
-      const status = document.getElementById('taskStatus').value;
-      const yieldKg = parseFloat(document.getElementById('yieldKg').value) || 0;
       
-      const issueNodes = document.querySelectorAll('input[name="issues"]:checked');
-      const issues = Array.from(issueNodes).map(n => n.value);
+      // Full validation check across all steps 1-5 before submission
+      for (let s = 1; s <= 5; s++) {
+        if (!validateStep(s)) {
+          goToStep(s);
+          return;
+        }
+      }
 
-      const payload = { empId, site, date, taskStatus: status, yieldKg, issues };
+      const submitBtn = document.getElementById('btnSubmitOperational');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Mengirim Laporan...';
+
+      const payload = {
+        namaPic: document.getElementById('namaPic').value,
+        bidangDivisi: document.getElementById('bidangDivisi').value,
+        tglTanam: document.getElementById('tglTanam').value,
+        tglCheckInTebar: document.getElementById('tglCheckInTebar').value,
+        lokasiKegiatan: document.getElementById('lokasiKegiatan').value,
+        jenisKegiatan: document.getElementById('jenisKegiatan').value,
+        targetKegiatan: document.getElementById('targetKegiatan').value,
+        luasAreaHa: parseFloat(document.getElementById('luasAreaHa').value) || 0,
+        jumlahPopulasi: parseFloat(document.getElementById('jumlahPopulasi').value) || 0,
+        tglPerkiraanPanen: document.getElementById('tglPerkiraanPanen').value,
+        kodeKegiatanRef: document.getElementById('kodeKegiatanRef').value,
+        tglPanen: document.getElementById('tglPanen').value,
+        jumlahPanen: parseFloat(document.getElementById('jumlahPanen').value) || 0,
+        tglPenjualan: document.getElementById('tglPenjualan').value,
+        hargaJual: parseFloat(document.getElementById('hargaJual').value) || 0,
+        jumlahPenjualanUnit: parseFloat(document.getElementById('jumlahPenjualanUnit').value) || 0,
+        nilaiPenjualanRp: parseFloat(document.getElementById('nilaiPenjualanRp').value) || 0,
+        kendala: document.getElementById('kendala').value,
+        upaya: document.getElementById('upaya').value,
+        photoBase64: photoBase64Data,
+        photoMimeType: photoMimeTypeData
+      };
 
       try {
+        let res;
         if (isLiveServer()) {
-          await runServer('submitDailyReport', payload);
+          res = await runServer('submitOperationalReport', payload);
         } else {
-          const flag = evaluateFlags(status + ' ' + issues.join(' '));
+          // Local mock fallback
+          const kodeGenerated = 'AGR-SIM-' + Date.now().toString().substring(8);
+          const flag = evaluateFlags(payload.jenisKegiatan + ' ' + payload.kendala);
           const db = getDB();
-          db.dailyReports.unshift({
-            id: 'REC-' + Date.now(),
+          if (!db.operationalReports) db.operationalReports = [];
+          db.operationalReports.unshift({
+            id: 'OP-' + Date.now(),
+            kodeKegiatan: kodeGenerated,
             timestamp: formatDateNow(),
-            empId: empId,
-            site: site,
-            date: date,
-            status: status,
-            yield: yieldKg,
-            issues: issues,
+            namaPic: payload.namaPic,
+            divisi: payload.bidangDivisi,
+            lokasi: payload.lokasiKegiatan,
+            jenisKegiatan: payload.jenisKegiatan,
+            targetKegiatan: payload.targetKegiatan,
             severity: flag.severity,
             rank: flag.rank,
             category: flag.category,
             reviewStatus: 'Unreviewed'
           });
           saveDB(db);
+          res = { success: true, kodeKegiatan: kodeGenerated };
         }
 
-        showToast('Laporan harian berhasil dikirim!', 'success');
+        document.getElementById('displayKodeKegiatan').innerText = res.kodeKegiatan || 'KODE-GENERATED';
+        showToast('Laporan operasional berhasil dikirim!', 'success');
         
-        // Task 18 — Full-Context Submission Success Confirmation State
-        const formCard = this.closest('.card');
+        const formCard = document.getElementById('formCard');
         const successCard = document.getElementById('successCard');
         if (formCard) formCard.style.display = 'none';
         if (successCard) successCard.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
         console.error('Submit error:', err);
-        showToast('Gagal mengirim laporan. Periksa koneksi Anda.', 'error');
+        showToast(err.message || 'Gagal mengirim laporan. Periksa koneksi Anda.', 'error');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = 'Kirim Laporan Harian';
+        submitBtn.innerText = 'Kirim Laporan Operasional';
       }
     });
   </script>

@@ -32,8 +32,7 @@ const ReviewStatus = Object.freeze({
   UNREVIEWED: 'Unreviewed',
   IN_REVIEW: 'In Review',
   ACTION_NEEDED: 'Action Needed',
-  CLOSED: 'Closed',
-  UNREVIEWED_SENSITIVE: 'Unreviewed (Sensitive)'
+  CLOSED: 'Closed'
 });
 
 /**
@@ -64,36 +63,33 @@ function TriageResult(severity, rank, category) {
 }
 
 /**
- * Domain Entity: Daily Operational Report
+ * Domain Entity: Unified Operational Report (Kegiatan, Panen & Penjualan)
  */
-function DailyReport(data) {
+function OperationalReport(data) {
   return {
     reportId: data.reportId || '',
+    kodeKegiatan: data.kodeKegiatan || '',
+    kodeKegiatanRef: data.kodeKegiatanRef || '',
     timestamp: data.timestamp || '',
-    empId: data.empId || '',
-    site: data.site || '',
-    date: data.date || '',
-    taskStatus: data.taskStatus || '',
-    yieldKg: parseFloat(data.yieldKg) || 0,
-    issues: Array.isArray(data.issues) ? data.issues.join(', ') : (data.issues || 'None')
-  };
-}
-
-/**
- * Domain Entity: General Narrative & Incident Report
- */
-function GeneralReport(data) {
-  return {
-    reportId: data.reportId || '',
-    timestamp: data.timestamp || '',
-    empId: data.empId || '',
-    site: data.site || '',
-    date: data.date || '',
-    details: data.details || '',
-    isSensitive: Boolean(data.isSensitive),
-    sensitiveText: data.isSensitive 
-      ? 'Ya / Yes (Laporan ini berisi data sensitif/privat)' 
-      : 'Tidak'
+    namaPic: data.namaPic || data.empId || '',
+    bidangDivisi: data.bidangDivisi || data.site || '',
+    lokasiKegiatan: data.lokasiKegiatan || '',
+    jenisKegiatan: data.jenisKegiatan || '',
+    targetKegiatan: data.targetKegiatan || '',
+    luasAreaHa: parseFloat(data.luasAreaHa) || 0,
+    jumlahPopulasi: parseFloat(data.jumlahPopulasi) || 0,
+    tglTanam: data.tglTanam || '',
+    tglCheckInTebar: data.tglCheckInTebar || '',
+    tglPerkiraanPanen: data.tglPerkiraanPanen || '',
+    tglPanen: data.tglPanen || '',
+    jumlahPanen: parseFloat(data.jumlahPanen) || 0,
+    tglPenjualan: data.tglPenjualan || '',
+    hargaJual: parseFloat(data.hargaJual) || 0,
+    jumlahPenjualanUnit: parseFloat(data.jumlahPenjualanUnit) || 0,
+    nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
+    kendala: data.kendala || '',
+    upaya: data.upaya || '',
+    fotoUrl: data.fotoUrl || data.photoUrl || ''
   };
 }
 
@@ -102,33 +98,34 @@ function GeneralReport(data) {
  */
 function QueueItem(data) {
   return {
-    source: data.source || '',
+    source: data.source || 'Laporan Operasional',
     reportId: data.reportId || '',
+    kodeKegiatan: data.kodeKegiatan || '',
     timestamp: data.timestamp || '',
-    empId: data.empId || '',
-    site: data.site || '',
-    date: data.date || '',
-    detail: data.detail || '',
-    yieldOrSensitive: data.yieldOrSensitive || '',
-    issues: data.issues || '',
+    namaPic: data.namaPic || data.empId || '',
+    divisi: data.divisi || data.site || '',
+    lokasi: data.lokasi || '',
+    ringkasan: data.ringkasan || data.detail || '',
     severity: data.severity || ReportSeverity.NORMAL,
     rank: data.rank || SeverityRank.NORMAL,
     category: data.category || ReportCategory.ROUTINE,
-    reviewStatus: data.reviewStatus || ReviewStatus.UNREVIEWED
+    reviewStatus: data.reviewStatus || ReviewStatus.UNREVIEWED,
+    photoUrl: data.photoUrl || '',
+    raw: data.raw || null
   };
 }
 
 /**
- * Domain Entity: Weekly Aggregated Site Statistics
+ * Domain Entity: Weekly Aggregated Division Statistics
  */
-function WeeklyStat(siteName) {
+function WeeklyStat(divisiName) {
   return {
-    site: siteName,
-    dailyCount: 0,
-    generalCount: 0,
+    site: divisiName,
+    kegiatanCount: 0,
+    activeKegiatanCount: 0,
+    totalPanen: 0,
+    totalPenjualanRp: 0,
     urgentCount: 0,
-    warningCount: 0,
-    sensitiveCount: 0,
-    totalYield: 0
+    warningCount: 0
   };
 }

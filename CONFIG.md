@@ -13,12 +13,11 @@ After running `setupReportingSystem()`, you must set the following properties in
 | `ADMIN_EMAIL` | `admin.operasional@perusahaan-agri.co.id` | Receives urgent incident alerts and daily 17:00 WIB digests |
 | `MANAGER_EMAIL` | `general.manager@perusahaan-agri.co.id` | Receives weekly Monday 08:00 WIB executive summary digests |
 | `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` |
-| `DAILY_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` |
-| `GENERAL_FORM_ID` | `1K2l3M4n5O...` | Generated automatically by `Setup.gs` |
+| `MAIN_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` for the unified Operational Form |
 | `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment A URL for the public field-staff portal. Set manually after Deployment A is created. |
 | `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment B URL for Admin Queue and Manager Dashboard. Set manually after Deployment B is created. |
 
-`WEB_APP_URL` is retired. Use the explicit `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` properties instead so public quick links and internal navigation cannot be confused.
+`WEB_APP_URL`, `DAILY_FORM_ID`, and `GENERAL_FORM_ID` are retired. Use `MAIN_FORM_ID` alongside explicit `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` properties instead.
 
 ## 1.1 Google Script Properties (Optional Operational Tuning)
 
@@ -63,8 +62,8 @@ The triage engine in `src/Automation.gs` categorizes incoming field reports into
 ## 4. Key Architecture & Policy Decisions
 
 - **Attachment Handling (Option A)**:
-  Forms do not enforce Google Login to keep friction zero for non-tech-savvy field staff. Photo evidence for general/incident reports is submitted via site WhatsApp directly to the operational admin referencing timestamp and Site location.
+  Forms do not enforce Google Login to keep friction zero for non-tech-savvy field staff. Photo evidence for operational reports can be attached directly via Web App or submitted to the operational admin.
 - **Sensitive Data Isolation**:
-  General reports with the **Informasi sensitif? / Contains sensitive info?** checkbox enabled are automatically removed from `General_Raw` and appended exclusively to `Sensitive_Restricted`.
-- **Looker Studio Integration**:
-  Looker Studio connects directly to the `Weekly_Summary` tab (which is aggregated automatically by the weekly trigger script).
+  Sensitive reports are routed exclusively to the restricted tab / access layer.
+- **Looker Studio & Analytics Integration**:
+  Looker Studio or external BI tools connect directly to the operational raw tab (`Laporan_Operasional_Raw`) for granular drill-downs, while executive metrics are computed in real-time by the Manager Web Dashboard and weekly email trigger.

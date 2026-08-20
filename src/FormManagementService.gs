@@ -37,24 +37,51 @@ const FormManagementService = {
     }
 
     // 3. Fallback match for default forms or template names
-    if (form.type === 'harian' || form.isDefaultDaily) {
-      const dailySheet = ss.getSheetByName('Daily_Raw') || ss.getSheetByName('Laporan Operasional Harian');
-      if (dailySheet) return dailySheet;
-    }
-    if (form.type === 'umum' || form.isDefaultGeneral) {
-      const generalSheet = ss.getSheetByName('General_Raw') || ss.getSheetByName('Laporan Umum & Catatan Lapangan');
-      if (generalSheet) return generalSheet;
+    if (form.type === 'operasional' || form.isDefault || form.isDefaultMain) {
+      const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || ss.getSheetByName('Laporan Operasional (Kegiatan, Panen & Penjualan)');
+      if (opSheet) return opSheet;
     }
 
     return ss.getSheetByName('Raw') || sheets[0];
   },
 
   /**
+   * Lightweight form list reader without Spreadsheet/FormApp I/O overhead.
+   * Directly parses stored JSON registry — ideal for high-frequency data reads.
+   * @returns {Array<Object>}
+   */
+  getRegisteredFormsRaw_: function() {
+    let forms = [];
+    try {
+      const rawJson = ConfigRepository.getProperty(this.REGISTERED_FORMS_KEY);
+      if (rawJson) forms = JSON.parse(rawJson);
+    } catch (e) {
+      forms = [];
+    }
+    if (!Array.isArray(forms) || forms.length === 0) {
+      const mainFormId = ConfigRepository.getMainFormId();
+      return [{
+        id: mainFormId || 'DEFAULT_MAIN_FORM',
+        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        type: 'operasional',
+        isDefault: true,
+        isDefaultMain: true
+      }];
+    }
+    return forms;
+  },
+
+  /**
    * Retrieves all registered forms metadata array.
    * Auto-provisions tabs in integrated spreadsheet if missing, and enriches metadata.
+   * @param {Object} [options] - { lightweight: boolean }
    * @returns {Array<Object>} List of form objects.
    */
-  getFormList: function() {
+  getFormList: function(options = {}) {
+    if (options && options.lightweight) {
+      return this.getRegisteredFormsRaw_();
+    }
+
     let forms = [];
     let isInitialRun = false;
     try {
@@ -72,39 +99,55 @@ const FormManagementService = {
 
     if (!Array.isArray(forms)) forms = [];
 
-    const dailyId = ConfigRepository.getDailyFormId();
-    const generalId = ConfigRepository.getGeneralFormId();
+    // Purge legacy prototype forms (Daily / General)
+    const originalLength = forms.length;
+    forms = forms.filter(f => {
+      if (!f) return false;
+      const fId = String(f.id || '');
+      const fType = String(f.type || '').toLowerCase();
+      const fTitle = String(f.title || '').toLowerCase();
+      if (fId === 'DEFAULT_DAILY_FORM' || fId === 'DEFAULT_GENERAL_FORM') return false;
+      if (fType === 'harian' || fType === 'umum') return false;
+      if (fTitle.includes('laporan operasional harian') || fTitle.includes('laporan umum & catatan lapangan') || fTitle.includes('daily report') || fTitle.includes('general report')) return false;
+      return true;
+    });
+
+    const mainFormId = ConfigRepository.getMainFormId();
     const mainSsId = ConfigRepository.getSpreadsheetId();
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
     const baseUrl = publicWebAppUrl ? publicWebAppUrl.split('?')[0] : '';
 
-    // Seed default forms ONLY on initial system setup (when script property is empty)
-    if (isInitialRun && forms.length === 0) {
-      forms.push({
-        id: dailyId || 'DEFAULT_DAILY_FORM',
-        title: 'Laporan Operasional Harian',
-        description: 'Formulir pelaporan harian aktivitas operasional pertanian, peternakan, dan pabrik.',
-        type: 'harian',
+    // Seed default main form if missing
+    const hasMainForm = forms.some(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.id === mainFormId);
+    if (!hasMainForm) {
+      forms.unshift({
+        id: mainFormId || 'DEFAULT_MAIN_FORM',
+        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        description: 'Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.',
+        type: 'operasional',
         status: 'aktif',
-        editUrl: dailyId ? `https://docs.google.com/forms/d/${dailyId}/edit` : '',
+        editUrl: mainFormId ? `https://docs.google.com/forms/d/${mainFormId}/edit` : '',
         publicUrl: baseUrl ? `${baseUrl}?page=index` : '?page=index',
         createdAt: new Date().toISOString(),
         isDefault: true,
-        isDefaultDaily: true
+        isDefaultMain: true
       });
+    }
 
-      forms.push({
-        id: generalId || 'DEFAULT_GENERAL_FORM',
-        title: 'Laporan Umum & Catatan Lapangan',
-        description: 'Formulir pelaporan kejadian umum, kondisi lapangan, atau insiden.',
-        type: 'umum',
-        status: 'aktif',
-        editUrl: generalId ? `https://docs.google.com/forms/d/${generalId}/edit` : '',
-        publicUrl: baseUrl ? `${baseUrl}?page=general` : '?page=general',
-        createdAt: new Date().toISOString(),
-        isDefault: true,
-        isDefaultGeneral: true
-      });
+    if (forms.length !== originalLength || isInitialRun) {
+      try {
+        this.saveFormList_(forms);
+      } catch (e) {}
+    }
+
+    // Open spreadsheet ONCE for all forms to avoid repeated I/O overhead
+    let ss = null;
+    if (mainSsId) {
+      try {
+        ss = SpreadsheetApp.openById(mainSsId);
+      } catch (err) {
+        Logger.log(`FormManagementService Notice: Could not open spreadsheet ${mainSsId}: ${err.toString()}`);
+      }
     }
 
     // Auto-provision tab in integrated spreadsheet for forms that lack tabGid
@@ -114,7 +157,7 @@ const FormManagementService = {
 
       if (f.tabGid === undefined || f.tabGid === null) {
         try {
-          const tabStorage = this.provisionFormTab_(f.title, f.id);
+          const tabStorage = this.provisionFormTab_(f.title, f.id, ss);
           f.tabGid = tabStorage.tabGid;
           registryNeedsSaving = true;
         } catch (e) {
@@ -123,7 +166,7 @@ const FormManagementService = {
       }
 
       // Re-point Google Form destination to integrated Spreadsheet if not yet repointed
-      if (f.type !== 'kustom' && f.id && !f.destinationRepointedV2 && f.id !== 'DEFAULT_DAILY_FORM' && f.id !== 'DEFAULT_GENERAL_FORM') {
+      if (f.type !== 'kustom' && f.id && !f.destinationRepointedV2 && f.id !== 'DEFAULT_MAIN_FORM') {
         try {
           const gForm = FormApp.openById(f.id);
           gForm.setDestination(FormApp.DestinationType.SPREADSHEET, mainSsId);
@@ -147,7 +190,7 @@ const FormManagementService = {
     // Enrich metadata with live attributes, direct tab GID URLs, & sheet row counts
     return forms.map(f => {
       try {
-        return this.enrichFormMetadata_(f);
+        return this.enrichFormMetadata_(f, ss);
       } catch (err) {
         return f;
       }
@@ -160,13 +203,14 @@ const FormManagementService = {
    * @private
    * @param {string} title 
    * @param {string} formId 
+   * @param {Spreadsheet} [ssInstance]
    * @returns {{ sheetId: string, tabGid: number }}
    */
-  provisionFormTab_: function(title, formId) {
+  provisionFormTab_: function(title, formId, ssInstance) {
     const mainSsId = ConfigRepository.getSpreadsheetId();
     if (!mainSsId) throw new Error('SPREADSHEET_ID tidak dikonfigurasi.');
 
-    const ss = SpreadsheetApp.openById(mainSsId);
+    const ss = ssInstance || SpreadsheetApp.openById(mainSsId);
     const cleanTitle = (title || 'Form Laporan').trim();
     const shortId = String(formId || Date.now()).substring(0, 8);
 
@@ -195,12 +239,16 @@ const FormManagementService = {
       sensitiveSheet.setFrozenRows(1);
     }
 
-    // Set standard headers for form tab (with Foto_Lampiran column for photo uploads)
-    rawSheet.getRange('A1:L1').setValues([[
-      'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Task_Status_Or_Details', 
-      'Yield_Kg', 'Issues', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
-    ]]);
-    rawSheet.getRange('A1:L1').setFontWeight('bold').setBackground('#f1f5f9');
+    // Set standard headers for operational form tab (26 columns schema)
+    const opHeaders = [
+      'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+      'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Target_Kegiatan', 'Luas_Area_Ha', 'Jumlah_Populasi', 
+      'Tgl_Tanam', 'Tgl_CheckIn_Tebar', 'Tgl_Perkiraan_Panen', 'Tgl_Panen', 'Jumlah_Panen', 
+      'Tgl_Penjualan', 'Harga_Jual', 'Jumlah_Penjualan_Unit', 'Nilai_Penjualan_Rp', 'Kendala', 
+      'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+    ];
+    rawSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+    rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
     rawSheet.setFrozenRows(1);
 
     return {
@@ -247,9 +295,10 @@ const FormManagementService = {
    * Automatically renames response tab to match form title.
    * @private
    * @param {Object} formRecord 
+   * @param {Spreadsheet} [ssInstance]
    * @returns {Object} Enriched form object.
    */
-  enrichFormMetadata_: function(formRecord) {
+  enrichFormMetadata_: function(formRecord, ssInstance) {
     if (!formRecord) return formRecord;
     const formId = formRecord.id;
     const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
@@ -263,7 +312,7 @@ const FormManagementService = {
 
     if (mainSsId) {
       try {
-        const ss = SpreadsheetApp.openById(mainSsId);
+        const ss = ssInstance || SpreadsheetApp.openById(mainSsId);
         const rawSheet = this.resolveFormTab_(ss, formRecord);
                        
         if (rawSheet) {
@@ -283,10 +332,8 @@ const FormManagementService = {
     let publicUrl = formRecord.publicUrl || '';
     if (formRecord.type === 'kustom') {
       publicUrl = baseUrl ? `${baseUrl}?page=dynamicform&formId=${formId}` : `?page=dynamicform&formId=${formId}`;
-    } else if (formRecord.type === 'harian' || formRecord.isDefaultDaily) {
+    } else {
       publicUrl = baseUrl ? `${baseUrl}?page=index` : '?page=index';
-    } else if (formRecord.type === 'umum' || formRecord.isDefaultGeneral) {
-      publicUrl = baseUrl ? `${baseUrl}?page=general` : '?page=general';
     }
 
     const enriched = Object.assign({}, formRecord, {
@@ -297,7 +344,7 @@ const FormManagementService = {
       isAccessible: true
     });
 
-    if (formId && formId !== 'DEFAULT_DAILY_FORM' && formId !== 'DEFAULT_GENERAL_FORM' && formRecord.type !== 'kustom') {
+    if (formId && formId !== 'DEFAULT_MAIN_FORM' && formRecord.type !== 'kustom') {
       try {
         const gForm = FormApp.openById(formId);
         enriched.title = gForm.getTitle() || formRecord.title || 'Form Laporan';
@@ -322,11 +369,7 @@ const FormManagementService = {
 
     let target = forms.find(f => f.id === formId);
     if (!target) {
-      if (formId === 'DEFAULT_DAILY_FORM' || formId.toLowerCase().includes('daily')) {
-        target = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily);
-      } else if (formId === 'DEFAULT_GENERAL_FORM' || formId.toLowerCase().includes('general')) {
-        target = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral);
-      }
+      target = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault);
     }
 
     if (target) {
@@ -440,8 +483,7 @@ const FormManagementService = {
       }
 
       try {
-        const handlerName = (formType === 'harian') ? 'onDailyFormSubmit' : 'onGeneralFormSubmit';
-        ScriptApp.newTrigger(handlerName)
+        ScriptApp.newTrigger('onFormSubmit')
           .forForm(FormApp.openById(newFormId))
           .onFormSubmit()
           .create();
@@ -528,15 +570,13 @@ const FormManagementService = {
       target.id = newId;
       target.editUrl = `https://docs.google.com/forms/d/${newId}/edit`;
 
-      if (target.type === 'harian' || target.isDefaultDaily) {
-        ConfigRepository.setProperties({ 'DAILY_FORM_ID': newId });
-      } else if (target.type === 'umum' || target.isDefaultGeneral) {
-        ConfigRepository.setProperties({ 'GENERAL_FORM_ID': newId });
+      if (target.type === 'operasional' || target.isDefaultMain) {
+        ConfigRepository.setProperties({ 'MAIN_FORM_ID': newId });
       }
     }
 
     // Sync title/description to native Google Form API if applicable
-    if (target.id && target.type !== 'kustom' && target.id !== 'DEFAULT_DAILY_FORM' && target.id !== 'DEFAULT_GENERAL_FORM') {
+    if (target.id && target.type !== 'kustom' && target.id !== 'DEFAULT_MAIN_FORM') {
       try {
         const gForm = FormApp.openById(target.id);
         if (updates.title) gForm.setTitle(updates.title.trim());
@@ -571,7 +611,7 @@ const FormManagementService = {
 
     // Optionally trash Google Form file if requested
     if (deleteDriveFile) {
-      if (target.id && target.type !== 'kustom' && target.id !== 'DEFAULT_DAILY_FORM' && target.id !== 'DEFAULT_GENERAL_FORM') {
+      if (target.id && target.type !== 'kustom' && target.id !== 'DEFAULT_MAIN_FORM') {
         try {
           const file = DriveApp.getFileById(target.id);
           file.setTrashed(true);
@@ -582,5 +622,102 @@ const FormManagementService = {
     }
 
     return true;
+  },
+
+  /**
+   * Dynamically parses a Google Form instance (FormApp) into a structured schema object.
+   * Extracts section breaks, question labels, item types, choices, and help text.
+   * @param {Form} gForm 
+   * @returns {Object} { id, title, description, sections, fields }
+   */
+  parseGoogleFormToSchema: function(gForm) {
+    if (!gForm) return null;
+    const formId = gForm.getId();
+    const title = gForm.getTitle() || 'Form Laporan';
+    const description = gForm.getDescription() || '';
+
+    const items = gForm.getItems();
+    const fields = [];
+    const sections = [];
+    let currentSection = { title: 'Informasi Utama', fields: [] };
+    sections.push(currentSection);
+
+    items.forEach((item, idx) => {
+      const type = item.getType();
+      const itemTitle = item.getTitle();
+      const helpText = item.getHelpText() || '';
+      const key = itemTitle.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '') || `field_${idx}`;
+
+      if (type === FormApp.ItemType.PAGE_BREAK) {
+        currentSection = { title: itemTitle, helpText: helpText, fields: [] };
+        sections.push(currentSection);
+        fields.push({
+          isSectionHeader: true,
+          title: itemTitle,
+          helpText: helpText
+        });
+        return;
+      }
+
+      let fieldType = 'text';
+      let options = [];
+      let isRequired = false;
+
+      if (type === FormApp.ItemType.TEXT) {
+        fieldType = 'text';
+        isRequired = item.asTextItem().isRequired();
+      } else if (type === FormApp.ItemType.PARAGRAPH_TEXT) {
+        fieldType = 'textarea';
+        isRequired = item.asParagraphTextItem().isRequired();
+      } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
+        fieldType = 'select';
+        const mc = item.asMultipleChoiceItem();
+        isRequired = mc.isRequired();
+        options = mc.getChoices().map(c => c.getValue());
+      } else if (type === FormApp.ItemType.LIST) {
+        fieldType = 'select';
+        const l = item.asListItem();
+        isRequired = l.isRequired();
+        options = l.getChoices().map(c => c.getValue());
+      } else if (type === FormApp.ItemType.CHECKBOX) {
+        fieldType = 'checkbox';
+        const cb = item.asCheckboxItem();
+        isRequired = cb.isRequired();
+        options = cb.getChoices().map(c => c.getValue());
+      } else if (type === FormApp.ItemType.DATE) {
+        fieldType = 'date';
+        isRequired = item.asDateItem().isRequired();
+      } else if (type === FormApp.ItemType.FILE_UPLOAD) {
+        fieldType = 'photo';
+        isRequired = item.asFileUploadItem().isRequired();
+      } else if (type === FormApp.ItemType.SECTION_HEADER) {
+        fields.push({
+          isSectionHeader: true,
+          title: itemTitle,
+          helpText: helpText
+        });
+        return;
+      }
+
+      const fObj = {
+        key: key,
+        label: itemTitle,
+        type: fieldType,
+        required: isRequired,
+        helpText: helpText,
+        options: options
+      };
+
+      currentSection.fields.push(fObj);
+      fields.push(fObj);
+    });
+
+    return {
+      id: formId,
+      title: title,
+      description: description,
+      sections: sections,
+      fields: fields
+    };
   }
 };

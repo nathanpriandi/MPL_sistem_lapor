@@ -8,12 +8,11 @@ Dokumen ini panduan operasional bagi **Admin Operasional** dalam mengelola siste
 
 Sistem pelaporan ini terpusat pada satu Google Spreadsheet utama: **`Sistem Pelaporan Digital Operasional`**.
 
-Spreadsheet ini memiliki 5 Tab utama:
-1. **`Daily_Raw`**: Data mentah laporan harian operasional (Auto-populated).
-2. **`General_Raw`**: Data mentah laporan umum / catatan lapangan (Auto-populated).
-3. **`Admin_Queue`**: **Tampilan Kerja Utama Admin**. Menyaring seluruh laporan dari `Daily_Raw` dan `General_Raw` yang belum selesai (`Review_Status != "Closed"`), diurutkan berdasarkan tingkat keparahan (Urgent paling atas).
-4. **`Sensitive_Restricted`**: Laporan yang ditandai sensitif oleh pelapor. **Akses terbatas khusus Admin & Manager**.
-5. **`Weekly_Summary`**: Rekapitulasi mingguan untuk dibaca oleh Looker Studio Manager Dashboard.
+Spreadsheet ini memiliki tab utama:
+1. **`Laporan_Operasional_Raw`**: Data mentah laporan operasional harian, kegiatan, panen, dan penjualan (Auto-populated).
+2. **`Admin_Queue`**: **Tampilan Kerja Utama Admin**. Menyaring seluruh laporan dari `Laporan_Operasional_Raw` yang belum selesai (`Review_Status != "Closed"`), diurutkan berdasarkan tingkat keparahan (Urgent paling atas).
+3. **`Sensitive_Restricted`**: Laporan yang ditandai sensitif oleh pelapor. **Akses terbatas khusus Admin & Manager**.
+4. **`Archive_Reports`**: Arsip laporan selesai yang telah melewati batas retensi otomatis.
 
 ---
 
@@ -105,9 +104,9 @@ Spreadsheet ini memiliki 5 Tab utama:
 - **Retensi Otomatis 90 Hari (`RETENTION_DAYS`):**
   Untuk mencegah penumpukan data pada sheet aktif dan mematuhi prinsip minimisasi data UU PDP, sistem menjalankan proses pengarsipan otomatis `archiveOldReports()` pada tanggal 1 setiap bulan (pukul 01:00 WIB).
 - **Kriteria Pengarsipan:**
-  Laporan dengan `Review_Status = 'Closed'` yang memiliki tanggal laporan lebih lama dari 90 hari akan dipindahkan secara otomatis dari tab `Daily_Raw`, `General_Raw`, dan `Sensitive_Restricted` ke tab `Archive_Reports`.
-- **Integritas Rekapitulasi Mingguan:**
-  Statistik tren historis telah tersimpan di tab `Weekly_Summary` sebelum pengarsipan dilakukan, sehingga grafik dan metrik manajerial tetap akurat.
+  Laporan dengan `Review_Status = 'Closed'` yang memiliki tanggal laporan lebih lama dari batas hari retensi akan dipindahkan secara otomatis dari tab data aktif ke tab `Archive_Reports`.
+- **Integritas Metrik Manajerial:**
+  Statistik dan metrik manajerial pada Manager Dashboard dihitung secara dinamis dari data operasional berjalan, sehingga analitik tetap akurat dan mutakhir.
 
 ---
 

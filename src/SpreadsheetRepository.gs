@@ -11,6 +11,38 @@
 const SpreadsheetRepository = {
 
   /**
+   * Sets up header rows and formatting for all sheets during system setup.
+   * @param {Sheet} mainSheet 
+   * @param {Sheet} adminQueueSheet 
+   */
+  setupSheetHeaders: function(mainSheet, adminQueueSheet) {
+    // 1. Operational Raw Sheet (26 columns schema)
+    if (mainSheet) {
+      const opHeaders = [
+        'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+        'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Target_Kegiatan', 'Luas_Area_Ha', 'Jumlah_Populasi', 
+        'Tgl_Tanam', 'Tgl_CheckIn_Tebar', 'Tgl_Perkiraan_Panen', 'Tgl_Panen', 'Jumlah_Panen', 
+        'Tgl_Penjualan', 'Harga_Jual', 'Jumlah_Penjualan_Unit', 'Nilai_Penjualan_Rp', 'Kendala', 
+        'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+      ];
+      mainSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+      mainSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
+      mainSheet.setFrozenRows(1);
+    }
+
+    // 2. Admin Queue Sheet
+    if (adminQueueSheet) {
+      const queueHeaders = [
+        'Sumber', 'Kode_Kegiatan', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+        'Lokasi_Kegiatan', 'Ringkasan', 'Tingkat_Keparahan', 'Kategori', 'Status_Peninjauan', 'Foto_URL'
+      ];
+      adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]);
+      adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
+      adminQueueSheet.setFrozenRows(1);
+    }
+  },
+
+  /**
    * Returns central Integrated Spreadsheet instance.
    * @returns {Spreadsheet}
    */
@@ -152,30 +184,44 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Saves a new Daily Operational Report into integrated spreadsheet.
+   * Saves a new Operational Report into integrated spreadsheet.
    * @param {Object} report 
    * @param {Object} flag 
-   * @returns {{ reportId: string, row: number }}
+   * @returns {{ reportId: string, row: number, kodeKegiatan: string }}
    */
-  saveDailyReport: function(report, flag) {
+  saveOperationalReport: function(report, flag) {
     const ss = this.getSpreadsheet();
     const forms = FormManagementService.getFormList();
-    const dForm = forms.find(f => (f.type || '').toLowerCase() === 'harian' || f.isDefaultDaily) || { title: 'Laporan Operasional Harian' };
-    const sheet = FormManagementService.resolveFormTab_(ss, dForm);
+    const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+    const sheet = FormManagementService.resolveFormTab_(ss, opForm);
 
-    const reportId = this.generateUUID();
+    const reportId = report.reportId || this.generateUUID();
     const rowData = [
       reportId,
-      formatDate(new Date()),
-      report.empId,
-      report.site,
-      report.date,
-      report.taskStatus,
-      report.yieldKg,
-      report.issues,
-      report.photoUrl || '',
-      flag.severity,
-      flag.keywords.join(', '),
+      report.kodeKegiatan || '',
+      report.kodeKegiatanRef || '',
+      report.timestamp || formatDate(new Date()),
+      report.namaPic || '',
+      report.bidangDivisi || '',
+      report.lokasiKegiatan || '',
+      report.jenisKegiatan || '',
+      report.targetKegiatan || '',
+      report.luasAreaHa || '',
+      report.jumlahPopulasi || '',
+      report.tglTanam || '',
+      report.tglCheckInTebar || '',
+      report.tglPerkiraanPanen || '',
+      report.tglPanen || '',
+      report.jumlahPanen || '',
+      report.tglPenjualan || '',
+      report.hargaJual || '',
+      report.jumlahPenjualanUnit || '',
+      report.nilaiPenjualanRp || '',
+      report.kendala || '',
+      report.upaya || '',
+      report.fotoUrl || '',
+      flag.severity || ReportSeverity.NORMAL,
+      (flag.keywords || []).join(', '),
       ReviewStatus.UNREVIEWED
     ];
 
@@ -183,81 +229,49 @@ const SpreadsheetRepository = {
     const newRowIndex = sheet.getLastRow();
     this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
 
-    return { reportId: reportId, row: newRowIndex };
+    return { reportId: reportId, row: newRowIndex, kodeKegiatan: report.kodeKegiatan };
   },
 
   /**
-   * Saves a new General Report into integrated spreadsheet.
-   * @param {Object} report 
-   * @param {Object} flag 
-   * @returns {{ reportId: string, row: number }}
+   * Builds a map of column header name to 0-based column index from row 1 of a sheet.
+   * @param {Sheet} sheet 
+   * @returns {Object.<string, number>}
    */
-  saveGeneralReport: function(report, flag) {
-    const ss = this.getSpreadsheet();
-    const forms = FormManagementService.getFormList();
-    const gForm = forms.find(f => (f.type || '').toLowerCase() === 'umum' || f.isDefaultGeneral) || { title: 'Laporan Umum & Catatan Lapangan' };
-
-    const reportId = this.generateUUID();
-
-    if (report.isSensitive) {
-      let sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-      if (!sensitiveSheet) {
-        sensitiveSheet = ss.insertSheet('Sensitive');
-        sensitiveSheet.getRange('A1:K1').setValues([[
-          'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-          'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
-        ]]);
-        sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
-        sensitiveSheet.setFrozenRows(1);
-      }
-
-      const rowData = [
-        reportId,
-        formatDate(new Date()),
-        report.empId,
-        report.site,
-        report.date,
-        report.details,
-        'YES',
-        report.photoUrl || '',
-        flag.severity,
-        flag.keywords.join(', '),
-        ReviewStatus.UNREVIEWED_SENSITIVE
-      ];
-
-      sensitiveSheet.appendRow(rowData);
-      const newRowIndex = sensitiveSheet.getLastRow();
-      this.applyRowHighlighting(sensitiveSheet, newRowIndex, flag.severity);
-      return { reportId: reportId, row: newRowIndex };
+  getHeaderMap_: function(sheet) {
+    if (!sheet || sheet.getLastColumn() === 0) return {};
+    try {
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      const map = {};
+      headers.forEach((h, idx) => {
+        if (h) {
+          map[String(h).trim()] = idx;
+        }
+      });
+      return map;
+    } catch (e) {
+      return {};
     }
+  },
 
-    const sheet = FormManagementService.resolveFormTab_(ss, gForm);
-    const rowData = [
-      reportId,
-      formatDate(new Date()),
-      report.empId,
-      report.site,
-      report.date,
-      report.details,
-      'NO',
-      'None',
-      report.photoUrl || '',
-      flag.severity,
-      flag.keywords.join(', '),
-      ReviewStatus.UNREVIEWED
-    ];
-
-    sheet.appendRow(rowData);
-    const newRowIndex = sheet.getLastRow();
-    this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
-
-    return { reportId: reportId, row: newRowIndex };
+  /**
+   * Safely gets cell value from row array using header map, with positional fallback.
+   * @param {Array} row 
+   * @param {Object.<string, number>} headerMap 
+   * @param {string} headerName 
+   * @param {number} [fallbackIndex] 
+   * @returns {*}
+   */
+  getCellValue_: function(row, headerMap, headerName, fallbackIndex) {
+    if (headerMap && headerMap.hasOwnProperty(headerName)) {
+      const idx = headerMap[headerName];
+      return (idx !== undefined && idx < row.length) ? row[idx] : '';
+    }
+    return (fallbackIndex !== undefined && fallbackIndex < row.length) ? row[fallbackIndex] : '';
   },
 
   /**
    * Fetches unified Admin Triage Queue across all form tabs inside the single integrated spreadsheet.
-   * Merges, ranks, and sorts report items chronologically.
-   * Single file open performance optimization.
+   * Reads fields dynamically by header name.
    * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
@@ -265,33 +279,54 @@ const SpreadsheetRepository = {
     if (!mainSsId) return [];
 
     const ss = SpreadsheetApp.openById(mainSsId);
-    const forms = FormManagementService.getFormList();
+    const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
     const mergedQueue = [];
 
     forms.forEach(f => {
       try {
         const rawSheet = FormManagementService.resolveFormTab_(ss, f);
         if (rawSheet && rawSheet.getLastRow() > 1) {
+          const headerMap = this.getHeaderMap_(rawSheet);
           const rawValues = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
+
           rawValues.forEach(row => {
-            if (row[0] || row[1]) {
-              const photoVal = String(row[8] || '');
-              const severityVal = String(row[9] || row[8] || ReportSeverity.NORMAL).toLowerCase();
+            let reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '');
+            let kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '-');
+            let timestamp = formatDate(this.getCellValue_(row, headerMap, 'Timestamp', 3) || new Date());
+            let namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '-');
+            let divisi = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '-');
+            let lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '-');
+            let jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '');
+            let tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 14);
+            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
+            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
+
+            if (reportId || kodeKegiatan !== '-' || namaPic !== '-') {
+              let ringkasan = jenis;
+              if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen} Kg`;
+              if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
+              if (!ringkasan) ringkasan = 'Laporan Operasional';
+
+              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 22) || '');
+              let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 23) || ReportSeverity.NORMAL).toLowerCase();
+              let keywordsVal = String(this.getCellValue_(row, headerMap, 'Flagged_Keywords', 24) || '');
+              let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 25) || ReviewStatus.UNREVIEWED);
+
               mergedQueue.push(QueueItem({
-                source: f.title || 'Form Laporan',
-                reportId: String(row[0] || ''),
-                timestamp: formatDate(row[1] || new Date()),
-                empId: String(row[2] || ''),
-                site: String(row[3] || ''),
-                date: formatDate(row[4] || new Date()),
-                detail: String(row[5] || '-'),
-                yieldOrSensitive: String(row[6] || '-'),
-                issues: String(row[7] || '-'),
+                source: 'Operasional',
+                reportId: reportId,
+                kodeKegiatan: kodeKegiatan,
+                timestamp: timestamp,
+                namaPic: namaPic,
+                divisi: divisi,
+                lokasi: lokasi,
+                ringkasan: ringkasan,
                 photoUrl: photoVal.startsWith('http') ? photoVal : '',
                 severity: severityVal,
-                rank: (severityVal === ReportSeverity.URGENT) ? 1 : ((severityVal === ReportSeverity.WARNING) ? 2 : 3),
-                category: String(row[10] || 'ROUTINE'),
-                reviewStatus: String(row[11] || row[10] || ReviewStatus.UNREVIEWED)
+                rank: severityVal === ReportSeverity.URGENT ? 1 : (severityVal === ReportSeverity.WARNING ? 2 : 3),
+                category: keywordsVal ? keywordsVal : 'ROUTINE',
+                reviewStatus: reviewStatusVal,
+                raw: row
               }));
             }
           });
@@ -301,51 +336,21 @@ const SpreadsheetRepository = {
       }
     });
 
-    // Process single shared Sensitive sheet
-    try {
-      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-      if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-        const sensitiveValues = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
-        sensitiveValues.forEach(row => {
-          if (row[0] || row[1]) {
-            const photoVal = String(row[7] || '');
-            const severityVal = String(row[8] || ReportSeverity.WARNING).toLowerCase();
-            mergedQueue.push(QueueItem({
-              source: `Laporan Sensitif / Insiden`,
-              reportId: String(row[0] || ''),
-              timestamp: formatDate(row[1] || new Date()),
-              empId: String(row[2] || ''),
-              site: String(row[3] || ''),
-              date: formatDate(row[4] || new Date()),
-              detail: String(row[5] || '-'),
-              yieldOrSensitive: String(row[6] || 'YES'),
-              issues: 'Informasi Sensitif',
-              photoUrl: photoVal.startsWith('http') ? photoVal : '',
-              severity: severityVal,
-              rank: 2,
-              category: String(row[9] || 'RESTRICTED'),
-              reviewStatus: String(row[10] || ReviewStatus.UNREVIEWED_SENSITIVE)
-            }));
-          }
-        });
-      }
-    } catch (e) {}
-
-    // Sort queue items by timestamp descending
     mergedQueue.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     return mergedQueue;
   },
 
   /**
    * Updates Review_Status of a report by matching Report_ID across all tabs of integrated spreadsheet.
-   * Single file open performance optimization.
    * @param {string} reportId 
    * @param {string} newStatus 
    * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string, error?: string }}
    */
   updateReviewStatus: function(reportId, newStatus) {
     const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return { success: false, error: 'Spreadsheet ID belum dikonfigurasi.' };
+    if (!mainSsId) {
+      throw new Error('Spreadsheet ID belum dikonfigurasi.');
+    }
 
     try {
       const ss = SpreadsheetApp.openById(mainSsId);
@@ -380,103 +385,403 @@ const SpreadsheetRepository = {
 
   /**
    * Calculates dashboard summary statistics across all form tabs inside integrated spreadsheet.
-   * Single file open performance optimization.
-   * @returns {Object} Dashboard stats payload.
+   * Scoped to current calendar month with distinct activity grouping, per-division separation,
+   * tiered overdue harvest detection, open obstacle tracking, and quiet site coverage.
+   * @returns {Object} Comprehensive dashboard stats payload.
    */
   getDashboardStatsData: function() {
     const mainSsId = ConfigRepository.getSpreadsheetId();
     if (!mainSsId) return {};
 
     const ss = SpreadsheetApp.openById(mainSsId);
-    const forms = FormManagementService.getFormList();
+    const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-11
+
+    const INDO_MONTHS = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const currentPeriodLabel = `${INDO_MONTHS[currentMonth]} ${currentYear}`;
+
+    const curMonthStart = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
+    const curMonthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+
+    const priorMonthStart = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0, 0);
+    const priorMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+    const DIV_KEYS = {
+      AGRO: 'Agro (Pertanian/Perkebunan)',
+      TERNAK: 'Ternak (Peternakan)',
+      IKAN: 'Ikan (Perikanan)'
+    };
+
+    function normalizeDivisi(divisiStr) {
+      const s = String(divisiStr || '').toLowerCase();
+      if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian') || s.includes('perkebunan')) {
+        return DIV_KEYS.AGRO;
+      }
+      if (s.includes('ternak') || s.includes('kandang') || s.includes('peternakan')) {
+        return DIV_KEYS.TERNAK;
+      }
+      if (s.includes('ikan') || s.includes('kolam') || s.includes('tambak') || s.includes('perikanan')) {
+        return DIV_KEYS.IKAN;
+      }
+      return DIV_KEYS.AGRO;
+    }
+
+    function parseDateSafe(val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDateOnly(d) {
+      if (!d) return '-';
+      try {
+        return Utilities.formatDate(d, 'Asia/Jakarta', 'yyyy-MM-dd');
+      } catch (e) {
+        return String(d).split('T')[0];
+      }
+    }
 
     let totalReports = 0;
-    let totalYieldKg = 0;
+    let totalActiveKegiatan = 0;
+    let totalNilaiPenjualanRp = 0;
+    let priorMonthNilaiPenjualanRp = 0;
+
     let urgentCount = 0;
-    let sensitiveCount = 0;
+    let warningCount = 0;
+    let normalCount = 0;
 
-    const siteBreakdown = {
-      'Site A — Kebun & Lahan Pertanian': 0,
-      'Site B — Peternakan & Kandang': 0,
-      'Site C — Pabrik Pengolahan & Pakan': 0,
-      'Site D — Logistik & Gudang': 0
+    let urgentOverdueCount = 0;
+    let warningOverdueCount = 0;
+    let openObstaclesCount = 0;
+    let unansweredObstaclesCount = 0;
+
+    const divisiBreakdown = {
+      [DIV_KEYS.AGRO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+      [DIV_KEYS.TERNAK]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Ekor / Unit' },
+      [DIV_KEYS.IKAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' }
     };
-    const yieldBreakdown = { normal: 0, warning: 0, urgent: 0 };
-    const severityDist = { normal: 0, warning: 0, urgent: 0 };
 
+    const severityDist = { normal: 0, warning: 0, urgent: 0 };
+    const attentionList = [];
+    const coverageMap = new Map();
+
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const monthShort = INDO_MONTHS[currentMonth].substring(0, 3);
+    const weeklyTrend = [
+      { weekLabel: `M1 (1-7 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
+      { weekLabel: `M2 (8-14 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
+      { weekLabel: `M3 (15-21 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
+      { weekLabel: `M4 (22-${daysInMonth} ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 }
+    ];
+
+    const currentMonthItems = [];
+    const allKnownCodesSet = new Set();
+    const parentCodeMap = new Map();
+
+    // 1. First Pass: Read rows across all sheets and extract date & code information
     forms.forEach(f => {
       try {
         const rawSheet = FormManagementService.resolveFormTab_(ss, f);
         if (rawSheet && rawSheet.getLastRow() > 1) {
+          const headerMap = this.getHeaderMap_(rawSheet);
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
+
           values.forEach(row => {
-            if (row[0] || row[1]) {
-              totalReports++;
-              const site = String(row[3] || '');
-              if (siteBreakdown.hasOwnProperty(site)) siteBreakdown[site]++;
+            const reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '').trim();
+            const kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '').trim();
+            const kodeKegiatanRef = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan_Ref', 2) || '').trim();
+            const rawTimestamp = this.getCellValue_(row, headerMap, 'Timestamp', 3);
+            const namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '').trim();
+            const divisiRaw = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '').trim();
+            const lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '').trim();
+            const jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '').trim();
 
-              const yieldVal = parseFloat(row[6]) || 0;
-              totalYieldKg += yieldVal;
+            const tglPerkiraanPanen = this.getCellValue_(row, headerMap, 'Tgl_Perkiraan_Panen', 13);
+            const tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 14);
+            const jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
+            const nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
+            const kendala = String(this.getCellValue_(row, headerMap, 'Kendala', 20) || '').trim();
+            const upaya = String(this.getCellValue_(row, headerMap, 'Upaya', 21) || '').trim();
+            const severity = String(this.getCellValue_(row, headerMap, 'Severity', 23) || 'normal').toLowerCase();
 
-              const severity = String(row[9] || row[8] || 'normal').toLowerCase();
-              if (severity === ReportSeverity.URGENT) {
-                urgentCount++;
-                severityDist.urgent++;
-                yieldBreakdown.urgent += yieldVal;
-              } else if (severity === ReportSeverity.WARNING) {
-                severityDist.warning++;
-                yieldBreakdown.warning += yieldVal;
-              } else {
-                severityDist.normal++;
-                yieldBreakdown.normal += yieldVal;
+            if (!reportId && !kodeKegiatan && !namaPic) return;
+
+            const rowDate = parseDateSafe(rawTimestamp) || parseDateSafe(tglPanen) || new Date();
+            const normDivisi = normalizeDivisi(divisiRaw);
+
+            // Track coverage for site/PIC across all records
+            if (lokasi && namaPic) {
+              const covKey = `${lokasi}|||${namaPic}`;
+              const existingCov = coverageMap.get(covKey);
+              if (!existingCov || (rowDate && rowDate.getTime() > existingCov.date.getTime())) {
+                coverageMap.set(covKey, {
+                  lokasi: lokasi,
+                  namaPic: namaPic,
+                  divisi: normDivisi,
+                  date: rowDate,
+                  dateStr: formatDateOnly(rowDate)
+                });
               }
+            }
+
+            // Check prior month for trend calculation
+            if (rowDate >= priorMonthStart && rowDate <= priorMonthEnd) {
+              priorMonthNilaiPenjualanRp += nilaiPenjualan;
+            }
+
+            // Check current month inclusion
+            if (rowDate >= curMonthStart && rowDate <= curMonthEnd) {
+              if (kodeKegiatan) {
+                allKnownCodesSet.add(kodeKegiatan);
+              }
+
+              currentMonthItems.push({
+                reportId: reportId,
+                kodeKegiatan: kodeKegiatan,
+                kodeKegiatanRef: kodeKegiatanRef,
+                date: rowDate,
+                timestampStr: formatDateOnly(rowDate),
+                namaPic: namaPic,
+                divisi: normDivisi,
+                lokasi: lokasi,
+                jenis: jenis,
+                tglPerkiraanPanen: tglPerkiraanPanen,
+                tglPanen: tglPanen,
+                jumlahPanen: jumlahPanen,
+                nilaiPenjualan: nilaiPenjualan,
+                kendala: kendala,
+                upaya: upaya,
+                severity: severity
+              });
             }
           });
         }
-      } catch (err) {}
+      } catch (err) {
+        Logger.log(`SpreadsheetRepository Error in getDashboardStatsData for form ${f.id}: ${err.toString()}`);
+      }
     });
 
-    // Process single shared Sensitive sheet
-    try {
-      const sensitiveSheet = ss.getSheetByName('Sensitive') || ss.getSheetByName(SHEET_NAMES.SENSITIVE_RESTRICTED);
-      if (sensitiveSheet && sensitiveSheet.getLastRow() > 1) {
-        const values = sensitiveSheet.getRange(2, 1, sensitiveSheet.getLastRow() - 1, sensitiveSheet.getLastColumn()).getValues();
-        values.forEach(row => {
-          if (row[0] || row[1]) {
-            totalReports++;
-            sensitiveCount++;
-            const site = String(row[3] || '');
-            if (siteBreakdown.hasOwnProperty(site)) siteBreakdown[site]++;
+    // 2. Second Pass: Build distinct-activity tree & reconcile references
+    allKnownCodesSet.forEach(code => parentCodeMap.set(code, code));
+    currentMonthItems.forEach(item => {
+      if (item.kodeKegiatan && item.kodeKegiatanRef && allKnownCodesSet.has(item.kodeKegiatanRef)) {
+        parentCodeMap.set(item.kodeKegiatan, item.kodeKegiatanRef);
+      }
+    });
 
-            const severity = String(row[8] || row[7] || 'warning').toLowerCase();
-            if (severity === ReportSeverity.URGENT) {
-              urgentCount++;
-              severityDist.urgent++;
-            } else {
-              severityDist.warning++;
-            }
+    function resolveRoot(code) {
+      let curr = code;
+      const visited = new Set();
+      while (parentCodeMap.has(curr) && parentCodeMap.get(curr) !== curr && !visited.has(curr)) {
+        visited.add(curr);
+        curr = parentCodeMap.get(curr);
+      }
+      return curr;
+    }
+
+    const distinctActivitiesSet = new Set();
+    const divisiActivitiesMap = {
+      [DIV_KEYS.AGRO]: new Set(),
+      [DIV_KEYS.TERNAK]: new Set(),
+      [DIV_KEYS.IKAN]: new Set()
+    };
+
+    // 3. Process current month aggregation metrics
+    currentMonthItems.forEach(item => {
+      totalReports++;
+
+      // Distinct activity key calculation
+      let activityRootKey = '';
+      if (item.kodeKegiatan) {
+        activityRootKey = resolveRoot(item.kodeKegiatan);
+      } else {
+        activityRootKey = `_anon_${item.reportId || Math.random()}`;
+      }
+      distinctActivitiesSet.add(activityRootKey);
+
+      // Divisional breakdown aggregation
+      const divObj = divisiBreakdown[item.divisi] || divisiBreakdown[DIV_KEYS.AGRO];
+      divObj.rawReportCount++;
+      divObj.panenVolume += item.jumlahPanen;
+      divObj.nilaiPenjualanRp += item.nilaiPenjualan;
+      if (divisiActivitiesMap[item.divisi]) {
+        divisiActivitiesMap[item.divisi].add(activityRootKey);
+      }
+
+      totalNilaiPenjualanRp += item.nilaiPenjualan;
+
+      // Active kegiatan awaiting harvest (no harvest date and 0 harvest yield)
+      const tglPanenStr = String(item.tglPanen || '').trim();
+      if (item.jumlahPanen === 0 && (!tglPanenStr || tglPanenStr === '-')) {
+        totalActiveKegiatan++;
+      }
+
+      // Severity Distribution
+      if (item.severity === ReportSeverity.URGENT) {
+        urgentCount++;
+        severityDist.urgent++;
+      } else if (item.severity === ReportSeverity.WARNING) {
+        warningCount++;
+        severityDist.warning++;
+      } else {
+        normalCount++;
+        severityDist.normal++;
+      }
+
+      // Overdue Harvest Evaluation
+      // (Tgl_Panen is empty and Tgl_Perkiraan_Panen is in the past: 8-14 days = warning, 15+ days = urgent)
+      if (!tglPanenStr || tglPanenStr === '-') {
+        const perkiraanDate = parseDateSafe(item.tglPerkiraanPanen);
+        if (perkiraanDate && perkiraanDate.getTime() < now.getTime()) {
+          const diffMs = now.getTime() - perkiraanDate.getTime();
+          const daysLate = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          if (daysLate >= 8) {
+            const isUrgent = daysLate >= 15;
+            const itemSev = isUrgent ? ReportSeverity.URGENT : ReportSeverity.WARNING;
+            if (isUrgent) urgentOverdueCount++;
+            else warningOverdueCount++;
+
+            attentionList.push({
+              id: item.reportId || item.kodeKegiatan || `overdue_${Math.random()}`,
+              type: 'overdue_harvest',
+              severity: itemSev,
+              rank: isUrgent ? 1 : 2,
+              badgeLabel: isUrgent ? 'Panen Sangat Terlambat' : 'Panen Terlambat',
+              kodeKegiatan: item.kodeKegiatan || '-',
+              lokasi: item.lokasi || '-',
+              pic: item.namaPic || '-',
+              divisi: item.divisi,
+              details: `Perkiraan panen ${formatDateOnly(perkiraanDate)} (${daysLate} hari lewat). Belum terealisasi.`,
+              daysLate: daysLate,
+              timestamp: item.timestampStr
+            });
           }
+        }
+      }
+
+      // Open Obstacles Evaluation
+      if (item.kendala && item.kendala !== '-') {
+        openObstaclesCount++;
+        const hasNoUpaya = !item.upaya || item.upaya === '-';
+        if (hasNoUpaya) unansweredObstaclesCount++;
+
+        const itemSev = hasNoUpaya ? ReportSeverity.URGENT : ReportSeverity.WARNING;
+        attentionList.push({
+          id: item.reportId || item.kodeKegiatan || `obstacle_${Math.random()}`,
+          type: 'open_obstacle',
+          severity: itemSev,
+          rank: hasNoUpaya ? 1 : 2,
+          badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
+          kodeKegiatan: item.kodeKegiatan || '-',
+          lokasi: item.lokasi || '-',
+          pic: item.namaPic || '-',
+          divisi: item.divisi,
+          details: `Kendala: "${item.kendala}"${!hasNoUpaya ? ' | Upaya: "' + item.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
+          kendala: item.kendala,
+          upaya: item.upaya,
+          hasNoUpaya: hasNoUpaya,
+          timestamp: item.timestampStr
         });
       }
-    } catch (err) {}
+
+      // Weekly trend bucketing
+      if (item.date) {
+        const dayOfMonth = item.date.getDate();
+        let bIdx = 0;
+        if (dayOfMonth >= 22) bIdx = 3;
+        else if (dayOfMonth >= 15) bIdx = 2;
+        else if (dayOfMonth >= 8) bIdx = 1;
+        else bIdx = 0;
+
+        if (item.divisi === DIV_KEYS.AGRO) {
+          weeklyTrend[bIdx].agroSales += item.nilaiPenjualan;
+          weeklyTrend[bIdx].agroPanen += item.jumlahPanen;
+        } else if (item.divisi === DIV_KEYS.TERNAK) {
+          weeklyTrend[bIdx].ternakSales += item.nilaiPenjualan;
+          weeklyTrend[bIdx].ternakPanen += item.jumlahPanen;
+        } else if (item.divisi === DIV_KEYS.IKAN) {
+          weeklyTrend[bIdx].ikanSales += item.nilaiPenjualan;
+          weeklyTrend[bIdx].ikanPanen += item.jumlahPanen;
+        }
+        weeklyTrend[bIdx].totalSales += item.nilaiPenjualan;
+      }
+    });
+
+    // Populate distinct activity counts per division
+    Object.keys(divisiBreakdown).forEach(k => {
+      divisiBreakdown[k].activityCount = (divisiActivitiesMap[k] ? divisiActivitiesMap[k].size : 0);
+      divisiBreakdown[k].panenVolume = Math.round(divisiBreakdown[k].panenVolume * 100) / 100;
+    });
+
+    // 4. Site/PIC Inactivity Check (Quiet sites: 14+ days)
+    coverageMap.forEach((entry) => {
+      if (entry.date) {
+        const diffMs = now.getTime() - entry.date.getTime();
+        const daysInactive = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (daysInactive >= 14) {
+          attentionList.push({
+            id: `quiet_${entry.lokasi}_${entry.namaPic}`,
+            type: 'quiet_site_pic',
+            severity: ReportSeverity.WARNING,
+            rank: 2,
+            badgeLabel: 'Lokasi & PIC Pasif',
+            kodeKegiatan: '-',
+            lokasi: entry.lokasi,
+            pic: entry.namaPic,
+            divisi: entry.divisi,
+            details: `Tidak ada laporan masuk selama ${daysInactive} hari (terakhir: ${entry.dateStr}).`,
+            daysInactive: daysInactive,
+            timestamp: entry.dateStr
+          });
+        }
+      }
+    });
+
+    // 5. Sort attention list: urgent (rank 1) before warning (rank 2); unanswered obstacles and longest overdue first
+    attentionList.sort((a, b) => {
+      if (a.rank !== b.rank) return a.rank - b.rank;
+      if (a.hasNoUpaya && !b.hasNoUpaya) return -1;
+      if (!a.hasNoUpaya && b.hasNoUpaya) return 1;
+      if (a.daysLate !== undefined && b.daysLate !== undefined) {
+        return b.daysLate - a.daysLate;
+      }
+      return (b.daysInactive || 0) - (a.daysInactive || 0);
+    });
+
+    // 6. Month-over-month trend calculation
+    const salesTrendPercent = priorMonthNilaiPenjualanRp > 0 
+      ? Math.round(((totalNilaiPenjualanRp - priorMonthNilaiPenjualanRp) / priorMonthNilaiPenjualanRp) * 100)
+      : null;
 
     return {
+      currentPeriodLabel: currentPeriodLabel,
       totalReports: totalReports,
-      totalYieldKg: Math.round(totalYieldKg * 100) / 100,
-      totalYield: Math.round(totalYieldKg * 100) / 100,
+      distinctActivityCount: distinctActivitiesSet.size,
+      totalActiveKegiatan: totalActiveKegiatan,
+      totalNilaiPenjualanRp: totalNilaiPenjualanRp,
+      priorMonthNilaiPenjualanRp: priorMonthNilaiPenjualanRp,
+      salesTrendPercent: salesTrendPercent,
+      divisiBreakdown: divisiBreakdown,
+      overdueCounts: {
+        urgent: urgentOverdueCount,
+        warning: warningOverdueCount,
+        total: urgentOverdueCount + warningOverdueCount
+      },
+      openObstaclesCount: openObstaclesCount,
+      unansweredObstaclesCount: unansweredObstaclesCount,
       urgentCount: urgentCount,
-      sensitiveCount: sensitiveCount,
-      normalCount: severityDist.normal,
-      warningCount: severityDist.warning,
-      siteBreakdown: siteBreakdown,
-      siteCounts: [
-        siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
-        siteBreakdown['Site B — Peternakan & Kandang'] || 0,
-        siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
-        siteBreakdown['Site D — Logistik & Gudang'] || 0
-      ],
-      yieldBreakdown: yieldBreakdown,
-      severityDist: severityDist
+      warningCount: warningCount,
+      normalCount: normalCount,
+      severityDist: severityDist,
+      attentionList: attentionList,
+      weeklyTrend: weeklyTrend
     };
   },
 

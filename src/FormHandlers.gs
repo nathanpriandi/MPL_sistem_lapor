@@ -19,19 +19,27 @@ function ensureReportId(sheet, row, rowData) {
 }
 
 /**
- * Triggered on submission of Daily Operational Form.
+ * Triggered on submission of Operational Google Form.
  * @param {Object} e - Form submit event object.
  */
-function onDailyFormSubmit(e) {
-  ReportService.processDailyFormSubmit(e);
+function onFormSubmit(e) {
+  ReportService.processFormSubmit(e);
 }
 
 /**
- * Triggered on submission of General Report Form.
- * @param {Object} e - Form submit event object.
+ * Backward compatibility alias for onDailyFormSubmit.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy triggers.
+ */
+function onDailyFormSubmit(e) {
+  onFormSubmit(e);
+}
+
+/**
+ * Backward compatibility alias for onGeneralFormSubmit.
+ * Decision: Retained as permanent backward-compatibility wrapper for legacy triggers.
  */
 function onGeneralFormSubmit(e) {
-  ReportService.processGeneralFormSubmit(e);
+  onFormSubmit(e);
 }
 
 /**

@@ -44,44 +44,36 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
-          <div style="flex: 1; min-width: 260px;">
+        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: center; justify-content: space-between; gap: 1rem;">
+          <div style="flex: 1; min-width: 240px;">
             <h1 class="card-title" style="margin-bottom: 0.25rem;">Manajemen Form Laporan</h1>
             <p class="card-subtitle" style="margin-bottom: 0;">Kelola formulir pelaporan digital, konfigurasi Google Forms, dan registrasi form intake.</p>
           </div>
-          <div class="button-group-flex" style="align-items: center; flex-wrap: nowrap; gap: 0.75rem; flex-shrink: 0;">
-            <button class="btn btn-primary" onclick="openCreateFormModal()" style="height: 38px; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; flex-shrink: 0;">
+            <!-- Stat Pill: Total -->
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0 0.75rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); height: 34px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0;">
+              <span style="color: var(--text-muted);">Total:</span>
+              <strong id="metricTotalForms" style="color: var(--text-primary); font-weight: 700; font-size: 0.9rem;">0</strong>
+            </div>
+
+            <!-- Stat Pill: Aktif -->
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0 0.75rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500; color: #047857; height: 34px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0;">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+              <span>Aktif:</span>
+              <strong id="metricActiveForms" style="font-weight: 700; font-size: 0.9rem;">0</strong>
+            </div>
+
+            <!-- Action Button: Buat Form Baru -->
+            <button class="btn btn-primary" onclick="openCreateFormModal()" style="height: 34px; padding: 0 0.85rem; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0; width: auto; max-width: max-content;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               <span>Buat Form Baru</span>
             </button>
-            <button class="btn btn-secondary" onclick="fetchAndRenderForms(true)" title="Perbarui Daftar Form" style="height: 38px; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+
+            <!-- Action Button: Perbarui -->
+            <button class="btn btn-secondary" onclick="fetchAndRenderForms(true)" title="Perbarui Daftar Form" style="height: 34px; padding: 0 0.75rem; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0; width: auto; max-width: max-content;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
               <span>Perbarui</span>
             </button>
-          </div>
-        </div>
-
-        <!-- Metrics Summary Grid (Fixed 4-column layout) -->
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <span class="metric-label">Total Form Terdaftar</span>
-            <span class="metric-value" id="metricTotalForms">0</span>
-            <span class="metric-trend metric-trend-neutral">Formulir Terintegrasi</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">Form Status Aktif</span>
-            <span class="metric-value" id="metricActiveForms">0</span>
-            <span class="metric-trend metric-trend-up">Siap Menerima Laporan</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">Form Harian &amp; Umum</span>
-            <span class="metric-value" id="metricNativeForms">0</span>
-            <span class="metric-trend metric-trend-neutral">Google Forms Native</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-label">Form Kustom Lapangan</span>
-            <span class="metric-value" id="metricCustomForms">0</span>
-            <span class="metric-trend metric-trend-up">Dynamic Form Builder</span>
           </div>
         </div>
 
@@ -90,7 +82,34 @@
           <h2 class="card-title-sm" style="margin-bottom: 1rem;">Daftar Form Laporan Terdaftar</h2>
           
           <div id="formsContainer" class="button-group-flex" style="flex-direction: column; gap: 1rem;">
-            <div class="text-muted-center">Memuat daftar form...</div>
+            <div class="skeleton-form-card">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>
+                <div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                  <div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>
+                  <div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>
+                <div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>
+              </div>
+            </div>
+            <div class="skeleton-form-card">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>
+                <div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                  <div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>
+                  <div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>
+                <div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -230,10 +249,33 @@
       }
     }
 
+    function renderFormsSkeleton() {
+      var container = document.getElementById('formsContainer');
+      if (!container) return;
+      var html = '';
+      for (var i = 0; i < 3; i++) {
+        html += '<div class="skeleton-form-card">' +
+          '<div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">' +
+            '<div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>' +
+            '<div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>' +
+            '<div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">' +
+              '<div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>' +
+              '<div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display: flex; gap: 0.5rem;">' +
+            '<div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>' +
+            '<div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
     async function fetchAndRenderForms(isManual) {
       var container = document.getElementById('formsContainer');
       if (!isManual && container) {
-        container.innerHTML = '<div class="text-muted-center">Memuat daftar form terdaftar...</div>';
+        renderFormsSkeleton();
       }
 
       registeredForms = [];
@@ -284,25 +326,13 @@
       var baseUrl = window.SERVER_WEB_APP_URL ? window.SERVER_WEB_APP_URL.split('?')[0] : '';
       return [
         {
-          id: 'DEFAULT_DAILY_FORM',
-          title: 'Laporan Operasional Harian',
-          description: 'Isi laporan harian aktivitas operasional pertanian, peternakan, dan pabrik.',
-          type: 'harian',
+          id: 'DEFAULT_MAIN_FORM',
+          title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+          description: 'Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.',
+          type: 'operasional',
           status: 'aktif',
           editUrl: '',
           publicUrl: baseUrl ? baseUrl + '?page=index' : '?page=index',
-          responseCount: 0,
-          isAccessible: false,
-          isDefault: true
-        },
-        {
-          id: 'DEFAULT_GENERAL_FORM',
-          title: 'Laporan Umum & Catatan Lapangan',
-          description: 'Laporan kejadian umum, kondisi lapangan, atau insiden.',
-          type: 'umum',
-          status: 'aktif',
-          editUrl: '',
-          publicUrl: baseUrl ? baseUrl + '?page=general' : '?page=general',
           responseCount: 0,
           isAccessible: false,
           isDefault: true
@@ -313,21 +343,12 @@
     function renderFormMetrics() {
       var total = registeredForms.length;
       var active = registeredForms.filter(function(f) { return (f.status || '').toLowerCase() === 'aktif'; }).length;
-      var nativeForms = registeredForms.filter(function(f) {
-        var t = (f.type || '').toLowerCase();
-        return t === 'harian' || t === 'umum';
-      }).length;
-      var customForms = registeredForms.filter(function(f) { return (f.type || '').toLowerCase() === 'kustom'; }).length;
 
       var elTotal = document.getElementById('metricTotalForms');
       var elActive = document.getElementById('metricActiveForms');
-      var elNative = document.getElementById('metricNativeForms');
-      var elCustom = document.getElementById('metricCustomForms');
 
       if (elTotal) elTotal.innerText = total;
       if (elActive) elActive.innerText = active;
-      if (elNative) elNative.innerText = nativeForms;
-      if (elCustom) elCustom.innerText = customForms;
     }
 
     function renderFormsList() {
@@ -369,7 +390,7 @@
           previewBtnHtml = '<a href="' + f.publicUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Pratinjau Form Publik"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg><span>Pratinjau</span></a>';
         }
 
-        var isDefault = f.isDefault || f.isDefaultDaily || f.isDefaultGeneral || f.id === 'DEFAULT_DAILY_FORM' || f.id === 'DEFAULT_GENERAL_FORM';
+        var isDefault = f.isDefault || f.isDefaultMain || f.id === 'DEFAULT_MAIN_FORM';
         var safeTitle = escapeHtml(f.title || 'Form Tanpa Judul').replace(/'/g, "\\'");
         var deleteBtnHtml = isDefault ? '' :
           '<button class="btn btn-ghost-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';

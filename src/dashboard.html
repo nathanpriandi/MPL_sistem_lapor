@@ -28,9 +28,9 @@
 
         <div id="userIdentityStrip" data-populated="1">
           <div class="user-identity-menu">
-            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
+            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'M' ?></div>
             <div class="user-info">
-              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'manajer.operasional@agri.co.id' ?></span>
               <? if (userRole === 'both') { ?>
                 <span class="badge badge-primary">Admin &amp; Manager</span>
               <? } else if (userRole === 'admin') { ?>
@@ -39,107 +39,234 @@
                 <span class="badge badge-normal">Executive Manager</span>
               <? } ?>
             </div>
-            <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
       </header>
 
-      <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+      <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Header & Action Row -->
         <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
           <div>
-            <h1 class="card-title" style="margin-bottom: 0.25rem; line-height: 1.25;">Dashboard Eksekutif Manajer</h1>
-            <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi rekapitulasi operasional agribisnis terintegrasi.</p>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+              <h1 class="card-title" style="margin-bottom: 0; line-height: 1.25;">Dashboard Eksekutif Manajer</h1>
+              <span class="period-badge" id="dashPeriodBadge">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Periode: <strong id="dashPeriodLabel">Memuat...</strong></span>
+              </span>
+            </div>
+            <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi tata kelola operasional agribisnis: perbandingan divisi, peringatan panen, kendala lapangan, dan tren pendapatan.</p>
           </div>
           <div class="button-group-flex" style="align-items: center;">
             <span id="dashLastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.35rem;"></span>
-            <button class="btn btn-secondary" onclick="exportDashboardCSV()">
+            <button class="btn btn-secondary" onclick="exportDashboardCSV()" title="Unduh ringkasan data statistik dalam format CSV">
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Ekspor Ringkasan CSV</span>
+              <span>Ekspor CSV</span>
             </button>
-            <button class="btn btn-secondary" onclick="renderDashboard(true)">
+            <button class="btn btn-secondary" onclick="renderDashboard(true)" title="Muat ulang data statistik terbaru dari server">
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
               <span>Perbarui</span>
             </button>
           </div>
         </div>
 
-        <!-- Key Metrics Cards (Ordered by Decision Priority) -->
-        <div class="metrics-grid">
-          <!-- 1. Urgent Incidents (Action Priority Rank 1) -->
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk memfilter Antrean Admin ke Insiden Mendesak">
-            <span class="metric-label">Insiden Mendesak Flagged</span>
-            <span class="metric-value metric-value-urgent" id="kpiUrgent">0</span>
-            <span class="metric-trend metric-trend-down" id="trendUrgent">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Perlu Penanganan</span>
-            </span>
-            <div class="kpi-breakdown-list" id="breakdownUrgent">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Prioritas Triage</span><span class="kpi-breakdown-val">Rank 1</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Ter-Rute Otomatis</span><span class="kpi-breakdown-val" id="bUrgentRouted">0</span></div>
+        <!-- 3.2 Key Metrics Cards (KPI Strip) -->
+        <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <!-- 1. Total Aktivitas (Distinct Activities) -->
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk melihat semua aktivitas laporan di Antrean Admin">
+            <span class="metric-label">Total Aktivitas (Distinct)</span>
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="metric-value" id="kpiDistinctActivities"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
             </div>
-          </div>
-
-          <!-- 2. Total Pending Queue -->
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk membuka Antrean Admin (Semua Pending)">
-            <span class="metric-label">Total Laporan Masuk</span>
-            <span class="metric-value" id="kpiTotalReports">0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendTotal">
+            <span class="metric-sublabel" id="kpiRawReports"><span class="skeleton-box" style="width: 110px; height: 12px; vertical-align: middle;"></span></span>
+            <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-              <span>Buka Antrean</span>
+              <span>Siklus Kegiatan</span>
             </span>
-            <div class="kpi-breakdown-list" id="breakdownTotal">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site A (Kebun)</span><span class="kpi-breakdown-val" id="bTotalSiteA">0</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site B (Peternakan)</span><span class="kpi-breakdown-val" id="bTotalSiteB">0</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site C (Pabrik)</span><span class="kpi-breakdown-val" id="bTotalSiteC">0</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Site D (Logistik)</span><span class="kpi-breakdown-val" id="bTotalSiteD">0</span></div>
-            </div>
           </div>
 
-          <!-- 3. Sensitive Restricted Reports -->
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('sensitive')" title="Klik untuk memfilter Antrean Admin ke Laporan Sensitif">
-            <span class="metric-label">Laporan Sensitif Restriksi</span>
-            <span class="metric-value metric-value-warning" id="kpiSensitive">0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendSensitive">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span>Tab Terisolasi</span>
-            </span>
-            <div class="kpi-breakdown-list" id="breakdownSensitive">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Sheet Terpisah</span><span class="kpi-breakdown-val">Restricted</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Hak Akses</span><span class="kpi-breakdown-val" id="bSensitiveRole">Manager</span></div>
-            </div>
-          </div>
-
-          <!-- 4. Total Production Yield -->
+          <!-- 2. Total Nilai Penjualan (Rp) -->
           <div class="metric-card">
-            <span class="metric-label">Total Hasil Panen (Kg)</span>
-            <span class="metric-value" id="kpiTotalYield">0</span>
-            <span class="metric-trend metric-trend-up" id="trendYield">
+            <span class="metric-label">Total Nilai Penjualan (Rp)</span>
+            <span class="metric-value" id="kpiTotalPenjualan" style="font-size: 1.45rem; word-break: break-all;"><span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span></span>
+            <span class="metric-sublabel" id="kpiPriorMonthSub"><span class="skeleton-box" style="width: 80px; height: 12px; vertical-align: middle;"></span></span>
+            <span class="metric-trend metric-trend-neutral" id="trendSales" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              <span>Akumulasi Produksi</span>
+              <span id="kpiSalesTrendText">Pendapatan Penjualan</span>
             </span>
-            <div class="kpi-breakdown-list" id="breakdownYield">
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Rutin</span><span class="kpi-breakdown-val" id="bYieldNormal">0</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Peringatan</span><span class="kpi-breakdown-val" id="bYieldWarning">0</span></div>
-              <div class="kpi-breakdown-item"><span class="kpi-breakdown-label">Laporan Mendesak</span><span class="kpi-breakdown-val" id="bYieldUrgent">0</span></div>
+          </div>
+
+          <!-- 3. Hasil Panen per Divisi (Separated Figures, No Unit Mixing) -->
+          <div class="metric-card">
+            <span class="metric-label">Hasil Panen per Divisi</span>
+            <div class="kpi-division-grid">
+              <div class="kpi-division-item" title="Divisi Agro (Pertanian/Perkebunan)">
+                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
+                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+                  <span>Agro</span>
+                </span>
+                <span class="kpi-division-val" id="kpiPanenAgro"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
+              </div>
+              <div class="kpi-division-item" title="Divisi Ternak (Peternakan)">
+                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
+                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
+                  <span>Ternak</span>
+                </span>
+                <span class="kpi-division-val" id="kpiPanenTernak"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
+              </div>
+              <div class="kpi-division-item" title="Divisi Ikan (Perikanan)">
+                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
+                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
+                  <span>Ikan</span>
+                </span>
+                <span class="kpi-division-val" id="kpiPanenIkan"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
+              </div>
+            </div>
+            <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Volume Independen</span>
+            </span>
+          </div>
+
+          <!-- 4. Kegiatan Menunggu Panen -->
+          <div class="metric-card">
+            <span class="metric-label">Menunggu Panen</span>
+            <span class="metric-value" id="kpiActiveKegiatan"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
+            <span class="metric-sublabel">Aktivitas belum panen</span>
+            <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span>Masa Tumbuh / Pelihara</span>
+            </span>
+          </div>
+
+          <!-- 5. Kendala Lapangan Terbuka -->
+          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk meninjau kendala & insiden di Antrean Admin">
+            <span class="metric-label">Kendala Terbuka</span>
+            <span class="metric-value" id="kpiOpenObstacles"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
+            <span class="metric-sublabel" id="kpiUnansweredSub"><span class="skeleton-box" style="width: 100px; height: 12px; vertical-align: middle;"></span></span>
+            <span class="metric-trend metric-trend-neutral" id="trendObstacles" style="margin-top: 0.5rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span id="kpiObstaclesTrendText">Kendala Terlaporkan</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 3.3 Two-Column Section: Perbandingan Divisi (Left) vs Perlu Perhatian (Right) -->
+        <div class="dashboard-two-col" style="margin-top: 1.5rem;">
+          <!-- Left: Divisional Comparison -->
+          <div class="card card-no-margin" style="display: flex; flex-direction: column;">
+            <div class="flex-between-wrap" style="margin-bottom: 1rem; align-items: center;">
+              <div>
+                <h3 class="card-title card-title-sm" style="margin-bottom: 0.15rem;">Perbandingan Kinerja Antar Divisi</h3>
+                <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Perbandingan aktivitas, panen, dan nilai penjualan.</p>
+              </div>
+              <div class="button-group-flex">
+                <button class="btn btn-secondary btn-sm active" id="btnMetricSales" onclick="switchDivisiChartMetric('sales')">Penjualan (Rp)</button>
+                <button class="btn btn-secondary btn-sm" id="btnMetricActivities" onclick="switchDivisiChartMetric('activities')">Aktivitas</button>
+              </div>
+            </div>
+
+            <!-- Grouped Bar Chart -->
+            <div class="chart-container" style="position: relative; height: 230px; max-height: 230px; width: 100%; overflow: hidden; margin-bottom: 1.25rem;">
+              <div id="divisiChartSkeleton" class="skeleton-chart-box">
+                <div class="skeleton-chart-bar" style="height: 65%;"></div>
+                <div class="skeleton-chart-bar" style="height: 40%;"></div>
+                <div class="skeleton-chart-bar" style="height: 85%;"></div>
+              </div>
+              <canvas id="divisiComparisonChart" height="230" style="max-height: 230px; height: 230px; width: 100%; display: block;"></canvas>
+            </div>
+
+            <!-- Compact Data Table -->
+            <div class="table-responsive" style="margin-top: auto;">
+              <table class="division-table">
+                <thead>
+                  <tr>
+                    <th>Bidang / Divisi</th>
+                    <th style="text-align: center;">Aktivitas</th>
+                    <th style="text-align: right;">Total Panen</th>
+                    <th style="text-align: right;">Nilai Penjualan (Rp)</th>
+                  </tr>
+                </thead>
+                <tbody id="divisiTableBody">
+                  <tr>
+                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right: Attention List (Perlu Perhatian) -->
+          <div class="card card-no-margin" style="display: flex; flex-direction: column;">
+            <div class="flex-between-wrap" style="margin-bottom: 1rem; align-items: center;">
+              <div>
+                <h3 class="card-title card-title-sm" style="margin-bottom: 0.15rem;">Perlu Perhatian &amp; Tindak Lanjut</h3>
+                <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Panen terlambat, kendala tanpa respon, &amp; lokasi pasif.</p>
+              </div>
+              <span class="badge badge-urgent" id="attentionCountBadge">0 Item</span>
+            </div>
+
+            <div id="attentionListContainer" class="attention-container">
+              <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+                <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+                <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+                <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+              </div>
+              <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+                <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+                <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+                <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Charts Grid -->
-        <div class="charts-grid">
-          <div class="card card-no-margin">
-            <h3 class="card-title card-title-sm">Distribusi Severity Laporan</h3>
-            <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
-              <canvas id="severityChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
+        <!-- 3.4 Trend Chart: Full-Width Line Chart Over Current Month Weeks -->
+        <div class="card card-no-margin" style="margin-top: 1.5rem;">
+          <div class="flex-between-wrap" style="margin-bottom: 1rem; align-items: center;">
+            <div>
+              <h3 class="card-title card-title-sm" style="margin-bottom: 0.15rem;">Dinamika Tren Mingguan per Divisi</h3>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Pergerakan capaian nilai penjualan mingguan sepanjang bulan berjalan.</p>
+            </div>
+            <div class="button-group-flex">
+              <span class="badge badge-neutral" style="font-size: 0.75rem;">1 Line per Divisi</span>
             </div>
           </div>
 
-          <div class="card card-no-margin">
-            <h3 class="card-title card-title-sm">Total Laporan per Site</h3>
-            <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
-              <canvas id="siteChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
+          <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
+            <div id="weeklyTrendSkeleton" class="skeleton-chart-box">
+              <div class="skeleton-chart-bar" style="height: 35%;"></div>
+              <div class="skeleton-chart-bar" style="height: 55%;"></div>
+              <div class="skeleton-chart-bar" style="height: 75%;"></div>
+              <div class="skeleton-chart-bar" style="height: 90%;"></div>
             </div>
+            <canvas id="weeklyTrendChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
           </div>
+        </div>
+
+        <!-- 3.5 Footer Link: Drilldown to Admin Queue -->
+        <div class="drilldown-banner">
+          <div class="drilldown-banner-text">
+            <h4>Butuh Rincian Laporan Lapangan Per Dokumen?</h4>
+            <p>Buka Antrean Admin untuk memeriksa dokumen laporan individual, status peninjauan, foto bukti lapangan, dan audit trail.</p>
+          </div>
+          <button class="btn" onclick="navigateToQueue('all')">
+            <span>Buka Antrean Admin &rarr;</span>
+          </button>
         </div>
       </main>
     </div>
@@ -147,41 +274,33 @@
 
   <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
   <script>
-    let severityChartInstance = null;
-    let siteChartInstance = null;
+    let divisiComparisonChartInstance = null;
+    let weeklyTrendChartInstance = null;
     let cachedStats = null;
+    let activeDivisiMetric = 'sales'; // 'sales' | 'activities'
     let lastFetchedTimestamp = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      const identityStrip = document.getElementById('userIdentityStrip');
-      if (identityStrip && !identityStrip.dataset.populated) {
-        identityStrip.dataset.populated = '1';
-        renderIdentityStrip();
-      }
       loadQuickLinks();
       loadDiagnostics();
 
-      // Defer renderDashboard until layout flexbox and fonts have fully settled
       window.requestAnimationFrame(() => {
         setTimeout(() => {
           renderDashboard();
         }, 50);
       });
 
-      // Update data freshness UI every 30 seconds
       setInterval(updateFreshnessTag, 30000);
     });
 
     window.addEventListener('load', () => {
-      if (severityChartInstance) severityChartInstance.resize();
-      if (siteChartInstance) siteChartInstance.resize();
+      if (divisiComparisonChartInstance) divisiComparisonChartInstance.resize();
+      if (weeklyTrendChartInstance) weeklyTrendChartInstance.resize();
     });
 
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('sidebar-open');
-      }
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
     }
 
     function updateFreshnessTag() {
@@ -189,11 +308,8 @@
       if (!tag || !lastFetchedTimestamp) return;
       const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
       const elapsedMin = Math.floor(elapsedSec / 60);
-      if (elapsedMin < 1) {
-        tag.innerText = 'Diperbarui baru saja';
-      } else {
-        tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
-      }
+      if (elapsedMin < 1) tag.innerText = 'Diperbarui baru saja';
+      else tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
     }
 
     function navigateToQueue(filter) {
@@ -206,237 +322,764 @@
       }
       if (!baseUrl) baseUrl = window.location.href.split('?')[0];
 
-      const targetUrl = `${baseUrl}?page=admin&filter=${filter}`;
-      try {
-        if (window.top && window.top.location) {
-          window.top.location.href = targetUrl;
+      const targetUrl = `${baseUrl}?page=admin&filter=${filter || 'all'}`;
+      window.location.href = targetUrl;
+    }
+
+    function switchDivisiChartMetric(metric) {
+      activeDivisiMetric = metric;
+      const btnSales = document.getElementById('btnMetricSales');
+      const btnAct = document.getElementById('btnMetricActivities');
+      if (btnSales && btnAct) {
+        if (metric === 'sales') {
+          btnSales.classList.add('active');
+          btnAct.classList.remove('active');
         } else {
-          window.location.href = targetUrl;
+          btnAct.classList.add('active');
+          btnSales.classList.remove('active');
         }
-      } catch (e) {
-        window.location.href = targetUrl;
+      }
+      updateDivisiChart();
+    }
+
+    function renderDashboardSkeletons() {
+      const periodLabel = document.getElementById('dashPeriodLabel');
+      if (periodLabel) periodLabel.innerText = 'Memuat...';
+
+      const kpiDistinct = document.getElementById('kpiDistinctActivities');
+      if (kpiDistinct) kpiDistinct.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
+
+      const kpiRaw = document.getElementById('kpiRawReports');
+      if (kpiRaw) kpiRaw.innerHTML = '<span class="skeleton-box" style="width: 110px; height: 12px; vertical-align: middle;"></span>';
+
+      const kpiSales = document.getElementById('kpiTotalPenjualan');
+      if (kpiSales) kpiSales.innerHTML = '<span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span>';
+
+      const priorMonthSub = document.getElementById('kpiPriorMonthSub');
+      if (priorMonthSub) priorMonthSub.innerHTML = '<span class="skeleton-box" style="width: 80px; height: 12px; vertical-align: middle;"></span>';
+
+      const panenAgro = document.getElementById('kpiPanenAgro');
+      if (panenAgro) panenAgro.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
+
+      const panenTernak = document.getElementById('kpiPanenTernak');
+      if (panenTernak) panenTernak.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
+
+      const panenIkan = document.getElementById('kpiPanenIkan');
+      if (panenIkan) panenIkan.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
+
+      const kpiActive = document.getElementById('kpiActiveKegiatan');
+      if (kpiActive) kpiActive.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
+
+      const kpiObstacles = document.getElementById('kpiOpenObstacles');
+      if (kpiObstacles) kpiObstacles.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
+
+      const kpiUnanswered = document.getElementById('kpiUnansweredSub');
+      if (kpiUnanswered) kpiUnanswered.innerHTML = '<span class="skeleton-box" style="width: 100px; height: 12px; vertical-align: middle;"></span>';
+
+      const divisiSkel = document.getElementById('divisiChartSkeleton');
+      if (divisiSkel) divisiSkel.style.display = 'flex';
+
+      const trendSkel = document.getElementById('weeklyTrendSkeleton');
+      if (trendSkel) trendSkel.style.display = 'flex';
+
+      const divisiBody = document.getElementById('divisiTableBody');
+      if (divisiBody) {
+        divisiBody.innerHTML = `
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+          </tr>
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+          </tr>
+          <tr>
+            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
+            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
+            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
+          </tr>
+        `;
+      }
+
+      const attContainer = document.getElementById('attentionListContainer');
+      if (attContainer) {
+        attContainer.innerHTML = `
+          <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+            <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+            <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+            <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+          </div>
+          <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
+            <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
+            <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
+            <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
+          </div>
+        `;
       }
     }
 
     async function renderDashboard(isManualRefresh = false) {
-      let totalReports = 0;
-      let totalYield = 0;
-      let urgentCount = 0;
-      let sensitiveCount = 0;
-      let normalCount = 0;
-      let warningCount = 0;
-      let siteCounts = [0, 0, 0, 0];
+      if (isManualRefresh) {
+        renderDashboardSkeletons();
+      }
+
+      let stats = null;
 
       if (isLiveServer()) {
         try {
-          const stats = await runServer('getDashboardStats');
-          if (stats) {
-            cachedStats = stats;
-            totalReports = stats.totalReports || 0;
-            totalYield = (typeof stats.totalYieldKg !== 'undefined' ? stats.totalYieldKg : stats.totalYield) || 0;
-            urgentCount = typeof stats.urgentCount !== 'undefined' ? stats.urgentCount : (stats.severityDist ? stats.severityDist.urgent : 0);
-            sensitiveCount = stats.sensitiveCount || 0;
-            normalCount = typeof stats.normalCount !== 'undefined' ? stats.normalCount : (stats.severityDist ? stats.severityDist.normal : 0);
-            warningCount = typeof stats.warningCount !== 'undefined' ? stats.warningCount : (stats.severityDist ? stats.severityDist.warning : 0);
-
-            if (Array.isArray(stats.siteCounts) && stats.siteCounts.length === 4) {
-              siteCounts = stats.siteCounts;
-            } else if (stats.siteBreakdown) {
-              siteCounts = [
-                stats.siteBreakdown['Site A — Kebun & Lahan Pertanian'] || 0,
-                stats.siteBreakdown['Site B — Peternakan & Kandang'] || 0,
-                stats.siteBreakdown['Site C — Pabrik Pengolahan & Pakan'] || 0,
-                stats.siteBreakdown['Site D — Logistik & Gudang'] || 0
-              ];
-            }
-          }
+          stats = await runServer('getDashboardStats');
         } catch (err) {
           console.error('Server error fetching dashboard stats:', err);
-          showToast('Gagal memuat statistik dari server', 'error');
+          showToast('Gagal memuat statistik dari server: ' + err.message, 'error');
         }
-      } else {
-        const db = getDB();
-        const allReports = [...db.dailyReports, ...db.generalReports];
-        totalReports = allReports.length;
-        totalYield = db.dailyReports.reduce((acc, curr) => acc + (curr.yield || 0), 0);
-        urgentCount = allReports.filter(x => x.severity === 'urgent').length;
-        sensitiveCount = db.generalReports.filter(x => x.isSensitive).length;
-        normalCount = allReports.filter(x => x.severity === 'normal').length;
-        warningCount = allReports.filter(x => x.severity === 'warning').length;
-
-        const sites = [
-          'Site A — Kebun & Lahan Pertanian', 
-          'Site B — Peternakan & Kandang', 
-          'Site C — Pabrik Pengolahan & Pakan', 
-          'Site D — Logistik & Gudang'
-        ];
-        siteCounts = sites.map(s => allReports.filter(x => x.site === s).length);
-
-        cachedStats = { totalReports, totalYield, urgentCount, sensitiveCount, normalCount, warningCount, siteCounts };
       }
 
+      // Fallback calculation for local preview mode
+      if (!stats) {
+        stats = computeLocalDashboardStats();
+      }
+
+      cachedStats = stats;
       lastFetchedTimestamp = Date.now();
       updateFreshnessTag();
 
-      document.getElementById('kpiTotalReports').innerText = totalReports;
-      document.getElementById('kpiTotalYield').innerText = totalYield.toLocaleString('id-ID') + ' kg';
-      document.getElementById('kpiUrgent').innerText = urgentCount;
-      document.getElementById('kpiSensitive').innerText = sensitiveCount;
+      // 1. Period Label
+      const periodLabelEl = document.getElementById('dashPeriodLabel');
+      if (periodLabelEl) {
+        periodLabelEl.innerText = stats.currentPeriodLabel || 'Bulan Berjalan';
+      }
 
-      // Populate breakdown details
-      const elSiteA = document.getElementById('bTotalSiteA');
-      const elSiteB = document.getElementById('bTotalSiteB');
-      const elSiteC = document.getElementById('bTotalSiteC');
-      const elSiteD = document.getElementById('bTotalSiteD');
-      if (elSiteA) elSiteA.innerText = siteCounts[0] || 0;
-      if (elSiteB) elSiteB.innerText = siteCounts[1] || 0;
-      if (elSiteC) elSiteC.innerText = siteCounts[2] || 0;
-      if (elSiteD) elSiteD.innerText = siteCounts[3] || 0;
+      // 2. KPI Cards
+      // 2.1 Total Aktivitas (Distinct) & Raw Reports
+      const kpiDistinctEl = document.getElementById('kpiDistinctActivities');
+      if (kpiDistinctEl) kpiDistinctEl.innerText = (stats.distinctActivityCount || 0).toLocaleString('id-ID');
+      const kpiRawEl = document.getElementById('kpiRawReports');
+      if (kpiRawEl) kpiRawEl.innerText = `${(stats.totalReports || 0).toLocaleString('id-ID')} total laporan masuk`;
 
-      const elYNorm = document.getElementById('bYieldNormal');
-      const elYWarn = document.getElementById('bYieldWarning');
-      const elYUrg = document.getElementById('bYieldUrgent');
-      if (elYNorm) elYNorm.innerText = normalCount;
-      if (elYWarn) elYWarn.innerText = warningCount;
-      if (elYUrg) elYUrg.innerText = urgentCount;
-
-      const elUrgRouted = document.getElementById('bUrgentRouted');
-      if (elUrgRouted) elUrgRouted.innerText = urgentCount;
-
-      // Update trend badges
-      const urgentTrend = document.getElementById('trendUrgent');
-      if (urgentTrend) {
-        if (urgentCount > 0) {
-          urgentTrend.className = 'metric-trend metric-trend-down';
-          urgentTrend.innerHTML = `<svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>${urgentCount} Perlu Penanganan</span>`;
+      // 2.2 Total Nilai Penjualan & Trend
+      const kpiSalesEl = document.getElementById('kpiTotalPenjualan');
+      if (kpiSalesEl) kpiSalesEl.innerText = 'Rp ' + (stats.totalNilaiPenjualanRp || 0).toLocaleString('id-ID');
+      
+      const salesTrendTag = document.getElementById('trendSales');
+      const salesTrendText = document.getElementById('kpiSalesTrendText');
+      const priorMonthSub = document.getElementById('kpiPriorMonthSub');
+      if (salesTrendTag && salesTrendText) {
+        if (stats.salesTrendPercent !== null && stats.salesTrendPercent !== undefined) {
+          const isPositive = stats.salesTrendPercent >= 0;
+          salesTrendTag.className = `metric-trend ${isPositive ? 'metric-trend-up' : 'metric-trend-down'}`;
+          salesTrendText.innerText = `${isPositive ? '+' : ''}${stats.salesTrendPercent}% vs bulan lalu`;
+          if (priorMonthSub) priorMonthSub.innerText = `Bulan lalu: Rp ${(stats.priorMonthNilaiPenjualanRp || 0).toLocaleString('id-ID')}`;
         } else {
-          urgentTrend.className = 'metric-trend metric-trend-up';
-          urgentTrend.innerHTML = `<svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> <span>Kondisi Aman</span>`;
+          salesTrendTag.className = 'metric-trend metric-trend-neutral';
+          salesTrendText.innerText = 'Bulan berjalan';
+          if (priorMonthSub) priorMonthSub.innerText = 'Periode kalender aktif';
         }
       }
 
-      // Render Charts with safety checks and zero-data fallbacks
-      if (typeof Chart !== 'undefined') {
-        try {
-          if (severityChartInstance) severityChartInstance.destroy();
-          const ctx1 = document.getElementById('severityChart');
-          if (ctx1) {
-            const totalSeverity = normalCount + warningCount + urgentCount;
-            const chartData = (totalSeverity > 0) ? [normalCount, warningCount, urgentCount] : [1];
-            const chartColors = (totalSeverity > 0) ? ['#15803D', '#B45309', '#DC2626'] : ['#E2E8F0'];
-            const chartLabels = (totalSeverity > 0) ? ['Rutin / Normal', 'Peringatan / Warning', 'Mendesak / Insiden'] : ['Belum Ada Data'];
+      // 2.3 Panen per Divisi (Agro Kg, Ternak Unit, Ikan Kg)
+      const divAgro = (stats.divisiBreakdown && stats.divisiBreakdown['Agro (Pertanian/Perkebunan)']) || { panenVolume: 0 };
+      const divTernak = (stats.divisiBreakdown && stats.divisiBreakdown['Ternak (Peternakan)']) || { panenVolume: 0 };
+      const divIkan = (stats.divisiBreakdown && stats.divisiBreakdown['Ikan (Perikanan)']) || { panenVolume: 0 };
 
-            severityChartInstance = new Chart(ctx1.getContext('2d'), {
-              type: 'doughnut',
-              data: {
-                labels: chartLabels,
-                datasets: [{
-                  data: chartData,
-                  backgroundColor: chartColors,
-                  borderWidth: 2,
-                  borderColor: '#ffffff'
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      color: '#475569',
-                      font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 }
-                    }
-                  },
-                  tooltip: {
-                    enabled: totalSeverity > 0
-                  }
-                }
-              }
-            });
-            severityChartInstance.resize();
-          }
-        } catch (e1) {
-          console.error('Error initializing severityChart:', e1);
-        }
+      const panenAgroEl = document.getElementById('kpiPanenAgro');
+      if (panenAgroEl) panenAgroEl.innerText = `${(divAgro.panenVolume || 0).toLocaleString('id-ID')} Kg`;
+      const panenTernakEl = document.getElementById('kpiPanenTernak');
+      if (panenTernakEl) panenTernakEl.innerText = `${(divTernak.panenVolume || 0).toLocaleString('id-ID')} Unit`;
+      const panenIkanEl = document.getElementById('kpiPanenIkan');
+      if (panenIkanEl) panenIkanEl.innerText = `${(divIkan.panenVolume || 0).toLocaleString('id-ID')} Kg`;
 
-        try {
-          if (siteChartInstance) siteChartInstance.destroy();
-          const ctx2 = document.getElementById('siteChart');
-          if (ctx2) {
-            siteChartInstance = new Chart(ctx2.getContext('2d'), {
-              type: 'bar',
-              data: {
-                labels: ['Site A (Kebun)', 'Site B (Peternakan)', 'Site C (Pabrik)', 'Site D (Logistik)'],
-                datasets: [{
-                  label: 'Total Laporan',
-                  data: siteCounts,
-                  backgroundColor: '#15803D',
-                  borderRadius: 6,
-                  borderSkipped: false
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: {
-                  x: {
-                    ticks: {
-                      color: '#475569',
-                      font: { size: 11 },
-                      maxRotation: 0,
-                      minRotation: 0,
-                      autoSkip: false
-                    },
-                    grid: { display: false }
-                  },
-                  y: {
-                    ticks: { color: '#475569', precision: 0 },
-                    grid: { color: '#F1F5F9' },
-                    beginAtZero: true,
-                    suggestedMax: 5
-                  }
-                },
-                plugins: {
-                  legend: { display: false }
-                }
-              }
-            });
-            siteChartInstance.resize();
-          }
-        } catch (e2) {
-          console.error('Error initializing siteChart:', e2);
+      // 2.4 Kegiatan Menunggu Panen
+      const kpiActiveEl = document.getElementById('kpiActiveKegiatan');
+      if (kpiActiveEl) kpiActiveEl.innerText = (stats.totalActiveKegiatan || 0).toLocaleString('id-ID');
+
+      // 2.5 Kendala Lapangan Terbuka
+      const kpiObstaclesEl = document.getElementById('kpiOpenObstacles');
+      if (kpiObstaclesEl) kpiObstaclesEl.innerText = (stats.openObstaclesCount || 0).toLocaleString('id-ID');
+      const kpiUnansweredSubEl = document.getElementById('kpiUnansweredSub');
+      if (kpiUnansweredSubEl) {
+        const unanswered = stats.unansweredObstaclesCount || 0;
+        kpiUnansweredSubEl.innerText = `${unanswered} belum ada upaya`;
+      }
+      const trendObstaclesEl = document.getElementById('trendObstacles');
+      const kpiObstaclesTrendText = document.getElementById('kpiObstaclesTrendText');
+      if (trendObstaclesEl && kpiObstaclesTrendText) {
+        const openObs = stats.openObstaclesCount || 0;
+        if (openObs > 0) {
+          trendObstaclesEl.className = 'metric-trend metric-trend-down';
+          kpiObstaclesTrendText.innerText = `${openObs} Kendala Terlaporkan`;
+        } else {
+          trendObstaclesEl.className = 'metric-trend metric-trend-up';
+          kpiObstaclesTrendText.innerText = 'Kondisi Lapangan Lancar';
         }
       }
+
+      // 3. Render Division Table & Charts
+      renderDivisionTable(stats);
+      updateDivisiChart();
+      updateWeeklyTrendChart();
+
+      // 4. Render Attention List
+      renderAttentionList(stats.attentionList || []);
 
       if (isManualRefresh) {
         showToast('Dashboard statistik berhasil diperbarui', 'info');
       }
     }
 
-    function exportDashboardCSV() {
-      if (!cachedStats) {
-        showToast('Data statistik belum siap', 'warning');
+    function renderDivisionTable(stats) {
+      const tbody = document.getElementById('divisiTableBody');
+      if (!tbody) return;
+
+      const breakdown = stats.divisiBreakdown || {};
+      const agro = breakdown['Agro (Pertanian/Perkebunan)'] || { activityCount: 0, panenVolume: 0, nilaiPenjualanRp: 0 };
+      const ternak = breakdown['Ternak (Peternakan)'] || { activityCount: 0, panenVolume: 0, nilaiPenjualanRp: 0 };
+      const ikan = breakdown['Ikan (Perikanan)'] || { activityCount: 0, panenVolume: 0, nilaiPenjualanRp: 0 };
+
+      const totalActivities = (agro.activityCount || 0) + (ternak.activityCount || 0) + (ikan.activityCount || 0);
+      const totalSales = (agro.nilaiPenjualanRp || 0) + (ternak.nilaiPenjualanRp || 0) + (ikan.nilaiPenjualanRp || 0);
+
+      tbody.innerHTML = `
+        <tr>
+          <td>
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+              <strong style="color: #15803D;">Agro</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">(Pertanian)</span>
+            </div>
+          </td>
+          <td style="text-align: center; font-weight: 600;">${agro.activityCount || 0}</td>
+          <td style="text-align: right; font-weight: 600;">${(agro.panenVolume || 0).toLocaleString('id-ID')} Kg</td>
+          <td style="text-align: right; font-weight: 600;">Rp ${(agro.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
+        </tr>
+        <tr>
+          <td>
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
+              <strong style="color: #D97706;">Ternak</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">(Peternakan)</span>
+            </div>
+          </td>
+          <td style="text-align: center; font-weight: 600;">${ternak.activityCount || 0}</td>
+          <td style="text-align: right; font-weight: 600;">${(ternak.panenVolume || 0).toLocaleString('id-ID')} Unit</td>
+          <td style="text-align: right; font-weight: 600;">Rp ${(ternak.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
+        </tr>
+        <tr>
+          <td>
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
+              <strong style="color: #2563EB;">Ikan</strong>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">(Perikanan)</span>
+            </div>
+          </td>
+          <td style="text-align: center; font-weight: 600;">${ikan.activityCount || 0}</td>
+          <td style="text-align: right; font-weight: 600;">${(ikan.panenVolume || 0).toLocaleString('id-ID')} Kg</td>
+          <td style="text-align: right; font-weight: 600;">Rp ${(ikan.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
+        </tr>
+        <tr style="background: var(--bg-app); font-weight: 700; border-top: 2px solid var(--border-color);">
+          <td>Total Rekapitulasi</td>
+          <td style="text-align: center;">${totalActivities}</td>
+          <td style="text-align: right; font-size: 0.75rem; color: var(--text-muted);">Tergantung Satuan</td>
+          <td style="text-align: right; color: var(--primary);">Rp ${totalSales.toLocaleString('id-ID')}</td>
+        </tr>
+      `;
+    }
+
+    function renderAttentionList(items) {
+      const container = document.getElementById('attentionListContainer');
+      const badge = document.getElementById('attentionCountBadge');
+      if (!container) return;
+
+      if (badge) {
+        badge.innerText = `${items.length} Item`;
+        badge.className = items.length > 0 ? (items.some(i => i.severity === 'urgent') ? 'badge badge-urgent' : 'badge badge-warning') : 'badge badge-normal';
+      }
+
+      if (!items || items.length === 0) {
+        container.innerHTML = `
+          <div class="attention-empty">
+            <svg class="svg-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" style="margin-bottom: 0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <p style="margin: 0; font-size: 0.875rem; font-weight: 600; color: #15803D;">Kondisi Operasional Lancar</p>
+            <span style="font-size: 0.775rem; color: var(--text-muted);">Tidak ada panen terlambat, kendala tanpa respon, atau lokasi pasif.</span>
+          </div>
+        `;
         return;
       }
 
-      const headers = ['Metrik', 'Nilai'];
-      const rows = [
-        ['Total Laporan Masuk', cachedStats.totalReports],
-        ['Total Hasil Panen (Kg)', cachedStats.totalYield || cachedStats.totalYieldKg || 0],
-        ['Insiden Urgent Flagged', cachedStats.urgentCount],
-        ['Laporan Warning Flagged', cachedStats.warningCount],
-        ['Laporan Normal Flagged', cachedStats.normalCount],
-        ['Laporan Sensitif Restriksi', cachedStats.sensitiveCount],
-        ['Laporan Site A (Kebun)', (cachedStats.siteCounts && cachedStats.siteCounts[0]) || 0],
-        ['Laporan Site B (Peternakan)', (cachedStats.siteCounts && cachedStats.siteCounts[1]) || 0],
-        ['Laporan Site C (Pabrik)', (cachedStats.siteCounts && cachedStats.siteCounts[2]) || 0],
-        ['Laporan Site D (Logistik)', (cachedStats.siteCounts && cachedStats.siteCounts[3]) || 0]
+      let html = '';
+      items.forEach(item => {
+        const isUrgent = item.severity === 'urgent';
+        const cardClass = isUrgent ? 'attention-card attention-urgent' : 'attention-card attention-warning';
+        const badgeClass = isUrgent ? 'badge badge-urgent' : 'badge badge-warning';
+        const badgeText = item.badgeLabel || (isUrgent ? 'Mendesak' : 'Perhatian');
+
+        let iconSvg = '';
+        if (item.type === 'overdue_harvest') {
+          iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        } else if (item.type === 'open_obstacle') {
+          iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        } else {
+          iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+        }
+
+        html += `
+          <div class="${cardClass}">
+            <div class="attention-header">
+              <span class="${badgeClass}" style="display: inline-flex; align-items: center; gap: 4px;">
+                ${iconSvg}
+                <span>${badgeText}</span>
+              </span>
+              <span style="font-size: 0.725rem; color: var(--text-muted);">${item.timestamp || '-'}</span>
+            </div>
+            <div class="attention-title">${item.title || item.kodeKegiatan || 'Item Perhatian'}</div>
+            <div class="attention-details">${item.details || '-'}</div>
+            <div class="attention-meta">
+              <span class="attention-meta-item">
+                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>${item.lokasi || '-'}</span>
+              </span>
+              <span>&bull;</span>
+              <span class="attention-meta-item">
+                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>${item.pic || '-'}</span>
+              </span>
+              <span>&bull;</span>
+              <span class="badge badge-neutral" style="font-size: 0.7rem; padding: 1px 6px;">${item.divisi || '-'}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updateDivisiChart() {
+      if (typeof Chart === 'undefined' || !cachedStats) return;
+      const ctx = document.getElementById('divisiComparisonChart');
+      if (!ctx) return;
+
+      const breakdown = cachedStats.divisiBreakdown || {};
+      const agro = breakdown['Agro (Pertanian/Perkebunan)'] || { activityCount: 0, nilaiPenjualanRp: 0 };
+      const ternak = breakdown['Ternak (Peternakan)'] || { activityCount: 0, nilaiPenjualanRp: 0 };
+      const ikan = breakdown['Ikan (Perikanan)'] || { activityCount: 0, nilaiPenjualanRp: 0 };
+
+      const isSales = (activeDivisiMetric === 'sales');
+      const chartData = isSales 
+        ? [agro.nilaiPenjualanRp || 0, ternak.nilaiPenjualanRp || 0, ikan.nilaiPenjualanRp || 0]
+        : [agro.activityCount || 0, ternak.activityCount || 0, ikan.activityCount || 0];
+
+      const chartLabel = isSales ? 'Nilai Penjualan (Rp)' : 'Jumlah Aktivitas';
+
+      try {
+        const skel = document.getElementById('divisiChartSkeleton');
+        if (skel) skel.style.display = 'none';
+
+        if (divisiComparisonChartInstance) divisiComparisonChartInstance.destroy();
+        divisiComparisonChartInstance = new Chart(ctx.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['Agro (Pertanian)', 'Ternak (Peternakan)', 'Ikan (Perikanan)'],
+            datasets: [{
+              label: chartLabel,
+              data: chartData,
+              backgroundColor: ['#16a34a', '#d97706', '#2563eb'],
+              borderRadius: 6,
+              maxBarThickness: 48
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(val) {
+                    if (isSales) {
+                      if (val >= 1000000) return (val / 1000000) + ' Jt';
+                      if (val >= 1000) return (val / 1000) + ' Rb';
+                      return val;
+                    }
+                    return val;
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    const raw = ctx.raw || 0;
+                    return isSales ? `Rp ${raw.toLocaleString('id-ID')}` : `${raw} Aktivitas`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Error rendering division comparison chart:', e);
+      }
+    }
+
+    function updateWeeklyTrendChart() {
+      if (typeof Chart === 'undefined' || !cachedStats) return;
+      const ctx = document.getElementById('weeklyTrendChart');
+      if (!ctx) return;
+
+      const weeklyTrend = cachedStats.weeklyTrend || [
+        { weekLabel: 'M1 (1-7)', agroSales: 0, ternakSales: 0, ikanSales: 0 },
+        { weekLabel: 'M2 (8-14)', agroSales: 0, ternakSales: 0, ikanSales: 0 },
+        { weekLabel: 'M3 (15-21)', agroSales: 0, ternakSales: 0, ikanSales: 0 },
+        { weekLabel: 'M4 (22-31)', agroSales: 0, ternakSales: 0, ikanSales: 0 }
       ];
 
-      downloadCSV(`Executive_Dashboard_Summary_${Date.now()}.csv`, headers, rows);
+      const labels = weeklyTrend.map(w => w.weekLabel);
+      const agroData = weeklyTrend.map(w => w.agroSales || 0);
+      const ternakData = weeklyTrend.map(w => w.ternakSales || 0);
+      const ikanData = weeklyTrend.map(w => w.ikanSales || 0);
+
+      try {
+        const skel = document.getElementById('weeklyTrendSkeleton');
+        if (skel) skel.style.display = 'none';
+
+        if (weeklyTrendChartInstance) weeklyTrendChartInstance.destroy();
+        weeklyTrendChartInstance = new Chart(ctx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Agro (Pertanian)',
+                data: agroData,
+                borderColor: '#16a34a',
+                backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                fill: false,
+                tension: 0.3,
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointBackgroundColor: '#16a34a'
+              },
+              {
+                label: 'Ternak (Peternakan)',
+                data: ternakData,
+                borderColor: '#d97706',
+                backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                fill: false,
+                tension: 0.3,
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointBackgroundColor: '#d97706'
+              },
+              {
+                label: 'Ikan (Perikanan)',
+                data: ikanData,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: false,
+                tension: 0.3,
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointBackgroundColor: '#2563eb'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(val) {
+                    if (val >= 1000000) return 'Rp ' + (val / 1000000) + ' Jt';
+                    if (val >= 1000) return 'Rp ' + (val / 1000) + ' Rb';
+                    return 'Rp ' + val;
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { boxWidth: 12, usePointStyle: true }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    const raw = ctx.raw || 0;
+                    return `${ctx.dataset.label}: Rp ${raw.toLocaleString('id-ID')}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Error rendering weekly trend chart:', e);
+      }
+    }
+
+    function computeLocalDashboardStats() {
+      const db = getDB();
+      const reports = db.operationalReports || [];
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      const INDO_MONTHS = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      const currentPeriodLabel = `${INDO_MONTHS[currentMonth]} ${currentYear}`;
+
+      const curMonthStart = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
+      const curMonthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+      const priorMonthStart = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0, 0);
+      const priorMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+      const DIV_KEYS = {
+        AGRO: 'Agro (Pertanian/Perkebunan)',
+        TERNAK: 'Ternak (Peternakan)',
+        IKAN: 'Ikan (Perikanan)'
+      };
+
+      function normDiv(d) {
+        const s = String(d || '').toLowerCase();
+        if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian')) return DIV_KEYS.AGRO;
+        if (s.includes('ternak') || s.includes('kandang') || s.includes('peternakan')) return DIV_KEYS.TERNAK;
+        if (s.includes('ikan') || s.includes('kolam') || s.includes('perikanan')) return DIV_KEYS.IKAN;
+        return DIV_KEYS.AGRO;
+      }
+
+      let totalReports = 0;
+      let totalActiveKegiatan = 0;
+      let totalNilaiPenjualanRp = 0;
+      let priorMonthNilaiPenjualanRp = 0;
+      let urgentOverdueCount = 0;
+      let warningOverdueCount = 0;
+      let openObstaclesCount = 0;
+      let unansweredObstaclesCount = 0;
+
+      const divisiBreakdown = {
+        [DIV_KEYS.AGRO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.TERNAK]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Ekor / Unit' },
+        [DIV_KEYS.IKAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' }
+      };
+
+      const attentionList = [];
+      const coverageMap = new Map();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const monthShort = INDO_MONTHS[currentMonth].substring(0, 3);
+      const weeklyTrend = [
+        { weekLabel: `M1 (1-7 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
+        { weekLabel: `M2 (8-14 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
+        { weekLabel: `M3 (15-21 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
+        { weekLabel: `M4 (22-${daysInMonth} ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 }
+      ];
+
+      const allCodes = new Set();
+      const parentMap = new Map();
+      const curMonthReports = [];
+
+      reports.forEach(r => {
+        const rowDate = r.timestamp ? new Date(r.timestamp) : new Date();
+        const sales = parseFloat(r.nilaiPenjualanRp) || 0;
+        const panen = parseFloat(r.jumlahPanen || r.yield) || 0;
+        const nd = normDiv(r.divisi || r.bidangDivisi);
+
+        if (rowDate >= priorMonthStart && rowDate <= priorMonthEnd) {
+          priorMonthNilaiPenjualanRp += sales;
+        }
+
+        if (rowDate >= curMonthStart && rowDate <= curMonthEnd) {
+          const code = String(r.kodeKegiatan || '').trim();
+          if (code) allCodes.add(code);
+          curMonthReports.push({ ...r, parsedDate: rowDate, normDiv: nd, sales: sales, panen: panen });
+        }
+      });
+
+      allCodes.forEach(c => parentMap.set(c, c));
+      curMonthReports.forEach(r => {
+        const code = String(r.kodeKegiatan || '').trim();
+        const ref = String(r.kodeKegiatanRef || '').trim();
+        if (code && ref && allCodes.has(ref)) {
+          parentMap.set(code, ref);
+        }
+      });
+
+      function getRoot(c) {
+        let curr = c;
+        const v = new Set();
+        while (parentMap.has(curr) && parentMap.get(curr) !== curr && !v.has(curr)) {
+          v.add(curr);
+          curr = parentMap.get(curr);
+        }
+        return curr;
+      }
+
+      const distinctSet = new Set();
+      const divActSet = { [DIV_KEYS.AGRO]: new Set(), [DIV_KEYS.TERNAK]: new Set(), [DIV_KEYS.IKAN]: new Set() };
+
+      curMonthReports.forEach(r => {
+        totalReports++;
+        const code = String(r.kodeKegiatan || '').trim();
+        const root = code ? getRoot(code) : `_anon_${r.id || Math.random()}`;
+        distinctSet.add(root);
+        if (divActSet[r.normDiv]) divActSet[r.normDiv].add(root);
+
+        const dObj = divisiBreakdown[r.normDiv];
+        dObj.rawReportCount++;
+        dObj.panenVolume += r.panen;
+        dObj.nilaiPenjualanRp += r.sales;
+        totalNilaiPenjualanRp += r.sales;
+
+        if (r.panen === 0 && (!r.tglPanen || String(r.tglPanen).trim() === '')) {
+          totalActiveKegiatan++;
+        }
+
+        // Overdue Harvest
+        if (!r.tglPanen && r.tglPerkiraanPanen) {
+          const pDate = new Date(r.tglPerkiraanPanen);
+          if (!isNaN(pDate.getTime()) && pDate.getTime() < now.getTime()) {
+            const daysLate = Math.floor((now.getTime() - pDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysLate >= 8) {
+              const isUrgent = daysLate >= 15;
+              if (isUrgent) urgentOverdueCount++;
+              else warningOverdueCount++;
+              attentionList.push({
+                id: r.id || r.kodeKegiatan,
+                type: 'overdue_harvest',
+                severity: isUrgent ? 'urgent' : 'warning',
+                rank: isUrgent ? 1 : 2,
+                badgeLabel: isUrgent ? 'Panen Sangat Terlambat' : 'Panen Terlambat',
+                kodeKegiatan: r.kodeKegiatan || '-',
+                lokasi: r.lokasiKegiatan || r.lokasi || '-',
+                pic: r.namaPic || '-',
+                divisi: r.normDiv,
+                details: `Perkiraan panen ${r.tglPerkiraanPanen} (${daysLate} hari lewat). Belum terealisasi.`,
+                daysLate: daysLate,
+                timestamp: r.tglPerkiraanPanen
+              });
+            }
+          }
+        }
+
+        // Kendala
+        if (r.kendala && r.kendala !== '-') {
+          openObstaclesCount++;
+          const hasNoUpaya = !r.upaya || r.upaya === '-';
+          if (hasNoUpaya) unansweredObstaclesCount++;
+          attentionList.push({
+            id: r.id || r.kodeKegiatan,
+            type: 'open_obstacle',
+            severity: hasNoUpaya ? 'urgent' : 'warning',
+            rank: hasNoUpaya ? 1 : 2,
+            badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
+            kodeKegiatan: r.kodeKegiatan || '-',
+            lokasi: r.lokasiKegiatan || r.lokasi || '-',
+            pic: r.namaPic || '-',
+            divisi: r.normDiv,
+            details: `Kendala: "${r.kendala}"${!hasNoUpaya ? ' | Upaya: "' + r.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
+            hasNoUpaya: hasNoUpaya,
+            timestamp: r.timestamp
+          });
+        }
+
+        // Weekly bucketing
+        const day = r.parsedDate.getDate();
+        let bIdx = 0;
+        if (day >= 22) bIdx = 3;
+        else if (day >= 15) bIdx = 2;
+        else if (day >= 8) bIdx = 1;
+        else bIdx = 0;
+
+        if (r.normDiv === DIV_KEYS.AGRO) {
+          weeklyTrend[bIdx].agroSales += r.sales;
+          weeklyTrend[bIdx].agroPanen += r.panen;
+        } else if (r.normDiv === DIV_KEYS.TERNAK) {
+          weeklyTrend[bIdx].ternakSales += r.sales;
+          weeklyTrend[bIdx].ternakPanen += r.panen;
+        } else if (r.normDiv === DIV_KEYS.IKAN) {
+          weeklyTrend[bIdx].ikanSales += r.sales;
+          weeklyTrend[bIdx].ikanPanen += r.panen;
+        }
+        weeklyTrend[bIdx].totalSales += r.sales;
+      });
+
+      Object.keys(divisiBreakdown).forEach(k => {
+        divisiBreakdown[k].activityCount = divActSet[k].size;
+      });
+
+      attentionList.sort((a, b) => {
+        if (a.rank !== b.rank) return a.rank - b.rank;
+        if (a.hasNoUpaya && !b.hasNoUpaya) return -1;
+        if (!a.hasNoUpaya && b.hasNoUpaya) return 1;
+        if (a.daysLate !== undefined && b.daysLate !== undefined) return b.daysLate - a.daysLate;
+        return 0;
+      });
+
+      const salesTrendPercent = priorMonthNilaiPenjualanRp > 0 
+        ? Math.round(((totalNilaiPenjualanRp - priorMonthNilaiPenjualanRp) / priorMonthNilaiPenjualanRp) * 100)
+        : null;
+
+      return {
+        currentPeriodLabel: currentPeriodLabel,
+        totalReports: totalReports,
+        distinctActivityCount: distinctSet.size,
+        totalActiveKegiatan: totalActiveKegiatan,
+        totalNilaiPenjualanRp: totalNilaiPenjualanRp,
+        priorMonthNilaiPenjualanRp: priorMonthNilaiPenjualanRp,
+        salesTrendPercent: salesTrendPercent,
+        divisiBreakdown: divisiBreakdown,
+        overdueCounts: { urgent: urgentOverdueCount, warning: warningOverdueCount, total: urgentOverdueCount + warningOverdueCount },
+        openObstaclesCount: openObstaclesCount,
+        unansweredObstaclesCount: unansweredObstaclesCount,
+        attentionList: attentionList,
+        weeklyTrend: weeklyTrend
+      };
+    }
+
+    function exportDashboardCSV() {
+      if (!cachedStats) {
+        showToast('Data statistik belum siap diekspor', 'warning');
+        return;
+      }
+
+      const headers = ['Metrik / Kategori', 'Divisi / Detail', 'Nilai / Satuan'];
+      const breakdown = cachedStats.divisiBreakdown || {};
+      const agro = breakdown['Agro (Pertanian/Perkebunan)'] || {};
+      const ternak = breakdown['Ternak (Peternakan)'] || {};
+      const ikan = breakdown['Ikan (Perikanan)'] || {};
+
+      const rows = [
+        ['Periode Data', 'Bulan Kalender', cachedStats.currentPeriodLabel || '-'],
+        ['Total Aktivitas (Distinct)', 'Semua Divisi', cachedStats.distinctActivityCount || 0],
+        ['Total Laporan Masuk (Raw)', 'Semua Divisi', cachedStats.totalReports || 0],
+        ['Total Nilai Penjualan (Rp)', 'Semua Divisi', cachedStats.totalNilaiPenjualanRp || 0],
+        ['Tren Penjualan (%)', 'vs Bulan Lalu', (cachedStats.salesTrendPercent !== null ? cachedStats.salesTrendPercent + '%' : 'N/A')],
+        ['Kegiatan Menunggu Panen', 'Semua Divisi', cachedStats.totalActiveKegiatan || 0],
+        ['Kendala Terbuka', 'Total Terlapor', cachedStats.openObstaclesCount || 0],
+        ['Kendala Tanpa Upaya', 'Perlu Respon Segera', cachedStats.unansweredObstaclesCount || 0],
+        ['Panen Agro', 'Pertanian/Perkebunan', `${agro.panenVolume || 0} Kg`],
+        ['Penjualan Agro (Rp)', 'Pertanian/Perkebunan', agro.nilaiPenjualanRp || 0],
+        ['Aktivitas Agro', 'Pertanian/Perkebunan', agro.activityCount || 0],
+        ['Panen Ternak', 'Peternakan', `${ternak.panenVolume || 0} Unit`],
+        ['Penjualan Ternak (Rp)', 'Peternakan', ternak.nilaiPenjualanRp || 0],
+        ['Aktivitas Ternak', 'Peternakan', ternak.activityCount || 0],
+        ['Panen Ikan', 'Perikanan', `${ikan.panenVolume || 0} Kg`],
+        ['Penjualan Ikan (Rp)', 'Perikanan', ikan.nilaiPenjualanRp || 0],
+        ['Aktivitas Ikan', 'Perikanan', ikan.activityCount || 0]
+      ];
+
+      downloadCSV(`Manager_Dashboard_Summary_${Date.now()}.csv`, headers, rows);
       showToast('Ekspor CSV Ringkasan Dashboard berhasil', 'success');
     }
   </script>

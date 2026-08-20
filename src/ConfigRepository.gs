@@ -41,12 +41,8 @@ const ConfigRepository = {
     return this.getProperty('SPREADSHEET_ID');
   },
 
-  getDailyFormId: function() {
-    return this.getProperty('DAILY_FORM_ID');
-  },
-
-  getGeneralFormId: function() {
-    return this.getProperty('GENERAL_FORM_ID');
+  getMainFormId: function() {
+    return this.getProperty('MAIN_FORM_ID') || this.getProperty('OPERATIONAL_FORM_ID');
   },
 
   getAdminEmail: function() {
