@@ -443,7 +443,8 @@ async function loadDiagnostics() {
     try {
       const diag = await runServer('getDeploymentDiagnostics');
       if (diag) {
-        container.innerText = `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
+        container.innerText = `Build Release : v2.5.0-phase15 (2026-08-20)\n` +
+          `Executing URL : ${diag.executingUrl || '(empty)'}\n` +
           `Executing ID  : ${diag.executingDeploymentId || '(none)'}\n` +
           `Public URL    : ${diag.configuredPublicUrl || '(belum dikonfigurasi)'}\n` +
           `Public ID     : ${diag.publicDeploymentId || '(none)'}\n` +
@@ -454,11 +455,11 @@ async function loadDiagnostics() {
         return;
       }
     } catch (e) {
-      container.innerText = 'Gagal memuat diagnosa: ' + e.message;
+      container.innerText = 'Build Release : v2.5.0-phase15 (2026-08-20)\nGagal memuat diagnosa: ' + e.message;
       return;
     }
   }
 
-  container.innerText = 'Local Mode Preview — Server diagnostics live di Google Apps Script.';
+  container.innerText = 'Build Release : v2.5.0-phase15 (2026-08-20)\nLocal Mode Preview — Server diagnostics live di Google Apps Script.';
 }
 </script>

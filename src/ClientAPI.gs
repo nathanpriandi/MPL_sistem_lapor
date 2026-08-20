@@ -58,14 +58,33 @@ function uploadReportAttachment(base64Data, mimeType, formId) {
  */
 function getFormSchema(formId) {
   const forms = FormManagementService.getFormList();
-  const form = forms.find(f => f.id === formId);
-  if (!form) throw new Error('Form tidak ditemukan.');
+  let formRecord = forms.find(f => f.id === formId);
+
+  if (!formRecord && (formId === 'DEFAULT_MAIN_FORM' || !formId)) {
+    const mainId = ConfigRepository.getMainFormId();
+    if (mainId) formRecord = forms.find(f => f.id === mainId);
+  }
+
+  const targetFormId = formRecord ? formRecord.id : formId;
+
+  // Try parsing live Google Form if formId is a valid Google Form ID (not a FORM_KUSTOM_ string)
+  if (targetFormId && typeof targetFormId === 'string' && !targetFormId.startsWith('FORM_KUSTOM_')) {
+    try {
+      const gForm = FormApp.openById(targetFormId);
+      const parsedSchema = FormManagementService.parseGoogleFormToSchema(gForm);
+      if (parsedSchema) return parsedSchema;
+    } catch (e) {
+      Logger.log('getFormSchema live FormApp parsing notice: ' + e.toString());
+    }
+  }
+
+  if (!formRecord) throw new Error('Form tidak ditemukan.');
   return JSON.parse(JSON.stringify({
-    id: form.id,
-    title: form.title || 'Form Laporan Kustom',
-    description: form.description || '',
-    type: form.type || 'kustom',
-    fields: form.fields || []
+    id: formRecord.id,
+    title: formRecord.title || 'Form Laporan Kustom',
+    description: formRecord.description || '',
+    type: formRecord.type || 'kustom',
+    fields: formRecord.fields || []
   }));
 }
 

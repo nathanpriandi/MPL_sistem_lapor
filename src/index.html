@@ -18,11 +18,11 @@
       <!-- Wizard Step Progress Indicator -->
       <div class="wizard-progress-container">
         <div class="wizard-step-info">
-          <span class="wizard-step-counter" id="stepCounterText">Langkah 1 dari 5</span>
+          <span class="wizard-step-counter" id="stepCounterText">Langkah 1 dari 6</span>
           <span class="wizard-step-title" id="stepTitleText">Identitas Pelapor</span>
         </div>
         <div class="wizard-progress-bar">
-          <div class="wizard-progress-fill" id="wizardProgressFill" style="width: 20%;"></div>
+          <div class="wizard-progress-fill" id="wizardProgressFill" style="width: 16.66%;"></div>
         </div>
       </div>
 
@@ -56,11 +56,11 @@
           </div>
         </div>
 
-        <!-- Step 2: Detail Kegiatan -->
+        <!-- Step 2: Jenis & Lokasi Kegiatan -->
         <div class="wizard-step" id="step2">
           <div class="form-section-title">
             <span class="step-badge">2</span>
-            <span>Detail Kegiatan (Wajib)</span>
+            <span>Jenis &amp; Lokasi Kegiatan (Wajib)</span>
           </div>
 
           <div class="form-group">
@@ -71,23 +71,6 @@
               <option value="Ternak (Peternakan)">Ternak (Peternakan)</option>
               <option value="Ikan (Perikanan)">Ikan (Perikanan)</option>
             </select>
-          </div>
-
-          <div class="form-group" id="groupTglTanam" style="display: none;">
-            <label for="tglTanam">Jadwal / Tanggal Tanam <span class="required">*</span></label>
-            <input type="date" id="tglTanam">
-          </div>
-
-          <div class="form-group" id="groupTglCheckIn" style="display: none;">
-            <label for="tglCheckInTebar">Jadwal / Tanggal Check-in / Tebar <span class="required">*</span></label>
-            <input type="date" id="tglCheckInTebar">
-          </div>
-
-          <div class="form-group">
-            <label for="kodeKegiatanRef">Kode Kegiatan Referensi (Jika Laporan Lanjutan)</label>
-            <div class="help-text">Pilih atau ketik kode referensi kegiatan sebelumnya jika ini laporan lanjutan</div>
-            <input type="text" id="kodeKegiatanRef" list="recentCodesDatalist" placeholder="Contoh: AGR-KEBUNA-20260807-01">
-            <datalist id="recentCodesDatalist"></datalist>
           </div>
 
           <div class="form-group">
@@ -105,22 +88,6 @@
             <textarea id="targetKegiatan" rows="2" placeholder="Jelaskan target aktivitas secara spesifik..." required></textarea>
           </div>
 
-          <div class="form-row-2col">
-            <div class="form-group">
-              <label for="luasAreaHa">Luas Area (Ha)</label>
-              <input type="number" id="luasAreaHa" step="0.1" placeholder="0.0">
-            </div>
-            <div class="form-group">
-              <label for="jumlahPopulasi">Jumlah Populasi</label>
-              <input type="number" id="jumlahPopulasi" placeholder="0">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="tglPerkiraanPanen">Jadwal / Perkiraan Tanggal Panen <span class="required">*</span></label>
-            <input type="date" id="tglPerkiraanPanen" required>
-          </div>
-
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep(2)">
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
@@ -133,10 +100,62 @@
           </div>
         </div>
 
-        <!-- Step 3: Data Panen & Penjualan (Opsional) -->
+        <!-- Step 3: Skala & Jadwal Kegiatan -->
         <div class="wizard-step" id="step3">
           <div class="form-section-title">
             <span class="step-badge">3</span>
+            <span>Skala &amp; Jadwal Kegiatan (Wajib)</span>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="luasAreaHa">Luas Area (Ha)</label>
+              <input type="number" id="luasAreaHa" step="0.1" placeholder="0.0">
+            </div>
+            <div class="form-group">
+              <label for="jumlahPopulasi">Jumlah Populasi</label>
+              <input type="number" id="jumlahPopulasi" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-group" id="groupTglTanam" style="display: none;">
+            <label for="tglTanam">Jadwal / Tanggal Tanam <span class="required">*</span></label>
+            <input type="date" id="tglTanam">
+          </div>
+
+          <div class="form-group" id="groupTglCheckIn" style="display: none;">
+            <label for="tglCheckInTebar">Jadwal / Tanggal Check-in / Tebar <span class="required">*</span></label>
+            <input type="date" id="tglCheckInTebar">
+          </div>
+
+          <div class="form-group">
+            <label for="tglPerkiraanPanen">Jadwal / Perkiraan Tanggal Panen <span class="required">*</span></label>
+            <input type="date" id="tglPerkiraanPanen" required>
+          </div>
+
+          <div class="form-group">
+            <label for="kodeKegiatanRef">Kode Kegiatan Referensi (Jika Laporan Lanjutan)</label>
+            <div class="help-text">Pilih atau ketik kode referensi kegiatan sebelumnya jika ini laporan lanjutan</div>
+            <input type="text" id="kodeKegiatanRef" list="recentCodesDatalist" placeholder="Contoh: AGR-KEBUNA-20260807-01">
+            <datalist id="recentCodesDatalist"></datalist>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(3)">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span>Kembali</span>
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+              <span>Lanjutkan</span>
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 4: Data Panen & Penjualan (Opsional) -->
+        <div class="wizard-step" id="step4">
+          <div class="form-section-title">
+            <span class="step-badge">4</span>
             <span>Data Panen &amp; Penjualan (Opsional)</span>
           </div>
           <div class="help-text" style="margin-bottom: 1rem;">Isi bagian ini jika pelaporan menyertakan hasil panen atau transaksi penjualan. Bagian ini dapat dilewati jika belum ada data panen/penjualan.</div>
@@ -175,21 +194,21 @@
           </div>
 
           <div class="wizard-actions">
-            <button type="button" class="btn btn-secondary" onclick="prevStep(3)">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(4)">
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               <span>Kembali</span>
             </button>
-            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+            <button type="button" class="btn btn-primary" onclick="nextStep(4)">
               <span>Lanjutkan</span>
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
         </div>
 
-        <!-- Step 4: Kendala & Bukti Foto -->
-        <div class="wizard-step" id="step4">
+        <!-- Step 5: Kendala & Bukti Foto -->
+        <div class="wizard-step" id="step5">
           <div class="form-section-title">
-            <span class="step-badge">4</span>
+            <span class="step-badge">5</span>
             <span>Kendala, Upaya &amp; Bukti Foto</span>
           </div>
 
@@ -213,21 +232,21 @@
           </div>
 
           <div class="wizard-actions">
-            <button type="button" class="btn btn-secondary" onclick="prevStep(4)">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(5)">
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               <span>Kembali</span>
             </button>
-            <button type="button" class="btn btn-primary" onclick="nextStep(4)">
+            <button type="button" class="btn btn-primary" onclick="nextStep(5)">
               <span>Tinjau Laporan</span>
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
         </div>
 
-        <!-- Step 5: Tinjau & Kirim -->
-        <div class="wizard-step" id="step5">
+        <!-- Step 6: Tinjau & Kirim -->
+        <div class="wizard-step" id="step6">
           <div class="form-section-title">
-            <span class="step-badge">5</span>
+            <span class="step-badge">6</span>
             <span>Tinjau Laporan &amp; Konfirmasi Pengiriman</span>
           </div>
           <p class="help-text" style="margin-bottom: 1rem;">Periksa kembali seluruh informasi laporan sebelum mengirimkan ke database terpusat.</p>
@@ -246,28 +265,16 @@
             </div>
           </div>
 
-          <!-- Review Box 2: Detail Kegiatan -->
+          <!-- Review Box 2: Jenis & Lokasi Kegiatan -->
           <div class="review-section-box">
             <div class="review-section-header">
-              <span class="review-section-title">2. Detail Kegiatan</span>
+              <span class="review-section-title">2. Jenis &amp; Lokasi Kegiatan</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(2)">Ubah</button>
             </div>
             <div class="review-grid">
               <div class="review-item">
                 <span class="review-label">Bidang / Divisi</span>
                 <span class="review-value" id="revBidangDivisi">-</span>
-              </div>
-              <div class="review-item" id="revGroupTglTanam" style="display: none;">
-                <span class="review-label">Tgl Tanam</span>
-                <span class="review-value" id="revTglTanam">-</span>
-              </div>
-              <div class="review-item" id="revGroupTglCheckIn" style="display: none;">
-                <span class="review-label">Tgl Check-in / Tebar</span>
-                <span class="review-value" id="revTglCheckIn">-</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Kode Kegiatan Referensi</span>
-                <span class="review-value" id="revKodeKegiatanRef">-</span>
               </div>
               <div class="review-item">
                 <span class="review-label">Lokasi Kegiatan</span>
@@ -281,6 +288,28 @@
                 <span class="review-label">Target Kegiatan</span>
                 <span class="review-value" id="revTargetKegiatan">-</span>
               </div>
+            </div>
+          </div>
+
+          <!-- Review Box 3: Skala & Jadwal Kegiatan -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">3. Skala &amp; Jadwal Kegiatan</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(3)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item" id="revGroupTglTanam" style="display: none;">
+                <span class="review-label">Tgl Tanam</span>
+                <span class="review-value" id="revTglTanam">-</span>
+              </div>
+              <div class="review-item" id="revGroupTglCheckIn" style="display: none;">
+                <span class="review-label">Tgl Check-in / Tebar</span>
+                <span class="review-value" id="revTglCheckIn">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Perkiraan Tgl Panen</span>
+                <span class="review-value" id="revTglPerkiraanPanen">-</span>
+              </div>
               <div class="review-item">
                 <span class="review-label">Luas Area (Ha)</span>
                 <span class="review-value" id="revLuasAreaHa">-</span>
@@ -290,17 +319,17 @@
                 <span class="review-value" id="revJumlahPopulasi">-</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Perkiraan Tgl Panen</span>
-                <span class="review-value" id="revTglPerkiraanPanen">-</span>
+                <span class="review-label">Kode Kegiatan Referensi</span>
+                <span class="review-value" id="revKodeKegiatanRef">-</span>
               </div>
             </div>
           </div>
 
-          <!-- Review Box 3: Data Panen & Penjualan -->
+          <!-- Review Box 4: Data Panen & Penjualan -->
           <div class="review-section-box">
             <div class="review-section-header">
-              <span class="review-section-title">3. Data Panen &amp; Penjualan</span>
-              <button type="button" class="btn-review-edit" onclick="goToStep(3)">Ubah</button>
+              <span class="review-section-title">4. Data Panen &amp; Penjualan</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(4)">Ubah</button>
             </div>
             <div class="review-grid">
               <div class="review-item">
@@ -330,11 +359,11 @@
             </div>
           </div>
 
-          <!-- Review Box 4: Kendala & Bukti Foto -->
+          <!-- Review Box 5: Kendala & Bukti Foto -->
           <div class="review-section-box">
             <div class="review-section-header">
-              <span class="review-section-title">4. Kendala &amp; Bukti Foto</span>
-              <button type="button" class="btn-review-edit" onclick="goToStep(4)">Ubah</button>
+              <span class="review-section-title">5. Kendala &amp; Bukti Foto</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(5)">Ubah</button>
             </div>
             <div class="review-grid">
               <div class="review-item" style="grid-column: 1 / -1;">
@@ -359,7 +388,7 @@
           </p>
 
           <div class="wizard-actions">
-            <button type="button" class="btn btn-secondary" onclick="prevStep(5)">
+            <button type="button" class="btn btn-secondary" onclick="prevStep(6)">
               <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
               <span>Kembali</span>
             </button>
@@ -436,10 +465,11 @@
     let photoBase64Data = '';
     let photoMimeTypeData = '';
     let currentStep = 1;
-    const TOTAL_STEPS = 5;
+    const TOTAL_STEPS = 6;
     const STEP_TITLES = [
       'Identitas Pelapor',
-      'Detail Kegiatan',
+      'Jenis & Lokasi Kegiatan',
+      'Skala & Jadwal Kegiatan',
       'Data Panen & Penjualan',
       'Kendala & Bukti Foto',
       'Tinjau & Kirim'
@@ -462,12 +492,14 @@
           const codes = await runServer('getRecentActivityCodes');
           if (Array.isArray(codes)) {
             const dl = document.getElementById('recentCodesDatalist');
-            dl.innerHTML = '';
-            codes.forEach(c => {
-              const opt = document.createElement('option');
-              opt.value = c;
-              dl.appendChild(opt);
-            });
+            if (dl) {
+              dl.innerHTML = '';
+              codes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                dl.appendChild(opt);
+              });
+            }
           }
         } catch (e) {}
       }
@@ -479,12 +511,14 @@
       const inputTanam = document.getElementById('tglTanam');
       const inputCheckIn = document.getElementById('tglCheckInTebar');
 
-      if (val.includes('Agro')) {
+      if (!gAgro || !gTernak || !inputTanam || !inputCheckIn) return;
+
+      if (val && val.includes('Agro')) {
         gAgro.style.display = 'block';
         gTernak.style.display = 'none';
         inputTanam.setAttribute('required', 'true');
         inputCheckIn.removeAttribute('required');
-      } else if (val.includes('Ternak') || val.includes('Ikan')) {
+      } else if (val && (val.includes('Ternak') || val.includes('Ikan'))) {
         gAgro.style.display = 'none';
         gTernak.style.display = 'block';
         inputCheckIn.setAttribute('required', 'true');
@@ -528,12 +562,6 @@
         const bidangDivisi = document.getElementById('bidangDivisi');
         if (!bidangDivisi.value) {
           errors.push({ id: 'bidangDivisi', text: 'Bidang / Divisi wajib dipilih.' });
-        } else if (bidangDivisi.value.includes('Agro')) {
-          const tglTanam = document.getElementById('tglTanam');
-          if (!tglTanam.value) errors.push({ id: 'tglTanam', text: 'Jadwal / Tanggal Tanam wajib diisi untuk Divisi Agro.' });
-        } else if (bidangDivisi.value.includes('Ternak') || bidangDivisi.value.includes('Ikan')) {
-          const tglCheckIn = document.getElementById('tglCheckInTebar');
-          if (!tglCheckIn.value) errors.push({ id: 'tglCheckInTebar', text: 'Jadwal / Tanggal Check-in / Tebar wajib diisi.' });
         }
 
         const lokasiKegiatan = document.getElementById('lokasiKegiatan');
@@ -550,14 +578,23 @@
         if (!targetKegiatan.value.trim()) {
           errors.push({ id: 'targetKegiatan', text: 'Target Kegiatan wajib diisi.' });
         }
+      } else if (stepNum === 3) {
+        const bidangDivisi = document.getElementById('bidangDivisi');
+        if (bidangDivisi && bidangDivisi.value.includes('Agro')) {
+          const tglTanam = document.getElementById('tglTanam');
+          if (!tglTanam.value) errors.push({ id: 'tglTanam', text: 'Jadwal / Tanggal Tanam wajib diisi untuk Divisi Agro.' });
+        } else if (bidangDivisi && (bidangDivisi.value.includes('Ternak') || bidangDivisi.value.includes('Ikan'))) {
+          const tglCheckIn = document.getElementById('tglCheckInTebar');
+          if (!tglCheckIn.value) errors.push({ id: 'tglCheckInTebar', text: 'Jadwal / Tanggal Check-in / Tebar wajib diisi.' });
+        }
 
         const tglPerkiraanPanen = document.getElementById('tglPerkiraanPanen');
         if (!tglPerkiraanPanen.value) {
           errors.push({ id: 'tglPerkiraanPanen', text: 'Jadwal / Perkiraan Tanggal Panen wajib diisi.' });
         }
-      } else if (stepNum === 3) {
-        // Step 3 is optional — advancing with empty fields is allowed
       } else if (stepNum === 4) {
+        // Step 4 is optional — advancing with empty fields is allowed
+      } else if (stepNum === 5) {
         const photoInput = document.getElementById('photoInput');
         if ((!photoInput.files || photoInput.files.length === 0) && !photoBase64Data) {
           errors.push({ id: 'photoInput', text: 'Foto Bukti Kegiatan wajib dilampirkan.' });
@@ -595,6 +632,10 @@
         }
       }
 
+      // Re-verify conditional visibility across step transitions
+      const divVal = document.getElementById('bidangDivisi') ? document.getElementById('bidangDivisi').value : '';
+      handleDivisiChange(divVal);
+
       const summary = document.getElementById('errorSummary');
       if (summary) summary.style.display = 'none';
 
@@ -607,7 +648,7 @@
       const fill = document.getElementById('wizardProgressFill');
       if (fill) fill.style.width = `${(stepNum / TOTAL_STEPS) * 100}%`;
 
-      if (stepNum === 5) {
+      if (stepNum === 6) {
         populateReviewSummary();
       }
 
@@ -631,7 +672,11 @@
       // Step 2
       const divVal = document.getElementById('bidangDivisi').value;
       document.getElementById('revBidangDivisi').innerText = divVal || '-';
-      
+      document.getElementById('revLokasiKegiatan').innerText = document.getElementById('lokasiKegiatan').value || '-';
+      document.getElementById('revJenisKegiatan').innerText = document.getElementById('jenisKegiatan').value || '-';
+      document.getElementById('revTargetKegiatan').innerText = document.getElementById('targetKegiatan').value || '-';
+
+      // Step 3
       const revTanamGroup = document.getElementById('revGroupTglTanam');
       const revCheckInGroup = document.getElementById('revGroupTglCheckIn');
       if (divVal.includes('Agro')) {
@@ -647,15 +692,12 @@
         if (revCheckInGroup) revCheckInGroup.style.display = 'none';
       }
 
-      document.getElementById('revKodeKegiatanRef').innerText = document.getElementById('kodeKegiatanRef').value || '(Tidak ada - Siklus Baru)';
-      document.getElementById('revLokasiKegiatan').innerText = document.getElementById('lokasiKegiatan').value || '-';
-      document.getElementById('revJenisKegiatan').innerText = document.getElementById('jenisKegiatan').value || '-';
-      document.getElementById('revTargetKegiatan').innerText = document.getElementById('targetKegiatan').value || '-';
+      document.getElementById('revTglPerkiraanPanen').innerText = document.getElementById('tglPerkiraanPanen').value || '-';
       document.getElementById('revLuasAreaHa').innerText = document.getElementById('luasAreaHa').value ? `${document.getElementById('luasAreaHa').value} Ha` : '-';
       document.getElementById('revJumlahPopulasi').innerText = document.getElementById('jumlahPopulasi').value ? `${document.getElementById('jumlahPopulasi').value}` : '-';
-      document.getElementById('revTglPerkiraanPanen').innerText = document.getElementById('tglPerkiraanPanen').value || '-';
+      document.getElementById('revKodeKegiatanRef').innerText = document.getElementById('kodeKegiatanRef').value || '(Tidak ada - Siklus Baru)';
 
-      // Step 3
+      // Step 4
       document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '(Nihil)';
       document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value}` : '(Nihil)';
       document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '(Nihil)';
@@ -663,7 +705,7 @@
       document.getElementById('revJumlahPenjualan').innerText = document.getElementById('jumlahPenjualanUnit').value ? `${document.getElementById('jumlahPenjualanUnit').value}` : '(Nihil)';
       document.getElementById('revNilaiPenjualan').innerText = document.getElementById('nilaiPenjualanRp').value ? `Rp ${parseFloat(document.getElementById('nilaiPenjualanRp').value).toLocaleString('id-ID')}` : '(Nihil)';
 
-      // Step 4
+      // Step 5
       document.getElementById('revKendala').innerText = document.getElementById('kendala').value || '(Tidak ada kendala)';
       document.getElementById('revUpaya').innerText = document.getElementById('upaya').value || '(Tidak ada)';
       
@@ -712,8 +754,8 @@
     document.getElementById('operationalForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      // Full validation check before submission
-      for (let s = 1; s <= 4; s++) {
+      // Full validation check across all steps 1-5 before submission
+      for (let s = 1; s <= 5; s++) {
         if (!validateStep(s)) {
           goToStep(s);
           return;

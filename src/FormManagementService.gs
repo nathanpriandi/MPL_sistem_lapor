@@ -622,5 +622,102 @@ const FormManagementService = {
     }
 
     return true;
+  },
+
+  /**
+   * Dynamically parses a Google Form instance (FormApp) into a structured schema object.
+   * Extracts section breaks, question labels, item types, choices, and help text.
+   * @param {Form} gForm 
+   * @returns {Object} { id, title, description, sections, fields }
+   */
+  parseGoogleFormToSchema: function(gForm) {
+    if (!gForm) return null;
+    const formId = gForm.getId();
+    const title = gForm.getTitle() || 'Form Laporan';
+    const description = gForm.getDescription() || '';
+
+    const items = gForm.getItems();
+    const fields = [];
+    const sections = [];
+    let currentSection = { title: 'Informasi Utama', fields: [] };
+    sections.push(currentSection);
+
+    items.forEach((item, idx) => {
+      const type = item.getType();
+      const itemTitle = item.getTitle();
+      const helpText = item.getHelpText() || '';
+      const key = itemTitle.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '') || `field_${idx}`;
+
+      if (type === FormApp.ItemType.PAGE_BREAK) {
+        currentSection = { title: itemTitle, helpText: helpText, fields: [] };
+        sections.push(currentSection);
+        fields.push({
+          isSectionHeader: true,
+          title: itemTitle,
+          helpText: helpText
+        });
+        return;
+      }
+
+      let fieldType = 'text';
+      let options = [];
+      let isRequired = false;
+
+      if (type === FormApp.ItemType.TEXT) {
+        fieldType = 'text';
+        isRequired = item.asTextItem().isRequired();
+      } else if (type === FormApp.ItemType.PARAGRAPH_TEXT) {
+        fieldType = 'textarea';
+        isRequired = item.asParagraphTextItem().isRequired();
+      } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
+        fieldType = 'select';
+        const mc = item.asMultipleChoiceItem();
+        isRequired = mc.isRequired();
+        options = mc.getChoices().map(c => c.getValue());
+      } else if (type === FormApp.ItemType.LIST) {
+        fieldType = 'select';
+        const l = item.asListItem();
+        isRequired = l.isRequired();
+        options = l.getChoices().map(c => c.getValue());
+      } else if (type === FormApp.ItemType.CHECKBOX) {
+        fieldType = 'checkbox';
+        const cb = item.asCheckboxItem();
+        isRequired = cb.isRequired();
+        options = cb.getChoices().map(c => c.getValue());
+      } else if (type === FormApp.ItemType.DATE) {
+        fieldType = 'date';
+        isRequired = item.asDateItem().isRequired();
+      } else if (type === FormApp.ItemType.FILE_UPLOAD) {
+        fieldType = 'photo';
+        isRequired = item.asFileUploadItem().isRequired();
+      } else if (type === FormApp.ItemType.SECTION_HEADER) {
+        fields.push({
+          isSectionHeader: true,
+          title: itemTitle,
+          helpText: helpText
+        });
+        return;
+      }
+
+      const fObj = {
+        key: key,
+        label: itemTitle,
+        type: fieldType,
+        required: isRequired,
+        helpText: helpText,
+        options: options
+      };
+
+      currentSection.fields.push(fObj);
+      fields.push(fObj);
+    });
+
+    return {
+      id: formId,
+      title: title,
+      description: description,
+      sections: sections,
+      fields: fields
+    };
   }
 };
