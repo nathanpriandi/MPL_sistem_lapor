@@ -34,15 +34,23 @@ const FormManagementService = {
     if (formTitle) {
       const matchedByTitle = ss.getSheetByName(formTitle);
       if (matchedByTitle) return matchedByTitle;
+
+      // 2b. Try matching truncated 31-character title (Google Sheets tab limit)
+      if (formTitle.length > 31) {
+        const truncatedTitle = formTitle.substring(0, 31);
+        const matchedByTruncated = ss.getSheetByName(truncatedTitle);
+        if (matchedByTruncated) return matchedByTruncated;
+      }
     }
 
     // 3. Fallback match for default forms or template names
     if (form.type === 'operasional' || form.isDefault || form.isDefaultMain) {
-      const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || ss.getSheetByName('Laporan Operasional (Kegiatan, Panen & Penjualan)');
+      const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || 
+                      sheets.find(s => s.getName().includes('Form Responses 1') || s.getName().includes('Jawaban Formulir 1') || s.getName().startsWith('Laporan Operasional'));
       if (opSheet) return opSheet;
     }
 
-    return ss.getSheetByName('Raw') || sheets[0];
+    return sheets[0];
   },
 
   /**
@@ -60,12 +68,23 @@ const FormManagementService = {
     }
     if (!Array.isArray(forms) || forms.length === 0) {
       const mainFormId = ConfigRepository.getMainFormId();
+      let tabGid = null;
+      if (mainSsId) {
+        try {
+          const ss = SpreadsheetApp.openById(mainSsId);
+          const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || 
+                          ss.getSheets().find(s => s.getName().startsWith('Laporan Operasional'));
+          if (opSheet) tabGid = opSheet.getSheetId();
+        } catch (e) {}
+      }
       return [{
         id: mainFormId || 'DEFAULT_MAIN_FORM',
-        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        title: 'Laporan Operasional',
         type: 'operasional',
         isDefault: true,
-        isDefaultMain: true
+        isDefaultMain: true,
+        tabGid: tabGid,
+        sheetId: mainSsId || ''
       }];
     }
     return forms;
@@ -122,7 +141,7 @@ const FormManagementService = {
     if (!hasMainForm) {
       forms.unshift({
         id: mainFormId || 'DEFAULT_MAIN_FORM',
-        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        title: 'Laporan Operasional',
         description: 'Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.',
         type: 'operasional',
         status: 'aktif',
@@ -239,16 +258,19 @@ const FormManagementService = {
       sensitiveSheet.setFrozenRows(1);
     }
 
-    // Set standard headers for operational form tab (26 columns schema)
-    const opHeaders = [
-      'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-      'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Target_Kegiatan', 'Luas_Area_Ha', 'Jumlah_Populasi', 
-      'Tgl_Tanam', 'Tgl_CheckIn_Tebar', 'Tgl_Perkiraan_Panen', 'Tgl_Panen', 'Jumlah_Panen', 
-      'Tgl_Penjualan', 'Harga_Jual', 'Jumlah_Penjualan_Unit', 'Nilai_Penjualan_Rp', 'Kendala', 
-      'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
-    ];
+    // Set standard headers for operational form tab derived from single source of truth (32 columns)
+    const opHeaders = (typeof OPERATIONAL_REPORT_FIELDS !== 'undefined') 
+      ? OPERATIONAL_REPORT_FIELDS.map(f => f.header) 
+      : [
+          'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+          'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Status_Pengelolaan', 
+          'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 'Estimasi_Panen_HST', 
+          'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 'Jumlah_Penjualan_Unit', 
+          'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 'Tujuan_Penggunaan', 
+          'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+        ];
     rawSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
-    rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
+    rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
     rawSheet.setFrozenRows(1);
 
     return {
@@ -264,29 +286,44 @@ const FormManagementService = {
    * @returns {Folder}
    */
   provisionPhotoFolder_: function(title, formId) {
-    const parentFolderName = 'Reporting System Photos';
-    let parentFolder;
     try {
-      const folderIter = DriveApp.getFoldersByName(parentFolderName);
-      if (folderIter.hasNext()) {
-        parentFolder = folderIter.next();
-      } else {
-        parentFolder = DriveApp.createFolder(parentFolderName);
+      if (typeof DriveApp === 'undefined') return null;
+
+      const parentFolderName = 'Reporting System Photos';
+      let parentFolder = null;
+      try {
+        const folderIter = DriveApp.getFoldersByName(parentFolderName);
+        if (folderIter && folderIter.hasNext()) {
+          parentFolder = folderIter.next();
+        } else {
+          parentFolder = DriveApp.createFolder(parentFolderName);
+        }
+      } catch (err1) {
+        Logger.log('FormManagementService: Parent photo folder fallback to Root: ' + err1.toString());
+        try { parentFolder = DriveApp.getRootFolder(); } catch (eRoot) { parentFolder = null; }
+      }
+
+      if (!parentFolder) {
+        try { parentFolder = DriveApp.getRootFolder(); } catch (eRoot) { parentFolder = null; }
+      }
+
+      if (!parentFolder) return null;
+
+      const shortId = String(formId || Date.now()).substring(0, 8);
+      const cleanTitle = (title || 'Form Laporan').trim();
+      const subFolderName = `${cleanTitle} Photos (${shortId})`;
+
+      try {
+        const subIter = parentFolder.getFoldersByName(subFolderName);
+        if (subIter && subIter.hasNext()) return subIter.next();
+        return parentFolder.createFolder(subFolderName);
+      } catch (err2) {
+        Logger.log('FormManagementService: Subfolder creation fallback to Parent: ' + err2.toString());
+        return parentFolder;
       }
     } catch (e) {
-      parentFolder = DriveApp.getRootFolder();
-    }
-
-    const shortId = String(formId || Date.now()).substring(0, 8);
-    const cleanTitle = (title || 'Form Laporan').trim();
-    const subFolderName = `${cleanTitle} Photos (${shortId})`;
-
-    try {
-      const subIter = parentFolder.getFoldersByName(subFolderName);
-      if (subIter.hasNext()) return subIter.next();
-      return parentFolder.createFolder(subFolderName);
-    } catch (e) {
-      return parentFolder;
+      Logger.log('FormManagementService Error in provisionPhotoFolder_: ' + e.toString());
+      try { return DriveApp.getRootFolder(); } catch (eFinal) { return null; }
     }
   },
 

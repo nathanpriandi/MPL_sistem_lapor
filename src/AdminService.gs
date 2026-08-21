@@ -41,10 +41,13 @@ const AdminService = {
    * @returns {{ publicWebAppUrl: string }}
    */
   getAdminQuickLinks: function() {
-    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
+    const canonicalUrl = AuthService.getCanonicalWebAppUrl();
+    const publicUrl = (canonicalUrl && canonicalUrl.includes('script.google.com'))
+      ? `${canonicalUrl.split('?')[0]}?page=index`
+      : '';
 
     return {
-      publicWebAppUrl: publicWebAppUrl ? (publicWebAppUrl.includes('?') ? publicWebAppUrl : `${publicWebAppUrl}?page=index`) : ''
+      publicWebAppUrl: publicUrl
     };
   },
 
@@ -103,6 +106,15 @@ const AdminService = {
     const retentionDays = ConfigRepository.getRetentionDays();
     Logger.log(`AdminService: Starting archiveOldReports with threshold: ${retentionDays} days.`);
     return SpreadsheetRepository.archiveClosedReports(retentionDays);
+  },
+
+  /**
+   * Daily Photo Auto-Purge scheduled trigger action (7-day lifecycle).
+   * @returns {{ success: boolean, purgedCount: number }}
+   */
+  purgeExpiredPhotos: function() {
+    Logger.log('AdminService: Running daily purgeExpiredPhotos task.');
+    return SpreadsheetRepository.purgeExpiredPhotos();
   },
 
   /**

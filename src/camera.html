@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kamera Snapshot Lapangan — MPL Sistem Lapor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
+    .cam-card { width: 100%; max-width: 520px; background: #1e293b; border-radius: 16px; padding: 1.25rem; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); border: 1px solid #334155; }
+    .title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #34d399; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .video-wrapper { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 4/3; }
+    video { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+    .btn-snap { margin-top: 1.25rem; width: 100%; padding: 0.9rem; border-radius: 10px; border: none; background: #10b981; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-snap:hover { background: #059669; transform: translateY(-1px); }
+    .btn-snap:active { transform: translateY(0); }
+    .status-msg { margin-top: 0.85rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="cam-card">
+    <div class="title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Kamera Snapshot Lapangan</span>
+    </div>
+
+    <div class="video-wrapper">
+      <video id="video" autoplay playsinline></video>
+    </div>
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <button id="btnSnap" class="btn-snap" onclick="takeSnapshot()">
+      📸 Ambil Snapshot &amp; Gunakan Foto
+    </button>
+    <div class="status-msg" id="statusMsg">Mengakses izin kamera perangkat...</div>
+  </div>
+
+  <script>
+    let activeStream = null;
+
+    async function initCamera() {
+      const statusEl = document.getElementById('statusMsg');
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('WebRTC Camera API tidak didukung di peramban ini');
+        }
+
+        activeStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        
+        const videoEl = document.getElementById('video');
+        videoEl.srcObject = activeStream;
+        statusEl.innerHTML = '✅ Kamera aktif. Arahkan ke objek lalu klik <strong>Ambil Snapshot</strong>.';
+      } catch (err) {
+        console.error('Camera init error:', err);
+        statusEl.innerHTML = '<span style="color:#f87171; font-weight:600;">❌ Gagal mengakses kamera: ' + (err.message || 'Izin kamera ditolak') + '</span>';
+      }
+    }
+
+    function sendCapturedPhoto(base64Data) {
+      const payload = { type: 'CAMERA_CAPTURED', base64: base64Data };
+      if (window.opener) {
+        try { window.opener.postMessage(payload, '*'); } catch(e){}
+      }
+      if (window.parent) {
+        try { window.parent.postMessage(payload, '*'); } catch(e){}
+      }
+      if (window.top) {
+        try { window.top.postMessage(payload, '*'); } catch(e){}
+      }
+    }
+
+    function takeSnapshot() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      if (!video || !canvas || !video.videoWidth) {
+        alert('Kamera belum siap atau tidak aktif.');
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const base64Data = canvas.toDataURL('image/jpeg', 0.85);
+
+      sendCapturedPhoto(base64Data);
+
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+      }
+      setTimeout(function() {
+        window.close();
+      }, 300);
+    }
+
+    window.onload = initCamera;
+  </script>
+</body>
+</html>

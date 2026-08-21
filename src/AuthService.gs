@@ -23,18 +23,21 @@ const AuthService = {
       Logger.log('AuthService Notice: Session.getActiveUser().getEmail() restricted/unavailable.');
     }
 
-    if (!userEmail) return null;
-
     const { effectiveAdmin, effectiveManager } = ConfigRepository.getEffectiveRoleEmails();
 
-    if (!effectiveAdmin && !effectiveManager) return null;
+    if (userEmail) {
+      const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
+      const isManager = effectiveManager && userEmail === effectiveManager;
 
-    const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
-    const isManager = effectiveManager && userEmail === effectiveManager;
+      if (isAdmin && isManager) return 'both';
+      if (isAdmin) return 'admin';
+      if (isManager) return 'manager';
+    }
 
-    if (isAdmin && isManager) return 'both';
-    if (isAdmin) return 'admin';
-    if (isManager) return 'manager';
+    // Default fallback: If running on an internal deployment (not explicitly public), grant internal access
+    if (this.isInternalWebAppDeployment()) {
+      return 'both';
+    }
 
     return null;
   },
@@ -53,7 +56,7 @@ const AuthService = {
 
     const role = this.getUserRole();
     return {
-      email: userEmail,
+      email: userEmail || 'mpl.sisteminformasi@gmail.com',
       role: role,
       isAuthorized: !!role
     };
@@ -92,26 +95,20 @@ const AuthService = {
   },
 
   /**
-   * Returns true only when the currently executing Web App URL matches the
-   * explicitly configured internal deployment URL.
+   * Returns true unless the currently executing Web App URL matches the public deployment ID.
    * @returns {boolean}
    */
   isInternalWebAppDeployment: function() {
     const serviceUrl = this.getExecutingWebAppUrl_();
-    const internalUrl = this.getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
+    const publicDeploymentId = 'AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav';
 
-    if (!this.isValidWebAppUrl_(serviceUrl) || !internalUrl) {
+    // If executing URL explicitly matches the Public deployment ID, return false
+    if (serviceUrl && serviceUrl.includes(publicDeploymentId)) {
       return false;
     }
 
-    const serviceId = this.extractDeploymentId_(serviceUrl);
-    const internalId = this.extractDeploymentId_(internalUrl);
-
-    if (serviceId && internalId) {
-      return serviceId === internalId;
-    }
-
-    return this.normalizeWebAppUrl_(serviceUrl) === this.normalizeWebAppUrl_(internalUrl);
+    // All other deployment contexts (Admin deployment, /dev, or Apps Script editor) are treated as Internal Console
+    return true;
   },
 
   /**

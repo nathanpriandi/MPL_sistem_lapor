@@ -9,8 +9,8 @@
 
 const ConfigRepository = {
   // Default system fallback constants
-  PLACEHOLDER_ADMIN: 'admin.operasional@perusahaan-agri.co.id',
-  PLACEHOLDER_MANAGER: 'manager.operasional@perusahaan-agri.co.id',
+  PLACEHOLDER_ADMIN: 'mpl.sisteminformasi@gmail.com',
+  PLACEHOLDER_MANAGER: 'mpl.sisteminformasi@gmail.com',
   DEFAULT_RETENTION_DAYS: 90,
 
   /**
@@ -54,11 +54,19 @@ const ConfigRepository = {
   },
 
   getPublicWebAppUrl: function() {
-    return this.getProperty('PUBLIC_WEB_APP_URL');
+    const raw = this.getProperty('PUBLIC_WEB_APP_URL');
+    if (!raw || raw.includes('AKfycbzr')) {
+      return 'https://script.google.com/macros/s/AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav/exec';
+    }
+    return raw;
   },
 
   getInternalWebAppUrl: function() {
-    return this.getProperty('INTERNAL_WEB_APP_URL');
+    const raw = this.getProperty('INTERNAL_WEB_APP_URL');
+    if (!raw) {
+      return 'https://script.google.com/macros/s/AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p/exec';
+    }
+    return raw;
   },
 
   /**
