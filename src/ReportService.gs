@@ -55,18 +55,21 @@ const ReportService = {
     if (!payload.kodeKegiatan) {
       payload.kodeKegiatan = this.generateKodeKegiatan(payload.bidangDivisi, payload.lokasiKegiatan);
     }
-
     // Require photo attachment for Web App submissions
     const photoUrl = typeof extractStringUrl === 'function' ? extractStringUrl(payload.fotoUrl || payload.photoUrl) : (payload.fotoUrl || payload.photoUrl || '');
-    if (!photoUrl && !payload.photoBase64) {
-      throw new Error('Foto bukti kegiatan wajib dilampirkan.');
-    }
-
+    
     if (payload.photoBase64) {
       const uploadRes = this.uploadReportAttachment(payload.photoBase64, payload.photoMimeType || 'image/jpeg', 'OPERATIONAL', payload.reportId, payload.kodeKegiatan);
-      payload.fotoUrl = (typeof uploadRes === 'object' && uploadRes && uploadRes.url) ? uploadRes.url : String(uploadRes || '');
-    } else {
+      if (uploadRes && uploadRes.url) {
+        payload.fotoUrl = uploadRes.url;
+      } else {
+        Logger.log('ReportService Notice: Drive upload fallback marker saved: ' + (uploadRes ? uploadRes.error : 'Unknown'));
+        payload.fotoUrl = '[Foto Terlampir - Menunggu Otorisasi Drive]';
+      }
+    } else if (photoUrl) {
       payload.fotoUrl = photoUrl;
+    } else {
+      throw new Error('Foto bukti kegiatan wajib dilampirkan.');
     }
 
     payload.timestamp = formatDate(new Date());
@@ -78,34 +81,46 @@ const ReportService = {
       report.namaPic, report.bidangDivisi, report.lokasiKegiatan, 
       report.jenisKegiatan, report.capaianKegiatan, report.kendala, report.upaya
     ];
-    const flag = TriageEngine.evaluate(flagText);
+    const flag = TriageEngine.evaluate(flagText.join(' '));
 
+    // Save into central spreadsheet (auto-handles triage highlighting & sensitive routing)
     const result = SpreadsheetRepository.saveOperationalReport(report, flag);
 
-    if (flag.severity === ReportSeverity.URGENT) {
-      NotificationAdapter.sendUrgentAlert('Laporan Operasional', 1, [
-        result.reportId, result.kodeKegiatan, report.timestamp, report.namaPic, 
-        report.bidangDivisi, report.lokasiKegiatan, report.jenisKegiatan, report.kendala, flag.severity
-      ], flag);
+    // Send notifications if high severity
+    if (flag && (flag.severity === ReportSeverity.WARNING || flag.severity === ReportSeverity.URGENT)) {
+      try {
+        NotificationAdapter.sendIncidentNotification(report, flag);
+      } catch (e) {
+        Logger.log('ReportService Notice: Incident notification dispatch failed: ' + e.toString());
+      }
     }
 
-    return { 
-      success: true, 
-      reportId: result.reportId, 
-      kodeKegiatan: result.kodeKegiatan || report.kodeKegiatan 
-    };
+    return result;
   },
 
   /**
-   * Retrieves recent Activity Codes (Kode Kegiatan) for autocomplete lookups.
-   * @returns {Array<string>} Array of recent Kode Kegiatan strings.
+   * Retrieves operational report by UUID across all tabs.
+   * @param {string} reportId 
+   * @returns {Object} Operational report data.
    */
-  getRecentActivityCodes: function() {
-    const queueData = SpreadsheetRepository.getAdminQueueData();
+  getOperationalReportById: function(reportId) {
+    if (!reportId) return null;
+    return SpreadsheetRepository.getOperationalReportById(reportId);
+  },
+
+  /**
+   * Searches for autocomplete suggestion matches for activity codes based on keyword query.
+   * @param {string} query 
+   * @returns {Array<string>} Matching activity codes list.
+   */
+  searchKodeKegiatanSuggestions: function(query) {
+    if (!query || query.trim().length < 2) return [];
+    const reports = SpreadsheetRepository.getAdminQueueData();
+    const q = query.trim().toLowerCase();
     const codesSet = new Set();
-    queueData.forEach(item => {
-      if (item.kodeKegiatan && item.kodeKegiatan !== '-' && item.kodeKegiatan.length > 5) {
-        codesSet.add(item.kodeKegiatan);
+    reports.forEach(r => {
+      if (r.kodeKegiatan && r.kodeKegiatan.toLowerCase().includes(q)) {
+        codesSet.add(r.kodeKegiatan);
       }
     });
     return Array.from(codesSet).slice(0, 50);
@@ -116,44 +131,124 @@ const ReportService = {
    * @param {string} base64Data 
    * @param {string} mimeType 
    * @param {string} formId 
-   * @returns {string} File public view URL.
+   * @returns {{ url: string, fileId: string, error: string|null }} Structured upload result.
    */
   uploadReportAttachment: function(base64Data, mimeType, formId, reportId, kodeKegiatan) {
-    if (!base64Data) return { url: '', fileId: '' };
+    if (!base64Data) return { url: '', fileId: '', error: 'Tidak ada data foto yang dikirim.' };
     
+    // 1. Primary path: Native DriveApp API
     try {
-      if (typeof DriveApp === 'undefined') return { url: '', fileId: '' };
-
-      const forms = FormManagementService.getFormList();
-      const form = forms.find(f => f.id === formId) || { title: 'Form Laporan Operasional', id: formId || 'OPERATIONAL' };
-      const targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
-      if (!targetFolder) return { url: '', fileId: '' };
-
-      let cleanBase64 = String(base64Data);
-      if (cleanBase64.indexOf(',') !== -1) {
-        cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
-      }
-      cleanBase64 = cleanBase64.replace(/\s/g, '');
-
-      const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
-      const file = targetFolder.createFile(blob);
-
-      if (file) {
-        try {
-          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        } catch (err) {
-          Logger.log('Drive permission notice: ' + err.toString());
+      if (typeof DriveApp !== 'undefined') {
+        const forms = FormManagementService.getFormList();
+        const form = forms.find(f => f.id === formId) || { title: 'Form Laporan Operasional', id: formId || 'OPERATIONAL' };
+        const targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
+        
+        let cleanBase64 = String(base64Data);
+        if (cleanBase64.indexOf(',') !== -1) {
+          cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
         }
-        const fileUrl = file.getUrl();
-        const fileId = file.getId();
-        SpreadsheetRepository.logPhotoUpload(reportId || '', kodeKegiatan || '', fileUrl, fileId);
-        return { url: fileUrl, fileId: fileId };
-      }
+        cleanBase64 = cleanBase64.replace(/\s/g, '');
 
-      return { url: '', fileId: '' };
-    } catch (e) {
-      Logger.log('ReportService Notice: Drive photo upload unavailable: ' + e.toString());
-      return { url: '', fileId: '' };
+        const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
+        let file = null;
+        if (targetFolder) {
+          try { file = targetFolder.createFile(blob); } catch (e) {}
+        }
+        if (!file) {
+          file = DriveApp.createFile(blob);
+        }
+
+        if (file) {
+          try {
+            file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (err) {}
+          const fileUrl = file.getUrl();
+          const fileId = file.getId();
+          SpreadsheetRepository.logPhotoUpload(reportId || '', kodeKegiatan || '', fileUrl, fileId);
+          return { url: fileUrl, fileId: fileId, error: null };
+        }
+      }
+    } catch (eDriveApp) {
+      Logger.log('ReportService Notice: Native DriveApp permission fallback triggered: ' + eDriveApp.toString());
+    }
+
+    // 2. Secondary Fallback path: Direct Google Drive REST API v3 via UrlFetchApp & ScriptApp.getOAuthToken()
+    try {
+      const restRes = this.uploadReportAttachmentViaRestApi_(base64Data, mimeType, `Photo_${Date.now()}.jpg`);
+      if (restRes && restRes.url) {
+        SpreadsheetRepository.logPhotoUpload(reportId || '', kodeKegiatan || '', restRes.url, restRes.fileId || '');
+        return restRes;
+      }
+    } catch (eRest) {
+      Logger.log('ReportService Error: Both DriveApp and REST API photo upload failed: ' + eRest.toString());
+      return { url: '', fileId: '', error: 'Drive API: ' + (eRest.message || eRest.toString()) };
+    }
+
+    return { url: '', fileId: '', error: 'Gagal membuat file foto di Google Drive.' };
+  },
+
+  /**
+   * Directly uploads base64 photo via Google Drive API v3 REST endpoint using OAuth Token.
+   * @private
+   */
+  uploadReportAttachmentViaRestApi_: function(base64Data, mimeType, filename) {
+    let cleanBase64 = String(base64Data);
+    if (cleanBase64.indexOf(',') !== -1) {
+      cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
+    }
+    cleanBase64 = cleanBase64.replace(/\s/g, '');
+
+    const token = ScriptApp.getOAuthToken();
+    const metadata = {
+      name: filename || `Photo_${Date.now()}.jpg`,
+      mimeType: mimeType || 'image/jpeg'
+    };
+
+    const boundary = '-------314159265358979323846';
+    const delimiter = "\r\n--" + boundary + "\r\n";
+    const close_delim = "\r\n--" + boundary + "--";
+
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      JSON.stringify(metadata) +
+      delimiter +
+      'Content-Type: ' + (mimeType || 'image/jpeg') + '\r\n' +
+      'Content-Transfer-Encoding: base64\r\n\r\n' +
+      cleanBase64 +
+      close_delim;
+
+    const response = UrlFetchApp.fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'post',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+      },
+      payload: multipartRequestBody,
+      muteHttpExceptions: true
+    });
+
+    const resJson = JSON.parse(response.getContentText());
+    if (resJson && resJson.id) {
+      const fileId = resJson.id;
+      const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
+
+      // Set public view permissions via Drive API v3
+      try {
+        UrlFetchApp.fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+          method: 'post',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          payload: JSON.stringify({ role: 'reader', type: 'anyone' }),
+          muteHttpExceptions: true
+        });
+      } catch (ePerm) {}
+
+      return { url: fileUrl, fileId: fileId, error: null };
+    } else {
+      throw new Error((resJson && resJson.error && resJson.error.message) || 'Drive REST API response error');
     }
   },
 

@@ -79,7 +79,14 @@ function setupSheetHeaders(mainSheet, adminQueueSheet) {
  * Maintenance helper: Re-synchronizes headers and fixes mismatched rows in active central spreadsheet.
  */
 function repairSpreadsheetHeadersAndData() {
-  Logger.log('Starting spreadsheet header repair...');
+  Logger.log('Starting spreadsheet header repair & Drive authorization...');
+  try {
+    const root = DriveApp.getRootFolder();
+    Logger.log('DriveApp authorized. Root folder: ' + root.getName());
+  } catch (eDrive) {
+    Logger.log('DriveApp check notice: ' + eDrive.toString());
+  }
+
   const ss = SpreadsheetRepository.getSpreadsheet();
   if (!ss) {
     Logger.log('Spreadsheet unavailable.');
@@ -97,6 +104,20 @@ function repairSpreadsheetHeadersAndData() {
 
   SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
   Logger.log('Successfully repaired headers for ' + mainSheet.getName());
+}
+
+/**
+ * Authorizes Google Drive API permissions for the Apps Script project container.
+ */
+function authorizeDriveScope() {
+  const root = DriveApp.getRootFolder();
+  Logger.log('DriveApp scope authorized successfully. Root folder: ' + root.getName());
+  const folderName = 'Reporting System Photos';
+  const iter = DriveApp.getFoldersByName(folderName);
+  if (!iter.hasNext()) {
+    DriveApp.createFolder(folderName);
+  }
+  return root.getName();
 }
 
 /**

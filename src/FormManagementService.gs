@@ -290,12 +290,21 @@ const FormManagementService = {
       if (typeof DriveApp === 'undefined') return null;
 
       const parentFolderName = 'Reporting System Photos';
-      let parentFolder;
-      const folderIter = DriveApp.getFoldersByName(parentFolderName);
-      if (folderIter.hasNext()) {
-        parentFolder = folderIter.next();
-      } else {
-        parentFolder = DriveApp.createFolder(parentFolderName);
+      let parentFolder = null;
+      try {
+        const folderIter = DriveApp.getFoldersByName(parentFolderName);
+        if (folderIter && folderIter.hasNext()) {
+          parentFolder = folderIter.next();
+        } else {
+          parentFolder = DriveApp.createFolder(parentFolderName);
+        }
+      } catch (err1) {
+        Logger.log('FormManagementService: Parent photo folder fallback to Root: ' + err1.toString());
+        try { parentFolder = DriveApp.getRootFolder(); } catch (eRoot) { parentFolder = null; }
+      }
+
+      if (!parentFolder) {
+        try { parentFolder = DriveApp.getRootFolder(); } catch (eRoot) { parentFolder = null; }
       }
 
       if (!parentFolder) return null;
@@ -304,12 +313,17 @@ const FormManagementService = {
       const cleanTitle = (title || 'Form Laporan').trim();
       const subFolderName = `${cleanTitle} Photos (${shortId})`;
 
-      const subIter = parentFolder.getFoldersByName(subFolderName);
-      if (subIter.hasNext()) return subIter.next();
-      return parentFolder.createFolder(subFolderName);
+      try {
+        const subIter = parentFolder.getFoldersByName(subFolderName);
+        if (subIter && subIter.hasNext()) return subIter.next();
+        return parentFolder.createFolder(subFolderName);
+      } catch (err2) {
+        Logger.log('FormManagementService: Subfolder creation fallback to Parent: ' + err2.toString());
+        return parentFolder;
+      }
     } catch (e) {
-      Logger.log('FormManagementService Notice: DriveApp photo folder creation skipped: ' + e.toString());
-      return null;
+      Logger.log('FormManagementService Error in provisionPhotoFolder_: ' + e.toString());
+      try { return DriveApp.getRootFolder(); } catch (eFinal) { return null; }
     }
   },
 

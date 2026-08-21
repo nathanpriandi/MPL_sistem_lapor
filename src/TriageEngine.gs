@@ -66,6 +66,10 @@ const TriageEngine = {
 
     // 3. Default to NORMAL / Routine
     return TriageResult(ReportSeverity.NORMAL, SeverityRank.NORMAL, ReportCategory.ROUTINE);
+  },
+
+  evaluateReport: function(report, text) {
+    return this.evaluate(text || report);
   }
 };
 
