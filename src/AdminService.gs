@@ -109,6 +109,15 @@ const AdminService = {
   },
 
   /**
+   * Daily Photo Auto-Purge scheduled trigger action (7-day lifecycle).
+   * @returns {{ success: boolean, purgedCount: number }}
+   */
+  purgeExpiredPhotos: function() {
+    Logger.log('AdminService: Running daily purgeExpiredPhotos task.');
+    return SpreadsheetRepository.purgeExpiredPhotos();
+  },
+
+  /**
    * Returns deployment diagnostics for Admin/Manager troubleshooting.
    * @returns {Object} Diagnostic details.
    */

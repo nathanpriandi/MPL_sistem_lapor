@@ -15,17 +15,10 @@ const SpreadsheetRepository = {
    * @param {Sheet} mainSheet 
    * @param {Sheet} adminQueueSheet 
    */
-  setupSheetHeaders: function(mainSheet, adminQueueSheet) {
-    // 1. Operational Raw Sheet (32 columns schema matching newest 2026 form)
+  setupSheetHeaders: function(mainSheet, adminQueueSheet, photoLogSheet) {
+    // 1. Operational Raw Sheet (derived from single source of truth OPERATIONAL_REPORT_FIELDS)
     if (mainSheet) {
-      const opHeaders = [
-        'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-        'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Status_Pengelolaan', 
-        'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 'Estimasi_Panen_HST', 
-        'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 'Jumlah_Penjualan_Unit', 
-        'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 'Tujuan_Penggunaan', 
-        'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
-      ];
+      const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
       mainSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
       mainSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
       mainSheet.setFrozenRows(1);
@@ -40,6 +33,20 @@ const SpreadsheetRepository = {
       adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]);
       adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
       adminQueueSheet.setFrozenRows(1);
+    }
+
+    // 3. Photo Log Sheet
+    if (photoLogSheet) {
+      this.setupPhotoLogHeaders(photoLogSheet);
+    }
+  },
+
+  setupPhotoLogHeaders: function(photoLogSheet) {
+    if (photoLogSheet) {
+      const photoLogHeaders = ['Report_ID', 'Kode_Kegiatan', 'Foto_URL', 'Drive_File_ID', 'Upload_Timestamp', 'Expiry_Date', 'Status'];
+      photoLogSheet.getRange(1, 1, 1, photoLogHeaders.length).setValues([photoLogHeaders]);
+      photoLogSheet.getRange(1, 1, 1, photoLogHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
+      photoLogSheet.setFrozenRows(1);
     }
   },
 
@@ -196,47 +203,135 @@ const SpreadsheetRepository = {
     const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
     const sheet = FormManagementService.resolveFormTab_(ss, opForm);
 
+    // Auto-verify & re-align Row 1 headers to match OPERATIONAL_REPORT_FIELDS (32 columns)
+    const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+      sheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
+      sheet.setFrozenRows(1);
+    } else {
+      const currentHeaders = sheet.getRange(1, 1, 1, opHeaders.length).getValues()[0];
+      const needsUpdate = opHeaders.some((h, idx) => String(currentHeaders[idx] || '').trim() !== String(h).trim());
+      if (needsUpdate) {
+        sheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+        sheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
+        sheet.setFrozenRows(1);
+      }
+    }
+
     const reportId = report.reportId || this.generateUUID();
-    const rowData = [
-      reportId,
-      report.kodeKegiatan || '',
-      report.kodeKegiatanRef || '',
-      report.timestamp || formatDate(new Date()),
-      report.namaPic || '',
-      report.bidangDivisi || '',
-      report.lokasiKegiatan || '',
-      report.jenisKegiatan || '',
-      report.kegiatanTambahan || '',
-      report.pengawasan || '',
-      report.statusPengelolaan || '',
-      report.komoditas || '',
-      report.luasLahanM2 || report.luasAreaHa || '',
-      report.jumlahBenih || '',
-      report.tglTanam || '',
-      report.estimasiPanenHst || report.tglPerkiraanPanen || '',
-      report.tglPanen || '',
-      report.jumlahPanen || '',
-      report.tglPenjualan || '',
-      report.tujuanDistribusi || '',
-      report.jumlahPenjualanUnit || '',
-      report.hargaSatuanRp || report.hargaJual || '',
-      report.totalHargaRp || report.nilaiPenjualanRp || '',
-      report.jumlahUnitPenggunaan || '',
-      report.tujuanPenggunaan || '',
-      report.capaianKegiatan || '',
-      report.kendala || '',
-      report.upaya || '',
-      report.fotoUrl || '',
-      flag.severity || ReportSeverity.NORMAL,
-      (flag.keywords || []).join(', '),
-      ReviewStatus.UNREVIEWED
-    ];
+    report.reportId = reportId;
+
+    const rowData = OPERATIONAL_REPORT_FIELDS.map(field => field.getValue(report, flag));
 
     sheet.appendRow(rowData);
     const newRowIndex = sheet.getLastRow();
-    this.applyRowHighlighting(sheet, newRowIndex, flag.severity);
+    this.applyRowHighlighting(sheet, newRowIndex, flag ? flag.severity : null);
 
     return { reportId: reportId, row: newRowIndex, kodeKegiatan: report.kodeKegiatan };
+  },
+
+  /**
+   * Logs photo upload tracking entry into Photo_Log sheet tab.
+   * @param {string} reportId 
+   * @param {string} kodeKegiatan 
+   * @param {string} fotoUrl 
+   * @param {string} driveFileId 
+   */
+  logPhotoUpload: function(reportId, kodeKegiatan, fotoUrl, driveFileId) {
+    try {
+      const ss = this.getSpreadsheet();
+      let sheet = ss.getSheetByName('Photo_Log');
+      if (!sheet) {
+        sheet = ss.insertSheet('Photo_Log');
+        this.setupPhotoLogHeaders(sheet);
+      }
+      const now = new Date();
+      const expiry = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+      sheet.appendRow([
+        reportId || '',
+        kodeKegiatan || '',
+        fotoUrl || '',
+        driveFileId || '',
+        formatDate(now),
+        formatDate(expiry),
+        'Aktif'
+      ]);
+    } catch (e) {
+      Logger.log('SpreadsheetRepository Error: Failed to log photo upload. ' + e.toString());
+    }
+  },
+
+  /**
+   * Scans Photo_Log for expired photos (>7 days old), trashes the Drive file,
+   * updates status to 'Dihapus', and replaces Foto_URL in operational sheet with deletion marker.
+   * @returns {{ success: boolean, purgedCount: number }}
+   */
+  purgeExpiredPhotos: function() {
+    const DELETION_MARKER = '[Foto dihapus otomatis - 7 hari]';
+    let purgedCount = 0;
+    try {
+      const ss = this.getSpreadsheet();
+      const photoLogSheet = ss.getSheetByName('Photo_Log');
+      if (!photoLogSheet || photoLogSheet.getLastRow() <= 1) {
+        return { success: true, purgedCount: 0 };
+      }
+
+      const logValues = photoLogSheet.getRange(2, 1, photoLogSheet.getLastRow() - 1, 7).getValues();
+      const forms = FormManagementService.getFormList();
+      const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+      const opSheet = FormManagementService.resolveFormTab_(ss, opForm);
+      if (!opSheet) return { success: true, purgedCount: 0 };
+
+      const headerMap = this.getHeaderMap_(opSheet);
+      const fotoColIdx = (headerMap['Foto_URL'] !== undefined) ? (headerMap['Foto_URL'] + 1) : 29;
+      const reportIdColIdx = (headerMap['Report_ID'] !== undefined) ? (headerMap['Report_ID'] + 1) : 1;
+
+      const now = new Date();
+
+      logValues.forEach((row, i) => {
+        const reportId = String(row[0] || '');
+        const fotoUrl = String(row[2] || '');
+        const driveFileId = String(row[3] || '');
+        const expiryDateRaw = row[5];
+        const status = String(row[6] || '');
+
+        if (status === 'Aktif' && expiryDateRaw) {
+          const expiryDate = new Date(expiryDateRaw);
+          if (now >= expiryDate) {
+            // 1. Soft delete Drive file (30-day recovery in trash)
+            if (driveFileId && typeof DriveApp !== 'undefined') {
+              try {
+                const file = DriveApp.getFileById(driveFileId);
+                if (file) file.setTrashed(true);
+              } catch (e) {
+                Logger.log(`SpreadsheetRepository Notice: Could not trash Drive file ${driveFileId}: ${e.toString()}`);
+              }
+            }
+
+            // 2. Mark Photo_Log as Dihapus
+            photoLogSheet.getRange(i + 2, 7).setValue('Dihapus');
+
+            // 3. Replace Foto_URL in Operational Sheet
+            if (opSheet.getLastRow() > 1) {
+              const opRows = opSheet.getRange(2, 1, opSheet.getLastRow() - 1, opSheet.getLastColumn()).getValues();
+              for (let r = 0; r < opRows.length; r++) {
+                const currentReportId = String(opRows[r][reportIdColIdx - 1] || '');
+                const currentFotoUrl = String(opRows[r][fotoColIdx - 1] || '');
+                if ((reportId && currentReportId === reportId) || (fotoUrl && currentFotoUrl === fotoUrl)) {
+                  opSheet.getRange(r + 2, fotoColIdx).setValue(DELETION_MARKER);
+                  break;
+                }
+              }
+            }
+            purgedCount++;
+          }
+        }
+      });
+    } catch (err) {
+      Logger.log('SpreadsheetRepository Error in purgeExpiredPhotos: ' + err.toString());
+    }
+    return { success: true, purgedCount: purgedCount };
   },
 
   /**
@@ -315,7 +410,12 @@ const SpreadsheetRepository = {
               if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
               if (!ringkasan) ringkasan = 'Laporan Operasional';
 
-              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 28) || '');
+              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL') || '');
+              if (!photoVal.startsWith('http')) {
+                const foundUrl = row.find(c => typeof c === 'string' && c.trim().startsWith('http'));
+                if (foundUrl) photoVal = String(foundUrl).trim();
+              }
+
               let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 29) || ReportSeverity.NORMAL).toLowerCase();
               let keywordsVal = String(this.getCellValue_(row, headerMap, 'Flagged_Keywords', 30) || '');
               let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 31) || ReviewStatus.UNREVIEWED);

@@ -48,19 +48,25 @@ const ReportService = {
       throw new Error('Mohon lengkapi semua kolom wajib (Nama PIC, Divisi, Lokasi, Jenis Kegiatan).');
     }
 
+    if (!payload.reportId) {
+      payload.reportId = SpreadsheetRepository.generateUUID();
+    }
+
+    if (!payload.kodeKegiatan) {
+      payload.kodeKegiatan = this.generateKodeKegiatan(payload.bidangDivisi, payload.lokasiKegiatan);
+    }
+
     // Require photo attachment for Web App submissions
-    const photoUrl = payload.fotoUrl || payload.photoUrl || '';
+    const photoUrl = typeof extractStringUrl === 'function' ? extractStringUrl(payload.fotoUrl || payload.photoUrl) : (payload.fotoUrl || payload.photoUrl || '');
     if (!photoUrl && !payload.photoBase64) {
       throw new Error('Foto bukti kegiatan wajib dilampirkan.');
     }
 
     if (payload.photoBase64) {
-      const uploadedUrl = this.uploadReportAttachment(payload.photoBase64, payload.photoMimeType || 'image/jpeg', 'OPERATIONAL');
-      payload.fotoUrl = uploadedUrl;
-    }
-
-    if (!payload.kodeKegiatan) {
-      payload.kodeKegiatan = this.generateKodeKegiatan(payload.bidangDivisi, payload.lokasiKegiatan);
+      const uploadRes = this.uploadReportAttachment(payload.photoBase64, payload.photoMimeType || 'image/jpeg', 'OPERATIONAL', payload.reportId, payload.kodeKegiatan);
+      payload.fotoUrl = (typeof uploadRes === 'object' && uploadRes && uploadRes.url) ? uploadRes.url : String(uploadRes || '');
+    } else {
+      payload.fotoUrl = photoUrl;
     }
 
     payload.timestamp = formatDate(new Date());
@@ -112,25 +118,42 @@ const ReportService = {
    * @param {string} formId 
    * @returns {string} File public view URL.
    */
-  uploadReportAttachment: function(base64Data, mimeType, formId) {
-    if (!base64Data) return '';
+  uploadReportAttachment: function(base64Data, mimeType, formId, reportId, kodeKegiatan) {
+    if (!base64Data) return { url: '', fileId: '' };
     
     try {
-      if (typeof DriveApp === 'undefined') return '';
+      if (typeof DriveApp === 'undefined') return { url: '', fileId: '' };
 
       const forms = FormManagementService.getFormList();
       const form = forms.find(f => f.id === formId) || { title: 'Form Laporan Operasional', id: formId || 'OPERATIONAL' };
       const targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
-      if (!targetFolder) return '';
+      if (!targetFolder) return { url: '', fileId: '' };
 
-      const cleanBase64 = String(base64Data).replace(/^data:image\/\w+;base64,/, '');
+      let cleanBase64 = String(base64Data);
+      if (cleanBase64.indexOf(',') !== -1) {
+        cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
+      }
+      cleanBase64 = cleanBase64.replace(/\s/g, '');
+
       const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
       const file = targetFolder.createFile(blob);
 
-      return file ? file.getUrl() : '';
+      if (file) {
+        try {
+          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (err) {
+          Logger.log('Drive permission notice: ' + err.toString());
+        }
+        const fileUrl = file.getUrl();
+        const fileId = file.getId();
+        SpreadsheetRepository.logPhotoUpload(reportId || '', kodeKegiatan || '', fileUrl, fileId);
+        return { url: fileUrl, fileId: fileId };
+      }
+
+      return { url: '', fileId: '' };
     } catch (e) {
       Logger.log('ReportService Notice: Drive photo upload unavailable: ' + e.toString());
-      return '';
+      return { url: '', fileId: '' };
     }
   },
 

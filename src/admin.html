@@ -453,6 +453,15 @@
       setInterval(updateFreshnessTag, 30000);
     });
 
+    function getDriveThumbnail(url) {
+      if (!url || typeof url !== 'string') return '';
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      }
+      return url;
+    }
+
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
       if (sidebar) sidebar.classList.toggle('sidebar-open');
@@ -822,10 +831,19 @@
         ${item.photoUrl ? `
           <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
             <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Foto Bukti Lampiran</h4>
-            <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              <span>Buka Foto di Drive</span>
-            </a>
+            ${item.photoUrl.startsWith('http') ? `
+              <div style="margin-bottom: 0.75rem;">
+                <a href="${item.photoUrl}" target="_blank">
+                  <img src="${getDriveThumbnail(item.photoUrl)}" style="max-width: 100%; max-height: 320px; border-radius: 10px; border: 1px solid var(--border); object-fit: cover;" onerror="this.style.display='none'" />
+                </a>
+              </div>
+              <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Buka Foto Resolusi Penuh di Drive ↗</span>
+              </a>
+            ` : `
+              <span class="badge badge-normal" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-weight: 600;">${item.photoUrl}</span>
+            `}
           </div>
         ` : ''}
 

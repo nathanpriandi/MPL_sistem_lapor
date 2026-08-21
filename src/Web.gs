@@ -23,7 +23,8 @@ function doGet(e) {
     dynamicform: 'dynamicform',
     admin: 'admin', 
     dashboard: 'dashboard',
-    forms: 'forms'
+    forms: 'forms',
+    camera: 'camera'
   };
 
   const userRole = AuthService.getUserRole();

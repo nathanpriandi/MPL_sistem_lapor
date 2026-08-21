@@ -54,6 +54,14 @@ function createTriggers() {
     .create();
   Logger.log('Created trigger: archiveOldReports (Monthly on 1st at 01:00 AM WIB)');
 
+  // 5. Time-driven Daily Photo Auto-Purge Trigger (Everyday at 02:00 AM WIB)
+  ScriptApp.newTrigger('purgeExpiredPhotos')
+    .timeBased()
+    .everyDays(1)
+    .atHour(2)
+    .create();
+  Logger.log('Created trigger: purgeExpiredPhotos (Daily at 02:00 AM WIB)');
+
   Logger.log('=== ALL TRIGGERS INSTALLED SUCCESSFULLY ===');
 }
 

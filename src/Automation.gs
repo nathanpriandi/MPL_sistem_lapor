@@ -30,3 +30,12 @@ function sendWeeklyManagerDigest() {
 function archiveOldReports() {
   return AdminService.archiveOldReports();
 }
+
+/**
+ * Daily time-driven trigger function to purge (trash) photos older than 7 days.
+ * Updates Photo_Log status to 'Dihapus' and replaces Foto_URL in operational sheet with deletion marker.
+ * @returns {{ success: boolean, purgedCount: number }}
+ */
+function purgeExpiredPhotos() {
+  return AdminService.purgeExpiredPhotos();
+}

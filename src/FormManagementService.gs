@@ -239,16 +239,19 @@ const FormManagementService = {
       sensitiveSheet.setFrozenRows(1);
     }
 
-    // Set standard headers for operational form tab (26 columns schema)
-    const opHeaders = [
-      'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-      'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Target_Kegiatan', 'Luas_Area_Ha', 'Jumlah_Populasi', 
-      'Tgl_Tanam', 'Tgl_CheckIn_Tebar', 'Tgl_Perkiraan_Panen', 'Tgl_Panen', 'Jumlah_Panen', 
-      'Tgl_Penjualan', 'Harga_Jual', 'Jumlah_Penjualan_Unit', 'Nilai_Penjualan_Rp', 'Kendala', 
-      'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
-    ];
+    // Set standard headers for operational form tab derived from single source of truth (32 columns)
+    const opHeaders = (typeof OPERATIONAL_REPORT_FIELDS !== 'undefined') 
+      ? OPERATIONAL_REPORT_FIELDS.map(f => f.header) 
+      : [
+          'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+          'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Status_Pengelolaan', 
+          'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 'Estimasi_Panen_HST', 
+          'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 'Jumlah_Penjualan_Unit', 
+          'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 'Tujuan_Penggunaan', 
+          'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+        ];
     rawSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
-    rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
+    rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
     rawSheet.setFrozenRows(1);
 
     return {

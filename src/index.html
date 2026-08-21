@@ -80,12 +80,17 @@
 
           <div class="form-row-2col">
             <div class="form-group">
-              <label for="kegiatanTambahan">Kegiatan Tambahan</label>
-              <select id="kegiatanTambahan" onchange="handleKegiatanTambahanChange(this.value)">
-                <option value="Tidak ada" selected>Tidak ada (Lanjut ke Capaian &amp; Foto)</option>
-                <option value="Tanam atau Tebar">Tanam atau Tebar</option>
-                <option value="Panen atau Penjualan">Panen atau Penjualan</option>
-              </select>
+              <label>Kegiatan Tambahan</label>
+              <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.35rem;">
+                <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                  <input type="checkbox" name="kegiatanTambahanCheck" value="Tanam atau Tebar" onchange="updateDynamicSteps()">
+                  <span>Kegiatan Tanam / Tebar</span>
+                </label>
+                <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                  <input type="checkbox" name="kegiatanTambahanCheck" value="Panen atau Penjualan" onchange="updateDynamicSteps()">
+                  <span>Kegiatan Panen &amp; Penjualan</span>
+                </label>
+              </div>
             </div>
 
             <div class="form-group">
@@ -226,13 +231,21 @@
               <input type="date" id="tglPenjualan">
             </div>
             <div class="form-group">
-              <label for="tujuanDistribusi">Tujuan Distribusi</label>
-              <select id="tujuanDistribusi" onchange="handleTujuanDistribusiChange(this.value)">
-                <option value="">-- Pilih Tujuan --</option>
-                <option value="Penjualan eksternal">Penjualan eksternal</option>
-                <option value="Penjualan internal">Penjualan internal</option>
-                <option value="Penggunaan">Penggunaan</option>
-              </select>
+              <label>Tujuan Distribusi</label>
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.35rem;">
+                <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="checkbox" name="tujuanDistribusiCheck" value="Penjualan eksternal" onchange="updateDynamicSteps()">
+                  <span>Penjualan Eksternal</span>
+                </label>
+                <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="checkbox" name="tujuanDistribusiCheck" value="Penjualan internal" onchange="updateDynamicSteps()">
+                  <span>Penjualan Internal</span>
+                </label>
+                <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                  <input type="checkbox" name="tujuanDistribusiCheck" value="Penggunaan" onchange="updateDynamicSteps()">
+                  <span>Penggunaan Internal</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -326,10 +339,39 @@
           </div>
 
           <div class="form-group">
-            <label for="photoInput">Foto Bukti Kegiatan <span class="required">*</span></label>
-            <input type="file" id="photoInput" accept="image/*" required onchange="handlePhotoSelect(this)">
-            <div id="photoPreview" class="photo-preview-box" style="display: none;">
-              <img id="previewImg" class="photo-preview-image" src="" alt="Preview Foto">
+            <label>Foto Bukti Kegiatan (Snapshot Kamera Live) <span class="required">*</span></label>
+            
+            <div id="cameraBoxContainer" style="border: 2px dashed var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; background: var(--surface);">
+              
+              <div style="margin-bottom: 0.85rem;">
+                <span class="badge badge-warning" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 0.8rem; padding: 0.45rem 0.85rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>Sistem hanya menerima foto snapshot kamera langsung. Foto dari galeri/file lama akan ditolak.</span>
+                </span>
+              </div>
+
+              <!-- Hidden Native Camera File Input -->
+              <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoSelect(this)">
+
+              <!-- Primary Camera Trigger Button -->
+              <div id="cameraTriggerArea">
+                <button type="button" class="btn btn-primary" onclick="triggerCameraCapture()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
+                  <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <span>📸 Ambil Foto Lapangan (Kamera)</span>
+                </button>
+              </div>
+
+              <!-- Photo Preview -->
+              <div id="photoPreview" class="photo-preview-box" style="display: none; margin-top: 1rem; text-align: center;">
+                <img id="previewImg" class="photo-preview-image" src="" alt="Preview Foto Bukti" style="max-height: 260px; border-radius: 8px; border: 1px solid var(--border);">
+                <div style="margin-top: 0.75rem;">
+                  <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    <span>Foto Ulang (Ambil Snapshot Baru)</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -384,7 +426,7 @@
           </div>
 
           <!-- Review Box 2: Detail Kegiatan Tanam / Tebar -->
-          <div class="review-section-box">
+          <div class="review-section-box" id="revBoxStep2">
             <div class="review-section-header">
               <span class="review-section-title">2. Detail Tanam / Tebar</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(2)">Ubah</button>
@@ -418,7 +460,7 @@
           </div>
 
           <!-- Review Box 3: Detail Panen & Penjualan -->
-          <div class="review-section-box">
+          <div class="review-section-box" id="revBoxStep3">
             <div class="review-section-header">
               <span class="review-section-title">3. Detail Panen &amp; Penjualan</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(3)">Ubah</button>
@@ -452,7 +494,7 @@
           </div>
 
           <!-- Review Box 4: Detail Penjualan & Penggunaan -->
-          <div class="review-section-box">
+          <div class="review-section-box" id="revBoxStep4">
             <div class="review-section-header">
               <span class="review-section-title">4. Detail Penjualan &amp; Penggunaan</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(4)">Ubah</button>
@@ -590,16 +632,8 @@
   <script>
     let photoBase64Data = '';
     let photoMimeTypeData = '';
+    let photoIsSuspiciousTimestamp = false;
     let currentStep = 1;
-    const TOTAL_STEPS = 6;
-    const STEP_TITLES = [
-      'Informasi Utama & Kegiatan',
-      'Detail Kegiatan Tanam / Tebar',
-      'Detail Kegiatan Panen & Penjualan',
-      'Detail Penjualan & Penggunaan',
-      'Capaian, Kendala & Bukti Foto',
-      'Tinjau & Kirim'
-    ];
 
     function openPrivacyModal() {
       const m = document.getElementById('privacyNoticeModal');
@@ -611,27 +645,54 @@
       if (m) m.style.display = 'none';
     }
 
-    function handleKegiatanTambahanChange(val) {
-      // Logic for conditional step navigation
+    function getDynamicSteps() {
+      const tanamChecked = document.querySelector('input[name="kegiatanTambahanCheck"][value="Tanam atau Tebar"]')?.checked;
+      const panenChecked = document.querySelector('input[name="kegiatanTambahanCheck"][value="Panen atau Penjualan"]')?.checked;
+
+      const distChecks = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
+      const hasPenjualan = distChecks.includes('Penjualan eksternal') || distChecks.includes('Penjualan internal');
+      const hasPenggunaan = distChecks.includes('Penjualan internal') || distChecks.includes('Penggunaan');
+
+      const steps = [
+        { num: 1, title: 'Informasi Utama & Kegiatan' }
+      ];
+
+      if (tanamChecked) {
+        steps.push({ num: 2, title: 'Detail Kegiatan Tanam / Tebar' });
+      }
+
+      if (panenChecked) {
+        steps.push({ num: 3, title: 'Detail Kegiatan Panen & Penjualan' });
+        if (hasPenjualan || hasPenggunaan) {
+          steps.push({ num: 4, title: 'Detail Penjualan & Penggunaan' });
+        }
+      }
+
+      steps.push({ num: 5, title: 'Capaian, Kendala & Bukti Foto' });
+      steps.push({ num: 6, title: 'Tinjau & Kirim' });
+
+      return steps;
     }
 
-    function handleTujuanDistribusiChange(val) {
+    function updateDynamicSteps() {
+      const steps = getDynamicSteps();
+      const currentIdx = steps.findIndex(s => s.num === currentStep);
+
+      const distChecks = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
       const secPenjualan = document.getElementById('sectionDetailPenjualan');
       const secPenggunaan = document.getElementById('sectionDetailPenggunaan');
-      if (!secPenjualan || !secPenggunaan) return;
+      if (secPenjualan) secPenjualan.style.display = (distChecks.includes('Penjualan eksternal') || distChecks.includes('Penjualan internal')) ? 'block' : 'none';
+      if (secPenggunaan) secPenggunaan.style.display = (distChecks.includes('Penjualan internal') || distChecks.includes('Penggunaan')) ? 'block' : 'none';
 
-      if (val === 'Penjualan eksternal') {
-        secPenjualan.style.display = 'block';
-        secPenggunaan.style.display = 'none';
-      } else if (val === 'Penjualan internal') {
-        secPenjualan.style.display = 'block';
-        secPenggunaan.style.display = 'block';
-      } else if (val === 'Penggunaan') {
-        secPenjualan.style.display = 'none';
-        secPenggunaan.style.display = 'block';
-      } else {
-        secPenjualan.style.display = 'block';
-        secPenggunaan.style.display = 'block';
+      if (currentIdx !== -1) {
+        const counter = document.getElementById('stepCounterText');
+        if (counter) counter.innerText = `Langkah ${currentIdx + 1} dari ${steps.length}`;
+
+        const title = document.getElementById('stepTitleText');
+        if (title) title.innerText = steps[currentIdx].title;
+
+        const fill = document.getElementById('wizardProgressFill');
+        if (fill) fill.style.width = `${((currentIdx + 1) / steps.length) * 100}%`;
       }
     }
 
@@ -644,10 +705,136 @@
       }
     }
 
+    function handleCapturedPhoto(base64Data) {
+      if (!base64Data) return;
+      photoBase64Data = base64Data;
+      photoMimeTypeData = 'image/jpeg';
+      photoIsSuspiciousTimestamp = false;
+
+      const imgPreview = document.getElementById('previewImg');
+      if (imgPreview) imgPreview.src = photoBase64Data;
+
+      const previewBox = document.getElementById('photoPreview');
+      if (previewBox) previewBox.style.display = 'block';
+
+      showToast('📸 Foto kamera snapshot berhasil diambil!', 'success');
+    }
+
+    window.onCameraCaptured = handleCapturedPhoto;
+
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'CAMERA_CAPTURED') {
+        handleCapturedPhoto(event.data.base64);
+      }
+    });
+
+    function triggerCameraCapture() {
+      const win = window.open('', 'CameraSnapshotWindow', 'width=580,height=680,resizable=yes');
+      if (!win) {
+        showToast('⚠️ Pop-up terblokir. Izinkan pop-up peramban untuk menggunakan kamera.', 'warning');
+        const input = document.getElementById('photoInput');
+        if (input) input.click();
+        return;
+      }
+
+      const cameraHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kamera Snapshot Lapangan</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 1.25rem; }
+    .cam-card { width: 100%; max-width: 500px; background: #1e293b; border-radius: 16px; padding: 1.25rem; text-align: center; border: 1px solid #334155; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .title { font-size: 1.1rem; font-weight: 700; color: #34d399; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .video-wrapper { position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .btn-snap { margin-top: 1.25rem; width: 100%; padding: 0.9rem; border-radius: 10px; border: none; background: #10b981; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: background 0.2s; }
+    .btn-snap:hover { background: #059669; }
+    .status { margin-top: 0.85rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="cam-card">
+    <div class="title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Kamera Snapshot Lapangan</span>
+    </div>
+    <div class="video-wrapper">
+      <video id="vid" autoplay playsinline></video>
+    </div>
+    <canvas id="cvs" style="display:none;"></canvas>
+    <button class="btn-snap" onclick="snap()">📸 Ambil Snapshot &amp; Gunakan Foto</button>
+    <div class="status" id="st">Mengakses izin kamera...</div>
+  </div>
+  <script>
+    let activeStream = null;
+    async function startCam() {
+      const st = document.getElementById('st');
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('WebRTC Camera API tidak didukung');
+        }
+        activeStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        document.getElementById('vid').srcObject = activeStream;
+        st.innerHTML = '✅ Kamera aktif. Arahkan ke objek lalu klik <strong>Ambil Snapshot</strong>.';
+      } catch(err) {
+        console.error(err);
+        st.innerHTML = '<span style="color:#f87171; font-weight:600;">❌ Gagal akses kamera: ' + (err.message || 'Izin ditolak') + '</span>';
+      }
+    }
+    function snap() {
+      const v = document.getElementById('vid');
+      const c = document.getElementById('cvs');
+      if (!v || !c || !v.videoWidth) {
+        alert('Kamera belum aktif.');
+        return;
+      }
+      c.width = v.videoWidth;
+      c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      const base64 = c.toDataURL('image/jpeg', 0.85);
+      if (window.opener && typeof window.opener.onCameraCaptured === 'function') {
+        window.opener.onCameraCaptured(base64);
+      }
+      if (activeStream) {
+        activeStream.getTracks().forEach(t => t.stop());
+      }
+      setTimeout(function() { window.close(); }, 300);
+    }
+    window.onload = startCam;
+  <\/script>
+</body>
+</html>`;
+
+      win.document.open();
+      win.document.write(cameraHtml);
+      win.document.close();
+    }
+
     function handlePhotoSelect(input) {
       if (input.files && input.files[0]) {
         const file = input.files[0];
         photoMimeTypeData = file.type || 'image/jpeg';
+
+        // Check snapshot freshness: photo MUST be taken live right now (< 5 minutes / 300s)
+        const lastMod = file.lastModified;
+        if (lastMod) {
+          const ageSeconds = (Date.now() - lastMod) / 1000;
+          if (ageSeconds > 300) {
+            showToast('❌ Foto harus diambil langsung dari kamera saat ini. Foto lama dari galeri tidak diperbolehkan!', 'error');
+            input.value = '';
+            photoBase64Data = '';
+            photoMimeTypeData = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            return;
+          }
+        }
+
+        photoIsSuspiciousTimestamp = false;
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -679,14 +866,16 @@
         const jenisKegiatan = document.getElementById('jenisKegiatan');
         if (!jenisKegiatan.value.trim()) errors.push({ id: 'jenisKegiatan', text: 'Kegiatan yang Dilakukan wajib diisi.' });
       } else if (stepNum === 5) {
-        const photoInput = document.getElementById('photoInput');
-        if ((!photoInput.files || photoInput.files.length === 0) && !photoBase64Data) {
-          errors.push({ id: 'photoInput', text: 'Foto Bukti Kegiatan wajib dilampirkan.' });
+        if (!photoBase64Data) {
+          errors.push({ id: 'photoInput', text: 'Foto Bukti Kegiatan wajib diambil menggunakan kamera snapshot.' });
         }
       }
 
       if (errors.length > 0) {
-        if (heading) heading.innerText = `Mohon lengkapi bagian ${STEP_TITLES[stepNum - 1]}:`;
+        const steps = getDynamicSteps();
+        const currentIdx = steps.findIndex(s => s.num === stepNum);
+        const titleText = (currentIdx !== -1) ? steps[currentIdx].title : `Langkah ${stepNum}`;
+        if (heading) heading.innerText = `Mohon lengkapi bagian ${titleText}:`;
         errors.forEach(err => {
           const li = document.createElement('li');
           li.innerHTML = `<span class="error-summary-link" onclick="focusField('${err.id}')">${err.text}</span>`;
@@ -702,10 +891,10 @@
     }
 
     function goToStep(stepNum) {
-      if (stepNum < 1 || stepNum > TOTAL_STEPS) return;
+      if (stepNum < 1 || stepNum > 6) return;
       currentStep = stepNum;
 
-      for (let i = 1; i <= TOTAL_STEPS; i++) {
+      for (let i = 1; i <= 6; i++) {
         const stepEl = document.getElementById(`step${i}`);
         if (stepEl) {
           if (i === stepNum) {
@@ -719,14 +908,7 @@
       const summary = document.getElementById('errorSummary');
       if (summary) summary.style.display = 'none';
 
-      const counter = document.getElementById('stepCounterText');
-      if (counter) counter.innerText = `Langkah ${stepNum} dari ${TOTAL_STEPS}`;
-
-      const title = document.getElementById('stepTitleText');
-      if (title) title.innerText = STEP_TITLES[stepNum - 1];
-
-      const fill = document.getElementById('wizardProgressFill');
-      if (fill) fill.style.width = `${(stepNum / TOTAL_STEPS) * 100}%`;
+      updateDynamicSteps();
 
       if (stepNum === 6) {
         populateReviewSummary();
@@ -738,56 +920,37 @@
 
     function nextStep(fromStep) {
       if (!validateStep(fromStep)) return;
-      const val = document.getElementById('kegiatanTambahan') ? document.getElementById('kegiatanTambahan').value : 'Tidak ada';
-
-      if (fromStep === 1) {
-        if (val === 'Tanam atau Tebar') {
-          goToStep(2);
-          return;
-        } else if (val === 'Panen atau Penjualan') {
-          goToStep(3);
-          return;
-        } else {
-          goToStep(5);
-          return;
-        }
-      } else if (fromStep === 2) {
-        goToStep(5);
-        return;
-      } else if (fromStep === 3) {
-        goToStep(4);
-        return;
+      const steps = getDynamicSteps();
+      const currentIdx = steps.findIndex(s => s.num === fromStep);
+      if (currentIdx !== -1 && currentIdx < steps.length - 1) {
+        goToStep(steps[currentIdx + 1].num);
       }
-
-      goToStep(fromStep + 1);
     }
 
     function prevStep(fromStep) {
-      const val = document.getElementById('kegiatanTambahan') ? document.getElementById('kegiatanTambahan').value : 'Tidak ada';
-
-      if (fromStep === 5) {
-        if (val === 'Tanam atau Tebar') {
-          goToStep(2);
-          return;
-        } else if (val === 'Panen atau Penjualan') {
-          goToStep(4);
-          return;
-        } else {
-          goToStep(1);
-          return;
-        }
-      } else if (fromStep === 2) {
-        goToStep(1);
-        return;
-      } else if (fromStep === 3) {
-        goToStep(1);
-        return;
+      const steps = getDynamicSteps();
+      const currentIdx = steps.findIndex(s => s.num === fromStep);
+      if (currentIdx > 0) {
+        goToStep(steps[currentIdx - 1].num);
       }
-
-      goToStep(fromStep - 1);
     }
 
     function populateReviewSummary() {
+      const tanamChecked = document.querySelector('input[name="kegiatanTambahanCheck"][value="Tanam atau Tebar"]')?.checked;
+      const panenChecked = document.querySelector('input[name="kegiatanTambahanCheck"][value="Panen atau Penjualan"]')?.checked;
+
+      const distChecks = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
+      const hasDist = distChecks.length > 0;
+
+      const b2 = document.getElementById('revBoxStep2');
+      if (b2) b2.style.display = tanamChecked ? 'block' : 'none';
+
+      const b3 = document.getElementById('revBoxStep3');
+      if (b3) b3.style.display = panenChecked ? 'block' : 'none';
+
+      const b4 = document.getElementById('revBoxStep4');
+      if (b4) b4.style.display = (panenChecked && hasDist) ? 'block' : 'none';
+
       // Step 1
       document.getElementById('revNamaPic').innerText = document.getElementById('namaPic').value || '-';
       document.getElementById('revBidangDivisi').innerText = document.getElementById('bidangDivisi').value || '-';
@@ -796,29 +959,35 @@
       document.getElementById('revJenisKegiatan').innerText = document.getElementById('jenisKegiatan').value || '-';
 
       // Step 2
-      document.getElementById('revStatusPengelolaan').innerText = document.getElementById('statusPengelolaan').value || '-';
-      document.getElementById('revKomoditas').innerText = document.getElementById('komoditas').value || '-';
-      document.getElementById('revLuasLahanM2').innerText = document.getElementById('luasLahanM2').value ? `${document.getElementById('luasLahanM2').value} m²` : '-';
-      document.getElementById('revJumlahBenih').innerText = document.getElementById('jumlahBenih').value || '-';
-      document.getElementById('revTglTanam').innerText = document.getElementById('tglTanam').value || '-';
-      document.getElementById('revEstimasiPanenHst').innerText = document.getElementById('estimasiPanenHst').value ? `${document.getElementById('estimasiPanenHst').value} HST` : '-';
+      if (tanamChecked) {
+        document.getElementById('revStatusPengelolaan').innerText = document.getElementById('statusPengelolaan').value || '-';
+        document.getElementById('revKomoditas').innerText = document.getElementById('komoditas').value || '-';
+        document.getElementById('revLuasLahanM2').innerText = document.getElementById('luasLahanM2').value ? `${document.getElementById('luasLahanM2').value} m²` : '-';
+        document.getElementById('revJumlahBenih').innerText = document.getElementById('jumlahBenih').value || '-';
+        document.getElementById('revTglTanam').innerText = document.getElementById('tglTanam').value || '-';
+        document.getElementById('revEstimasiPanenHst').innerText = document.getElementById('estimasiPanenHst').value ? `${document.getElementById('estimasiPanenHst').value} HST` : '-';
+      }
 
       // Step 3
-      document.getElementById('revStatusPengelolaanPanen').innerText = document.getElementById('statusPengelolaanPanen').value || '-';
-      document.getElementById('revKomoditasPanen').innerText = document.getElementById('komoditasPanen').value || '-';
-      document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '-';
-      document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value} kg` : '-';
-      document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '-';
-      document.getElementById('revTujuanDistribusi').innerText = document.getElementById('tujuanDistribusi').value || '-';
+      if (panenChecked) {
+        document.getElementById('revStatusPengelolaanPanen').innerText = document.getElementById('statusPengelolaanPanen').value || '-';
+        document.getElementById('revKomoditasPanen').innerText = document.getElementById('komoditasPanen').value || '-';
+        document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '-';
+        document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value} kg` : '-';
+        document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '-';
+        document.getElementById('revTujuanDistribusi').innerText = distChecks.length > 0 ? distChecks.join(', ') : '-';
+      }
 
       // Step 4
-      document.getElementById('revJumlahPenjualanUnit').innerText = document.getElementById('jumlahPenjualanUnit').value || '-';
-      document.getElementById('revHargaSatuanRp').innerText = document.getElementById('hargaSatuanRp').value ? `Rp ${parseFloat(document.getElementById('hargaSatuanRp').value).toLocaleString('id-ID')}` : '-';
-      document.getElementById('revTotalHargaRp').innerText = document.getElementById('totalHargaRp').value ? `Rp ${parseFloat(document.getElementById('totalHargaRp').value).toLocaleString('id-ID')}` : '-';
-      document.getElementById('revJumlahUnitPenggunaan').innerText = document.getElementById('jumlahUnitPenggunaan').value || '-';
+      if (panenChecked && hasDist) {
+        document.getElementById('revJumlahPenjualanUnit').innerText = document.getElementById('jumlahPenjualanUnit').value || '-';
+        document.getElementById('revHargaSatuanRp').innerText = document.getElementById('hargaSatuanRp').value ? `Rp ${parseFloat(document.getElementById('hargaSatuanRp').value).toLocaleString('id-ID')}` : '-';
+        document.getElementById('revTotalHargaRp').innerText = document.getElementById('totalHargaRp').value ? `Rp ${parseFloat(document.getElementById('totalHargaRp').value).toLocaleString('id-ID')}` : '-';
+        document.getElementById('revJumlahUnitPenggunaan').innerText = document.getElementById('jumlahUnitPenggunaan').value || '-';
 
-      const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaan"]:checked')).map(c => c.value);
-      document.getElementById('revTujuanPenggunaan').innerText = checkedPenggunaan.length > 0 ? checkedPenggunaan.join(', ') : '-';
+        const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaan"]:checked')).map(c => c.value);
+        document.getElementById('revTujuanPenggunaan').innerText = checkedPenggunaan.length > 0 ? checkedPenggunaan.join(', ') : '-';
+      }
 
       // Step 5
       document.getElementById('revCapaianKegiatan').innerText = document.getElementById('capaianKegiatan').value || '-';
@@ -863,6 +1032,7 @@
       document.getElementById('photoPreview').style.display = 'none';
       photoBase64Data = '';
       photoMimeTypeData = '';
+      photoIsSuspiciousTimestamp = false;
       goToStep(1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -880,14 +1050,21 @@
         submitBtn.innerText = 'Mengirim Laporan...';
       }
 
+      const checkedTambahan = Array.from(document.querySelectorAll('input[name="kegiatanTambahanCheck"]:checked')).map(c => c.value);
+      const checkedDistribusi = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
       const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaan"]:checked')).map(c => c.value);
+
+      let kendalaVal = document.getElementById('kendala').value || '';
+      if (photoIsSuspiciousTimestamp && !kendalaVal.includes('[FOTO_LAMA_EXIF]')) {
+        kendalaVal = kendalaVal ? (kendalaVal + ' [FOTO_LAMA_EXIF]') : '[FOTO_LAMA_EXIF]';
+      }
 
       const payload = {
         namaPic: document.getElementById('namaPic').value,
         bidangDivisi: document.getElementById('bidangDivisi').value,
         lokasiKegiatan: document.getElementById('lokasiKegiatan').value,
         jenisKegiatan: document.getElementById('jenisKegiatan').value,
-        kegiatanTambahan: document.getElementById('kegiatanTambahan').value,
+        kegiatanTambahan: checkedTambahan,
         pengawasan: document.getElementById('pengawasan').value,
 
         // Step 2: Tanam / Tebar
@@ -904,7 +1081,7 @@
         tglPanen: document.getElementById('tglPanen').value,
         jumlahPanen: parseFloat(document.getElementById('jumlahPanen').value) || 0,
         tglPenjualan: document.getElementById('tglPenjualan').value,
-        tujuanDistribusi: document.getElementById('tujuanDistribusi').value,
+        tujuanDistribusi: checkedDistribusi,
         jumlahPenjualanUnit: parseFloat(document.getElementById('jumlahPenjualanUnit').value) || 0,
         hargaSatuanRp: parseFloat(document.getElementById('hargaSatuanRp').value) || 0,
         totalHargaRp: parseFloat(document.getElementById('totalHargaRp').value) || 0,
@@ -913,7 +1090,7 @@
 
         // Step 5: Capaian & Kendala
         capaianKegiatan: document.getElementById('capaianKegiatan').value,
-        kendala: document.getElementById('kendala').value,
+        kendala: kendalaVal,
         upaya: document.getElementById('upaya').value,
         photoBase64: photoBase64Data,
         photoMimeType: photoMimeTypeData

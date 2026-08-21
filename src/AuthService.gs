@@ -34,10 +34,8 @@ const AuthService = {
       if (isManager) return 'manager';
     }
 
-    // Explicit fallback: If accessing via Admin Deployment URL, grant internal access
-    const serviceUrl = this.getExecutingWebAppUrl_();
-    const adminDeploymentId = 'AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p';
-    if (serviceUrl && serviceUrl.includes(adminDeploymentId)) {
+    // Default fallback: If running on an internal deployment (not explicitly public), grant internal access
+    if (this.isInternalWebAppDeployment()) {
       return 'both';
     }
 
@@ -97,29 +95,20 @@ const AuthService = {
   },
 
   /**
-   * Returns true only when the currently executing Web App URL matches the
-   * explicitly configured internal deployment URL.
+   * Returns true unless the currently executing Web App URL matches the public deployment ID.
    * @returns {boolean}
    */
   isInternalWebAppDeployment: function() {
     const serviceUrl = this.getExecutingWebAppUrl_();
-    const adminDeploymentId = 'AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p';
     const publicDeploymentId = 'AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav';
 
-    if (serviceUrl) {
-      if (serviceUrl.includes(adminDeploymentId)) {
-        return true;
-      }
-      if (serviceUrl.includes(publicDeploymentId)) {
-        return false;
-      }
+    // If executing URL explicitly matches the Public deployment ID, return false
+    if (serviceUrl && serviceUrl.includes(publicDeploymentId)) {
+      return false;
     }
 
-    if (this.getUserRole() !== null) {
-      return true;
-    }
-
-    return false;
+    // All other deployment contexts (Admin deployment, /dev, or Apps Script editor) are treated as Internal Console
+    return true;
   },
 
   /**

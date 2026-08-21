@@ -76,6 +76,30 @@ function setupSheetHeaders(mainSheet, adminQueueSheet) {
 }
 
 /**
+ * Maintenance helper: Re-synchronizes headers and fixes mismatched rows in active central spreadsheet.
+ */
+function repairSpreadsheetHeadersAndData() {
+  Logger.log('Starting spreadsheet header repair...');
+  const ss = SpreadsheetRepository.getSpreadsheet();
+  if (!ss) {
+    Logger.log('Spreadsheet unavailable.');
+    return;
+  }
+
+  const forms = FormManagementService.getFormList();
+  const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+  const mainSheet = FormManagementService.resolveFormTab_(ss, opForm);
+  const adminQueueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE) || ss.insertSheet(SHEET_NAMES.ADMIN_QUEUE);
+  let photoLogSheet = ss.getSheetByName('Photo_Log');
+  if (!photoLogSheet) {
+    photoLogSheet = ss.insertSheet('Photo_Log');
+  }
+
+  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
+  Logger.log('Successfully repaired headers for ' + mainSheet.getName());
+}
+
+/**
  * Creates and configures the Unified Operational Form (Kegiatan, Panen & Penjualan)
  */
 function setupOperationalForm(ssId) {
