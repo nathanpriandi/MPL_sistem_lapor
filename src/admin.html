@@ -457,7 +457,7 @@
       if (!url || typeof url !== 'string') return '';
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
-        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+        return 'https://lh3.googleusercontent.com/d/' + match[1];
       }
       return url;
     }
@@ -473,7 +473,7 @@
       const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
       const elapsedMin = Math.floor(elapsedSec / 60);
       if (elapsedMin < 1) tag.innerText = 'Diperbarui baru saja';
-      else tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
+      else tag.innerText = 'Diperbarui ' + elapsedMin + ' mnt lalu';
     }
 
     function toggleAdvancedFilters() {

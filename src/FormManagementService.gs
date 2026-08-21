@@ -34,15 +34,23 @@ const FormManagementService = {
     if (formTitle) {
       const matchedByTitle = ss.getSheetByName(formTitle);
       if (matchedByTitle) return matchedByTitle;
+
+      // 2b. Try matching truncated 31-character title (Google Sheets tab limit)
+      if (formTitle.length > 31) {
+        const truncatedTitle = formTitle.substring(0, 31);
+        const matchedByTruncated = ss.getSheetByName(truncatedTitle);
+        if (matchedByTruncated) return matchedByTruncated;
+      }
     }
 
     // 3. Fallback match for default forms or template names
     if (form.type === 'operasional' || form.isDefault || form.isDefaultMain) {
-      const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || ss.getSheetByName('Laporan Operasional (Kegiatan, Panen & Penjualan)');
+      const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || 
+                      sheets.find(s => s.getName().includes('Form Responses 1') || s.getName().includes('Jawaban Formulir 1') || s.getName().startsWith('Laporan Operasional'));
       if (opSheet) return opSheet;
     }
 
-    return ss.getSheetByName('Raw') || sheets[0];
+    return sheets[0];
   },
 
   /**
@@ -60,12 +68,23 @@ const FormManagementService = {
     }
     if (!Array.isArray(forms) || forms.length === 0) {
       const mainFormId = ConfigRepository.getMainFormId();
+      let tabGid = null;
+      if (mainSsId) {
+        try {
+          const ss = SpreadsheetApp.openById(mainSsId);
+          const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || 
+                          ss.getSheets().find(s => s.getName().startsWith('Laporan Operasional'));
+          if (opSheet) tabGid = opSheet.getSheetId();
+        } catch (e) {}
+      }
       return [{
         id: mainFormId || 'DEFAULT_MAIN_FORM',
-        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        title: 'Laporan Operasional',
         type: 'operasional',
         isDefault: true,
-        isDefaultMain: true
+        isDefaultMain: true,
+        tabGid: tabGid,
+        sheetId: mainSsId || ''
       }];
     }
     return forms;
@@ -122,7 +141,7 @@ const FormManagementService = {
     if (!hasMainForm) {
       forms.unshift({
         id: mainFormId || 'DEFAULT_MAIN_FORM',
-        title: 'Laporan Operasional (Kegiatan, Panen & Penjualan)',
+        title: 'Laporan Operasional',
         description: 'Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.',
         type: 'operasional',
         status: 'aktif',
