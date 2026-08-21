@@ -36,11 +36,11 @@
           <ul id="errorSummaryList" class="error-summary-list"></ul>
         </div>
 
-        <!-- Step 1: Identitas Pelapor & Pilihan Divisi -->
+        <!-- Step 1: Identitas & Informasi Utama Kegiatan -->
         <div class="wizard-step active" id="step1">
           <div class="form-section-title">
             <span class="step-badge">1</span>
-            <span>Identitas Pelapor &amp; Divisi</span>
+            <span>Informasi Utama &amp; Kegiatan</span>
           </div>
 
           <div class="form-group">
@@ -48,15 +48,55 @@
             <input type="text" id="namaPic" placeholder="Masukkan nama pelapor / PIC lokasi" required>
           </div>
 
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="bidangDivisi">Divisi <span class="required">*</span></label>
+              <select id="bidangDivisi" required>
+                <option value="">-- Pilih Divisi --</option>
+                <option value="Agro">Agro</option>
+                <option value="Ternak">Ternak</option>
+                <option value="Ikan">Ikan</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="lokasiKegiatan">Lokasi Kegiatan <span class="required">*</span></label>
+              <select id="lokasiKegiatan" required>
+                <option value="">-- Pilih Lokasi --</option>
+                <option value="Sektor 1 + Ciomas">Sektor 1 + Ciomas</option>
+                <option value="Sektor 2">Sektor 2</option>
+                <option value="Sektor 3">Sektor 3</option>
+                <option value="Sektor 4">Sektor 4</option>
+                <option value="Gunung Batu">Gunung Batu</option>
+              </select>
+            </div>
+          </div>
+
           <div class="form-group">
-            <label for="bidangDivisi">Divisi <span class="required">*</span></label>
-            <select id="bidangDivisi" required onchange="handleDivisiChange(this.value)">
-              <option value="">-- Pilih Divisi --</option>
-              <option value="Agro">Agro</option>
-              <option value="Ternak">Ternak</option>
-              <option value="Ikan">Ikan</option>
-              <option value="Lainnya">Lainnya</option>
-            </select>
+            <label for="jenisKegiatan">Kegiatan yang Dilakukan <span class="required">*</span></label>
+            <textarea id="jenisKegiatan" rows="2" placeholder="Tuliskan rincian kegiatan utama yang dilakukan..." required></textarea>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="kegiatanTambahan">Kegiatan Tambahan</label>
+              <select id="kegiatanTambahan" onchange="handleKegiatanTambahanChange(this.value)">
+                <option value="Tidak ada" selected>Tidak ada (Lanjut ke Capaian &amp; Foto)</option>
+                <option value="Tanam atau Tebar">Tanam atau Tebar</option>
+                <option value="Panen atau Penjualan">Panen atau Penjualan</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="pengawasan">Pengawasan</label>
+              <select id="pengawasan">
+                <option value="">-- Pilih Pengawasan --</option>
+                <option value="Komoditas pertanian / perkebunan">Komoditas pertanian / perkebunan</option>
+                <option value="Komoditas peternakan">Komoditas peternakan</option>
+                <option value="Petani binaan">Petani binaan</option>
+              </select>
+            </div>
           </div>
 
           <div class="wizard-actions" style="justify-content: flex-end;">
@@ -67,26 +107,60 @@
           </div>
         </div>
 
-        <!-- Step 2: Jenis & Lokasi Kegiatan -->
+        <!-- Step 2: Kegiatan Tanam / Tebar -->
         <div class="wizard-step" id="step2">
           <div class="form-section-title">
             <span class="step-badge">2</span>
-            <span>Jenis &amp; Lokasi Kegiatan</span>
+            <span>Kegiatan Tanam / Tebar</span>
           </div>
 
-          <div class="form-group">
-            <label for="lokasiKegiatan">Lokasi Kegiatan <span class="required">*</span></label>
-            <input type="text" id="lokasiKegiatan" placeholder="Ketikkan nama atau blok lokasi" required>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="statusPengelolaan">Status Pengelolaan</label>
+              <select id="statusPengelolaan">
+                <option value="">-- Pilih Status --</option>
+                <option value="Swakelola">Swakelola</option>
+                <option value="Petani binaan">Petani binaan</option>
+                <option value="Kemitraan">Kemitraan</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="komoditas">Komoditas</label>
+              <select id="komoditas">
+                <option value="">-- Pilih Komoditas --</option>
+                <option value="Pisang">Pisang</option>
+                <option value="Jagung Manis">Jagung Manis</option>
+                <option value="Terong">Terong</option>
+                <option value="Cabe">Cabe</option>
+                <option value="Jagung Tebon">Jagung Tebon</option>
+                <option value="Jagung Hibrida">Jagung Hibrida</option>
+                <option value="Edamame">Edamame</option>
+                <option value="Penyemaian">Penyemaian</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="jenisKegiatan">Jenis Kegiatan <span class="required">*</span></label>
-            <input type="text" id="jenisKegiatan" placeholder="Ketikkan aktivitas kegiatan" required>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="luasLahanM2">Luas Lahan (m²)</label>
+              <input type="number" id="luasLahanM2" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label for="jumlahBenih">Jumlah Benih yang Digunakan</label>
+              <input type="number" id="jumlahBenih" placeholder="0">
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="targetKegiatan">Target Kegiatan <span class="required">*</span></label>
-            <textarea id="targetKegiatan" rows="2" placeholder="Tuliskan target operasional kegiatan..." required></textarea>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="tglTanam">Tanggal Tanam / Tebar</label>
+              <input type="date" id="tglTanam">
+            </div>
+            <div class="form-group">
+              <label for="estimasiPanenHst">Estimasi Panen (HST)</label>
+              <input type="number" id="estimasiPanenHst" placeholder="Hari Setelah Tanam (contoh: 90)">
+            </div>
           </div>
 
           <div class="wizard-actions">
@@ -101,51 +175,65 @@
           </div>
         </div>
 
-        <!-- Step 3: Skala & Jadwal Kegiatan -->
+        <!-- Step 3: Kegiatan Panen & Penjualan -->
         <div class="wizard-step" id="step3">
           <div class="form-section-title">
             <span class="step-badge">3</span>
-            <span>Skala &amp; Jadwal Kegiatan</span>
+            <span>Kegiatan Panen &amp; Penjualan</span>
           </div>
 
           <div class="form-row-2col">
             <div class="form-group">
-              <label for="luasAreaHa">Luas Area (Ha)</label>
-              <input type="number" id="luasAreaHa" step="0.1" placeholder="0.0">
+              <label for="statusPengelolaanPanen">Status Pengelolaan</label>
+              <select id="statusPengelolaanPanen">
+                <option value="">-- Pilih Status --</option>
+                <option value="Swakelola">Swakelola</option>
+                <option value="Petani binaan">Petani binaan</option>
+                <option value="Kemitraan">Kemitraan</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="komoditasPanen">Komoditas</label>
+              <select id="komoditasPanen">
+                <option value="">-- Pilih Komoditas --</option>
+                <option value="Pisang">Pisang</option>
+                <option value="Jagung Manis">Jagung Manis</option>
+                <option value="Terong">Terong</option>
+                <option value="Cabe">Cabe</option>
+                <option value="Jagung Tebon">Jagung Tebon</option>
+                <option value="Jagung Hibrida">Jagung Hibrida</option>
+                <option value="Edamame">Edamame</option>
+                <option value="Penyemaian">Penyemaian</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="tglPanen">Tanggal Panen</label>
+              <input type="date" id="tglPanen">
             </div>
             <div class="form-group">
-              <label for="jumlahPopulasi">Jumlah Populasi</label>
-              <input type="number" id="jumlahPopulasi" placeholder="0">
+              <label for="jumlahPanen">Jumlah Panen (kg)</label>
+              <input type="number" id="jumlahPanen" step="0.1" placeholder="0">
             </div>
           </div>
 
-          <div class="form-group" id="groupTglTanam" style="display: none;">
-            <label for="tglTanam">Tanggal Tanam <span class="required">*</span></label>
-            <input type="date" id="tglTanam">
-          </div>
-
-          <div class="form-group" id="groupTglCheckIn" style="display: none;">
-            <label for="tglCheckInTebar">Tanggal Check-in / Tebar <span class="required">*</span></label>
-            <input type="date" id="tglCheckInTebar">
-          </div>
-
-          <div class="form-group">
-            <label for="tglPerkiraanPanen">Perkiraan Tanggal Panen <span class="required">*</span></label>
-            <input type="date" id="tglPerkiraanPanen" required>
-          </div>
-
-          <div class="form-group">
-            <label for="apakahAdaPanenPenjualan">Apakah Melakukan Kegiatan Panen/Penjualan ? <span class="required">*</span></label>
-            <select id="apakahAdaPanenPenjualan" class="form-input" required>
-              <option value="Tidak" selected>Tidak (Lanjut ke Kendala &amp; Foto)</option>
-              <option value="Ya">Ya (Mengisi Data Panen &amp; Penjualan)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="kodeKegiatanRef">Kode Kegiatan Referensi</label>
-            <input type="text" id="kodeKegiatanRef" list="recentCodesDatalist" placeholder="Masukkan kode referensi jika laporan lanjutan...">
-            <datalist id="recentCodesDatalist"></datalist>
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="tglPenjualan">Tanggal Penjualan</label>
+              <input type="date" id="tglPenjualan">
+            </div>
+            <div class="form-group">
+              <label for="tujuanDistribusi">Tujuan Distribusi</label>
+              <select id="tujuanDistribusi" onchange="handleTujuanDistribusiChange(this.value)">
+                <option value="">-- Pilih Tujuan --</option>
+                <option value="Penjualan eksternal">Penjualan eksternal</option>
+                <option value="Penjualan internal">Penjualan internal</option>
+                <option value="Penggunaan">Penggunaan</option>
+              </select>
+            </div>
           </div>
 
           <div class="wizard-actions">
@@ -160,43 +248,46 @@
           </div>
         </div>
 
-        <!-- Step 4: Data Panen & Penjualan -->
+        <!-- Step 4: Detail Penjualan & Penggunaan -->
         <div class="wizard-step" id="step4">
           <div class="form-section-title">
             <span class="step-badge">4</span>
-            <span>Data Panen &amp; Penjualan</span>
+            <span>Detail Penjualan &amp; Penggunaan</span>
           </div>
 
-          <div class="form-row-2col">
-            <div class="form-group">
-              <label for="tglPanen">Tanggal Panen</label>
-              <input type="date" id="tglPanen">
+          <div id="sectionDetailPenjualan">
+            <h4 style="margin-bottom: 0.75rem; color: var(--primary);">Detail Penjualan</h4>
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="jumlahPenjualanUnit">Jumlah Penjualan Unit</label>
+                <input type="number" id="jumlahPenjualanUnit" placeholder="0" oninput="calculateTotalHarga()">
+              </div>
+              <div class="form-group">
+                <label for="hargaSatuanRp">Harga Satuan (Rp)</label>
+                <input type="number" id="hargaSatuanRp" placeholder="0" oninput="calculateTotalHarga()">
+              </div>
             </div>
             <div class="form-group">
-              <label for="jumlahPanen">Jumlah Panen (Kg / Unit)</label>
-              <input type="number" id="jumlahPanen" step="0.1" placeholder="0">
-            </div>
-          </div>
-
-          <div class="form-row-2col">
-            <div class="form-group">
-              <label for="tglPenjualan">Tanggal Penjualan</label>
-              <input type="date" id="tglPenjualan">
-            </div>
-            <div class="form-group">
-              <label for="hargaJual">Harga Jual per Unit (Rp)</label>
-              <input type="number" id="hargaJual" placeholder="0">
+              <label for="totalHargaRp">Total Harga (Rp)</label>
+              <input type="number" id="totalHargaRp" placeholder="0">
             </div>
           </div>
 
-          <div class="form-row-2col">
+          <div id="sectionDetailPenggunaan" style="margin-top: 1.5rem;">
+            <h4 style="margin-bottom: 0.75rem; color: var(--primary);">Detail Penggunaan</h4>
             <div class="form-group">
-              <label for="jumlahPenjualanUnit">Jumlah Penjualan (Unit)</label>
-              <input type="number" id="jumlahPenjualanUnit" step="0.1" placeholder="0">
+              <label for="jumlahUnitPenggunaan">Jumlah Unit Penggunaan</label>
+              <input type="number" id="jumlahUnitPenggunaan" placeholder="0">
             </div>
+
             <div class="form-group">
-              <label for="nilaiPenjualanRp">Nilai Penjualan Total (Rp)</label>
-              <input type="number" id="nilaiPenjualanRp" placeholder="0">
+              <label>Tujuan Penggunaan</label>
+              <div class="checkbox-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.25rem;">
+                <label style="font-weight: normal; cursor: pointer;"><input type="checkbox" name="tujuanPenggunaan" value="MPL Jonggol"> MPL Jonggol</label>
+                <label style="font-weight: normal; cursor: pointer;"><input type="checkbox" name="tujuanPenggunaan" value="MPL Cikalong"> MPL Cikalong</label>
+                <label style="font-weight: normal; cursor: pointer;"><input type="checkbox" name="tujuanPenggunaan" value="Villa Quiling"> Villa Quiling</label>
+                <label style="font-weight: normal; cursor: pointer;"><input type="checkbox" name="tujuanPenggunaan" value="Pasir Putih"> Pasir Putih</label>
+              </div>
             </div>
           </div>
 
@@ -212,20 +303,25 @@
           </div>
         </div>
 
-        <!-- Step 5: Kendala & Bukti Foto -->
+        <!-- Step 5: Capaian, Kendala & Bukti Foto -->
         <div class="wizard-step" id="step5">
           <div class="form-section-title">
             <span class="step-badge">5</span>
-            <span>Kendala, Upaya &amp; Bukti Foto</span>
+            <span>Capaian, Kendala &amp; Catatan Pelaporan</span>
           </div>
 
           <div class="form-group">
-            <label for="kendala">Kendala Kegiatan</label>
+            <label for="capaianKegiatan">Capaian Kegiatan</label>
+            <textarea id="capaianKegiatan" rows="2" placeholder="Catat capaian atau hasil kegiatan..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="kendala">Kendala Kegiatan (jika ada)</label>
             <textarea id="kendala" rows="2" placeholder="Catat kendala atau hambatan di lapangan jika ada..."></textarea>
           </div>
 
           <div class="form-group">
-            <label for="upaya">Upaya Yang Dilakukan</label>
+            <label for="upaya">Upaya Yang Dilakukan (jika ada)</label>
             <textarea id="upaya" rows="2" placeholder="Catat solusi atau tindakan penanganan jika ada..."></textarea>
           </div>
 
@@ -257,10 +353,10 @@
           </div>
           <p class="help-text" style="margin-bottom: 1rem;">Periksa kembali seluruh informasi laporan sebelum mengirimkan ke database terpusat.</p>
 
-          <!-- Review Box 1: Identitas Pelapor -->
+          <!-- Review Box 1: Informasi Utama -->
           <div class="review-section-box">
             <div class="review-section-header">
-              <span class="review-section-title">1. Identitas Pelapor</span>
+              <span class="review-section-title">1. Informasi Utama &amp; Kegiatan</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(1)">Ubah</button>
             </div>
             <div class="review-grid">
@@ -268,18 +364,8 @@
                 <span class="review-label">Nama PIC / Pelapor</span>
                 <span class="review-value" id="revNamaPic">-</span>
               </div>
-            </div>
-          </div>
-
-          <!-- Review Box 2: Jenis & Lokasi Kegiatan -->
-          <div class="review-section-box">
-            <div class="review-section-header">
-              <span class="review-section-title">2. Jenis &amp; Lokasi Kegiatan</span>
-              <button type="button" class="btn-review-edit" onclick="goToStep(2)">Ubah</button>
-            </div>
-            <div class="review-grid">
               <div class="review-item">
-                <span class="review-label">Bidang / Divisi</span>
+                <span class="review-label">Divisi</span>
                 <span class="review-value" id="revBidangDivisi">-</span>
               </div>
               <div class="review-item">
@@ -287,63 +373,71 @@
                 <span class="review-value" id="revLokasiKegiatan">-</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Jenis Kegiatan</span>
-                <span class="review-value" id="revJenisKegiatan">-</span>
+                <span class="review-label">Pengawasan</span>
+                <span class="review-value" id="revPengawasan">-</span>
               </div>
               <div class="review-item" style="grid-column: 1 / -1;">
-                <span class="review-label">Target Kegiatan</span>
-                <span class="review-value" id="revTargetKegiatan">-</span>
+                <span class="review-label">Kegiatan yang Dilakukan</span>
+                <span class="review-value" id="revJenisKegiatan">-</span>
               </div>
             </div>
           </div>
 
-          <!-- Review Box 3: Skala & Jadwal Kegiatan -->
+          <!-- Review Box 2: Detail Kegiatan Tanam / Tebar -->
           <div class="review-section-box">
             <div class="review-section-header">
-              <span class="review-section-title">3. Skala &amp; Jadwal Kegiatan</span>
+              <span class="review-section-title">2. Detail Tanam / Tebar</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(2)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item">
+                <span class="review-label">Status Pengelolaan</span>
+                <span class="review-value" id="revStatusPengelolaan">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Komoditas</span>
+                <span class="review-value" id="revKomoditas">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Luas Lahan (m²)</span>
+                <span class="review-value" id="revLuasLahanM2">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Jumlah Benih</span>
+                <span class="review-value" id="revJumlahBenih">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Tgl Tanam / Tebar</span>
+                <span class="review-value" id="revTglTanam">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Estimasi Panen (HST)</span>
+                <span class="review-value" id="revEstimasiPanenHst">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Box 3: Detail Panen & Penjualan -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">3. Detail Panen &amp; Penjualan</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(3)">Ubah</button>
             </div>
             <div class="review-grid">
-              <div class="review-item" id="revGroupTglTanam" style="display: none;">
-                <span class="review-label">Tgl Tanam</span>
-                <span class="review-value" id="revTglTanam">-</span>
-              </div>
-              <div class="review-item" id="revGroupTglCheckIn" style="display: none;">
-                <span class="review-label">Tgl Check-in / Tebar</span>
-                <span class="review-value" id="revTglCheckIn">-</span>
+              <div class="review-item">
+                <span class="review-label">Status Pengelolaan</span>
+                <span class="review-value" id="revStatusPengelolaanPanen">-</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Perkiraan Tgl Panen</span>
-                <span class="review-value" id="revTglPerkiraanPanen">-</span>
+                <span class="review-label">Komoditas</span>
+                <span class="review-value" id="revKomoditasPanen">-</span>
               </div>
-              <div class="review-item">
-                <span class="review-label">Luas Area (Ha)</span>
-                <span class="review-value" id="revLuasAreaHa">-</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Jumlah Populasi</span>
-                <span class="review-value" id="revJumlahPopulasi">-</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Kode Kegiatan Referensi</span>
-                <span class="review-value" id="revKodeKegiatanRef">-</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Review Box 4: Data Panen & Penjualan -->
-          <div class="review-section-box">
-            <div class="review-section-header">
-              <span class="review-section-title">4. Data Panen &amp; Penjualan</span>
-              <button type="button" class="btn-review-edit" onclick="goToStep(4)">Ubah</button>
-            </div>
-            <div class="review-grid">
               <div class="review-item">
                 <span class="review-label">Tgl Panen</span>
                 <span class="review-value" id="revTglPanen">-</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Jumlah Panen</span>
+                <span class="review-label">Jumlah Panen (kg)</span>
                 <span class="review-value" id="revJumlahPanen">-</span>
               </div>
               <div class="review-item">
@@ -351,27 +445,53 @@
                 <span class="review-value" id="revTglPenjualan">-</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Harga Jual / Unit</span>
-                <span class="review-value" id="revHargaJual">-</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Jumlah Penjualan</span>
-                <span class="review-value" id="revJumlahPenjualan">-</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Total Penjualan (Rp)</span>
-                <span class="review-value" id="revNilaiPenjualan">-</span>
+                <span class="review-label">Tujuan Distribusi</span>
+                <span class="review-value" id="revTujuanDistribusi">-</span>
               </div>
             </div>
           </div>
 
-          <!-- Review Box 5: Kendala & Bukti Foto -->
+          <!-- Review Box 4: Detail Penjualan & Penggunaan -->
           <div class="review-section-box">
             <div class="review-section-header">
-              <span class="review-section-title">5. Kendala &amp; Bukti Foto</span>
+              <span class="review-section-title">4. Detail Penjualan &amp; Penggunaan</span>
+              <button type="button" class="btn-review-edit" onclick="goToStep(4)">Ubah</button>
+            </div>
+            <div class="review-grid">
+              <div class="review-item">
+                <span class="review-label">Penjualan (Unit)</span>
+                <span class="review-value" id="revJumlahPenjualanUnit">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Harga Satuan</span>
+                <span class="review-value" id="revHargaSatuanRp">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Total Harga (Rp)</span>
+                <span class="review-value" id="revTotalHargaRp">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Unit Penggunaan</span>
+                <span class="review-value" id="revJumlahUnitPenggunaan">-</span>
+              </div>
+              <div class="review-item" style="grid-column: 1 / -1;">
+                <span class="review-label">Tujuan Penggunaan</span>
+                <span class="review-value" id="revTujuanPenggunaan">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Box 5: Capaian, Kendala & Bukti Foto -->
+          <div class="review-section-box">
+            <div class="review-section-header">
+              <span class="review-section-title">5. Capaian, Kendala &amp; Bukti Foto</span>
               <button type="button" class="btn-review-edit" onclick="goToStep(5)">Ubah</button>
             </div>
             <div class="review-grid">
+              <div class="review-item" style="grid-column: 1 / -1;">
+                <span class="review-label">Capaian Kegiatan</span>
+                <span class="review-value" id="revCapaianKegiatan">-</span>
+              </div>
               <div class="review-item" style="grid-column: 1 / -1;">
                 <span class="review-label">Kendala</span>
                 <span class="review-value" id="revKendala">-</span>
@@ -473,11 +593,11 @@
     let currentStep = 1;
     const TOTAL_STEPS = 6;
     const STEP_TITLES = [
-      'Identitas Pelapor',
-      'Jenis & Lokasi Kegiatan',
-      'Skala & Jadwal Kegiatan',
-      'Data Panen & Penjualan',
-      'Kendala & Bukti Foto',
+      'Informasi Utama & Kegiatan',
+      'Detail Kegiatan Tanam / Tebar',
+      'Detail Kegiatan Panen & Penjualan',
+      'Detail Penjualan & Penggunaan',
+      'Capaian, Kendala & Bukti Foto',
       'Tinjau & Kirim'
     ];
 
@@ -491,49 +611,36 @@
       if (m) m.style.display = 'none';
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Load recent activity codes for autocomplete
-      if (isLiveServer()) {
-        try {
-          const codes = await runServer('getRecentActivityCodes');
-          if (Array.isArray(codes)) {
-            const dl = document.getElementById('recentCodesDatalist');
-            if (dl) {
-              dl.innerHTML = '';
-              codes.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                dl.appendChild(opt);
-              });
-            }
-          }
-        } catch (e) {}
-      }
-    });
+    function handleKegiatanTambahanChange(val) {
+      // Logic for conditional step navigation
+    }
 
-    function handleDivisiChange(val) {
-      const gAgro = document.getElementById('groupTglTanam');
-      const gTernak = document.getElementById('groupTglCheckIn');
-      const inputTanam = document.getElementById('tglTanam');
-      const inputCheckIn = document.getElementById('tglCheckInTebar');
+    function handleTujuanDistribusiChange(val) {
+      const secPenjualan = document.getElementById('sectionDetailPenjualan');
+      const secPenggunaan = document.getElementById('sectionDetailPenggunaan');
+      if (!secPenjualan || !secPenggunaan) return;
 
-      if (!gAgro || !gTernak || !inputTanam || !inputCheckIn) return;
-
-      if (val && val.includes('Agro')) {
-        gAgro.style.display = 'block';
-        gTernak.style.display = 'none';
-        inputTanam.setAttribute('required', 'true');
-        inputCheckIn.removeAttribute('required');
-      } else if (val && (val.includes('Ternak') || val.includes('Ikan'))) {
-        gAgro.style.display = 'none';
-        gTernak.style.display = 'block';
-        inputCheckIn.setAttribute('required', 'true');
-        inputTanam.removeAttribute('required');
+      if (val === 'Penjualan eksternal') {
+        secPenjualan.style.display = 'block';
+        secPenggunaan.style.display = 'none';
+      } else if (val === 'Penjualan internal') {
+        secPenjualan.style.display = 'block';
+        secPenggunaan.style.display = 'block';
+      } else if (val === 'Penggunaan') {
+        secPenjualan.style.display = 'none';
+        secPenggunaan.style.display = 'block';
       } else {
-        gAgro.style.display = 'none';
-        gTernak.style.display = 'none';
-        inputTanam.removeAttribute('required');
-        inputCheckIn.removeAttribute('required');
+        secPenjualan.style.display = 'block';
+        secPenggunaan.style.display = 'block';
+      }
+    }
+
+    function calculateTotalHarga() {
+      const unit = parseFloat(document.getElementById('jumlahPenjualanUnit').value) || 0;
+      const harga = parseFloat(document.getElementById('hargaSatuanRp').value) || 0;
+      const totalEl = document.getElementById('totalHargaRp');
+      if (totalEl && (unit > 0 || harga > 0)) {
+        totalEl.value = Math.round(unit * harga);
       }
     }
 
@@ -561,44 +668,16 @@
 
       if (stepNum === 1) {
         const namaPic = document.getElementById('namaPic');
-        if (!namaPic.value.trim()) {
-          errors.push({ id: 'namaPic', text: 'Nama PIC Lokasi wajib diisi.' });
-        }
+        if (!namaPic.value.trim()) errors.push({ id: 'namaPic', text: 'Nama PIC Lokasi wajib diisi.' });
+
         const bidangDivisi = document.getElementById('bidangDivisi');
-        if (!bidangDivisi.value) {
-          errors.push({ id: 'bidangDivisi', text: 'Divisi wajib dipilih.' });
-        }
-      } else if (stepNum === 2) {
+        if (!bidangDivisi.value) errors.push({ id: 'bidangDivisi', text: 'Divisi wajib dipilih.' });
+
         const lokasiKegiatan = document.getElementById('lokasiKegiatan');
-        if (!lokasiKegiatan.value.trim()) {
-          errors.push({ id: 'lokasiKegiatan', text: 'Lokasi Kegiatan wajib diisi.' });
-        }
+        if (!lokasiKegiatan.value) errors.push({ id: 'lokasiKegiatan', text: 'Lokasi Kegiatan wajib dipilih.' });
 
         const jenisKegiatan = document.getElementById('jenisKegiatan');
-        if (!jenisKegiatan.value.trim()) {
-          errors.push({ id: 'jenisKegiatan', text: 'Jenis Kegiatan wajib diisi.' });
-        }
-
-        const targetKegiatan = document.getElementById('targetKegiatan');
-        if (!targetKegiatan.value.trim()) {
-          errors.push({ id: 'targetKegiatan', text: 'Target Kegiatan wajib diisi.' });
-        }
-      } else if (stepNum === 3) {
-        const bidangDivisi = document.getElementById('bidangDivisi');
-        if (bidangDivisi && bidangDivisi.value.includes('Agro')) {
-          const tglTanam = document.getElementById('tglTanam');
-          if (!tglTanam.value) errors.push({ id: 'tglTanam', text: 'Jadwal / Tanggal Tanam wajib diisi untuk Divisi Agro.' });
-        } else if (bidangDivisi && (bidangDivisi.value.includes('Ternak') || bidangDivisi.value.includes('Ikan'))) {
-          const tglCheckIn = document.getElementById('tglCheckInTebar');
-          if (!tglCheckIn.value) errors.push({ id: 'tglCheckInTebar', text: 'Jadwal / Tanggal Check-in / Tebar wajib diisi.' });
-        }
-
-        const tglPerkiraanPanen = document.getElementById('tglPerkiraanPanen');
-        if (!tglPerkiraanPanen.value) {
-          errors.push({ id: 'tglPerkiraanPanen', text: 'Jadwal / Perkiraan Tanggal Panen wajib diisi.' });
-        }
-      } else if (stepNum === 4) {
-        // Step 4 is optional — advancing with empty fields is allowed
+        if (!jenisKegiatan.value.trim()) errors.push({ id: 'jenisKegiatan', text: 'Kegiatan yang Dilakukan wajib diisi.' });
       } else if (stepNum === 5) {
         const photoInput = document.getElementById('photoInput');
         if ((!photoInput.files || photoInput.files.length === 0) && !photoBase64Data) {
@@ -637,10 +716,6 @@
         }
       }
 
-      // Re-verify conditional visibility across step transitions
-      const divVal = document.getElementById('bidangDivisi') ? document.getElementById('bidangDivisi').value : '';
-      handleDivisiChange(divVal);
-
       const summary = document.getElementById('errorSummary');
       if (summary) summary.style.display = 'none';
 
@@ -663,68 +738,90 @@
 
     function nextStep(fromStep) {
       if (!validateStep(fromStep)) return;
-      if (fromStep === 3) {
-        const isPanenVal = document.getElementById('apakahAdaPanenPenjualan') ? document.getElementById('apakahAdaPanenPenjualan').value : 'Tidak';
-        if (isPanenVal === 'Tidak') {
+      const val = document.getElementById('kegiatanTambahan') ? document.getElementById('kegiatanTambahan').value : 'Tidak ada';
+
+      if (fromStep === 1) {
+        if (val === 'Tanam atau Tebar') {
+          goToStep(2);
+          return;
+        } else if (val === 'Panen atau Penjualan') {
+          goToStep(3);
+          return;
+        } else {
           goToStep(5);
           return;
         }
+      } else if (fromStep === 2) {
+        goToStep(5);
+        return;
+      } else if (fromStep === 3) {
+        goToStep(4);
+        return;
       }
+
       goToStep(fromStep + 1);
     }
 
     function prevStep(fromStep) {
+      const val = document.getElementById('kegiatanTambahan') ? document.getElementById('kegiatanTambahan').value : 'Tidak ada';
+
       if (fromStep === 5) {
-        const isPanenVal = document.getElementById('apakahAdaPanenPenjualan') ? document.getElementById('apakahAdaPanenPenjualan').value : 'Tidak';
-        if (isPanenVal === 'Tidak') {
-          goToStep(3);
+        if (val === 'Tanam atau Tebar') {
+          goToStep(2);
+          return;
+        } else if (val === 'Panen atau Penjualan') {
+          goToStep(4);
+          return;
+        } else {
+          goToStep(1);
           return;
         }
+      } else if (fromStep === 2) {
+        goToStep(1);
+        return;
+      } else if (fromStep === 3) {
+        goToStep(1);
+        return;
       }
+
       goToStep(fromStep - 1);
     }
 
     function populateReviewSummary() {
       // Step 1
       document.getElementById('revNamaPic').innerText = document.getElementById('namaPic').value || '-';
+      document.getElementById('revBidangDivisi').innerText = document.getElementById('bidangDivisi').value || '-';
+      document.getElementById('revLokasiKegiatan').innerText = document.getElementById('lokasiKegiatan').value || '-';
+      document.getElementById('revPengawasan').innerText = document.getElementById('pengawasan').value || '-';
+      document.getElementById('revJenisKegiatan').innerText = document.getElementById('jenisKegiatan').value || '-';
 
       // Step 2
-      const divVal = document.getElementById('bidangDivisi').value;
-      document.getElementById('revBidangDivisi').innerText = divVal || '-';
-      document.getElementById('revLokasiKegiatan').innerText = document.getElementById('lokasiKegiatan').value || '-';
-      document.getElementById('revJenisKegiatan').innerText = document.getElementById('jenisKegiatan').value || '-';
-      document.getElementById('revTargetKegiatan').innerText = document.getElementById('targetKegiatan').value || '-';
+      document.getElementById('revStatusPengelolaan').innerText = document.getElementById('statusPengelolaan').value || '-';
+      document.getElementById('revKomoditas').innerText = document.getElementById('komoditas').value || '-';
+      document.getElementById('revLuasLahanM2').innerText = document.getElementById('luasLahanM2').value ? `${document.getElementById('luasLahanM2').value} m²` : '-';
+      document.getElementById('revJumlahBenih').innerText = document.getElementById('jumlahBenih').value || '-';
+      document.getElementById('revTglTanam').innerText = document.getElementById('tglTanam').value || '-';
+      document.getElementById('revEstimasiPanenHst').innerText = document.getElementById('estimasiPanenHst').value ? `${document.getElementById('estimasiPanenHst').value} HST` : '-';
 
       // Step 3
-      const revTanamGroup = document.getElementById('revGroupTglTanam');
-      const revCheckInGroup = document.getElementById('revGroupTglCheckIn');
-      if (divVal.includes('Agro')) {
-        if (revTanamGroup) revTanamGroup.style.display = 'flex';
-        if (revCheckInGroup) revCheckInGroup.style.display = 'none';
-        document.getElementById('revTglTanam').innerText = document.getElementById('tglTanam').value || '-';
-      } else if (divVal.includes('Ternak') || divVal.includes('Ikan')) {
-        if (revTanamGroup) revTanamGroup.style.display = 'none';
-        if (revCheckInGroup) revCheckInGroup.style.display = 'flex';
-        document.getElementById('revTglCheckIn').innerText = document.getElementById('tglCheckInTebar').value || '-';
-      } else {
-        if (revTanamGroup) revTanamGroup.style.display = 'none';
-        if (revCheckInGroup) revCheckInGroup.style.display = 'none';
-      }
-
-      document.getElementById('revTglPerkiraanPanen').innerText = document.getElementById('tglPerkiraanPanen').value || '-';
-      document.getElementById('revLuasAreaHa').innerText = document.getElementById('luasAreaHa').value ? `${document.getElementById('luasAreaHa').value} Ha` : '-';
-      document.getElementById('revJumlahPopulasi').innerText = document.getElementById('jumlahPopulasi').value ? `${document.getElementById('jumlahPopulasi').value}` : '-';
-      document.getElementById('revKodeKegiatanRef').innerText = document.getElementById('kodeKegiatanRef').value || '(Tidak ada - Siklus Baru)';
+      document.getElementById('revStatusPengelolaanPanen').innerText = document.getElementById('statusPengelolaanPanen').value || '-';
+      document.getElementById('revKomoditasPanen').innerText = document.getElementById('komoditasPanen').value || '-';
+      document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '-';
+      document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value} kg` : '-';
+      document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '-';
+      document.getElementById('revTujuanDistribusi').innerText = document.getElementById('tujuanDistribusi').value || '-';
 
       // Step 4
-      document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '(Nihil)';
-      document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value}` : '(Nihil)';
-      document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '(Nihil)';
-      document.getElementById('revHargaJual').innerText = document.getElementById('hargaJual').value ? `Rp ${parseFloat(document.getElementById('hargaJual').value).toLocaleString('id-ID')}` : '(Nihil)';
-      document.getElementById('revJumlahPenjualan').innerText = document.getElementById('jumlahPenjualanUnit').value ? `${document.getElementById('jumlahPenjualanUnit').value}` : '(Nihil)';
-      document.getElementById('revNilaiPenjualan').innerText = document.getElementById('nilaiPenjualanRp').value ? `Rp ${parseFloat(document.getElementById('nilaiPenjualanRp').value).toLocaleString('id-ID')}` : '(Nihil)';
+      document.getElementById('revJumlahPenjualanUnit').innerText = document.getElementById('jumlahPenjualanUnit').value || '-';
+      document.getElementById('revHargaSatuanRp').innerText = document.getElementById('hargaSatuanRp').value ? `Rp ${parseFloat(document.getElementById('hargaSatuanRp').value).toLocaleString('id-ID')}` : '-';
+      document.getElementById('revTotalHargaRp').innerText = document.getElementById('totalHargaRp').value ? `Rp ${parseFloat(document.getElementById('totalHargaRp').value).toLocaleString('id-ID')}` : '-';
+      document.getElementById('revJumlahUnitPenggunaan').innerText = document.getElementById('jumlahUnitPenggunaan').value || '-';
+
+      const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaan"]:checked')).map(c => c.value);
+      document.getElementById('revTujuanPenggunaan').innerText = checkedPenggunaan.length > 0 ? checkedPenggunaan.join(', ') : '-';
 
       // Step 5
+      document.getElementById('revCapaianKegiatan').innerText = document.getElementById('capaianKegiatan').value || '-';
       document.getElementById('revKendala').innerText = document.getElementById('kendala').value || '(Tidak ada kendala)';
       document.getElementById('revUpaya').innerText = document.getElementById('upaya').value || '(Tidak ada)';
       
@@ -773,12 +870,8 @@
     async function handleFormSubmit(e) {
       if (e) e.preventDefault();
       
-      // Full validation check across all steps 1-5 before submission
-      for (let s = 1; s <= 5; s++) {
-        if (!validateStep(s)) {
-          goToStep(s);
-          return;
-        }
+      if (!validateStep(1) || !validateStep(5)) {
+        return;
       }
 
       const submitBtn = document.getElementById('btnSubmitOperational');
@@ -787,24 +880,39 @@
         submitBtn.innerText = 'Mengirim Laporan...';
       }
 
+      const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaan"]:checked')).map(c => c.value);
+
       const payload = {
         namaPic: document.getElementById('namaPic').value,
         bidangDivisi: document.getElementById('bidangDivisi').value,
-        tglTanam: document.getElementById('tglTanam').value,
-        tglCheckInTebar: document.getElementById('tglCheckInTebar').value,
         lokasiKegiatan: document.getElementById('lokasiKegiatan').value,
         jenisKegiatan: document.getElementById('jenisKegiatan').value,
-        targetKegiatan: document.getElementById('targetKegiatan').value,
-        luasAreaHa: parseFloat(document.getElementById('luasAreaHa').value) || 0,
-        jumlahPopulasi: parseFloat(document.getElementById('jumlahPopulasi').value) || 0,
-        tglPerkiraanPanen: document.getElementById('tglPerkiraanPanen').value,
-        kodeKegiatanRef: document.getElementById('kodeKegiatanRef').value,
+        kegiatanTambahan: document.getElementById('kegiatanTambahan').value,
+        pengawasan: document.getElementById('pengawasan').value,
+
+        // Step 2: Tanam / Tebar
+        statusPengelolaan: document.getElementById('statusPengelolaan').value,
+        komoditas: document.getElementById('komoditas').value,
+        luasLahanM2: parseFloat(document.getElementById('luasLahanM2').value) || 0,
+        jumlahBenih: parseFloat(document.getElementById('jumlahBenih').value) || 0,
+        tglTanam: document.getElementById('tglTanam').value,
+        estimasiPanenHst: parseFloat(document.getElementById('estimasiPanenHst').value) || 0,
+
+        // Step 3 & 4: Panen & Penjualan
+        statusPengelolaanPanen: document.getElementById('statusPengelolaanPanen').value,
+        komoditasPanen: document.getElementById('komoditasPanen').value,
         tglPanen: document.getElementById('tglPanen').value,
         jumlahPanen: parseFloat(document.getElementById('jumlahPanen').value) || 0,
         tglPenjualan: document.getElementById('tglPenjualan').value,
-        hargaJual: parseFloat(document.getElementById('hargaJual').value) || 0,
+        tujuanDistribusi: document.getElementById('tujuanDistribusi').value,
         jumlahPenjualanUnit: parseFloat(document.getElementById('jumlahPenjualanUnit').value) || 0,
-        nilaiPenjualanRp: parseFloat(document.getElementById('nilaiPenjualanRp').value) || 0,
+        hargaSatuanRp: parseFloat(document.getElementById('hargaSatuanRp').value) || 0,
+        totalHargaRp: parseFloat(document.getElementById('totalHargaRp').value) || 0,
+        jumlahUnitPenggunaan: parseFloat(document.getElementById('jumlahUnitPenggunaan').value) || 0,
+        tujuanPenggunaan: checkedPenggunaan,
+
+        // Step 5: Capaian & Kendala
+        capaianKegiatan: document.getElementById('capaianKegiatan').value,
         kendala: document.getElementById('kendala').value,
         upaya: document.getElementById('upaya').value,
         photoBase64: photoBase64Data,
@@ -816,26 +924,7 @@
         if (isLiveServer()) {
           res = await runServer('submitOperationalReport', payload);
         } else {
-          // Local mock fallback
           const kodeGenerated = 'AGR-SIM-' + Date.now().toString().substring(8);
-          const flag = evaluateFlags(payload.jenisKegiatan + ' ' + payload.kendala);
-          const db = getDB();
-          if (!db.operationalReports) db.operationalReports = [];
-          db.operationalReports.unshift({
-            id: 'OP-' + Date.now(),
-            kodeKegiatan: kodeGenerated,
-            timestamp: formatDateNow(),
-            namaPic: payload.namaPic,
-            divisi: payload.bidangDivisi,
-            lokasi: payload.lokasiKegiatan,
-            jenisKegiatan: payload.jenisKegiatan,
-            targetKegiatan: payload.targetKegiatan,
-            severity: flag.severity,
-            rank: flag.rank,
-            category: flag.category,
-            reviewStatus: 'Unreviewed'
-          });
-          saveDB(db);
           res = { success: true, kodeKegiatan: kodeGenerated };
         }
 

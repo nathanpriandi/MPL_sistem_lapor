@@ -10,8 +10,8 @@ After running `setupReportingSystem()`, you must set the following properties in
 
 | Property Name | Example / Expected Value | Description |
 |---|---|---|
-| `ADMIN_EMAIL` | `admin.operasional@perusahaan-agri.co.id` | Receives urgent incident alerts and daily 17:00 WIB digests |
-| `MANAGER_EMAIL` | `general.manager@perusahaan-agri.co.id` | Receives weekly Monday 08:00 WIB executive summary digests |
+| `ADMIN_EMAIL` | `mpl.sisteminformasi@gmail.com` | Receives urgent incident alerts and daily 17:00 WIB digests |
+| `MANAGER_EMAIL` | `mpl.sisteminformasi@gmail.com` | Receives weekly Monday 08:00 WIB executive summary digests |
 | `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` |
 | `MAIN_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` for the unified Operational Form |
 | `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment A URL for the public field-staff portal. Set manually after Deployment A is created. |

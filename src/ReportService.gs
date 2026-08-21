@@ -70,7 +70,7 @@ const ReportService = {
     // Evaluate triage
     const flagText = [
       report.namaPic, report.bidangDivisi, report.lokasiKegiatan, 
-      report.jenisKegiatan, report.targetKegiatan, report.kendala, report.upaya
+      report.jenisKegiatan, report.capaianKegiatan, report.kendala, report.upaya
     ];
     const flag = TriageEngine.evaluate(flagText);
 

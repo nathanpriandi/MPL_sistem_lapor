@@ -16,14 +16,15 @@ const SpreadsheetRepository = {
    * @param {Sheet} adminQueueSheet 
    */
   setupSheetHeaders: function(mainSheet, adminQueueSheet) {
-    // 1. Operational Raw Sheet (26 columns schema)
+    // 1. Operational Raw Sheet (32 columns schema matching newest 2026 form)
     if (mainSheet) {
       const opHeaders = [
         'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-        'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Target_Kegiatan', 'Luas_Area_Ha', 'Jumlah_Populasi', 
-        'Tgl_Tanam', 'Tgl_CheckIn_Tebar', 'Tgl_Perkiraan_Panen', 'Tgl_Panen', 'Jumlah_Panen', 
-        'Tgl_Penjualan', 'Harga_Jual', 'Jumlah_Penjualan_Unit', 'Nilai_Penjualan_Rp', 'Kendala', 
-        'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+        'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Status_Pengelolaan', 
+        'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 'Estimasi_Panen_HST', 
+        'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 'Jumlah_Penjualan_Unit', 
+        'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 'Tujuan_Penggunaan', 
+        'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
       ];
       mainSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
       mainSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
@@ -205,18 +206,24 @@ const SpreadsheetRepository = {
       report.bidangDivisi || '',
       report.lokasiKegiatan || '',
       report.jenisKegiatan || '',
-      report.targetKegiatan || '',
-      report.luasAreaHa || '',
-      report.jumlahPopulasi || '',
+      report.kegiatanTambahan || '',
+      report.pengawasan || '',
+      report.statusPengelolaan || '',
+      report.komoditas || '',
+      report.luasLahanM2 || report.luasAreaHa || '',
+      report.jumlahBenih || '',
       report.tglTanam || '',
-      report.tglCheckInTebar || '',
-      report.tglPerkiraanPanen || '',
+      report.estimasiPanenHst || report.tglPerkiraanPanen || '',
       report.tglPanen || '',
       report.jumlahPanen || '',
       report.tglPenjualan || '',
-      report.hargaJual || '',
+      report.tujuanDistribusi || '',
       report.jumlahPenjualanUnit || '',
-      report.nilaiPenjualanRp || '',
+      report.hargaSatuanRp || report.hargaJual || '',
+      report.totalHargaRp || report.nilaiPenjualanRp || '',
+      report.jumlahUnitPenggunaan || '',
+      report.tujuanPenggunaan || '',
+      report.capaianKegiatan || '',
       report.kendala || '',
       report.upaya || '',
       report.fotoUrl || '',
@@ -297,9 +304,8 @@ const SpreadsheetRepository = {
             let divisi = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '-');
             let lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '-');
             let jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '');
-            let tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 14);
-            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
-            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
+            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
+            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
             let kendalaVal = String(this.getCellValue_(row, headerMap, 'Kendala', 20) || '');
             let upayaVal = String(this.getCellValue_(row, headerMap, 'Upaya', 21) || '');
 
@@ -309,10 +315,10 @@ const SpreadsheetRepository = {
               if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
               if (!ringkasan) ringkasan = 'Laporan Operasional';
 
-              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 22) || '');
-              let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 23) || ReportSeverity.NORMAL).toLowerCase();
-              let keywordsVal = String(this.getCellValue_(row, headerMap, 'Flagged_Keywords', 24) || '');
-              let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 25) || ReviewStatus.UNREVIEWED);
+              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 28) || '');
+              let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 29) || ReportSeverity.NORMAL).toLowerCase();
+              let keywordsVal = String(this.getCellValue_(row, headerMap, 'Flagged_Keywords', 30) || '');
+              let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 31) || ReviewStatus.UNREVIEWED);
 
               mergedQueue.push(QueueItem({
                 source: 'Operasional',

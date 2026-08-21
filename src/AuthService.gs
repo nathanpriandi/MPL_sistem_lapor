@@ -23,18 +23,23 @@ const AuthService = {
       Logger.log('AuthService Notice: Session.getActiveUser().getEmail() restricted/unavailable.');
     }
 
-    if (!userEmail) return null;
-
     const { effectiveAdmin, effectiveManager } = ConfigRepository.getEffectiveRoleEmails();
 
-    if (!effectiveAdmin && !effectiveManager) return null;
+    if (userEmail) {
+      const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
+      const isManager = effectiveManager && userEmail === effectiveManager;
 
-    const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
-    const isManager = effectiveManager && userEmail === effectiveManager;
+      if (isAdmin && isManager) return 'both';
+      if (isAdmin) return 'admin';
+      if (isManager) return 'manager';
+    }
 
-    if (isAdmin && isManager) return 'both';
-    if (isAdmin) return 'admin';
-    if (isManager) return 'manager';
+    // Explicit fallback: If accessing via Admin Deployment URL, grant internal access
+    const serviceUrl = this.getExecutingWebAppUrl_();
+    const adminDeploymentId = 'AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p';
+    if (serviceUrl && serviceUrl.includes(adminDeploymentId)) {
+      return 'both';
+    }
 
     return null;
   },
@@ -53,7 +58,7 @@ const AuthService = {
 
     const role = this.getUserRole();
     return {
-      email: userEmail,
+      email: userEmail || 'mpl.sisteminformasi@gmail.com',
       role: role,
       isAuthorized: !!role
     };
@@ -98,25 +103,23 @@ const AuthService = {
    */
   isInternalWebAppDeployment: function() {
     const serviceUrl = this.getExecutingWebAppUrl_();
-    const internalUrl = this.getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
+    const adminDeploymentId = 'AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p';
+    const publicDeploymentId = 'AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav';
 
-    if (!this.isValidWebAppUrl_(serviceUrl)) {
-      return false;
+    if (serviceUrl) {
+      if (serviceUrl.includes(adminDeploymentId)) {
+        return true;
+      }
+      if (serviceUrl.includes(publicDeploymentId)) {
+        return false;
+      }
     }
 
-    if (!internalUrl) {
-      // Fallback: If INTERNAL_WEB_APP_URL script property is unset, recognize deployment if active user has authorized role
-      return this.getUserRole() !== null;
+    if (this.getUserRole() !== null) {
+      return true;
     }
 
-    const serviceId = this.extractDeploymentId_(serviceUrl);
-    const internalId = this.extractDeploymentId_(internalUrl);
-
-    if (serviceId && internalId) {
-      return serviceId === internalId;
-    }
-
-    return this.normalizeWebAppUrl_(serviceUrl) === this.normalizeWebAppUrl_(internalUrl);
+    return false;
   },
 
   /**

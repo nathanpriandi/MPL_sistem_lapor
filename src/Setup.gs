@@ -84,95 +84,88 @@ function setupOperationalForm(ssId) {
   try { form.setCollectEmail(false); } catch (e) {}
   try { form.setRequireLogin(false); } catch (e) {}
 
-  // Page 1: Identitas Pelapor & Pilihan Divisi
+  // Page 1: Informasi Utama & Kegiatan
   form.addTextItem()
-    .setTitle('Nama PIC Lokasi')
-    .setHelpText('Masukkan nama penanggung jawab lokasi / pelapor')
+    .setTitle('Nama')
     .setRequired(true);
 
-  const divisiItem = form.addMultipleChoiceItem()
+  form.addMultipleChoiceItem()
     .setTitle('Divisi')
+    .setChoiceValues(['Agro', 'Ternak', 'Ikan', 'Lainnya'])
     .setRequired(true);
 
-  // Page 2: Branch Agro
-  const pageAgro = form.addPageBreakItem().setTitle('Divisi Agro');
-  form.addDateItem().setTitle('Jadwal/Tgl Tanam').setRequired(true);
-
-  // Page 3: Branch Ternak & Ikan
-  const pageTernakIkan = form.addPageBreakItem().setTitle('Divisi Ternak & Ikan');
-  form.addDateItem().setTitle('Jadwal/Tgl Check in/Tebar').setRequired(true);
-
-  // Page 4: Detail Kegiatan Lapangan
-  const pageDetail = form.addPageBreakItem().setTitle('Detail Kegiatan Lapangan');
-  pageAgro.setGoToPage(pageDetail);
-  pageTernakIkan.setGoToPage(pageDetail);
-
-  divisiItem.setChoices([
-    divisiItem.createChoice('Agro', pageAgro),
-    divisiItem.createChoice('Ternak', pageTernakIkan),
-    divisiItem.createChoice('Ikan', pageTernakIkan),
-    divisiItem.createChoice('Lainnya', pageDetail)
-  ]);
-
-  form.addTextItem()
+  form.addMultipleChoiceItem()
     .setTitle('Lokasi Kegiatan')
-    .setRequired(true);
-
-  form.addTextItem()
-    .setTitle('Jenis Kegiatan')
+    .setChoiceValues(['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'])
     .setRequired(true);
 
   form.addParagraphTextItem()
-    .setTitle('Target Kegiatan')
+    .setTitle('Kegiatan yang Dilakukan')
     .setRequired(true);
 
-  form.addTextItem()
-    .setTitle('Luas Area Kegiatan')
-    .setValidation(FormApp.createTextValidation().requireNumber().build());
+  form.addMultipleChoiceItem()
+    .setTitle('Kegiatan tambahan')
+    .setChoiceValues(['Tanam atau Tebar', 'Panen atau Penjualan']);
 
-  form.addTextItem()
-    .setTitle('Jumlah Populasi Tanaman/Bibit/Ternak')
-    .setValidation(FormApp.createTextValidation().requireNumber().build());
+  form.addMultipleChoiceItem()
+    .setTitle('Pengawasan')
+    .setChoiceValues(['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan']);
 
-  form.addDateItem().setTitle('Jadwal/Perkiraan Panen Tanggal').setRequired(true);
+  // Page 2: Kegiatan Tanam / Tebar
+  form.addPageBreakItem().setTitle('Kegiatan Tanam / Tebar');
+  form.addMultipleChoiceItem()
+    .setTitle('Status Pengelolaan')
+    .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan']);
 
-  // Branch Question for Harvest/Sales
-  const pagePanen = form.addPageBreakItem().setTitle('Data Panen & Penjualan');
-  const pageKendala = form.addPageBreakItem().setTitle('Kendala & Catatan Pelaporan');
+  form.addMultipleChoiceItem()
+    .setTitle('Komoditas')
+    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian']);
 
-  const isPanenItem = form.addMultipleChoiceItem()
-    .setTitle('Apakah Melakukan Kegiatan Panen/Penjualan ?')
-    .setChoices([
-      form.createChoice ? form.createChoice('Ya', pagePanen) : isPanenItem.createChoice('Ya', pagePanen),
-      form.createChoice ? form.createChoice('Tidak', pageKendala) : isPanenItem.createChoice('Tidak', pageKendala)
-    ]);
+  form.addTextItem().setTitle('Luas Lahan (m²)');
+  form.addTextItem().setTitle('Jumlah Benih yang Digunakan');
+  form.addDateItem().setTitle('Tanggal Tanam / Tebar');
+  form.addTextItem().setTitle('Estimasi Panen (Hari Setelah Tanam / HST)');
 
-  pageDetail.setGoToPage(pagePanen);
+  // Page 3: Kegiatan Panen & Penjualan
+  form.addPageBreakItem().setTitle('Kegiatan Panen & Penjualan');
+  form.addMultipleChoiceItem()
+    .setTitle('Status Pengelolaan')
+    .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan']);
 
-  // Page 5: Data Panen & Penjualan
-  pagePanen.setGoToPage(pageKendala);
+  form.addMultipleChoiceItem()
+    .setTitle('Komoditas')
+    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian']);
+
+  form.addTextItem().setTitle('Luas Lahan (m²)');
   form.addDateItem().setTitle('Tanggal Panen');
-  form.addTextItem()
-    .setTitle('Jumlah Panen')
-    .setValidation(FormApp.createTextValidation().requireNumber().build());
-  form.addDateItem().setTitle('Tgl Penjualan');
-  form.addTextItem()
-    .setTitle('Harga Jual')
-    .setValidation(FormApp.createTextValidation().requireNumber().build());
-  form.addTextItem()
-    .setTitle('Jumlah Penjualan Unit')
-    .setValidation(FormApp.createTextValidation().requireNumber().build());
-  form.addTextItem()
-    .setTitle('Nilai Penjualan Rp')
-    .setValidation(FormApp.createTextValidation().requireNumber().build());
+  form.addTextItem().setTitle('Jumlah Panen (kg)');
+  form.addDateItem().setTitle('Tanggal Penjualan');
+  form.addMultipleChoiceItem()
+    .setTitle('Tujuan Distribusi')
+    .setChoiceValues(['Penjualan eksternal', 'Penjualan internal', 'Penggunaan']);
+
+  // Page 4: Detail Penjualan
+  form.addSectionHeaderItem().setTitle('Detail Penjualan');
+  form.addTextItem().setTitle('Jumlah Penjualan Unit');
+  form.addTextItem().setTitle('Harga Satuan (Rp)');
+  form.addTextItem().setTitle('Total Harga');
+
+  // Page 5: Detail Penggunaan
+  form.addSectionHeaderItem().setTitle('Detail Penggunaan');
+  form.addTextItem().setTitle('Jumlah Unit Penggunaan');
+  form.addCheckboxItem()
+    .setTitle('Tujuan Penggunaan')
+    .setChoiceValues(['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih']);
 
   // Page 6: Kendala & Catatan Pelaporan
+  form.addSectionHeaderItem().setTitle('Kendala & Catatan Pelaporan');
+  form.addParagraphTextItem().setTitle('Capaian Kegiatan');
   form.addParagraphTextItem().setTitle('Kendala Kegiatan (jika ada)');
   form.addParagraphTextItem().setTitle('Upaya Yang Dilakukan (jika ada)');
 
   form.addSectionHeaderItem()
     .setTitle('Catatan Bukti Foto')
-    .setHelpText('Untuk melampirkan foto bukti kegiatan (Wajib), gunakan Formulir Web App.');
+    .setHelpText('Untuk melampirkan foto bukti kegiatan, gunakan Formulir Web App.');
 
   form.setDestination(FormApp.DestinationType.SPREADSHEET, ssId);
   Logger.log('Operational Form Published URL: ' + form.getPublishedUrl());

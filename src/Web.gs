@@ -33,13 +33,11 @@ function doGet(e) {
   let file = allowed[pageParam];
 
   // Default landing page when no explicit ?page= parameter is provided.
-  // On Deployment B (Internal Console), defaults to role-appropriate view (dashboard for manager, admin for admin/both).
-  // On Deployment A (Public Portal), ALWAYS defaults to 'index' (Daily Form) for all visitors, preventing false access blocks.
+  // On Admin Deployment (isInternalDeployment === true), defaults to 'admin' or 'dashboard'.
+  // On Public Deployment, defaults to 'index' (Daily Operational Form).
   if (!file) {
-    if (isInternalDeployment && userRole === 'manager') {
-      file = 'dashboard';
-    } else if (isInternalDeployment && userRole) {
-      file = 'admin';
+    if (isInternalDeployment) {
+      file = (userRole === 'manager') ? 'dashboard' : 'admin';
     } else {
       file = 'index';
     }
@@ -49,8 +47,7 @@ function doGet(e) {
   if ((file === 'admin' || file === 'dashboard' || file === 'forms') && !isInternalDeployment) {
     return renderAccessRestricted(
       'Akses Internal Console Tidak Tersedia di Deployment Ini',
-      'Halaman Internal Console (Admin Queue, Dashboard Manajer, dan Manajemen Form) hanya tersedia melalui Deployment B. ' +
-      'Gunakan tautan internal resmi yang memiliki akses Google account.'
+      'Halaman Internal Console (Admin Queue, Dashboard Manajer, dan Manajemen Form) hanya tersedia melalui Deployment Admin.'
     );
   }
 

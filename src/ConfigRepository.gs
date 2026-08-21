@@ -9,8 +9,8 @@
 
 const ConfigRepository = {
   // Default system fallback constants
-  PLACEHOLDER_ADMIN: 'admin.operasional@perusahaan-agri.co.id',
-  PLACEHOLDER_MANAGER: 'manager.operasional@perusahaan-agri.co.id',
+  PLACEHOLDER_ADMIN: 'mpl.sisteminformasi@gmail.com',
+  PLACEHOLDER_MANAGER: 'mpl.sisteminformasi@gmail.com',
   DEFAULT_RETENTION_DAYS: 90,
 
   /**
