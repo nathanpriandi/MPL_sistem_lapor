@@ -26,7 +26,7 @@
         </div>
       </div>
 
-      <form id="operationalForm" onsubmit="handleFormSubmit(event)" novalidate>
+      <form id="operationalForm" novalidate>
         <!-- Error Summary Alert Box -->
         <div id="errorSummary" class="error-summary" style="display: none;">
           <div class="error-summary-title">
@@ -770,8 +770,8 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    document.getElementById('operationalForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+    async function handleFormSubmit(e) {
+      if (e) e.preventDefault();
       
       // Full validation check across all steps 1-5 before submission
       for (let s = 1; s <= 5; s++) {
@@ -782,8 +782,10 @@
       }
 
       const submitBtn = document.getElementById('btnSubmitOperational');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Mengirim Laporan...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Mengirim Laporan...';
+      }
 
       const payload = {
         namaPic: document.getElementById('namaPic').value,
@@ -849,10 +851,19 @@
         console.error('Submit error:', err);
         showToast(err.message || 'Gagal mengirim laporan. Periksa koneksi Anda.', 'error');
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Kirim Laporan Operasional';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Kirim Laporan Operasional';
+        }
       }
-    });
+    }
+
+    window.handleFormSubmit = handleFormSubmit;
+
+    const formEl = document.getElementById('operationalForm');
+    if (formEl) {
+      formEl.addEventListener('submit', handleFormSubmit);
+    }
   </script>
 </body>
 </html>

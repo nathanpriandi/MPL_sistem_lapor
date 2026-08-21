@@ -264,29 +264,30 @@ const FormManagementService = {
    * @returns {Folder}
    */
   provisionPhotoFolder_: function(title, formId) {
-    const parentFolderName = 'Reporting System Photos';
-    let parentFolder;
     try {
+      if (typeof DriveApp === 'undefined') return null;
+
+      const parentFolderName = 'Reporting System Photos';
+      let parentFolder;
       const folderIter = DriveApp.getFoldersByName(parentFolderName);
       if (folderIter.hasNext()) {
         parentFolder = folderIter.next();
       } else {
         parentFolder = DriveApp.createFolder(parentFolderName);
       }
-    } catch (e) {
-      parentFolder = DriveApp.getRootFolder();
-    }
 
-    const shortId = String(formId || Date.now()).substring(0, 8);
-    const cleanTitle = (title || 'Form Laporan').trim();
-    const subFolderName = `${cleanTitle} Photos (${shortId})`;
+      if (!parentFolder) return null;
 
-    try {
+      const shortId = String(formId || Date.now()).substring(0, 8);
+      const cleanTitle = (title || 'Form Laporan').trim();
+      const subFolderName = `${cleanTitle} Photos (${shortId})`;
+
       const subIter = parentFolder.getFoldersByName(subFolderName);
       if (subIter.hasNext()) return subIter.next();
       return parentFolder.createFolder(subFolderName);
     } catch (e) {
-      return parentFolder;
+      Logger.log('FormManagementService Notice: DriveApp photo folder creation skipped: ' + e.toString());
+      return null;
     }
   },
 

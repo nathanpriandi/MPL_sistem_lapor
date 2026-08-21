@@ -41,10 +41,13 @@ const AdminService = {
    * @returns {{ publicWebAppUrl: string }}
    */
   getAdminQuickLinks: function() {
-    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
+    const canonicalUrl = AuthService.getCanonicalWebAppUrl();
+    const publicUrl = (canonicalUrl && canonicalUrl.includes('script.google.com'))
+      ? `${canonicalUrl.split('?')[0]}?page=index`
+      : '';
 
     return {
-      publicWebAppUrl: publicWebAppUrl ? (publicWebAppUrl.includes('?') ? publicWebAppUrl : `${publicWebAppUrl}?page=index`) : ''
+      publicWebAppUrl: publicUrl
     };
   },
 

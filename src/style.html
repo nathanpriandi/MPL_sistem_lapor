@@ -2274,6 +2274,62 @@ thead.table-scrolled th {
   background: #F0FDF4;
   color: #166534;
 }
+
+/* Phase 16 — Print Styles for Executive Weekly Report */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+  }
+
+  .sidebar,
+  .sidebar-overlay,
+  .topbar-internal,
+  .no-print,
+  .btn,
+  .button-group-flex,
+  .segmented-control,
+  .modal-overlay,
+  #toastContainer {
+    display: none !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .container-wide {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    page-break-inside: avoid;
+    margin-bottom: 1rem !important;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  .metric-card {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 0.5rem !important;
+    min-height: auto !important;
+  }
+
+  .dashboard-two-col {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1rem !important;
+  }
+}
 </style>
 
 

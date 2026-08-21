@@ -111,6 +111,10 @@ function QueueItem(data) {
     category: data.category || ReportCategory.ROUTINE,
     reviewStatus: data.reviewStatus || ReviewStatus.UNREVIEWED,
     photoUrl: data.photoUrl || '',
+    jumlahPanen: parseFloat(data.jumlahPanen) || 0,
+    nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
+    kendala: data.kendala || '',
+    upaya: data.upaya || '',
     raw: data.raw || null
   };
 }

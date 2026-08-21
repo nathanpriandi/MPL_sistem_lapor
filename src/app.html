@@ -367,7 +367,7 @@ async function loadQuickLinks() {
   if (isLiveServer()) {
     try {
       const links = await runServer('getAdminQuickLinks');
-      if (links && links.publicWebAppUrl) {
+      if (links && links.publicWebAppUrl && links.publicWebAppUrl.includes('script.google.com')) {
         publicUrl = links.publicWebAppUrl;
       }
     } catch (e) {
@@ -375,8 +375,13 @@ async function loadQuickLinks() {
     }
   }
 
-  if (!publicUrl && window.SERVER_WEB_APP_URL) {
-    publicUrl = `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index`;
+  if (!publicUrl || !publicUrl.includes('script.google.com')) {
+    const rawUrl = (window.SERVER_WEB_APP_URL && window.SERVER_WEB_APP_URL.includes('script.google.com'))
+      ? window.SERVER_WEB_APP_URL
+      : (typeof window !== 'undefined' && window.location ? window.location.href : '');
+    if (rawUrl && rawUrl.includes('script.google.com')) {
+      publicUrl = `${rawUrl.split('?')[0]}?page=index`;
+    }
   }
 
   let linksHtml = '';
@@ -461,5 +466,183 @@ async function loadDiagnostics() {
   }
 
   container.innerText = 'Build Release : v2.5.0-phase15 (2026-08-20)\nLocal Mode Preview — Server diagnostics live di Google Apps Script.';
+}
+
+/**
+ * Shared Period Summary & Date Range Helpers (Guards against numeric drift)
+ */
+function formatDateISO(d) {
+  if (!d || isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getPeriodDateRanges(periodKey, customStart = '', customEnd = '') {
+  const now = new Date();
+  
+  if (periodKey === 'last_week') {
+    const dayOfWeek = now.getDay();
+    const distToMon = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    const thisMon = new Date(now);
+    thisMon.setDate(now.getDate() - distToMon);
+    
+    const lastMon = new Date(thisMon);
+    lastMon.setDate(thisMon.getDate() - 7);
+    const lastSun = new Date(thisMon);
+    lastSun.setDate(thisMon.getDate() - 1);
+    
+    const priorMon = new Date(lastMon);
+    priorMon.setDate(lastMon.getDate() - 7);
+    const priorSun = new Date(lastMon);
+    priorSun.setDate(lastMon.getDate() - 1);
+
+    return {
+      startDate: formatDateISO(lastMon),
+      endDate: formatDateISO(lastSun),
+      prevStartDate: formatDateISO(priorMon),
+      prevEndDate: formatDateISO(priorSun),
+      label: 'Minggu Lalu'
+    };
+  } else if (periodKey === 'this_month') {
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    
+    const start = new Date(curYear, curMonth, 1);
+    const end = new Date(curYear, curMonth + 1, 0);
+    
+    const prevStart = new Date(curYear, curMonth - 1, 1);
+    const prevEnd = new Date(curYear, curMonth, 0);
+    
+    return {
+      startDate: formatDateISO(start),
+      endDate: formatDateISO(end),
+      prevStartDate: formatDateISO(prevStart),
+      prevEndDate: formatDateISO(prevEnd),
+      label: 'Bulan Ini'
+    };
+  } else if (periodKey === 'custom') {
+    let startD = customStart ? new Date(customStart) : new Date(now.getFullYear(), now.getMonth(), 1);
+    let endD = customEnd ? new Date(customEnd) : new Date();
+    if (isNaN(startD.getTime())) startD = new Date();
+    if (isNaN(endD.getTime())) endD = new Date();
+    if (startD > endD) { const tmp = startD; startD = endD; endD = tmp; }
+    
+    const diffTime = Math.abs(endD - startD);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    const prevEndD = new Date(startD);
+    prevEndD.setDate(startD.getDate() - 1);
+    
+    const prevStartD = new Date(prevEndD);
+    prevStartD.setDate(prevEndD.getDate() - diffDays + 1);
+    
+    return {
+      startDate: formatDateISO(startD),
+      endDate: formatDateISO(endD),
+      prevStartDate: formatDateISO(prevStartD),
+      prevEndDate: formatDateISO(prevEndD),
+      label: 'Kustom'
+    };
+  } else {
+    // Default: 'this_week'
+    const dayOfWeek = now.getDay();
+    const distToMon = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    const thisMon = new Date(now);
+    thisMon.setDate(now.getDate() - distToMon);
+    const thisSun = new Date(thisMon);
+    thisSun.setDate(thisMon.getDate() + 6);
+    
+    const lastMon = new Date(thisMon);
+    lastMon.setDate(thisMon.getDate() - 7);
+    const lastSun = new Date(thisMon);
+    lastSun.setDate(thisMon.getDate() - 1);
+    
+    return {
+      startDate: formatDateISO(thisMon),
+      endDate: formatDateISO(thisSun),
+      prevStartDate: formatDateISO(lastMon),
+      prevEndDate: formatDateISO(lastSun),
+      label: 'Minggu Ini'
+    };
+  }
+}
+
+function computePeriodSummary(rows, startDateStr, endDateStr) {
+  const filtered = [];
+  const unresolvedKendalaRows = [];
+  
+  let totalPanen = 0;
+  let totalNilaiPenjualan = 0;
+  
+  const locationsMap = {};
+  
+  const divisionStats = {
+    Agro: { name: 'Agro (Pertanian/Perkebunan)', count: 0, panen: 0, sales: 0 },
+    Ternak: { name: 'Ternak (Peternakan)', count: 0, panen: 0, sales: 0 },
+    Ikan: { name: 'Ikan (Perikanan)', count: 0, panen: 0, sales: 0 }
+  };
+
+  function normalizeDivKey(divStr) {
+    const s = String(divStr || '').toLowerCase();
+    if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian') || s.includes('perkebunan')) return 'Agro';
+    if (s.includes('ternak') || s.includes('kandang') || s.includes('peternakan')) return 'Ternak';
+    if (s.includes('ikan') || s.includes('kolam') || s.includes('tambak') || s.includes('perikanan')) return 'Ikan';
+    return 'Agro';
+  }
+
+  (rows || []).forEach(item => {
+    let itemDate = '';
+    if (item.timestamp) {
+      itemDate = String(item.timestamp).split(' ')[0];
+    }
+    
+    if (startDateStr && itemDate < startDateStr) return;
+    if (endDateStr && itemDate > endDateStr) return;
+    
+    filtered.push(item);
+    
+    const panenVal = parseFloat(item.jumlahPanen || (item.raw ? item.raw[15] : 0)) || 0;
+    const salesVal = parseFloat(item.nilaiPenjualanRp || (item.raw ? item.raw[19] : 0)) || 0;
+    
+    totalPanen += panenVal;
+    totalNilaiPenjualan += salesVal;
+    
+    const divKey = normalizeDivKey(item.divisi);
+    if (divisionStats[divKey]) {
+      divisionStats[divKey].count++;
+      divisionStats[divKey].panen += panenVal;
+      divisionStats[divKey].sales += salesVal;
+    }
+    
+    const loc = String(item.lokasi || item.site || '').trim();
+    if (loc && loc !== '-') {
+      const locKey = loc.toLowerCase();
+      if (!locationsMap[locKey]) {
+        locationsMap[locKey] = loc;
+      }
+    }
+    
+    const reviewStatus = String(item.reviewStatus || 'Unreviewed');
+    const kendalaText = String(item.kendala || (item.raw ? item.raw[20] : '') || '').trim();
+    const upayaText = String(item.upaya || (item.raw ? item.raw[21] : '') || '').trim();
+    
+    const isUnresolved = (reviewStatus !== 'Closed') || (kendalaText !== '' && upayaText === '');
+    if (isUnresolved) {
+      unresolvedKendalaRows.push(item);
+    }
+  });
+
+  return {
+    totalLaporan: filtered.length,
+    totalPanen: totalPanen,
+    totalNilaiPenjualan: totalNilaiPenjualan,
+    unresolvedCount: unresolvedKendalaRows.length,
+    unresolvedRows: unresolvedKendalaRows,
+    locationsMap: locationsMap,
+    divisionStats: divisionStats,
+    rows: filtered
+  };
 }
 </script>

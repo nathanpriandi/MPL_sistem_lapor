@@ -100,8 +100,13 @@ const AuthService = {
     const serviceUrl = this.getExecutingWebAppUrl_();
     const internalUrl = this.getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
 
-    if (!this.isValidWebAppUrl_(serviceUrl) || !internalUrl) {
+    if (!this.isValidWebAppUrl_(serviceUrl)) {
       return false;
+    }
+
+    if (!internalUrl) {
+      // Fallback: If INTERNAL_WEB_APP_URL script property is unset, recognize deployment if active user has authorized role
+      return this.getUserRole() !== null;
     }
 
     const serviceId = this.extractDeploymentId_(serviceUrl);

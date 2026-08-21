@@ -300,6 +300,8 @@ const SpreadsheetRepository = {
             let tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 14);
             let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
             let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
+            let kendalaVal = String(this.getCellValue_(row, headerMap, 'Kendala', 20) || '');
+            let upayaVal = String(this.getCellValue_(row, headerMap, 'Upaya', 21) || '');
 
             if (reportId || kodeKegiatan !== '-' || namaPic !== '-') {
               let ringkasan = jenis;
@@ -326,6 +328,10 @@ const SpreadsheetRepository = {
                 rank: severityVal === ReportSeverity.URGENT ? 1 : (severityVal === ReportSeverity.WARNING ? 2 : 3),
                 category: keywordsVal ? keywordsVal : 'ROUTINE',
                 reviewStatus: reviewStatusVal,
+                jumlahPanen: jumlahPanen,
+                nilaiPenjualanRp: nilaiPenjualan,
+                kendala: kendalaVal,
+                upaya: upayaVal,
                 raw: row
               }));
             }

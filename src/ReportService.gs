@@ -113,18 +113,25 @@ const ReportService = {
    * @returns {string} File public view URL.
    */
   uploadReportAttachment: function(base64Data, mimeType, formId) {
-    if (!base64Data) throw new Error('Blob data foto tidak boleh kosong.');
+    if (!base64Data) return '';
     
-    const forms = FormManagementService.getFormList();
-    const form = forms.find(f => f.id === formId) || { title: 'Form Laporan Operasional', id: formId || 'OPERATIONAL' };
-    const targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
+    try {
+      if (typeof DriveApp === 'undefined') return '';
 
-    const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
-    const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
-    const file = targetFolder.createFile(blob);
-    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e) {}
+      const forms = FormManagementService.getFormList();
+      const form = forms.find(f => f.id === formId) || { title: 'Form Laporan Operasional', id: formId || 'OPERATIONAL' };
+      const targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
+      if (!targetFolder) return '';
 
-    return file.getUrl();
+      const cleanBase64 = String(base64Data).replace(/^data:image\/\w+;base64,/, '');
+      const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
+      const file = targetFolder.createFile(blob);
+
+      return file ? file.getUrl() : '';
+    } catch (e) {
+      Logger.log('ReportService Notice: Drive photo upload unavailable: ' + e.toString());
+      return '';
+    }
   },
 
   /**

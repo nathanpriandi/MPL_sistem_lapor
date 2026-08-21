@@ -43,11 +43,188 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <div class="card">
+        <!-- EXECUTIVE HEADER & PERIOD CONTROL STRIP (Task 1 & Task 6) -->
+        <div class="flex-between-wrap print-header-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+              <h1 class="card-title" style="margin-bottom: 0; line-height: 1.25;">Antrean Admin &amp; Laporan Mingguan</h1>
+              <span class="period-badge" id="execPeriodBadge">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Periode: <strong id="execPeriodLabel">Minggu Ini</strong></span>
+              </span>
+            </div>
+            <p class="card-subtitle" style="margin-bottom: 0;">Ringkasan eksekutif mingguan, evaluasi pencapaian divisi, dan daftar kendala operasional yang membutuhkan penanganan.</p>
+          </div>
+
+          <!-- Task 1 Period Control + Task 6 Report Summary Actions -->
+          <div class="no-print" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+            <div class="button-group-flex" style="align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+              <div class="segmented-control" role="tablist" aria-label="Filter Periode Eksekutif">
+                <button class="segmented-item active" onclick="setExecutivePeriod('this_week', this)" id="periodBtn-this_week">Minggu Ini</button>
+                <button class="segmented-item" onclick="setExecutivePeriod('last_week', this)" id="periodBtn-last_week">Minggu Lalu</button>
+                <button class="segmented-item" onclick="setExecutivePeriod('this_month', this)" id="periodBtn-this_month">Bulan Ini</button>
+                <button class="segmented-item" onclick="setExecutivePeriod('custom', this)" id="periodBtn-custom">Kustom</button>
+              </div>
+
+              <button class="btn btn-secondary table-btn-sm" onclick="openExecutiveReportSummary()" title="Buka Ringkasan Periode untuk Cetak/Salin Report Manajer" style="display: inline-flex; align-items: center; gap: 0.35rem; width: auto;">
+                <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <span>Ringkasan Periode</span>
+              </button>
+            </div>
+
+            <!-- Task 1 Custom Date Range Pickers (hidden by default) -->
+            <div id="execCustomDateBar" style="display: none; align-items: center; gap: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm);">
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Dari:</span>
+              <input type="date" id="execCustomStartDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="updateExecutiveStats()">
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">s/d:</span>
+              <input type="date" id="execCustomEndDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="updateExecutiveStats()">
+            </div>
+          </div>
+        </div>
+
+        <!-- TASK 2: EXECUTIVE KPI STRIP -->
+        <div class="metrics-grid print-section" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">
+          <!-- 1. Total Laporan -->
+          <div class="metric-card">
+            <span class="metric-label">Total Laporan</span>
+            <span class="metric-value" id="kpiExecTotalLaporan">0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendTotalLaporan">
+              <span id="trendIconTotalLaporan">▲</span> <span id="trendTextTotalLaporan">vs periode lalu</span>
+            </span>
+          </div>
+
+          <!-- 2. Total Panen -->
+          <div class="metric-card">
+            <div>
+              <span class="metric-label">Total Hasil Panen</span>
+              <span class="metric-sublabel" style="margin-top: 0;">Satuan: Kg/Unit</span>
+            </div>
+            <span class="metric-value" id="kpiExecTotalPanen" style="font-size: 1.6rem;">0 Kg/Unit</span>
+            <span class="metric-trend metric-trend-neutral" id="trendTotalPanen">
+              <span id="trendIconTotalPanen">▲</span> <span id="trendTextTotalPanen">vs periode lalu</span>
+            </span>
+          </div>
+
+          <!-- 3. Total Nilai Penjualan -->
+          <div class="metric-card">
+            <span class="metric-label">Total Nilai Penjualan</span>
+            <span class="metric-value" id="kpiExecTotalSales" style="font-size: 1.4rem; word-break: break-all;">Rp 0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendTotalSales">
+              <span id="trendIconTotalSales">▲</span> <span id="trendTextTotalSales">vs periode lalu</span>
+            </span>
+          </div>
+
+          <!-- 4. Kendala Belum Ditangani -->
+          <div class="metric-card">
+            <span class="metric-label">Kendala Belum Ditangani</span>
+            <span class="metric-value metric-value-urgent" id="kpiExecKendalaCount">0</span>
+            <span class="metric-trend metric-trend-neutral" id="trendKendalaCount">
+              <span id="trendIconKendalaCount">▼</span> <span id="trendTextKendalaCount">vs periode lalu</span>
+            </span>
+          </div>
+
+          <!-- 5. Cakupan Lokasi -->
+          <div class="metric-card" title="Kecocokan nama lokasi yang melapor dibanding periode lalu (pendekatan perkiraan)">
+            <span class="metric-label">Cakupan Lokasi</span>
+            <span class="metric-value" id="kpiExecCoverageFraction" style="font-size: 1.3rem;">0 dari 0</span>
+            <span class="metric-sublabel" id="kpiExecCoverageSub" style="font-size: 0.725rem; color: var(--text-muted);">Perkiraan vs periode lalu</span>
+          </div>
+        </div>
+
+        <!-- TASK 3 & TASK 5: DIVISION COMPARISON & COVERAGE APPROXIMATION -->
+        <div class="dashboard-two-col print-section" style="margin-bottom: 1.5rem;">
+          
+          <!-- Task 3: Division Comparison Block -->
+          <div class="card" style="margin-bottom: 0;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              <span>Perbandingan Performa Divisi (Periode Ini)</span>
+            </h3>
+            
+            <div class="kpi-division-grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.6rem;">
+              <!-- Agro -->
+              <div class="kpi-division-item" style="padding: 0.65rem 0.5rem; text-align: left;">
+                <span class="kpi-division-name" style="color: #15803D; display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+                  Agro
+                </span>
+                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.2rem;">
+                  <div>Laporan: <strong id="divCountAgro" style="color: var(--text-primary);">0</strong></div>
+                  <div>Panen: <strong id="divPanenAgro" style="color: var(--text-primary);">0 Kg</strong></div>
+                  <div>Sales: <strong id="divSalesAgro" style="color: var(--text-primary);">Rp 0</strong></div>
+                </div>
+              </div>
+
+              <!-- Ternak -->
+              <div class="kpi-division-item" style="padding: 0.65rem 0.5rem; text-align: left;">
+                <span class="kpi-division-name" style="color: #D97706; display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
+                  Ternak
+                </span>
+                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.2rem;">
+                  <div>Laporan: <strong id="divCountTernak" style="color: var(--text-primary);">0</strong></div>
+                  <div>Panen: <strong id="divPanenTernak" style="color: var(--text-primary);">0 Ekor</strong></div>
+                  <div>Sales: <strong id="divSalesTernak" style="color: var(--text-primary);">Rp 0</strong></div>
+                </div>
+              </div>
+
+              <!-- Ikan -->
+              <div class="kpi-division-item" style="padding: 0.65rem 0.5rem; text-align: left;">
+                <span class="kpi-division-name" style="color: #2563EB; display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
+                  Ikan
+                </span>
+                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.2rem;">
+                  <div>Laporan: <strong id="divCountIkan" style="color: var(--text-primary);">0</strong></div>
+                  <div>Panen: <strong id="divPanenIkan" style="color: var(--text-primary);">0 Kg</strong></div>
+                  <div>Sales: <strong id="divSalesIkan" style="color: var(--text-primary);">Rp 0</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Task 5: Coverage Approximation Breakdown -->
+          <div class="card" style="margin-bottom: 0;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; display: flex; align-items: center; gap: 0.5rem;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Status Cakupan &amp; Keaktifan Lokasi</span>
+            </h3>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+              Berdasarkan kecocokan nama lokasi — varian penulisan mungkin tidak terdeteksi.
+            </p>
+            
+            <div id="coverageBreakdownBox" style="font-size: 0.825rem; color: var(--text-secondary);">
+              <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem;" id="coverageHeadline">
+                Memuat data lokasi...
+              </div>
+              <div id="missingLocationsContainer">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASK 4: EXCEPTION LIST (Kendala Belum Ditangani) -->
+        <div class="card print-section" style="margin-bottom: 1.5rem;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.75rem;">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--urgent); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Daftar Kendala Belum Ditangani (Periode Ini)</span>
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="exceptionCountTag">0 Laporan</span>
+          </div>
+
+          <div class="attention-container" id="exceptionListBody" style="max-height: 360px;">
+            <!-- Exception cards rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- BOTTOM TIER: WORKING OPERATIONAL DETAIL TABLE (UNCHANGED CORE LOGIC) -->
+        <div class="card no-print">
           <div class="flex-between-wrap">
             <div>
-              <h1 class="card-title">Antrean Triage Admin</h1>
-              <p class="card-subtitle">Laporan operasional yang memerlukan peninjauan, disortir berdasarkan tingkat keparahan.</p>
+              <h2 class="card-title" style="font-size: 1.05rem;">Rincian Log Antrean Operasional</h2>
+              <p class="card-subtitle">Semua laporan yang masuk, filterable dan dapat diunduh sebagai file CSV audit.</p>
             </div>
             <div class="button-group-flex" style="align-items: center;">
               <!-- Segmented Control for Quick Filters -->
@@ -199,18 +376,31 @@
     </div>
   </div>
 
-  <!-- Report Detail Modal -->
-  <div id="reportDetailModal" class="modal-overlay" hidden>
-    <div class="modal-container" style="max-width: 680px;">
+  <!-- Executive Report Summary Print / Copy Modal (Task 6) -->
+  <div id="execReportSummaryModal" class="modal-overlay" hidden>
+    <div class="modal-container" style="max-width: 720px;">
       <div class="modal-header">
-        <h3 class="modal-title">Detail Laporan Operasional</h3>
-        <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Ringkasan Periode Eksekutif</span>
+        </h3>
+        <button class="modal-close" onclick="closeExecutiveReportSummary()">&times;</button>
       </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Rendered dynamically -->
+      <div class="modal-body" id="execReportSummaryBody" style="max-height: 65vh; overflow-y: auto;">
+        <!-- Populated dynamically -->
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary table-btn-sm" onclick="closeDetailModal()">Tutup</button>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-secondary table-btn-sm" onclick="copyExecutiveSummaryText()" style="width: auto;">
+          <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Salin Ringkasan Text</span>
+        </button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary table-btn-sm" onclick="closeExecutiveReportSummary()" style="width: auto;">Tutup</button>
+          <button class="btn btn-primary table-btn-sm" onclick="triggerExecutivePrint()" style="width: auto;">
+            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>Cetak / Export PDF</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -363,6 +553,10 @@
               category: r.category,
               reviewStatus: r.reviewStatus,
               photoUrl: r.photoUrl || '',
+              jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[15] : 0)) || 0,
+              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[19] : 0)) || 0,
+              kendala: r.kendala || (r.raw ? String(r.raw[20] || '') : ''),
+              upaya: r.upaya || (r.raw ? String(r.raw[21] || '') : ''),
               raw: r.raw || null,
               isSensitive: String(r.source).includes('Sensitive')
             });
@@ -387,6 +581,11 @@
             rank: r.rank || 3,
             category: r.category || 'ROUTINE',
             reviewStatus: r.reviewStatus || 'Unreviewed',
+            photoUrl: r.photoUrl || '',
+            jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
+            nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
+            kendala: r.kendala || r.obstacle || '',
+            upaya: r.upaya || r.actionTaken || '',
             isSensitive: false
           });
         });
@@ -394,6 +593,7 @@
 
       lastFetchedTimestamp = Date.now();
       updateFreshnessTag();
+      updateExecutiveStats();
       applyFilters();
 
       if (manualRefresh) {
@@ -700,6 +900,442 @@
 
       downloadCSV(`Admin_Queue_Export_${Date.now()}.csv`, headers, rows);
       showToast(`Ekspor CSV berhasil (${currentFilteredData.length} laporan)`, 'success');
+    }
+
+    /* Executive Tier Logic (Tasks 1 to 6) */
+    let currentExecPeriod = 'this_week';
+    let isExceptionListExpanded = false;
+
+    function setExecutivePeriod(periodKey, btnEl) {
+      currentExecPeriod = periodKey;
+      document.querySelectorAll('#periodBtn-this_week, #periodBtn-last_week, #periodBtn-this_month, #periodBtn-custom').forEach(b => b.classList.remove('active'));
+      if (btnEl) {
+        btnEl.classList.add('active');
+      } else {
+        const b = document.getElementById(`periodBtn-${periodKey}`);
+        if (b) b.classList.add('active');
+      }
+
+      const customBar = document.getElementById('execCustomDateBar');
+      if (periodKey === 'custom') {
+        if (customBar) customBar.style.display = 'inline-flex';
+      } else {
+        if (customBar) customBar.style.display = 'none';
+      }
+
+      updateExecutiveStats();
+    }
+
+    function updateExecutiveStats() {
+      const customStart = document.getElementById('execCustomStartDate') ? document.getElementById('execCustomStartDate').value : '';
+      const customEnd = document.getElementById('execCustomEndDate') ? document.getElementById('execCustomEndDate').value : '';
+
+      const range = getPeriodDateRanges(currentExecPeriod, customStart, customEnd);
+      
+      const labelEl = document.getElementById('execPeriodLabel');
+      if (labelEl) {
+        if (currentExecPeriod === 'custom') {
+          labelEl.innerText = `Kustom (${range.startDate} s/d ${range.endDate})`;
+        } else {
+          labelEl.innerText = `${range.label} (${range.startDate} s/d ${range.endDate})`;
+        }
+      }
+
+      const currentSummary = computePeriodSummary(rawQueueData, range.startDate, range.endDate);
+      const prevSummary = computePeriodSummary(rawQueueData, range.prevStartDate, range.prevEndDate);
+
+      // Task 2: KPI Strip
+      document.getElementById('kpiExecTotalLaporan').innerText = currentSummary.totalLaporan.toLocaleString('id-ID');
+      renderTrendBadge('trendTotalLaporan', 'trendIconTotalLaporan', 'trendTextTotalLaporan', currentSummary.totalLaporan, prevSummary.totalLaporan, true);
+
+      document.getElementById('kpiExecTotalPanen').innerText = `${currentSummary.totalPanen.toLocaleString('id-ID')} Kg/Unit`;
+      renderTrendBadge('trendTotalPanen', 'trendIconTotalPanen', 'trendTextTotalPanen', currentSummary.totalPanen, prevSummary.totalPanen, true);
+
+      document.getElementById('kpiExecTotalSales').innerText = `Rp ${currentSummary.totalNilaiPenjualan.toLocaleString('id-ID')}`;
+      renderTrendBadge('trendTotalSales', 'trendIconTotalSales', 'trendTextTotalSales', currentSummary.totalNilaiPenjualan, prevSummary.totalNilaiPenjualan, true);
+
+      document.getElementById('kpiExecKendalaCount').innerText = currentSummary.unresolvedCount.toLocaleString('id-ID');
+      renderTrendBadge('trendKendalaCount', 'trendIconKendalaCount', 'trendTextKendalaCount', currentSummary.unresolvedCount, prevSummary.unresolvedCount, false);
+
+      // Task 3: Division Comparison Block
+      ['Agro', 'Ternak', 'Ikan'].forEach(divKey => {
+        const curDiv = currentSummary.divisionStats[divKey] || { count: 0, panen: 0, sales: 0 };
+        const countEl = document.getElementById(`divCount${divKey}`);
+        const panenEl = document.getElementById(`divPanen${divKey}`);
+        const salesEl = document.getElementById(`divSales${divKey}`);
+        
+        if (countEl) countEl.innerText = curDiv.count.toLocaleString('id-ID');
+        if (panenEl) panenEl.innerText = `${curDiv.panen.toLocaleString('id-ID')} ${divKey === 'Ternak' ? 'Ekor' : 'Kg'}`;
+        if (salesEl) salesEl.innerText = `Rp ${curDiv.sales.toLocaleString('id-ID')}`;
+      });
+
+      // Task 5: Coverage Approximation
+      renderCoverageSection(currentSummary.locationsMap, prevSummary.locationsMap, range);
+
+      // Task 4: Exception List
+      renderExceptionList(currentSummary.unresolvedRows);
+    }
+
+    function renderTrendBadge(containerId, iconId, textId, curVal, prevVal, higherIsBetter = true) {
+      const container = document.getElementById(containerId);
+      const icon = document.getElementById(iconId);
+      const text = document.getElementById(textId);
+      if (!container || !icon || !text) return;
+
+      container.className = 'metric-trend';
+
+      if (prevVal === 0) {
+        if (curVal === 0) {
+          container.classList.add('metric-trend-neutral');
+          icon.innerText = '•';
+          text.innerText = '0% vs peri. lalu';
+        } else {
+          const isGood = higherIsBetter;
+          container.classList.add(isGood ? 'metric-trend-up' : 'metric-trend-down');
+          icon.innerText = isGood ? '▲' : '▼';
+          text.innerText = '+100% vs peri. lalu';
+        }
+        return;
+      }
+
+      const pctChange = Math.round(((curVal - prevVal) / prevVal) * 100);
+      const pctAbs = Math.abs(pctChange);
+
+      if (pctChange > 0) {
+        const isGood = higherIsBetter;
+        container.classList.add(isGood ? 'metric-trend-up' : 'metric-trend-down');
+        icon.innerText = '▲';
+        text.innerText = `+${pctAbs}% vs peri. lalu`;
+      } else if (pctChange < 0) {
+        const isGood = !higherIsBetter;
+        container.classList.add(isGood ? 'metric-trend-up' : 'metric-trend-down');
+        icon.innerText = '▼';
+        text.innerText = `-${pctAbs}% vs peri. lalu`;
+      } else {
+        container.classList.add('metric-trend-neutral');
+        icon.innerText = '•';
+        text.innerText = '0% vs peri. lalu';
+      }
+    }
+
+    function renderCoverageSection(curLocsMap, prevLocsMap, range) {
+      const fractionEl = document.getElementById('kpiExecCoverageFraction');
+      const headlineEl = document.getElementById('coverageHeadline');
+      const containerEl = document.getElementById('missingLocationsContainer');
+
+      const prevKeys = Object.keys(prevLocsMap || {});
+      const curKeys = Object.keys(curLocsMap || {});
+      
+      const prevTotal = prevKeys.length;
+      const matchedKeys = prevKeys.filter(k => curKeys.includes(k));
+      const matchedCount = matchedKeys.length;
+      const missingKeys = prevKeys.filter(k => !curKeys.includes(k));
+
+      if (fractionEl) {
+        if (prevTotal === 0) {
+          fractionEl.innerText = `${curKeys.length} lokasi aktif`;
+        } else {
+          fractionEl.innerText = `${matchedCount} dari ${prevTotal} lokasi`;
+        }
+      }
+
+      if (headlineEl) {
+        if (prevTotal === 0) {
+          headlineEl.innerText = `Lokasi Aktif Periode Ini (${curKeys.length} lokasi melapor)`;
+        } else {
+          headlineEl.innerText = `Cakupan Pelaporan: ${matchedCount} dari ${prevTotal} lokasi periode lalu melapor di periode ini`;
+        }
+      }
+
+      if (containerEl) {
+        if (prevTotal === 0) {
+          if (curKeys.length === 0) {
+            containerEl.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem;">Belum ada laporan lokasi pada periode ini.</div>';
+          } else {
+            const activeList = curKeys.map(k => `<span class="badge badge-normal" style="margin: 2px;">${curLocsMap[k]}</span>`).join(' ');
+            containerEl.innerHTML = `<div style="font-size: 0.8rem; margin-top: 0.25rem;">Lokasi Melapor: ${activeList}</div>`;
+          }
+        } else if (missingKeys.length === 0) {
+          containerEl.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--normal); font-weight: 600; font-size: 0.825rem; margin-top: 0.25rem;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 5 12"/></svg>
+              <span>Semua ${prevTotal} lokasi dari periode lalu telah melapor kembali.</span>
+            </div>
+          `;
+        } else {
+          const missingList = missingKeys.map(k => `<span class="badge badge-urgent" style="margin: 2px;">${prevLocsMap[k]}</span>`).join(' ');
+          containerEl.innerHTML = `
+            <div style="font-size: 0.825rem; color: var(--urgent); font-weight: 600; margin-top: 0.25rem;">
+              ⚠️ ${missingKeys.length} Lokasi Belum Melapor Periode Ini:
+            </div>
+            <div style="margin-top: 0.35rem;">${missingList}</div>
+          `;
+        }
+      }
+    }
+
+    function renderExceptionList(unresolvedRows) {
+      const container = document.getElementById('exceptionListBody');
+      const countTag = document.getElementById('exceptionCountTag');
+      if (!container) return;
+
+      const total = unresolvedRows.length;
+      if (countTag) countTag.innerText = `${total} Laporan Membutuhkan Attention`;
+
+      if (total === 0) {
+        container.innerHTML = `
+          <div class="attention-empty">
+            <svg class="svg-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--normal)" stroke-width="2" style="margin-bottom: 0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div style="font-weight: 700; color: var(--text-primary);">Semua Kendala Periode Ini Teratasi</div>
+            <div style="font-size: 0.8rem; margin-top: 0.25rem;">Tidak ada laporan dengan status pending atau kendala tanpa penanganan.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const limit = isExceptionListExpanded ? total : 6;
+      const slice = unresolvedRows.slice(0, limit);
+
+      const now = Date.now();
+
+      let html = slice.map(item => {
+        const kendalaText = item.kendala || (item.raw ? item.raw[20] : '') || item.ringkasan || 'Kendala operasional';
+        const truncatedKendala = kendalaText.length > 90 ? (kendalaText.substring(0, 90) + '...') : kendalaText;
+
+        let daysOpen = 0;
+        if (item.timestamp) {
+          const reportDate = new Date(item.timestamp.replace(' ', 'T'));
+          if (!isNaN(reportDate.getTime())) {
+            daysOpen = Math.max(0, Math.floor((now - reportDate.getTime()) / (1000 * 60 * 60 * 24)));
+          }
+        }
+
+        const cardClass = item.severity === 'urgent' ? 'attention-urgent' : (item.severity === 'warning' ? 'attention-warning' : 'attention-card');
+
+        return `
+          <div class="attention-card ${cardClass}" onclick="openDetailModalByReportId('${item.reportId}')" style="cursor: pointer;" title="Klik untuk melihat detail laporan lengkap">
+            <div class="attention-header">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <code style="font-weight: 700; font-size: 0.8rem;">${item.kodeKegiatan}</code>
+                <span class="badge badge-${item.severity}">${item.severity}</span>
+                <span class="badge badge-neutral">${item.reviewStatus}</span>
+              </div>
+              <span style="font-size: 0.75rem; font-weight: 600; color: var(--urgent);">${daysOpen} Hari Terbuka</span>
+            </div>
+            <div class="attention-title" style="margin-top: 0.25rem; font-size: 0.875rem;">
+              ${item.empId} — ${item.divisi} (${item.lokasi})
+            </div>
+            <div class="attention-details" style="font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+              <strong>Kendala:</strong> ${truncatedKendala}
+            </div>
+            <div class="attention-meta">
+              <span class="attention-meta-item">Waktu Submit: ${item.timestamp}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (total > 6) {
+        if (!isExceptionListExpanded) {
+          html += `
+            <div style="text-align: center; margin-top: 0.5rem;">
+              <button class="btn btn-secondary table-btn-sm" onclick="toggleExpandExceptionList(true)" style="width: auto;">
+                Lihat Semua (${total}) Kendala Belum Ditangani ▾
+              </button>
+            </div>
+          `;
+        } else {
+          html += `
+            <div style="text-align: center; margin-top: 0.5rem;">
+              <button class="btn btn-secondary table-btn-sm" onclick="toggleExpandExceptionList(false)" style="width: auto;">
+                Tampilkan Lebih Sedikit ▴
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      container.innerHTML = html;
+    }
+
+    function toggleExpandExceptionList(expand) {
+      isExceptionListExpanded = expand;
+      updateExecutiveStats();
+    }
+
+    function openDetailModalByReportId(reportId) {
+      let idx = currentFilteredData.findIndex(x => String(x.reportId) === String(reportId));
+      if (idx === -1) {
+        const item = rawQueueData.find(x => String(x.reportId) === String(reportId));
+        if (item) {
+          currentFilteredData.unshift(item);
+          idx = 0;
+        }
+      }
+      if (idx !== -1) {
+        openDetailModal(idx);
+      } else {
+        showToast('Laporan tidak ditemukan', 'warning');
+      }
+    }
+
+    /* Task 6 — Executive Summary Modal & Export / Copy Actions */
+    function openExecutiveReportSummary() {
+      const modal = document.getElementById('execReportSummaryModal');
+      const modalBody = document.getElementById('execReportSummaryBody');
+      if (!modal || !modalBody) return;
+
+      const customStart = document.getElementById('execCustomStartDate') ? document.getElementById('execCustomStartDate').value : '';
+      const customEnd = document.getElementById('execCustomEndDate') ? document.getElementById('execCustomEndDate').value : '';
+      const range = getPeriodDateRanges(currentExecPeriod, customStart, customEnd);
+      const curSummary = computePeriodSummary(rawQueueData, range.startDate, range.endDate);
+
+      modalBody.innerHTML = `
+        <div style="background: var(--primary-tint); border: 1px solid var(--primary-border); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+          <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.25rem;">
+            Laporan Operasional Eksekutif Mingguan
+          </h4>
+          <div style="font-size: 0.85rem; color: var(--text-secondary);">
+            Periode: <strong>${range.label} (${range.startDate} s/d ${range.endDate})</strong>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">1. Ringkasan Capaian Utama</h5>
+          <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
+              <span class="metric-label">Total Laporan Submit</span>
+              <span class="metric-value" style="font-size: 1.25rem;">${curSummary.totalLaporan}</span>
+            </div>
+            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
+              <span class="metric-label">Total Hasil Panen</span>
+              <span class="metric-value" style="font-size: 1.25rem;">${curSummary.totalPanen.toLocaleString('id-ID')} Kg/Unit</span>
+            </div>
+            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
+              <span class="metric-label">Total Nilai Penjualan</span>
+              <span class="metric-value" style="font-size: 1.25rem;">Rp ${curSummary.totalNilaiPenjualan.toLocaleString('id-ID')}</span>
+            </div>
+            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
+              <span class="metric-label">Kendala Belum Ditangani</span>
+              <span class="metric-value metric-value-urgent" style="font-size: 1.25rem;">${curSummary.unresolvedCount}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">2. Breakdown Performa Per Divisi</h5>
+          <table class="responsive-card-table" style="font-size: 0.825rem; width: 100%;">
+            <thead>
+              <tr style="background: var(--bg-app);">
+                <th>Divisi</th>
+                <th>Laporan</th>
+                <th>Total Panen</th>
+                <th>Nilai Penjualan</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${['Agro', 'Ternak', 'Ikan'].map(div => {
+                const d = curSummary.divisionStats[div];
+                return `
+                  <tr>
+                    <td><strong>Divisi ${div}</strong></td>
+                    <td>${d.count}</td>
+                    <td>${d.panen.toLocaleString('id-ID')} ${div === 'Ternak' ? 'Ekor' : 'Kg'}</td>
+                    <td>Rp ${d.sales.toLocaleString('id-ID')}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--urgent); margin-bottom: 0.5rem;">3. List Kendala Belum Ditangani (${curSummary.unresolvedCount})</h5>
+          ${curSummary.unresolvedCount === 0 ? `
+            <div style="font-size: 0.825rem; color: var(--text-muted); padding: 0.5rem; background: var(--bg-app); border-radius: var(--radius-sm);">
+              Nihil — Seluruh laporan periode ini berada dalam status Closed / Selesai.
+            </div>
+          ` : `
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              ${curSummary.unresolvedRows.map(r => `
+                <div style="font-size: 0.8rem; background: var(--bg-app); border: 1px solid var(--border-color); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+                  <div style="font-weight: 700; color: var(--text-primary);">[${r.kodeKegiatan}] ${r.empId} — ${r.divisi} (${r.lokasi})</div>
+                  <div style="color: var(--text-secondary); margin-top: 2px;"><strong>Kendala:</strong> ${r.kendala || r.ringkasan}</div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+
+      modal.removeAttribute('hidden');
+    }
+
+    function closeExecutiveReportSummary() {
+      const modal = document.getElementById('execReportSummaryModal');
+      if (modal) modal.setAttribute('hidden', 'true');
+    }
+
+    function copyExecutiveSummaryText() {
+      const customStart = document.getElementById('execCustomStartDate') ? document.getElementById('execCustomStartDate').value : '';
+      const customEnd = document.getElementById('execCustomEndDate') ? document.getElementById('execCustomEndDate').value : '';
+      const range = getPeriodDateRanges(currentExecPeriod, customStart, customEnd);
+      const curSummary = computePeriodSummary(rawQueueData, range.startDate, range.endDate);
+
+      let text = `========================================\n`;
+      text += `RINGKASAN EKSEKUTIF OPERASIONAL AVALANCHE\n`;
+      text += `Periode: ${range.label} (${range.startDate} s/d ${range.endDate})\n`;
+      text += `Waktu Cetak: ${new Date().toLocaleString('id-ID')}\n`;
+      text += `========================================\n\n`;
+
+      text += `1. RINGKASAN CAPAIAN UTAMA (KPI)\n`;
+      text += `   - Total Laporan: ${curSummary.totalLaporan} laporan\n`;
+      text += `   - Total Hasil Panen: ${curSummary.totalPanen.toLocaleString('id-ID')} Kg/Unit\n`;
+      text += `   - Total Nilai Penjualan: Rp ${curSummary.totalNilaiPenjualan.toLocaleString('id-ID')}\n`;
+      text += `   - Kendala Belum Ditangani: ${curSummary.unresolvedCount} laporan\n\n`;
+
+      text += `2. PERFORMANSA PER DIVISI\n`;
+      ['Agro', 'Ternak', 'Ikan'].forEach(div => {
+        const d = curSummary.divisionStats[div];
+        text += `   - Divisi ${div}: ${d.count} laporan | Panen: ${d.panen.toLocaleString('id-ID')} | Sales: Rp ${d.sales.toLocaleString('id-ID')}\n`;
+      });
+      text += `\n`;
+
+      text += `3. DAFTAR KENDALA BELUM DITANGANI (${curSummary.unresolvedCount})\n`;
+      if (curSummary.unresolvedCount === 0) {
+        text += `   (Nihil - Seluruh kendala telah ditangani/closed)\n`;
+      } else {
+        curSummary.unresolvedRows.forEach((r, idx) => {
+          const kendala = r.kendala || (r.raw ? r.raw[20] : '') || r.ringkasan || '-';
+          text += `   ${idx + 1}. [${r.kodeKegiatan}] PIC: ${r.empId} | Divisi: ${r.divisi} | Lokasi: ${r.lokasi}\n`;
+          text += `      Kendala: ${kendala}\n`;
+        });
+      }
+      text += `\n========================================\n`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('Ringkasan periode berhasil disalin ke clipboard!', 'success');
+        }).catch(err => {
+          console.error('Clipboard copy error:', err);
+          showToast('Gagal menyalin ringkasan text', 'error');
+        });
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Ringkasan periode berhasil disalin ke clipboard!', 'success');
+      }
+    }
+
+    function triggerExecutivePrint() {
+      closeExecutiveReportSummary();
+      setTimeout(() => {
+        window.print();
+      }, 300);
     }
   </script>
 </body>
