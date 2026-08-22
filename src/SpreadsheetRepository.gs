@@ -28,7 +28,7 @@ const SpreadsheetRepository = {
     if (adminQueueSheet) {
       const queueHeaders = [
         'Sumber', 'Kode_Kegiatan', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-        'Lokasi_Kegiatan', 'Ringkasan', 'Tingkat_Keparahan', 'Kategori', 'Status_Peninjauan', 'Foto_URL'
+        'Lokasi_Kegiatan', 'Ringkasan', 'Tingkat_Keparahan', 'Status_Peninjauan', 'Foto_URL'
       ];
       adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]);
       adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
@@ -140,11 +140,11 @@ const SpreadsheetRepository = {
     
     if (!sensitiveSheet) {
       sensitiveSheet = ss.insertSheet('Sensitive');
-      sensitiveSheet.getRange('A1:K1').setValues([[
+      sensitiveSheet.getRange('A1:J1').setValues([[
         'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-        'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
+        'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Reviewed'
       ]]);
-      sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
+      sensitiveSheet.getRange('A1:J1').setFontWeight('bold').setBackground('#fef2f2');
       sensitiveSheet.setFrozenRows(1);
     }
 
@@ -381,70 +381,108 @@ const SpreadsheetRepository = {
     if (!mainSsId) return [];
 
     const ss = SpreadsheetApp.openById(mainSsId);
-    const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+    const sheets = ss.getSheets();
     const mergedQueue = [];
+    const seenReportIds = new Set();
+    const EXEMPT_SHEETS = ['Photo_Log', 'Archive_Reports', 'Admin_Queue'];
 
-    forms.forEach(f => {
+    sheets.forEach(sheet => {
+      const sheetName = sheet.getName();
+      if (EXEMPT_SHEETS.includes(sheetName)) return;
+
       try {
-        const rawSheet = FormManagementService.resolveFormTab_(ss, f);
-        if (rawSheet && rawSheet.getLastRow() > 1) {
-          const headerMap = this.getHeaderMap_(rawSheet);
-          const rawValues = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
+        if (sheet.getLastRow() > 1) {
+          const headerMap = this.getHeaderMap_(sheet);
+          const rawValues = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
 
-          rawValues.forEach(row => {
-            let reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '');
-            let kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '-');
-            let timestamp = formatDate(this.getCellValue_(row, headerMap, 'Timestamp', 3) || new Date());
-            let namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '-');
-            let divisi = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '-');
-            let lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '-');
-            let jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '');
-            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 15)) || 0;
-            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 19)) || 0;
-            let kendalaVal = String(this.getCellValue_(row, headerMap, 'Kendala', 20) || '');
-            let upayaVal = String(this.getCellValue_(row, headerMap, 'Upaya', 21) || '');
+          rawValues.forEach((row, rowIndex) => {
+            const hasAnyData = row.some(c => c !== null && c !== undefined && String(c).trim().length > 0);
+            if (!hasAnyData) return;
 
-            if (reportId || kodeKegiatan !== '-' || namaPic !== '-') {
-              let ringkasan = jenis;
-              if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen} Kg`;
-              if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
-              if (!ringkasan) ringkasan = 'Laporan Operasional';
-
-              let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL') || '');
-              if (!photoVal.startsWith('http')) {
-                const foundUrl = row.find(c => typeof c === 'string' && c.trim().startsWith('http'));
-                if (foundUrl) photoVal = String(foundUrl).trim();
-              }
-
-              let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 29) || ReportSeverity.NORMAL).toLowerCase();
-              let keywordsVal = String(this.getCellValue_(row, headerMap, 'Flagged_Keywords', 30) || '');
-              let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 31) || ReviewStatus.UNREVIEWED);
-
-              mergedQueue.push(QueueItem({
-                source: 'Operasional',
-                reportId: reportId,
-                kodeKegiatan: kodeKegiatan,
-                timestamp: timestamp,
-                namaPic: namaPic,
-                divisi: divisi,
-                lokasi: lokasi,
-                ringkasan: ringkasan,
-                photoUrl: photoVal.startsWith('http') ? photoVal : '',
-                severity: severityVal,
-                rank: severityVal === ReportSeverity.URGENT ? 1 : (severityVal === ReportSeverity.WARNING ? 2 : 3),
-                category: keywordsVal ? keywordsVal : 'ROUTINE',
-                reviewStatus: reviewStatusVal,
-                jumlahPanen: jumlahPanen,
-                nilaiPenjualanRp: nilaiPenjualan,
-                kendala: kendalaVal,
-                upaya: upayaVal,
-                raw: row
-              }));
+            let reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '').trim();
+            if (!reportId || reportId === '-') {
+              reportId = `ROW_${sheetName}_${rowIndex + 2}`;
             }
+
+            if (seenReportIds.has(reportId)) return;
+            seenReportIds.add(reportId);
+
+            let kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan') || this.getCellValue_(row, headerMap, 'Kode Kegiatan', 1) || '').trim();
+            
+            let rawTime = this.getCellValue_(row, headerMap, 'Timestamp', 3) || this.getCellValue_(row, headerMap, 'Waktu', 0);
+            let timestamp = formatDate(rawTime || new Date());
+            
+            let namaPic = String(
+              this.getCellValue_(row, headerMap, 'Nama_PIC') || 
+              this.getCellValue_(row, headerMap, 'Nama') || 
+              this.getCellValue_(row, headerMap, 'Nama PIC') || 
+              this.getCellValue_(row, headerMap, 'Emp_ID', 4) || 
+              ''
+            ).trim();
+
+            let divisi = String(
+              this.getCellValue_(row, headerMap, 'Bidang_Divisi') || 
+              this.getCellValue_(row, headerMap, 'Divisi') || 
+              this.getCellValue_(row, headerMap, 'Site', 5) || 
+              ''
+            ).trim();
+
+            let lokasi = String(
+              this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan') || 
+              this.getCellValue_(row, headerMap, 'Lokasi Kegiatan') || 
+              this.getCellValue_(row, headerMap, 'Lokasi', 6) || 
+              ''
+            ).trim();
+
+            let jenis = String(
+              this.getCellValue_(row, headerMap, 'Jenis_Kegiatan') || 
+              this.getCellValue_(row, headerMap, 'Jenis Kegiatan', 7) || 
+              ''
+            ).trim();
+
+            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
+            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
+            let kendalaVal = String(this.getCellValue_(row, headerMap, 'Kendala', 26) || '').trim();
+            let upayaVal = String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim();
+
+            let ringkasan = jenis;
+            if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen} Kg`;
+            if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
+            if (!ringkasan) ringkasan = `Laporan ${sheetName}`;
+
+            let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 28) || this.getCellValue_(row, headerMap, 'Foto_Lampiran') || '');
+            if (!photoVal.startsWith('http')) {
+              const foundUrl = row.find(c => typeof c === 'string' && c.trim().startsWith('http'));
+              if (foundUrl) photoVal = String(foundUrl).trim();
+            }
+
+            let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 29) || (kendalaVal ? ReportSeverity.URGENT : ReportSeverity.NORMAL)).toLowerCase();
+            let reviewStatusVal = String(this.getCellValue_(row, headerMap, 'Reviewed', 30) || ReviewStatus.UNREVIEWED);
+
+            mergedQueue.push(QueueItem({
+              source: sheetName,
+              reportId: reportId,
+              kodeKegiatan: kodeKegiatan || '-',
+              timestamp: timestamp,
+              namaPic: namaPic || 'Tanpa Nama',
+              empId: namaPic || 'Tanpa Nama',
+              divisi: divisi || '-',
+              lokasi: lokasi || '-',
+              ringkasan: ringkasan,
+              photoUrl: photoVal.startsWith('http') ? photoVal : '',
+              severity: severityVal,
+              rank: severityVal === ReportSeverity.URGENT ? 1 : 2,
+              reviewStatus: reviewStatusVal,
+              jumlahPanen: jumlahPanen,
+              nilaiPenjualanRp: nilaiPenjualan,
+              kendala: kendalaVal,
+              upaya: upayaVal,
+              raw: row
+            }));
           });
         }
       } catch (err) {
-        Logger.log(`SpreadsheetRepository Notice: Could not read sheet tab for form ${f.id}: ${err.toString()}`);
+        Logger.log(`SpreadsheetRepository Notice: Could not read sheet tab ${sheetName}: ${err.toString()}`);
       }
     });
 

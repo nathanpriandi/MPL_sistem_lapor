@@ -76,18 +76,14 @@ const ReportService = {
 
     const report = OperationalReport(payload);
     
-    // Evaluate triage
-    const flagText = [
-      report.namaPic, report.bidangDivisi, report.lokasiKegiatan, 
-      report.jenisKegiatan, report.capaianKegiatan, report.kendala, report.upaya
-    ];
-    const flag = TriageEngine.evaluate(flagText.join(' '));
+    // Evaluate triage (Flagged solely if Kendala is non-empty)
+    const flag = TriageEngine.evaluate(report.kendala);
 
     // Save into central spreadsheet (auto-handles triage highlighting & sensitive routing)
     const result = SpreadsheetRepository.saveOperationalReport(report, flag);
 
-    // Send notifications if high severity
-    if (flag && (flag.severity === ReportSeverity.WARNING || flag.severity === ReportSeverity.URGENT)) {
+    // Send notifications if urgent severity
+    if (flag && flag.severity === ReportSeverity.URGENT) {
       try {
         NotificationAdapter.sendIncidentNotification(report, flag);
       } catch (e) {
@@ -283,7 +279,8 @@ const ReportService = {
     });
     const details = textPieces.join(' | ');
 
-    const flag = TriageEngine.evaluate([empId, site, date, details]);
+    const kendalaVal = String(payload.kendala || payload.Kendala || payload.kendalaKegiatan || payload.kendala_kegiatan || '').trim();
+    const flag = TriageEngine.evaluate(kendalaVal);
     const targetSsId = ConfigRepository.getSpreadsheetId();
     if (!targetSsId) throw new Error('Sheet data form belum terkonfigurasi.');
 
@@ -293,7 +290,7 @@ const ReportService = {
     const rowData = [
       reportId, '', '', nowStr, empId, site, site, details, 'Target', 0, 0,
       '', '', date, '', 0, '', 0, 0, 0, details, '', photoUrl,
-      flag.severity, flag.keywords.join(', '), ReviewStatus.UNREVIEWED
+      flag.severity, ReviewStatus.UNREVIEWED
     ];
 
     targetSheet.appendRow(rowData);
@@ -322,9 +319,10 @@ const ReportService = {
       const reportId = SpreadsheetRepository.ensureReportId(sheet, row, rowData);
       rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-      // Native Google Form submit evaluate
-      const flagText = rowData.slice(1, 10).join(' ');
-      const flag = TriageEngine.evaluate(flagText);
+      // Native Google Form submit evaluate by header name
+      const headerMap = SpreadsheetRepository.getHeaderMap_(sheet);
+      const kendalaVal = String(SpreadsheetRepository.getCellValue_(rowData, headerMap, 'Kendala', 20) || '').trim();
+      const flag = TriageEngine.evaluate(kendalaVal);
 
       SpreadsheetRepository.applyRowHighlighting(sheet, row, flag.severity);
 

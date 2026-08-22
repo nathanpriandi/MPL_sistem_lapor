@@ -122,7 +122,6 @@
                   <th onclick="toggleSort('severity')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan keparahan">
                     Tingkat Keparahan <span id="sort-severity">↕</span>
                   </th>
-                  <th>Kategori Triage</th>
                   <th onclick="toggleSort('reviewStatus')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan status">
                     Status Peninjauan <span id="sort-reviewStatus">↕</span>
                   </th>
@@ -208,7 +207,7 @@
     </div>
   </div>
 
-  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
+  <?!= includeApp(webAppUrl); ?>
   <script>
     let rawQueueData = [];
     let currentFilteredData = [];
@@ -470,7 +469,7 @@
 
       if (searchVal) {
         filtered = filtered.filter(x => 
-          (x.empId || '').toLowerCase().includes(searchVal) ||
+          (x.empId || x.namaPic || '').toLowerCase().includes(searchVal) ||
           (x.kodeKegiatan || '').toLowerCase().includes(searchVal) ||
           (x.ringkasan || '').toLowerCase().includes(searchVal) ||
           (x.lokasi || '').toLowerCase().includes(searchVal) ||
@@ -515,7 +514,7 @@
       const pageSlice = currentFilteredData.slice(startIndex, endIndex);
 
       if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
         document.getElementById('paginationInfo').innerText = 'Menampilkan 0 laporan';
         document.getElementById('pageIndicator').innerText = 'Halaman 1 dari 1';
         document.getElementById('btnPrevPage').disabled = true;
@@ -531,12 +530,11 @@
         tr.innerHTML = `
           <td data-label="Kode Kegiatan"><code>${item.kodeKegiatan}</code></td>
           <td data-label="Waktu">${item.timestamp || '-'}</td>
-          <td data-label="PIC Pelapor"><strong>${item.empId}</strong></td>
+          <td data-label="PIC Pelapor"><strong>${item.empId || item.namaPic || '-'}</strong></td>
           <td data-label="Divisi">${item.divisi}</td>
           <td data-label="Lokasi">${item.lokasi}</td>
           <td data-label="Ringkasan" class="max-w-details">${item.ringkasan}</td>
           <td data-label="Severity"><span class="badge ${badgeClass}">${item.severity}</span></td>
-          <td data-label="Kategori Triage">${item.category}</td>
           <td data-label="Review Status">
             <select onchange="updateStatus('operasional', '${item.reportId}', this.value)" class="table-select" aria-label="Ubah Review Status">
               <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
@@ -585,7 +583,7 @@
           </div>
           <div class="detail-item">
             <span class="detail-label">PIC Pelapor</span>
-            <span class="detail-value"><strong>${item.empId}</strong></span>
+            <span class="detail-value"><strong>${item.empId || item.namaPic || '-'}</strong></span>
           </div>
           <div class="detail-item">
             <span class="detail-label">Bidang / Divisi</span>
@@ -704,17 +702,16 @@
         return;
       }
 
-      const headers = ['Report_ID', 'Kode_Kegiatan', 'Timestamp', 'PIC_Pelapor', 'Divisi', 'Lokasi', 'Ringkasan', 'Severity', 'Kategori_Triage', 'Review_Status'];
+      const headers = ['Report_ID', 'Kode_Kegiatan', 'Timestamp', 'PIC_Pelapor', 'Divisi', 'Lokasi', 'Ringkasan', 'Severity', 'Review_Status'];
       const rows = currentFilteredData.map(item => [
         item.reportId,
         item.kodeKegiatan,
         item.timestamp || '',
-        item.empId,
+        item.empId || item.namaPic || '',
         item.divisi,
         item.lokasi,
         item.ringkasan,
         item.severity,
-        item.category,
         item.reviewStatus
       ]);
 

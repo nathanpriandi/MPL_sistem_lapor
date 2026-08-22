@@ -67,57 +67,16 @@ function navigateToPage(pageName, anchorEl) {
   }
 }
 
-// Authoritative triage keywords (populated on window by includeApp)
-if (typeof window.SERVER_URGENT_KEYWORDS === 'undefined') {
-  window.SERVER_URGENT_KEYWORDS = null;
-}
-if (typeof window.SERVER_WARNING_KEYWORDS === 'undefined') {
-  window.SERVER_WARNING_KEYWORDS = null;
-}
-
-
-
-// Fallback Triage Keyword Engine matching Automation.gs
-const FALLBACK_URGENT_KEYWORDS = [
-  'kecelakaan', 'kebakaran', 'banjir', 'darurat', 'cedera', 'korban',
-  'rusak berat', 'bocor', 'meledak', 'mati total', 'patah', 'tumbang',
-  'hama', 'wabah', 'penyakit', 'mati masal', 'terkontaminasi', 'keracunan', 'pestisida'
-];
-
-const FALLBACK_WARNING_KEYWORDS = [
-  'kurang', 'terlambat', 'lambat', 'habis', 'tertunda', 'stok tipis',
-  'mogok', 'rusak ringan', 'bising', 'bocor halus', 'baterai lemah',
-  'hujan deras', 'angin kencang', 'becek', 'akses tertutup', 'equipment'
-];
-
-function getUrgentKeywords() {
-  return (typeof window !== 'undefined' && window.SERVER_URGENT_KEYWORDS && window.SERVER_URGENT_KEYWORDS.length)
-    ? window.SERVER_URGENT_KEYWORDS
-    : FALLBACK_URGENT_KEYWORDS;
-}
-
-function getWarningKeywords() {
-  return (typeof window !== 'undefined' && window.SERVER_WARNING_KEYWORDS && window.SERVER_WARNING_KEYWORDS.length)
-    ? window.SERVER_WARNING_KEYWORDS
-    : FALLBACK_WARNING_KEYWORDS;
-}
-
-function evaluateFlags(text) {
-  const fullText = (text || '').toLowerCase();
-  const urgentList = getUrgentKeywords();
-  const warningList = getWarningKeywords();
-
-  for (let k of urgentList) {
-    if (fullText.includes(k)) {
-      return { severity: 'urgent', rank: 1, category: k.includes('hama') || k.includes('wabah') ? 'biological/outbreak' : 'incident' };
-    }
-  }
-  for (let k of warningList) {
-    if (fullText.includes(k)) {
-      return { severity: 'warning', rank: 2, category: k.includes('hujan') ? 'weather_impact' : 'operational_delay' };
-    }
-  }
-  return { severity: 'normal', rank: 3, category: 'routine' };
+/**
+ * Evaluates client-side triage flag solely based on Kendala text content.
+ * @param {string} kendalaText 
+ * @returns {{ severity: string, rank: number }}
+ */
+function evaluateFlags(kendalaText) {
+  const hasKendala = !!(kendalaText && String(kendalaText).trim().length > 0 && String(kendalaText).trim() !== '-');
+  return hasKendala
+    ? { severity: 'urgent', rank: 1 }
+    : { severity: 'normal', rank: 2 };
 }
 
 /**

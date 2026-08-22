@@ -12,7 +12,6 @@
  */
 const ReportSeverity = Object.freeze({
   URGENT: 'urgent',
-  WARNING: 'warning',
   NORMAL: 'normal'
 });
 
@@ -21,8 +20,7 @@ const ReportSeverity = Object.freeze({
  */
 const SeverityRank = Object.freeze({
   URGENT: 1,
-  WARNING: 2,
-  NORMAL: 3
+  NORMAL: 2
 });
 
 /**
@@ -36,29 +34,14 @@ const ReviewStatus = Object.freeze({
 });
 
 /**
- * Domain Enum for Triage Categories
- */
-const ReportCategory = Object.freeze({
-  ROUTINE: 'routine',
-  INCIDENT: 'incident',
-  BIOLOGICAL_OUTBREAK: 'biological/outbreak',
-  EQUIPMENT_BREAKDOWN: 'equipment_breakdown',
-  OPERATIONAL_DELAY: 'operational_delay',
-  WEATHER_IMPACT: 'weather_impact',
-  MINOR_EQUIPMENT: 'minor_equipment'
-});
-
-/**
  * Domain Value Object: Triage Result
- * @param {'urgent'|'warning'|'normal'} severity 
+ * @param {'urgent'|'normal'} severity 
  * @param {number} rank 
- * @param {string} category 
  */
-function TriageResult(severity, rank, category) {
+function TriageResult(severity, rank) {
   return {
     severity: severity || ReportSeverity.NORMAL,
-    rank: rank || SeverityRank.NORMAL,
-    category: category || ReportCategory.ROUTINE
+    rank: rank || SeverityRank.NORMAL
   };
 }
 
@@ -115,7 +98,6 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'upaya', header: 'Upaya', getValue: (r) => r.upaya || '' },
   { key: 'fotoUrl', header: 'Foto_URL', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl) },
   { key: 'severity', header: 'Severity', getValue: (r, f) => (f && f.severity) ? f.severity : ReportSeverity.NORMAL },
-  { key: 'flaggedKeywords', header: 'Flagged_Keywords', getValue: (r, f) => (f && f.keywords && f.keywords.length) ? f.keywords.join(', ') : '' },
   { key: 'reviewed', header: 'Reviewed', getValue: () => ReviewStatus.UNREVIEWED }
 ]);
 
@@ -166,12 +148,12 @@ function QueueItem(data) {
     kodeKegiatan: data.kodeKegiatan || '',
     timestamp: data.timestamp || '',
     namaPic: data.namaPic || data.empId || '',
+    empId: data.empId || data.namaPic || '',
     divisi: data.divisi || data.site || '',
     lokasi: data.lokasi || '',
     ringkasan: data.ringkasan || data.detail || '',
     severity: data.severity || ReportSeverity.NORMAL,
     rank: data.rank || SeverityRank.NORMAL,
-    category: data.category || ReportCategory.ROUTINE,
     reviewStatus: data.reviewStatus || ReviewStatus.UNREVIEWED,
     photoUrl: data.photoUrl || '',
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,

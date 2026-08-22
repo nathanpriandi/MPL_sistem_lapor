@@ -22,8 +22,6 @@ function setupReportingSystem() {
   // Clear legacy script properties (DAILY_FORM_ID, GENERAL_FORM_ID, REGISTERED_FORMS_JSON)
   try {
     const props = PropertiesService.getScriptProperties();
-    props.deleteProperty('DAILY_FORM_ID');
-    props.deleteProperty('GENERAL_FORM_ID');
     props.deleteProperty('REGISTERED_FORMS_JSON');
     Logger.log('Purged legacy script properties.');
   } catch (e) {}
@@ -104,6 +102,41 @@ function repairSpreadsheetHeadersAndData() {
 
   SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
   Logger.log('Successfully repaired headers for ' + mainSheet.getName());
+}
+
+/**
+ * Phase 20 Data & Header Maintenance:
+ * Clears stale test data rows and re-applies Phase 20 headers cleanly.
+ */
+function resetTestDataAndHeaders() {
+  const ss = SpreadsheetRepository.getSpreadsheet();
+  if (!ss) return;
+
+  const forms = FormManagementService.getFormList();
+  const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+  const mainSheet = FormManagementService.resolveFormTab_(ss, opForm);
+  const adminQueueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE);
+
+  if (mainSheet) {
+    mainSheet.clearContents();
+  }
+  if (adminQueueSheet) {
+    adminQueueSheet.clearContents();
+  }
+
+  let photoLogSheet = ss.getSheetByName('Photo_Log');
+  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
+  Logger.log('Reset test data and re-applied Phase 20 headers successfully.');
+}
+
+/**
+ * Diagnostic helper to test admin queue query from Apps Script Editor.
+ */
+function testAdminQueue() {
+  const queue = AdminService.getAdminQueueData();
+  Logger.log('Admin Queue Count: ' + (queue ? queue.length : 0));
+  Logger.log('First 2 Items: ' + JSON.stringify((queue || []).slice(0, 2)));
+  return queue;
 }
 
 /**

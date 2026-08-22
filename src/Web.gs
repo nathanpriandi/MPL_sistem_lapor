@@ -91,8 +91,6 @@ function doGet(e) {
   template.userRole = templateUserRole;
   template.userEmail = userEmail;
   template.currentPage = file;
-  template.urgentKeywordsJson = JSON.stringify(typeof URGENT_KEYWORDS !== 'undefined' ? URGENT_KEYWORDS : []);
-  template.warningKeywordsJson = JSON.stringify(typeof WARNING_KEYWORDS !== 'undefined' ? WARNING_KEYWORDS : []);
 
   return template.evaluate()
     .setTitle('Sistem Pelaporan Digital — Integrated Agriculture')
@@ -146,11 +144,9 @@ function include(filename) {
  * @param {string} warningKeywordsJson 
  * @returns {string}
  */
-function includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson) {
+function includeApp(webAppUrl) {
   const scriptTag = '<script>\n' +
     '  window.SERVER_WEB_APP_URL = ' + JSON.stringify(webAppUrl || '') + ';\n' +
-    '  window.SERVER_URGENT_KEYWORDS = ' + (urgentKeywordsJson || '[]') + ';\n' +
-    '  window.SERVER_WARNING_KEYWORDS = ' + (warningKeywordsJson || '[]') + ';\n' +
     '</script>\n';
   return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
 }
