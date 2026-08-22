@@ -24,21 +24,6 @@ function getRecentActivityCodes() {
   return ReportService.getRecentActivityCodes();
 }
 
-/**
- * Backward compatibility alias for submitDailyReport.
- * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
- */
-function submitDailyReport(payload) {
-  return submitOperationalReport(payload);
-}
-
-/**
- * Backward compatibility alias for submitGeneralReport.
- * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
- */
-function submitGeneralReport(payload) {
-  return submitOperationalReport(payload);
-}
 
 /**
  * Uploads a base64 photo attachment into form's dedicated Drive folder.

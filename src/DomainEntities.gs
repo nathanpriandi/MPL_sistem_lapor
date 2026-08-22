@@ -24,14 +24,31 @@ const SeverityRank = Object.freeze({
 });
 
 /**
- * Domain Enum for Report Review Statuses
+ * Domain Enum for Report Review/Verification Statuses
  */
 const ReviewStatus = Object.freeze({
-  UNREVIEWED: 'Unreviewed',
-  IN_REVIEW: 'In Review',
-  ACTION_NEEDED: 'Action Needed',
-  CLOSED: 'Closed'
+  UNVERIFIED: 'Belum Terverifikasi',
+  VERIFIED: 'Terverifikasi',
+  // Backward-compatibility aliases
+  UNREVIEWED: 'Belum Terverifikasi',
+  IN_REVIEW: 'Belum Terverifikasi',
+  ACTION_NEEDED: 'Belum Terverifikasi',
+  CLOSED: 'Terverifikasi'
 });
+
+/**
+ * Normalizes any legacy or custom status string to standard binary ReviewStatus.
+ * @param {string|any} val
+ * @returns {'Belum Terverifikasi'|'Terverifikasi'}
+ */
+function normalizeReviewStatus(val) {
+  if (!val) return ReviewStatus.UNVERIFIED;
+  const s = String(val).trim().toLowerCase();
+  if (s === 'terverifikasi' || s === 'verified' || s === 'closed' || s === 'selesai' || s === 'reviewed') {
+    return ReviewStatus.VERIFIED;
+  }
+  return ReviewStatus.UNVERIFIED;
+}
 
 /**
  * Domain Value Object: Triage Result
@@ -154,12 +171,13 @@ function QueueItem(data) {
     ringkasan: data.ringkasan || data.detail || '',
     severity: data.severity || ReportSeverity.NORMAL,
     rank: data.rank || SeverityRank.NORMAL,
-    reviewStatus: data.reviewStatus || ReviewStatus.UNREVIEWED,
+    reviewStatus: normalizeReviewStatus(data.reviewStatus),
     photoUrl: data.photoUrl || '',
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,
     nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
     kendala: data.kendala || '',
     upaya: data.upaya || '',
+    fields: Array.isArray(data.fields) ? data.fields : [],
     raw: data.raw || null
   };
 }

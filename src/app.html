@@ -13,7 +13,7 @@ if (typeof window.SERVER_WEB_APP_URL === 'undefined') {
  * Safe navigation helper to prevent top-level navigation to googleusercontent.com sandbox.
  * Resolves base script.google.com URL from server variable, document.referrer, anchor href, or current URL.
  * Falls back to the calling anchor element's own href if all other sources fail.
- * @param {string} pageName - Target page name (e.g. 'admin', 'dashboard', 'index', 'general')
+ * @param {string} pageName - Target page name (e.g. 'admin', 'dashboard', 'index', 'forms')
  * @param {HTMLAnchorElement|null} [anchorEl=null] - The anchor element that triggered navigation (optional fallback)
  */
 function navigateToPage(pageName, anchorEl) {
@@ -268,22 +268,12 @@ function getDB() {
   let db = localStorage.getItem('MPL_REPORTING_DB');
   if (!db) {
     const defaultData = {
-      dailyReports: [],
-      generalReports: [],
       operationalReports: []
     };
     localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(defaultData));
     return defaultData;
   }
-  const parsed = JSON.parse(db);
-  // Purge old prototype mockup reports if present in local storage
-  if (parsed.dailyReports && parsed.dailyReports.some(r => r.id === 'REC-001' || r.yield === 1450)) {
-    parsed.dailyReports = [];
-    parsed.generalReports = [];
-    parsed.operationalReports = [];
-    localStorage.setItem('MPL_REPORTING_DB', JSON.stringify(parsed));
-  }
-  return parsed;
+  return JSON.parse(db);
 }
 
 function saveDB(db) {
@@ -583,11 +573,12 @@ function computePeriodSummary(rows, startDateStr, endDateStr) {
       }
     }
     
-    const reviewStatus = String(item.reviewStatus || 'Unreviewed');
+    const reviewStatus = String(item.reviewStatus || 'Belum Terverifikasi');
     const kendalaText = String(item.kendala || (item.raw ? item.raw[20] : '') || '').trim();
     const upayaText = String(item.upaya || (item.raw ? item.raw[21] : '') || '').trim();
     
-    const isUnresolved = (reviewStatus !== 'Closed') || (kendalaText !== '' && upayaText === '');
+    const isVerified = (reviewStatus.toLowerCase() === 'terverifikasi' || reviewStatus.toLowerCase() === 'closed' || reviewStatus.toLowerCase() === 'verified');
+    const isUnresolved = (!isVerified) && (kendalaText !== '' && kendalaText !== '-');
     if (isUnresolved) {
       unresolvedKendalaRows.push(item);
     }

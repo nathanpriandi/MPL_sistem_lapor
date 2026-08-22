@@ -9,15 +9,12 @@
 
 /**
  * Handles HTTP GET requests for Apps Script Web App.
- * Routes to index, general, admin, or dashboard HTML views.
+ * Routes to index (operational form), dynamicform, admin queue, manager dashboard, or form management views.
  * @param {Object} e - HTTP GET Event object.
  * @returns {HtmlOutput} Evaluated HTML response.
  */
 function doGet(e) {
   let pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : '').toLowerCase().trim();
-  if (pageParam === 'general' || pageParam === 'harian') {
-    pageParam = 'index';
-  }
   const allowed = { 
     index: 'index', 
     dynamicform: 'dynamicform',

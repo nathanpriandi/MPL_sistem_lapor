@@ -288,9 +288,10 @@ const ReportService = {
     const targetSheet = FormManagementService.resolveFormTab_(ss, form);
 
     const rowData = [
-      reportId, '', '', nowStr, empId, site, site, details, 'Target', 0, 0,
-      '', '', date, '', 0, '', 0, 0, 0, details, '', photoUrl,
-      flag.severity, ReviewStatus.UNREVIEWED
+      reportId, '', '', nowStr, empId, site, site, details, '', '', '',
+      '', 0, 0, date, 0, '', 0, '', '', 0,
+      0, 0, 0, '', '', kendalaVal, String(payload.upaya || '').trim(), photoUrl,
+      flag.severity, ReviewStatus.UNVERIFIED
     ];
 
     targetSheet.appendRow(rowData);

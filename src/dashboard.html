@@ -532,7 +532,11 @@
       const kpiDistinctEl = document.getElementById('kpiDistinctActivities');
       if (kpiDistinctEl) kpiDistinctEl.innerText = (stats.distinctActivityCount || 0).toLocaleString('id-ID');
       const kpiRawEl = document.getElementById('kpiRawReports');
-      if (kpiRawEl) kpiRawEl.innerText = `${(stats.totalReports || 0).toLocaleString('id-ID')} total laporan masuk`;
+      if (kpiRawEl) {
+        const total = (stats.totalReports || 0);
+        const verified = (stats.verifiedCount || 0);
+        kpiRawEl.innerText = `${total} Laporan (${verified} Terverifikasi)`;
+      }
 
       // 2.2 Total Nilai Penjualan & Trend
       const kpiSalesEl = document.getElementById('kpiTotalPenjualan');
@@ -576,7 +580,7 @@
       const kpiUnansweredSubEl = document.getElementById('kpiUnansweredSub');
       if (kpiUnansweredSubEl) {
         const unanswered = stats.unansweredObstaclesCount || 0;
-        kpiUnansweredSubEl.innerText = `${unanswered} belum ada upaya`;
+        kpiUnansweredSubEl.innerText = `${unanswered} tanpa respon | ${stats.unverifiedCount || 0} belum verifikasi`;
       }
       const trendObstaclesEl = document.getElementById('trendObstacles');
       const kpiObstaclesTrendText = document.getElementById('kpiObstaclesTrendText');
@@ -584,10 +588,10 @@
         const openObs = stats.openObstaclesCount || 0;
         if (openObs > 0) {
           trendObstaclesEl.className = 'metric-trend metric-trend-down';
-          kpiObstaclesTrendText.innerText = `${openObs} Kendala Terlaporkan`;
+          kpiObstaclesTrendText.innerText = `${openObs} Kendala Terbuka`;
         } else {
           trendObstaclesEl.className = 'metric-trend metric-trend-up';
-          kpiObstaclesTrendText.innerText = 'Kondisi Lapangan Lancar';
+          kpiObstaclesTrendText.innerText = 'Semua Kendala Terverifikasi';
         }
       }
 
@@ -1039,8 +1043,15 @@
       const distinctSet = new Set();
       const divActSet = { [DIV_KEYS.AGRO]: new Set(), [DIV_KEYS.TERNAK]: new Set(), [DIV_KEYS.IKAN]: new Set() };
 
+      let verifiedCount = 0;
+      let unverifiedCount = 0;
+
       curMonthReports.forEach(r => {
         totalReports++;
+        const isVerified = (String(r.reviewStatus || '').toLowerCase() === 'terverifikasi' || String(r.reviewStatus || '').toLowerCase() === 'closed' || String(r.reviewStatus || '').toLowerCase() === 'verified');
+        if (isVerified) verifiedCount++;
+        else unverifiedCount++;
+
         const code = String(r.kodeKegiatan || '').trim();
         const root = code ? getRoot(code) : `_anon_${r.id || Math.random()}`;
         distinctSet.add(root);
@@ -1061,7 +1072,7 @@
           const pDate = new Date(r.tglPerkiraanPanen);
           if (!isNaN(pDate.getTime()) && pDate.getTime() < now.getTime()) {
             const daysLate = Math.floor((now.getTime() - pDate.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysLate >= 8) {
+            if (daysLate >= 8 && !isVerified) {
               const isUrgent = daysLate >= 15;
               if (isUrgent) urgentOverdueCount++;
               else warningOverdueCount++;
@@ -1085,23 +1096,25 @@
 
         // Kendala
         if (r.kendala && r.kendala !== '-') {
-          openObstaclesCount++;
-          const hasNoUpaya = !r.upaya || r.upaya === '-';
-          if (hasNoUpaya) unansweredObstaclesCount++;
-          attentionList.push({
-            id: r.id || r.kodeKegiatan,
-            type: 'open_obstacle',
-            severity: hasNoUpaya ? 'urgent' : 'warning',
-            rank: hasNoUpaya ? 1 : 2,
-            badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
-            kodeKegiatan: r.kodeKegiatan || '-',
-            lokasi: r.lokasiKegiatan || r.lokasi || '-',
-            pic: r.namaPic || '-',
-            divisi: r.normDiv,
-            details: `Kendala: "${r.kendala}"${!hasNoUpaya ? ' | Upaya: "' + r.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
-            hasNoUpaya: hasNoUpaya,
-            timestamp: r.timestamp
-          });
+          if (!isVerified) {
+            openObstaclesCount++;
+            const hasNoUpaya = !r.upaya || r.upaya === '-';
+            if (hasNoUpaya) unansweredObstaclesCount++;
+            attentionList.push({
+              id: r.id || r.kodeKegiatan,
+              type: 'open_obstacle',
+              severity: hasNoUpaya ? 'urgent' : 'warning',
+              rank: hasNoUpaya ? 1 : 2,
+              badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
+              kodeKegiatan: r.kodeKegiatan || '-',
+              lokasi: r.lokasiKegiatan || r.lokasi || '-',
+              pic: r.namaPic || '-',
+              divisi: r.normDiv,
+              details: `Kendala: "${r.kendala}"${!hasNoUpaya ? ' | Upaya: "' + r.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
+              hasNoUpaya: hasNoUpaya,
+              timestamp: r.timestamp
+            });
+          }
         }
 
         // Weekly bucketing
@@ -1144,6 +1157,9 @@
       return {
         currentPeriodLabel: currentPeriodLabel,
         totalReports: totalReports,
+        verifiedCount: verifiedCount,
+        unverifiedCount: unverifiedCount,
+        verificationRate: totalReports > 0 ? Math.round((verifiedCount / totalReports) * 100) : 0,
         distinctActivityCount: distinctSet.size,
         totalActiveKegiatan: totalActiveKegiatan,
         totalNilaiPenjualanRp: totalNilaiPenjualanRp,

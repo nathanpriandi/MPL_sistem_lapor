@@ -536,10 +536,8 @@ const FormManagementService = {
     let publicUrl = '';
     if (formType === 'kustom') {
       publicUrl = baseUrl ? `${baseUrl}?page=dynamicform&formId=${newFormId}` : `?page=dynamicform&formId=${newFormId}`;
-    } else if (formType === 'harian') {
-      publicUrl = baseUrl ? `${baseUrl}?page=index` : '?page=index';
     } else {
-      publicUrl = baseUrl ? `${baseUrl}?page=general` : '?page=general';
+      publicUrl = baseUrl ? `${baseUrl}?page=index` : '?page=index';
     }
 
     const newRecord = {

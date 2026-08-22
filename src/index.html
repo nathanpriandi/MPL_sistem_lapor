@@ -1150,6 +1150,38 @@
         } else {
           const kodeGenerated = 'AGR-SIM-' + Date.now().toString().substring(8);
           res = { success: true, kodeKegiatan: kodeGenerated };
+
+          try {
+            const db = getDB();
+            db.operationalReports = db.operationalReports || [];
+            const triage = evaluateFlags(payload.kendala);
+            const reportId = 'REP-LOCAL-' + Date.now();
+            
+            db.operationalReports.unshift({
+              id: reportId,
+              reportId: reportId,
+              kodeKegiatan: kodeGenerated,
+              timestamp: formatDateNow(),
+              namaPic: payload.namaPic || 'PIC Local',
+              empId: payload.namaPic || 'EMP-LOCAL',
+              divisi: payload.bidangDivisi || 'Agro (Pertanian/Perkebunan)',
+              lokasi: payload.lokasiKegiatan || 'Site A',
+              jenisKegiatan: payload.jenisKegiatan || 'Aktivitas Lapangan',
+              ringkasan: (payload.jenisKegiatan || 'Operasional') + (payload.jumlahPanen ? ` | Panen: ${payload.jumlahPanen} Kg` : ''),
+              severity: triage.severity,
+              rank: triage.rank,
+              reviewStatus: 'Belum Terverifikasi',
+              photoUrl: payload.photoBase64 ? ('data:' + (payload.photoMimeType || 'image/jpeg') + ';base64,' + payload.photoBase64) : '',
+              jumlahPanen: payload.jumlahPanen || 0,
+              nilaiPenjualanRp: payload.totalHargaRp || payload.nilaiPenjualanRp || 0,
+              kendala: payload.kendala || '',
+              upaya: payload.upaya || '',
+              isSensitive: false
+            });
+            saveDB(db);
+          } catch (eSave) {
+            console.warn('Local preview save to getDB failed:', eSave);
+          }
         }
 
         document.getElementById('displayKodeKegiatan').innerText = res.kodeKegiatan || 'KODE-GENERATED';

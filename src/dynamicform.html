@@ -383,6 +383,38 @@
           var res = await runServer('submitDynamicFormResponse', currentFormId, payload);
           showSuccessBanner('Laporan berhasil terkirim! (ID: ' + res.reportId + ')');
         } else {
+          try {
+            var db = getDB();
+            db.operationalReports = db.operationalReports || [];
+            var kendalaText = String(payload.kendala || payload.Kendala || payload.kendalaKegiatan || '').trim();
+            var triage = evaluateFlags(kendalaText);
+            var repId = 'REP-DYN-' + Date.now();
+
+            db.operationalReports.unshift({
+              id: repId,
+              reportId: repId,
+              kodeKegiatan: 'DYN-' + Date.now().toString().substring(8),
+              timestamp: formatDateNow(),
+              namaPic: payload.empId || payload.namaPic || 'PIC Dynamic',
+              empId: payload.empId || payload.namaPic || 'EMP-DYNAMIC',
+              divisi: payload.site || payload.divisi || 'Agro (Pertanian/Perkebunan)',
+              lokasi: payload.site || payload.lokasi || 'Site A',
+              jenisKegiatan: 'Form Kustom: ' + (currentFormId || 'Kustom'),
+              ringkasan: 'Laporan Form Kustom (' + (currentFormId || 'Kustom') + ')',
+              severity: triage.severity,
+              rank: triage.rank,
+              reviewStatus: 'Belum Terverifikasi',
+              photoUrl: payload.foto || payload.photo || '',
+              jumlahPanen: 0,
+              nilaiPenjualanRp: 0,
+              kendala: kendalaText,
+              upaya: String(payload.upaya || '').trim(),
+              isSensitive: false
+            });
+            saveDB(db);
+          } catch (eSave) {
+            console.warn('Local preview save for dynamic form failed:', eSave);
+          }
           showSuccessBanner('Laporan berhasil terkirim! (Local Preview)');
         }
 
