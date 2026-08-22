@@ -32,8 +32,8 @@ const AdminService = {
    * Returns aggregated stats for Executive Manager Dashboard.
    * @returns {Object|null}
    */
-  getDashboardStats: function() {
-    return SpreadsheetRepository.getDashboardStatsData();
+  getDashboardStats: function(options) {
+    return SpreadsheetRepository.getDashboardStatsData(options || {});
   },
 
   /**

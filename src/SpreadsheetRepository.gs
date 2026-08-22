@@ -501,7 +501,7 @@ const SpreadsheetRepository = {
    * tiered overdue harvest detection, open obstacle tracking, and quiet site coverage.
    * @returns {Object} Comprehensive dashboard stats payload.
    */
-  getDashboardStatsData: function() {
+  getDashboardStatsData: function(options = {}) {
     const mainSsId = ConfigRepository.getSpreadsheetId();
     if (!mainSsId) return {};
 
@@ -510,19 +510,60 @@ const SpreadsheetRepository = {
 
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0-11
-
+    const currentMonth = now.getMonth();
     const INDO_MONTHS = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
-    const currentPeriodLabel = `${INDO_MONTHS[currentMonth]} ${currentYear}`;
 
-    const curMonthStart = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
-    const curMonthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+    let startDate = null;
+    let endDate = null;
+    let currentPeriodLabel = '';
+    const periodMode = (options && options.period) ? options.period : 'this_month';
 
-    const priorMonthStart = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0, 0);
-    const priorMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+    if (periodMode === 'this_week') {
+      const dayOfWeek = now.getDay();
+      const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMon);
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      startDate = monday;
+      endDate = sunday;
+      currentPeriodLabel = 'Minggu Ini';
+    } else if (periodMode === 'last_week') {
+      const dayOfWeek = now.getDay();
+      const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek) - 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMon);
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      startDate = monday;
+      endDate = sunday;
+      currentPeriodLabel = 'Minggu Lalu';
+    } else if (periodMode === 'custom' && options.startDate && options.endDate) {
+      startDate = new Date(options.startDate + 'T00:00:00');
+      endDate = new Date(options.endDate + 'T23:59:59');
+      currentPeriodLabel = `${options.startDate} s/d ${options.endDate}`;
+    } else {
+      startDate = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
+      endDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+      currentPeriodLabel = `${INDO_MONTHS[currentMonth]} ${currentYear}`;
+    }
+
+    const curMonthStart = startDate;
+    const curMonthEnd = endDate;
+
+    const priorMonthStart = new Date(startDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+    const priorMonthEnd = new Date(startDate.getTime() - 1);
 
     const DIV_KEYS = {
       AGRO: 'Agro (Pertanian/Perkebunan)',
@@ -867,10 +908,38 @@ const SpreadsheetRepository = {
       return (b.daysInactive || 0) - (a.daysInactive || 0);
     });
 
-    // 6. Month-over-month trend calculation
+    // Month-over-month trend calculation
     const salesTrendPercent = priorMonthNilaiPenjualanRp > 0 
       ? Math.round(((totalNilaiPenjualanRp - priorMonthNilaiPenjualanRp) / priorMonthNilaiPenjualanRp) * 100)
       : null;
+
+    // Compute Location Coverage Analysis
+    const allLocationsSet = new Set();
+    const activeLocationsSet = new Set();
+    const missingLocationsList = [];
+
+    coverageMap.forEach((entry) => {
+      if (entry.lokasi) {
+        allLocationsSet.add(entry.lokasi);
+        if (entry.date && entry.date >= curMonthStart && entry.date <= curMonthEnd) {
+          activeLocationsSet.add(entry.lokasi);
+        } else {
+          const diffMs = now.getTime() - (entry.date ? entry.date.getTime() : 0);
+          const daysInactive = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          missingLocationsList.push({
+            lokasi: entry.lokasi,
+            pic: entry.namaPic,
+            divisi: entry.divisi,
+            lastDateStr: entry.dateStr,
+            daysInactive: daysInactive
+          });
+        }
+      }
+    });
+
+    const totalLocs = allLocationsSet.size || activeLocationsSet.size || 1;
+    const activeLocs = activeLocationsSet.size;
+    const coverageFraction = `${activeLocs} dari ${totalLocs}`;
 
     return {
       currentPeriodLabel: currentPeriodLabel,
@@ -893,7 +962,13 @@ const SpreadsheetRepository = {
       normalCount: normalCount,
       severityDist: severityDist,
       attentionList: attentionList,
-      weeklyTrend: weeklyTrend
+      weeklyTrend: weeklyTrend,
+      locationCoverage: {
+        total: totalLocs,
+        active: activeLocs,
+        fraction: coverageFraction,
+        missing: missingLocationsList
+      }
     };
   },
 

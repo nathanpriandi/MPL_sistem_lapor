@@ -121,6 +121,15 @@ function authorizeDriveScope() {
 }
 
 /**
+ * Diagnostic helper to test dashboard stats calculation from Apps Script Editor.
+ */
+function testDashboardStats() {
+  const stats = AdminService.getDashboardStats({ period: 'this_month' });
+  Logger.log('Dashboard Stats Result: ' + JSON.stringify(stats));
+  return stats;
+}
+
+/**
  * Creates and configures the Unified Operational Form (Kegiatan, Panen & Penjualan)
  */
 function setupOperationalForm(ssId) {

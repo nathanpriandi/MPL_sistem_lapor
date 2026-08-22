@@ -120,8 +120,8 @@ function updateReviewStatus(reportId, newStatus) {
  * Returns aggregated stats for Executive Manager Dashboard.
  * @returns {Object|null} JSON stats object for dashboard rendering.
  */
-function getDashboardStats() {
-  return AdminService.getDashboardStats();
+function getDashboardStats(options) {
+  return AdminService.getDashboardStats(options);
 }
 
 /**
