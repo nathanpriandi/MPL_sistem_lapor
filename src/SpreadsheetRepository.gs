@@ -497,7 +497,15 @@ const SpreadsheetRepository = {
 
             // Convert row cells to RPC-safe primitive values (convert Date objects to formatted strings)
             const safeRaw = row.map(cell => {
-              if (cell instanceof Date) return formatDate(cell);
+              if (cell instanceof Date) {
+                const h = cell.getHours();
+                const m = cell.getMinutes();
+                const s = cell.getSeconds();
+                if (h === 0 && m === 0 && s === 0) {
+                  return Utilities.formatDate(cell, 'Asia/Jakarta', 'yyyy-MM-dd');
+                }
+                return formatDate(cell);
+              }
               if (cell === null || cell === undefined) return '';
               if (typeof cell === 'object') return String(cell);
               return cell;

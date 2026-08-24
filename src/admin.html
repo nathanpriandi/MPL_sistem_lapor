@@ -73,7 +73,7 @@
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input type="text" id="searchInput" class="search-input-field" placeholder="Cari Kode Kegiatan, PIC, Divisi, Lokasi, Catatan..." oninput="onSearchInput()">
+                <input type="text" id="searchInput" class="search-input-field" placeholder="Cari Kode Kegiatan, Nama Karyawan, Divisi, Lokasi, Catatan..." oninput="onSearchInput()">
                 <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" title="Hapus pencarian">&times;</button>
               </div>
 
@@ -154,13 +154,13 @@
             <table class="table-sticky-col responsive-card-table">
               <thead>
                 <tr>
-                  <th style="min-width: 140px;">Kode Kegiatan</th>
+                  <th style="min-width: 160px; white-space: nowrap;">Kode Kegiatan</th>
                   <th onclick="toggleSort('timestamp')" class="th-sortable" style="min-width: 130px;" title="Klik untuk mengurutkan berdasarkan waktu">
                     <div class="th-content">
                       <span>Waktu Submit</span> <span id="sort-timestamp" class="sort-indicator">↕</span>
                     </div>
                   </th>
-                  <th style="min-width: 150px;">PIC Pelapor</th>
+                  <th style="min-width: 150px;">Nama Karyawan</th>
                   <th style="min-width: 110px;">Lokasi</th>
                   <th style="min-width: 220px;">Ringkasan &amp; Detail</th>
                   <th onclick="toggleSort('severity')" class="th-sortable th-center" style="min-width: 120px;" title="Klik untuk mengurutkan berdasarkan keparahan">
@@ -180,7 +180,7 @@
                 <tr>
                   <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
                   <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
                   <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
                   <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
                   <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
@@ -190,7 +190,7 @@
                 <tr>
                   <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
                   <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
                   <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
                   <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
                   <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
@@ -200,7 +200,7 @@
                 <tr>
                   <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
                   <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
                   <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
                   <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
                   <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
@@ -232,13 +232,15 @@
         <!-- MODAL: FORM REVIEW INSPECTOR -->
         <div class="modal-overlay" id="reportDetailModal" hidden onclick="handleBackdropClick(event)">
           <div class="modal-card modal-inspector" onclick="event.stopPropagation()">
-            <div class="modal-header" style="align-items: flex-start;">
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                  <h3 class="modal-title" id="modalInspectorTitle">Detail Laporan Operasional</h3>
-                  <span id="modalSourceBadge" class="badge badge-neutral">Form</span>
+            <div class="modal-header" style="align-items: flex-start; padding-bottom: 0.75rem;">
+              <div class="inspector-header-container">
+                <div class="inspector-title-row">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <h3 class="modal-title" id="modalInspectorTitle" style="margin: 0;">Detail Laporan Operasional</h3>
+                    <span id="modalSourceBadge" class="badge badge-neutral">Form</span>
+                  </div>
                 </div>
-                <div class="inspector-header-meta" id="modalHeaderMeta">
+                <div class="inspector-controls-bar" id="modalHeaderMeta">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
@@ -452,7 +454,7 @@
           <tr>
             <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
             <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-            <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+            <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
             <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 90px;"></div></td>
             <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 200px;"></div></td>
             <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
@@ -627,6 +629,24 @@
       renderCurrentPage();
     }
 
+    function resetFilters() {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = '';
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+
+      const siteFilter = document.getElementById('siteFilter');
+      if (siteFilter) siteFilter.value = '';
+
+      const startDateFilter = document.getElementById('startDateFilter');
+      if (startDateFilter) startDateFilter.value = '';
+
+      const endDateFilter = document.getElementById('endDateFilter');
+      if (endDateFilter) endDateFilter.value = '';
+
+      setQuickFilter('unverified');
+    }
+
     function renderCurrentPage() {
       const tbody = document.getElementById('queueBody');
       tbody.innerHTML = '';
@@ -640,7 +660,18 @@
       const pageSlice = currentFilteredData.slice(startIndex, endIndex);
 
       if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-muted-center" style="padding: 3.5rem 1.5rem; text-align: center;"><div style="font-size: 1.75rem; margin-bottom: 0.5rem;">📋</div><strong style="color: var(--text-primary); font-size: 0.95rem;">Tidak ada laporan yang sesuai kriteria</strong><br><span style="font-size: 0.825rem; color: var(--text-muted);">Coba ubah kriteria pencarian atau pilih filter status lain.</span></td></tr>';
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="padding: 4rem 1.5rem; text-align: center;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #f1f5f9; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <h4 style="font-size: 0.95rem; font-weight: 600; color: #1e293b; margin-bottom: 0.25rem;">Tidak Ada Laporan Ditemukan</h4>
+              <p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 1rem;">Kriteria pencarian atau filter status yang Anda pilih tidak memiliki hasil.</p>
+              <button class="btn btn-secondary table-btn-sm" onclick="resetFilters()" style="font-size: 0.775rem; height: 30px; padding: 0 0.85rem; border-radius: 6px;">Reset Semua Filter</button>
+            </td>
+          </tr>
+        `;
         document.getElementById('paginationInfo').innerText = '0 dari 0 laporan';
         renderPagination(0, 1);
         return;
@@ -683,13 +714,10 @@
               ${timePart ? `<span class="time-hour">${timePart}</span>` : ''}
             </div>
           </td>
-          <td data-label="PIC Pelapor">
-            <div class="pic-cell-group">
-              <div class="pic-avatar-badge">${picInitials}</div>
-              <div class="pic-info-stack">
-                <span class="pic-name" title="${item.empId || item.namaPic}">${item.empId || item.namaPic || '-'}</span>
-                <span class="pic-divisi-badge">${item.divisi}</span>
-              </div>
+          <td data-label="Nama Karyawan">
+            <div class="pic-info-stack">
+              <span class="pic-name" title="${item.empId || item.namaPic}">${item.empId || item.namaPic || '-'}</span>
+              <span class="pic-divisi-badge">${item.divisi}</span>
             </div>
           </td>
           <td data-label="Lokasi">
@@ -704,7 +732,7 @@
           </td>
           <td data-label="Tingkat Keparahan" class="cell-center">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${item.severity.toUpperCase()}
+              ${item.severity === 'urgent' ? 'Mendesak' : 'Normal'}
             </span>
           </td>
           <td data-label="Status Verifikasi" class="cell-center">
@@ -714,8 +742,11 @@
             </select>
           </td>
           <td data-label="Aksi" class="cell-center">
-            <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})" title="Lihat Detail Isian Laporan" style="font-weight: 600; padding: 0.35rem 0.65rem;">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -1px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <button class="table-action-btn" onclick="openDetailModal(${itemGlobalIndex})" title="Lihat Detail Isian Laporan">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
               <span>Lihat</span>
             </button>
           </td>
@@ -778,34 +809,127 @@
       if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function openDetailModal(globalIndex) {
-      if (globalIndex < 0 || globalIndex >= currentFilteredData.length) return;
-      currentModalIndex = globalIndex;
-      const item = currentFilteredData[globalIndex];
+    function copyModalCode(code, btnElement) {
+      if (!code || code === '-') return;
+      navigator.clipboard.writeText(code).then(() => {
+        if (btnElement) {
+          const originalHtml = btnElement.innerHTML;
+          btnElement.innerHTML = `<svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!`;
+          btnElement.style.background = '#dcfce7';
+          btnElement.style.color = '#15803d';
+          btnElement.style.borderColor = '#86efac';
+          setTimeout(() => {
+            btnElement.innerHTML = originalHtml;
+            btnElement.style.background = '';
+            btnElement.style.color = '';
+            btnElement.style.borderColor = '';
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Gagal menyalin:', err);
+      });
+    }
+
+    function formatFieldLabel(key) {
+      if (!key) return '';
+      const customLabels = {
+        'kode_kegiatan': 'Kode Kegiatan',
+        'nama_pic': 'Nama Karyawan',
+        'bidang_divisi': 'Divisi / Bidang',
+        'lokasi_kegiatan': 'Lokasi Lapangan',
+        'jenis_kegiatan': 'Jenis Kegiatan',
+        'pengawasan': 'Pengawasan Komoditas',
+        'capaian_kegiatan': 'Capaian Kegiatan',
+        'kendala': 'Kendala Lapangan',
+        'upaya': 'Upaya Penanganan',
+        'jumlah_panen': 'Jumlah Panen',
+        'nilai_penjualan': 'Nilai Penjualan',
+        'catatan': 'Catatan Tambahan',
+        'kondisi_cuaca': 'Kondisi Cuaca',
+        'peralatan_digunakan': 'Peralatan Digunakan',
+        'tgl_tanam': 'Tgl Tanam',
+        'tgl_panen': 'Tgl Panen',
+        'tgl_penjualan': 'Tgl Penjualan',
+        'estimasi_panen_hst': 'Estimasi Panen HST',
+        'jumlah_panen_kg': 'Jumlah Panen Kg'
+      };
+      const cleanKey = String(key).trim().toLowerCase();
+      if (customLabels[cleanKey]) return customLabels[cleanKey];
+
+      return String(key)
+        .replace(/_/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function formatFieldValue(val, label) {
+      if (val === undefined || val === null) return '-';
+      let str = String(val).trim();
+      if (!str || str === '-') return '-';
+
+      // Strip clock if it is midnight 00:00 or ISO midnight
+      str = str.replace(/^(\d{4}-\d{2}-\d{2})\s+00:00(:00)?$/, '$1');
+      str = str.replace(/^(\d{4}-\d{2}-\d{2})T00:00:00(\.000)?Z?$/, '$1');
+
+      // If label has Tgl / Tanggal, strip any trailing clock portion
+      const isDateLabel = label && /^(tgl|tanggal|date|tgl_)/i.test(label);
+      if (isDateLabel) {
+        str = str.replace(/\s+\d{2}:\d{2}(:\d{2})?$/, '');
+      }
+
+      return str;
+    }
+
+    function openDetailModal(itemIndex) {
+      const item = currentFilteredData[itemIndex];
       if (!item) return;
 
+      currentModalIndex = itemIndex;
+      const globalIndex = itemIndex;
+
       const modal = document.getElementById('reportDetailModal');
+      const titleEl = document.getElementById('modalInspectorTitle');
+      const sourceBadgeEl = document.getElementById('modalSourceBadge');
+      const headerMetaEl = document.getElementById('modalHeaderMeta');
       const modalBody = document.getElementById('modalBody');
-      const modalTitle = document.getElementById('modalInspectorTitle');
-      const modalSourceBadge = document.getElementById('modalSourceBadge');
-      const modalHeaderMeta = document.getElementById('modalHeaderMeta');
       const modalItemCounter = document.getElementById('modalItemCounter');
       const btnPrev = document.getElementById('btnModalPrev');
       const btnNext = document.getElementById('btnModalNext');
 
-      if (!modal || !modalBody) return;
-
-      if (modalTitle) modalTitle.innerText = `${item.kodeKegiatan !== '-' ? item.kodeKegiatan : item.reportId}`;
-      if (modalSourceBadge) modalSourceBadge.innerText = item.source || 'Laporan Operasional';
-      
       const isVerified = (item.reviewStatus === 'Terverifikasi');
       const isUrgent = (item.severity === 'urgent');
 
-      if (modalHeaderMeta) {
-        modalHeaderMeta.innerHTML = `
-          <span class="badge ${isUrgent ? 'badge-urgent' : 'badge-normal'}">${item.severity.toUpperCase()}</span>
-          <span class="badge ${isVerified ? 'badge-verified' : 'badge-unverified'}">${item.reviewStatus}</span>
-          <span style="font-size: 0.775rem; color: var(--text-muted);">Waktu: <strong>${item.timestamp || '-'}</strong></span>
+      if (titleEl) {
+        titleEl.innerHTML = `
+          <div class="inspector-code-group">
+            <span class="inspector-code-badge">${item.kodeKegiatan || 'Laporan'}</span>
+            ${item.kodeKegiatan && item.kodeKegiatan !== '-' ? `
+              <button class="inspector-copy-btn" onclick="copyModalCode('${item.kodeKegiatan}', this)" title="Salin Kode Kegiatan">
+                <span>Salin</span>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      if (sourceBadgeEl) {
+        sourceBadgeEl.innerText = item.source || 'Laporan Operasional';
+      }
+
+      if (headerMetaEl) {
+        headerMetaEl.innerHTML = `
+          <div class="inspector-controls-left">
+            <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
+              ${isUrgent ? 'Mendesak' : 'Normal'}
+            </span>
+            <select class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" onchange="toggleModalVerification('${item.reportId}', this.value)" aria-label="Status Verifikasi">
+              <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
+              <option value="Terverifikasi" ${isVerified ? 'selected' : ''}>Terverifikasi</option>
+            </select>
+          </div>
+          <div class="inspector-controls-right">
+            <span>Waktu Pengiriman: <strong>${item.timestamp || '-'}</strong></span>
+          </div>
         `;
       }
 
@@ -819,147 +943,108 @@
       const fields = item.fields || [];
 
       let html = `
-        <!-- Top Action / Verification Status Bar -->
-        <div class="inspector-status-bar">
-          <div>
-            <span style="font-size: 0.725rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 2px;">Status Verifikasi Laporan</span>
-            <span class="badge ${isVerified ? 'badge-verified' : 'badge-unverified'}" style="font-size: 0.85rem; padding: 0.3rem 0.75rem;">
-              ${isVerified ? '✓ Terverifikasi' : '⏳ Belum Terverifikasi'}
-            </span>
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            ${isVerified ? `
-              <button class="btn btn-secondary table-btn-sm" onclick="toggleModalVerification('${item.reportId}', 'Belum Terverifikasi')">
-                Ubah ke Belum Terverifikasi
-              </button>
-            ` : `
-              <button class="btn btn-primary table-btn-sm" onclick="toggleModalVerification('${item.reportId}', 'Terverifikasi')" style="background: var(--normal); border-color: var(--normal);">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg>
-                Tandai Terverifikasi
-              </button>
-            `}
-          </div>
-        </div>
-
-        <!-- Section 1: Profil & Identitas Laporan -->
-        <div class="inspector-section" style="border-top: none; padding-top: 0.5rem;">
-          <div class="inspector-section-title">
-            <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Identitas &amp; Lokasi Lapangan</span>
-          </div>
-          <div class="inspector-grid">
-            <div class="inspector-field">
-              <span class="inspector-field-label">Kode Kegiatan</span>
-              <span class="inspector-field-value"><code>${item.kodeKegiatan || '-'}</code></span>
-            </div>
-            <div class="inspector-field">
-              <span class="inspector-field-label">Report ID</span>
-              <span class="inspector-field-value"><code>${item.reportId || '-'}</code></span>
-            </div>
-            <div class="inspector-field">
-              <span class="inspector-field-label">PIC Pelapor</span>
-              <span class="inspector-field-value"><strong>${item.empId || item.namaPic || '-'}</strong></span>
-            </div>
-            <div class="inspector-field">
-              <span class="inspector-field-label">Divisi / Bidang</span>
-              <span class="inspector-field-value">${item.divisi || '-'}</span>
-            </div>
-            <div class="inspector-field">
-              <span class="inspector-field-label">Lokasi Kegiatan</span>
-              <span class="inspector-field-value">${item.lokasi || '-'}</span>
-            </div>
-            <div class="inspector-field">
-              <span class="inspector-field-label">Waktu Pengiriman</span>
-              <span class="inspector-field-value">${item.timestamp || '-'}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 2: Ringkasan Aktivitas -->
+        <!-- Section 1: Ringkasan Utama -->
         <div class="inspector-section">
-          <div class="inspector-section-title">
-            <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            <span>Ringkasan Kegiatan Lapangan</span>
+          <div class="inspector-section-heading">Informasi Umum</div>
+          <div class="inspector-data-grid">
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Nama Karyawan</span>
+              <span class="inspector-data-value highlight-value">${item.empId || item.namaPic || '-'}</span>
+            </div>
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Divisi / Bidang</span>
+              <span class="inspector-data-value">${item.divisi || '-'}</span>
+            </div>
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Lokasi Kegiatan</span>
+              <span class="inspector-data-value">${item.lokasi || '-'}</span>
+            </div>
           </div>
-          <div class="detail-value-box" style="font-size: 0.9rem;">${item.ringkasan || '-'}</div>
         </div>
       `;
 
-      // Section 3: Kendala & Upaya (if any)
-      if (item.kendala && item.kendala !== '-') {
-        const hasNoUpaya = !item.upaya || item.upaya === '-';
+      // Section 2: Kendala & Tindak Lanjut (if any)
+      if (item.kendala && item.kendala !== '-' && item.kendala !== '') {
+        const hasUpaya = item.upaya && item.upaya !== '-';
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-title" style="color: #be123c;">
-              <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#be123c" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Kendala &amp; Tindak Lanjut Lapangan</span>
-            </div>
-            <div class="inspector-alert-box">
-              <div class="inspector-alert-title">
-                <span>Kendala Terlaporkan:</span>
+            <div class="inspector-section-heading" style="color: #be123c; border-color: #fecdd3;">Kendala &amp; Tindak Lanjut</div>
+            <div class="inspector-data-grid" style="grid-template-columns: 1fr;">
+              <div class="inspector-data-item">
+                <span class="inspector-data-label" style="color: #be123c;">Deskripsi Kendala</span>
+                <span class="inspector-data-value warning-value">${item.kendala}</span>
               </div>
-              <div style="font-weight: 500; margin-bottom: 0.5rem;">${item.kendala}</div>
-              <div style="font-size: 0.8rem; color: #881337; border-top: 1px solid rgba(244, 63, 94, 0.2); padding-top: 0.4rem;">
-                <strong>Upaya Penanganan:</strong> ${!hasNoUpaya ? item.upaya : '⚠️ Belum ada upaya penanganan tercatat'}
+              <div class="inspector-data-item" style="margin-top: 4px;">
+                <span class="inspector-data-label">Upaya Penanganan</span>
+                <span class="inspector-data-value">${hasUpaya ? item.upaya : 'Belum ada catatan upaya penanganan'}</span>
               </div>
             </div>
           </div>
         `;
       }
 
-      // Section 4: Panen & Penjualan (if present)
+      // Section 3: Panen & Penjualan (if any)
       if (item.jumlahPanen > 0 || item.nilaiPenjualanRp > 0 || (raw && raw.length >= 19 && (raw[16] || raw[18]))) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-title">
-              <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span>Data Panen &amp; Penjualan Hasil</span>
-            </div>
-            <div class="inspector-grid">
-              <div class="inspector-field">
-                <span class="inspector-field-label">Tanggal Panen</span>
-                <span class="inspector-field-value">${raw[16] || '-'}</span>
+            <div class="inspector-section-heading">Hasil Panen &amp; Penjualan</div>
+            <div class="inspector-data-grid">
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Volume Panen</span>
+                <span class="inspector-data-value highlight-value">${item.jumlahPanen ? item.jumlahPanen + ' Kg' : (raw[17] ? raw[17] + ' Kg' : '-')}</span>
+                ${raw[16] ? `<span style="font-size: 0.725rem; color: #64748b; margin-top: 1px;">Tanggal Panen: ${formatFieldValue(raw[16], 'tgl_panen')}</span>` : ''}
               </div>
-              <div class="inspector-field">
-                <span class="inspector-field-label">Jumlah / Volume Panen</span>
-                <span class="inspector-field-value"><strong>${item.jumlahPanen ? item.jumlahPanen + ' Kg / Unit' : (raw[17] ? raw[17] + ' Kg' : '-')}</strong></span>
-              </div>
-              <div class="inspector-field">
-                <span class="inspector-field-label">Tanggal Penjualan</span>
-                <span class="inspector-field-value">${raw[18] || '-'}</span>
-              </div>
-              <div class="inspector-field">
-                <span class="inspector-field-label">Nilai Penjualan Total</span>
-                <span class="inspector-field-value" style="color: var(--normal); font-weight: 700;">
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Total Nilai Penjualan</span>
+                <span class="inspector-data-value money-value">
                   ${item.nilaiPenjualanRp ? 'Rp ' + Number(item.nilaiPenjualanRp).toLocaleString('id-ID') : (raw[22] ? 'Rp ' + Number(raw[22]).toLocaleString('id-ID') : '-')}
                 </span>
+                ${raw[18] ? `<span style="font-size: 0.725rem; color: #64748b; margin-top: 1px;">Tanggal Penjualan: ${formatFieldValue(raw[18], 'tgl_penjualan')}</span>` : ''}
               </div>
             </div>
           </div>
         `;
       }
 
-      // Section 5: Dynamic / Complete Form Fields Receipt
-      if (fields && fields.length > 0) {
+      // Section 4: Ringkasan Catatan Kegiatan (if any)
+      if (item.ringkasan && item.ringkasan !== '-' && item.ringkasan.trim() !== '') {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-title">
-              <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
-              <span>Rincian Isian Formulir Lengkap</span>
+            <div class="inspector-section-heading">Ringkasan Kegiatan</div>
+            <div style="font-size: 0.875rem; color: #1e293b; line-height: 1.5; padding: 0.25rem 0;">
+              ${item.ringkasan}
             </div>
-            <table class="inspector-dynamic-table">
+          </div>
+        `;
+      }
+
+      // Section 5: Rincian Isian Formulir Lengkap (Clean Human-Readable KV Table)
+      const ignoredKeys = new Set([
+        'report_id', 'reportid', 'kode_kegiatan', 'kodekegiatan', 'kode_kegiatan_ref',
+        'nama_pic', 'namapic', 'bidang_divisi', 'divisi', 'lokasi_kegiatan', 'lokasi',
+        'timestamp', 'waktu_submit', 'foto_url', 'photourl', 'foto_lampiran', 'kendala', 'upaya',
+        'ringkasan', 'ringkasan_kegiatan'
+      ]);
+
+      const meaningfulFields = (fields || []).filter(f => {
+        const rawLabel = String(f.label || '').trim().toLowerCase();
+        if (!rawLabel || ignoredKeys.has(rawLabel) || rawLabel.startsWith('foto')) return false;
+        const val = f.value !== undefined && f.value !== null ? String(f.value).trim() : '';
+        return val !== '' && val !== '-';
+      });
+
+      if (meaningfulFields.length > 0) {
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading">Rincian Isian Formulir</div>
+            <table class="inspector-kv-table">
               <tbody>
-                ${fields.map(f => {
-                  const label = f.label || '';
-                  const val = f.value !== undefined ? String(f.value) : '';
-                  if (label.toLowerCase() === 'report_id' || label.toLowerCase() === 'timestamp' || label.toLowerCase().startsWith('foto')) return '';
-                  return `
-                    <tr>
-                      <td>${label}</td>
-                      <td>${val || '-'}</td>
-                    </tr>
-                  `;
-                }).join('')}
+                ${meaningfulFields.map(f => `
+                  <tr>
+                    <td class="kv-key">${formatFieldLabel(f.label)}</td>
+                    <td class="kv-val">${formatFieldValue(f.value, f.label)}</td>
+                  </tr>
+                `).join('')}
               </tbody>
             </table>
           </div>
@@ -969,39 +1054,36 @@
       // Section 6: Bukti Foto Lampiran
       html += `
         <div class="inspector-section">
-          <div class="inspector-section-title">
-            <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span>Foto Bukti Lampiran Lapangan</span>
-          </div>
+          <div class="inspector-section-heading">Foto Bukti Lapangan</div>
       `;
 
       if (item.photoUrl && item.photoUrl.startsWith('http')) {
         html += `
-          <div class="inspector-photo-wrapper">
-            <a href="${item.photoUrl}" target="_blank" title="Klik untuk membuka di Google Drive">
-              <img src="${getDriveThumbnail(item.photoUrl)}" class="inspector-photo-img" alt="Foto Bukti Lapangan" onerror="this.src='${item.photoUrl}'; this.onerror=null;" />
+          <div class="inspector-photo-card">
+            <a href="${item.photoUrl}" target="_blank" title="Buka di Google Drive">
+              <img src="${getDriveThumbnail(item.photoUrl)}" class="inspector-photo-preview" alt="Foto Bukti Lapangan" onerror="this.src='${item.photoUrl}'; this.onerror=null;" />
             </a>
-            <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              <span>Buka Foto Resolusi Penuh di Google Drive ↗</span>
+            <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.775rem;">
+              <span>Buka Foto Resolusi Penuh di Google Drive</span>
             </a>
-          </div>
-        `;
-      } else if (item.photoUrl) {
-        html += `
-          <div class="detail-value-box" style="color: var(--text-muted); font-size: 0.85rem;">
-            Lampiran tercatat: <strong>${item.photoUrl}</strong>
           </div>
         `;
       } else {
         html += `
-          <div style="background: var(--bg-app); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-            Tidak ada foto bukti lampiran pada laporan ini.
+          <div style="font-size: 0.8125rem; color: #94a3b8; font-style: italic; padding: 0.25rem 0;">
+            Tidak ada foto lampiran untuk laporan ini.
           </div>
         `;
       }
-
       html += `</div>`;
+
+      // Technical Metadata Footer
+      html += `
+        <div class="inspector-tech-footer">
+          <span>Report ID: ${item.reportId || '-'}</span>
+          <span>Sumber: ${item.source || 'Laporan Operasional'}</span>
+        </div>
+      `;
 
       modalBody.innerHTML = html;
       modal.removeAttribute('hidden');
@@ -1029,6 +1111,20 @@
       }
       currentModalIndex = -1;
     }
+
+    // Modal keyboard shortcuts (Esc, Left, Right)
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('reportDetailModal');
+      if (!modal || modal.style.display === 'none' || modal.hasAttribute('hidden')) return;
+
+      if (e.key === 'Escape') {
+        closeDetailModal();
+      } else if (e.key === 'ArrowLeft') {
+        navigateModal(-1);
+      } else if (e.key === 'ArrowRight') {
+        navigateModal(1);
+      }
+    });
 
     async function toggleModalVerification(reportId, targetStatus) {
       await updateStatus('operasional', reportId, targetStatus);
