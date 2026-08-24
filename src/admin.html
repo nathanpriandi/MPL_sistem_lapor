@@ -58,89 +58,95 @@
         <div class="flex-between-wrap" style="margin-bottom: 1.25rem; align-items: flex-start; gap: 1rem;">
           <div>
             <h1 class="card-title" style="margin-bottom: 0.25rem; line-height: 1.25;">Antrean Admin Operasional</h1>
-            <p class="card-subtitle" style="margin-bottom: 0;">Verifikasi, filter, dan kelola antrean laporan
-              operasional harian seluruh bidang usaha.</p>
+            <p class="card-subtitle" style="margin-bottom: 0;">Verifikasi, filter, dan kelola antrean laporan operasional harian seluruh bidang usaha.</p>
           </div>
         </div>
 
         <!-- OPERATIONAL DETAIL QUEUE TABLE CARD -->
-        <div class="card no-print">
-          <div class="flex-between-wrap">
-            <div>
-              <h2 class="card-title" style="font-size: 1.05rem;">Rincian Log Antrean Operasional</h2>
-              <p class="card-subtitle">Semua laporan yang masuk, filterable dan dapat diunduh sebagai file CSV audit.
-              </p>
-            </div>
-            <div class="button-group-flex" style="align-items: center;">
-              <!-- Segmented Control for Quick Filters -->
-              <div class="segmented-control" role="tablist" aria-label="Filter Status Antrean">
-                <button class="segmented-item active" onclick="setQuickFilter('unverified', this)" id="segBtn-unverified"
-                  role="tab">Belum Terverifikasi</button>
-                <button class="segmented-item" onclick="setQuickFilter('urgent', this)" id="segBtn-urgent" role="tab">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" aria-hidden="true">
-                    <path
-                      d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z" />
-                  </svg>
-                  <span>Mendesak</span>
-                </button>
-                <button class="segmented-item" onclick="setQuickFilter('all', this)" id="segBtn-all" role="tab">Semua Laporan</button>
+        <div class="table-card-enterprise no-print">
+          <!-- INTEGRATED STATUS TABS & TOOLBAR -->
+          <div class="enterprise-toolbar">
+            <!-- Top Row: Search & Utilities -->
+            <div class="enterprise-toolbar-top">
+              <div class="search-input-wrapper">
+                <svg class="svg-icon search-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" id="searchInput" class="search-input-field" placeholder="Cari Kode Kegiatan, PIC, Divisi, Lokasi, Catatan..." oninput="onSearchInput()">
+                <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" title="Hapus pencarian">&times;</button>
               </div>
 
-              <button class="btn btn-secondary table-btn-sm" onclick="toggleAdvancedFilters()"
-                id="btnToggleAdvancedFilter">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-                <span id="btnFilterLabel">Filter Lanjutan ▾</span>
-              </button>
+              <div class="toolbar-utilities">
+                <span id="lastUpdatedTag" class="status-timestamp" style="font-size: 0.75rem;"></span>
 
-              <div class="toolbar-divider"></div>
-
-              <div class="toolbar-cluster">
-                <span id="lastUpdatedTag"
-                  style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.25rem;"></span>
-                <button class="btn-icon-ghost" onclick="exportAdminCSV()" title="Ekspor CSV Data Antrean"
-                  aria-label="Ekspor CSV Data Antrean">
-                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
+                <button class="btn-icon-ghost" onclick="exportAdminCSV()" title="Ekspor CSV Data Antrean" aria-label="Ekspor CSV Data Antrean">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                     <polyline points="7 10 12 15 17 10" />
                     <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
                 </button>
-                <button class="btn-icon-ghost" onclick="fetchAndRenderQueue(true)" title="Perbarui Data Antrean"
-                  aria-label="Perbarui Data Antrean">
-                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
+                <button class="btn-icon-ghost" onclick="fetchAndRenderQueue(true)" title="Perbarui Data Antrean" aria-label="Perbarui Data Antrean">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
                   </svg>
                 </button>
               </div>
             </div>
-          </div>
 
-          <!-- Advanced Filter Bar -->
-          <div class="filter-bar" id="advancedFilterBar" style="display: none;">
-            <div class="filter-group">
-              <input type="text" id="searchInput" class="filter-input"
-                placeholder="Cari Kode Kegiatan / PIC / Detail..." oninput="applyFilters()">
-            </div>
-            <div class="filter-group">
-              <select id="siteFilter" class="filter-input" onchange="applyFilters()">
-                <option value="">-- Semua Divisi --</option>
-                <option value="Agro (Pertanian/Perkebunan)">Agro (Pertanian/Perkebunan)</option>
-                <option value="Ternak (Peternakan)">Ternak (Peternakan)</option>
-                <option value="Ikan (Perikanan)">Ikan (Perikanan)</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <input type="date" id="startDateFilter" class="filter-input" onchange="applyFilters()"
-                title="Dari Tanggal">
-              <span style="font-size: 0.85rem; color: var(--text-muted);">s/d</span>
-              <input type="date" id="endDateFilter" class="filter-input" onchange="applyFilters()"
-                title="Sampai Tanggal">
+            <!-- Bottom Row: Status Filter Pills (Left) & Division / Date Filters (Right) -->
+            <div class="enterprise-toolbar-filters">
+              <!-- Segmented Status Tabs -->
+              <div class="segmented-filter-pills" role="tablist" aria-label="Filter Status Antrean">
+                <button class="filter-pill active pill-unverified" onclick="setQuickFilter('unverified')" id="segBtn-unverified" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>Belum Verifikasi</span>
+                  <span class="filter-pill-count" id="badgeCount-unverified">0</span>
+                </button>
+                <button class="filter-pill pill-urgent" onclick="setQuickFilter('urgent')" id="segBtn-urgent" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z" />
+                  </svg>
+                  <span>Mendesak</span>
+                  <span class="filter-pill-count" id="badgeCount-urgent">0</span>
+                </button>
+                <button class="filter-pill pill-verified" onclick="setQuickFilter('verified')" id="segBtn-verified" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <span>Terverifikasi</span>
+                  <span class="filter-pill-count" id="badgeCount-verified">0</span>
+                </button>
+                <button class="filter-pill" onclick="setQuickFilter('all')" id="segBtn-all" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                  <span>Semua Laporan</span>
+                  <span class="filter-pill-count" id="badgeCount-all">0</span>
+                </button>
+              </div>
+
+              <!-- Division & Date Filters -->
+              <div class="toolbar-filters-group">
+                <select id="siteFilter" class="filter-input" onchange="applyFilters()">
+                  <option value="">Semua Divisi</option>
+                  <option value="Agro (Pertanian/Perkebunan)">Agro</option>
+                  <option value="Ternak (Peternakan)">Ternak</option>
+                  <option value="Ikan (Perikanan)">Ikan</option>
+                </select>
+
+                <input type="date" id="startDateFilter" class="filter-input" onchange="applyFilters()" title="Dari Tanggal">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">s/d</span>
+                <input type="date" id="endDateFilter" class="filter-input" onchange="applyFilters()" title="Sampai Tanggal">
+              </div>
             </div>
           </div>
 
@@ -148,93 +154,77 @@
             <table class="table-sticky-col responsive-card-table">
               <thead>
                 <tr>
-                  <th>Kode Kegiatan</th>
-                  <th onclick="toggleSort('timestamp')" style="cursor: pointer;"
-                    title="Klik untuk mengurutkan berdasarkan waktu">
-                    Waktu Submit <span id="sort-timestamp">↕</span>
+                  <th style="min-width: 140px;">Kode Kegiatan</th>
+                  <th onclick="toggleSort('timestamp')" class="th-sortable" style="min-width: 130px;" title="Klik untuk mengurutkan berdasarkan waktu">
+                    <div class="th-content">
+                      <span>Waktu Submit</span> <span id="sort-timestamp" class="sort-indicator">↕</span>
+                    </div>
                   </th>
-                  <th>PIC Pelapor</th>
-                  <th>Divisi</th>
-                  <th>Lokasi</th>
-                  <th>Ringkasan (Kegiatan/Panen)</th>
-                  <th onclick="toggleSort('severity')" style="cursor: pointer;"
-                    title="Klik untuk mengurutkan berdasarkan keparahan">
-                    Tingkat Keparahan <span id="sort-severity">↕</span>
+                  <th style="min-width: 150px;">PIC Pelapor</th>
+                  <th style="min-width: 110px;">Lokasi</th>
+                  <th style="min-width: 220px;">Ringkasan &amp; Detail</th>
+                  <th onclick="toggleSort('severity')" class="th-sortable th-center" style="min-width: 120px;" title="Klik untuk mengurutkan berdasarkan keparahan">
+                    <div class="th-content th-content-center">
+                      <span>Tingkat Keparahan</span> <span id="sort-severity" class="sort-indicator">↕</span>
+                    </div>
                   </th>
-                  <th onclick="toggleSort('reviewStatus')" style="cursor: pointer;"
-                    title="Klik untuk mengurutkan berdasarkan status verifikasi">
-                    Status Verifikasi <span id="sort-reviewStatus">↕</span>
+                  <th onclick="toggleSort('reviewStatus')" class="th-sortable th-center" style="min-width: 150px;" title="Klik untuk mengurutkan berdasarkan status verifikasi">
+                    <div class="th-content th-content-center">
+                      <span>Status Verifikasi</span> <span id="sort-reviewStatus" class="sort-indicator">↕</span>
+                    </div>
                   </th>
-                  <th style="text-align: center;">Aksi</th>
+                  <th class="th-center" style="min-width: 80px;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="queueBody">
                 <tr>
-                  <td><div class="skeleton-table-cell" style="width: 140px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 160px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 125px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
+                  <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+                  <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+                  <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+                  <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+                  <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
                 </tr>
                 <tr>
-                  <td><div class="skeleton-table-cell" style="width: 140px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 160px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 125px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
+                  <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+                  <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+                  <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+                  <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+                  <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
                 </tr>
                 <tr>
-                  <td><div class="skeleton-table-cell" style="width: 140px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 160px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 125px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
-                </tr>
-                <tr>
-                  <td><div class="skeleton-table-cell" style="width: 140px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 160px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 125px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
-                </tr>
-                <tr>
-                  <td><div class="skeleton-table-cell" style="width: 140px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 160px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 125px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
+                  <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+                  <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+                  <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+                  <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+                  <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
                 </tr>
               </tbody>
             </table>
-                    <!-- Pagination Control Bar -->
-          <div class="pagination-bar">
-            <div class="pagination-info" id="paginationInfo">Menampilkan 0 laporan</div>
-            <div class="pagination-controls">
-              <button class="btn btn-secondary table-btn-sm" id="btnPrevPage" onclick="changePage(-1)" disabled>&laquo;
-                Sebelumnya</button>
-              <span id="pageIndicator" style="font-size: 0.85rem; font-weight: 600; padding: 0 0.5rem;">Halaman 1</span>
-              <button class="btn btn-secondary table-btn-sm" id="btnNextPage" onclick="changePage(1)"
-                disabled>Berikutnya &raquo;</button>
+          </div>
+
+          <!-- ENTERPRISE PAGINATION BAR -->
+          <div class="pagination-bar-enterprise">
+            <div class="pagination-left">
+              <span class="pagination-info-text" id="paginationInfo">Menampilkan 0 laporan</span>
+              <select class="page-size-selector" id="pageSizeSelect" onchange="changePageSize(this.value)" aria-label="Jumlah baris per halaman">
+                <option value="10">10 per halaman</option>
+                <option value="25" selected>25 per halaman</option>
+                <option value="50">50 per halaman</option>
+              </select>
+            </div>
+            <div class="pagination-right" id="paginationControls">
+              <button class="page-nav-btn" id="btnPrevPage" onclick="changePage(-1)" disabled title="Halaman Sebelumnya">&lsaquo;</button>
+              <div id="pagePillsContainer" style="display: inline-flex; gap: 4px;"></div>
+              <button class="page-nav-btn" id="btnNextPage" onclick="changePage(1)" disabled title="Halaman Berikutnya">&rsaquo;</button>
             </div>
           </div>
         </div>
@@ -286,13 +276,14 @@
     let currentFilteredData = [];
     let currentQuickFilter = 'unverified';
     let currentPage = 1;
-    const pageSize = 25;
+    let pageSize = 25;
     let autoRefreshInterval = null;
     let currentSortCol = 'severity';
     let currentSortDir = 'asc';
     let currentModalIndex = -1;
 
     let lastFetchedTimestamp = null;
+    let searchDebounce = null;
 
     function normalizeReviewStatus(val) {
       if (!val) return 'Belum Terverifikasi';
@@ -303,11 +294,23 @@
       return 'Belum Terverifikasi';
     }
 
+    function formatRupiah(num) {
+      if (!num || isNaN(num)) return '0';
+      return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    function getInitials(name) {
+      if (!name || name === '-') return 'PIC';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const initialFilter = urlParams.get('filter');
       if (initialFilter) {
-        currentQuickFilter = (initialFilter === 'all' || initialFilter === 'urgent') ? initialFilter : 'unverified';
+        currentQuickFilter = (['all', 'urgent', 'verified', 'unverified'].includes(initialFilter)) ? initialFilter : 'unverified';
       } else {
         currentQuickFilter = 'unverified';
       }
@@ -332,6 +335,7 @@
       }
 
       autoRefreshInterval = setInterval(() => {
+        if (isFetchingQueue || isUpdatingStatus) return;
         const modal = document.getElementById('reportDetailModal');
         if (modal && (modal.hasAttribute('hidden') || modal.style.display === 'none')) {
           fetchAndRenderQueue(false);
@@ -377,18 +381,24 @@
       else tag.innerText = 'Diperbarui ' + elapsedMin + ' mnt lalu';
     }
 
-    function toggleAdvancedFilters() {
-      const filterBar = document.getElementById('advancedFilterBar');
-      const btnLabel = document.getElementById('btnFilterLabel');
-      if (!filterBar || !btnLabel) return;
-
-      if (filterBar.style.display === 'none' || !filterBar.style.display) {
-        filterBar.style.display = 'flex';
-        btnLabel.innerText = 'Sembunyikan Filter ▴';
-      } else {
-        filterBar.style.display = 'none';
-        btnLabel.innerText = 'Filter Lanjutan ▾';
+    function onSearchInput() {
+      const input = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (clearBtn) {
+        clearBtn.style.display = (input && input.value) ? 'block' : 'none';
       }
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        applyFilters();
+      }, 200);
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+      applyFilters();
     }
 
     function toggleSort(col) {
@@ -408,10 +418,29 @@
         if (!el) return;
         if (currentSortCol === col) {
           el.innerText = (currentSortDir === 'asc') ? '▲' : '▼';
+          el.classList.add('active');
         } else {
           el.innerText = '↕';
+          el.classList.remove('active');
         }
       });
+    }
+
+    function updateKpiCards(data) {
+      const total = data.length;
+      const unverified = data.filter(x => x.reviewStatus !== 'Terverifikasi').length;
+      const urgent = data.filter(x => x.severity === 'urgent' && x.reviewStatus !== 'Terverifikasi').length;
+      const verified = data.filter(x => x.reviewStatus === 'Terverifikasi').length;
+
+      const bTotal = document.getElementById('badgeCount-all');
+      const bUnverified = document.getElementById('badgeCount-unverified');
+      const bUrgent = document.getElementById('badgeCount-urgent');
+      const bVerified = document.getElementById('badgeCount-verified');
+
+      if (bTotal) bTotal.innerText = total;
+      if (bUnverified) bUnverified.innerText = unverified;
+      if (bUrgent) bUrgent.innerText = urgent;
+      if (bVerified) bVerified.innerText = verified;
     }
 
     function renderQueueSkeleton() {
@@ -421,15 +450,14 @@
       for (let i = 0; i < 5; i++) {
         html += `
           <tr>
-            <td><div class="skeleton-table-cell" style="width: 140px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 110px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 160px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 125px;"></div></td>
-            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
+            <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+            <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+            <td data-label="PIC Pelapor"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+            <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+            <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 200px;"></div></td>
+            <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+            <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+            <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
           </tr>
         `;
       }
@@ -437,9 +465,10 @@
     }
 
     let isFetchingQueue = false;
+    let isUpdatingStatus = false;
 
     async function fetchAndRenderQueue(manualRefresh = false) {
-      if (isFetchingQueue) return;
+      if (isFetchingQueue || isUpdatingStatus) return;
       isFetchingQueue = true;
 
       const tbody = document.getElementById('queueBody');
@@ -505,6 +534,7 @@
 
         lastFetchedTimestamp = Date.now();
         updateFreshnessTag();
+        updateKpiCards(rawQueueData);
         applyFilters();
 
         if (manualRefresh) {
@@ -518,15 +548,17 @@
       }
     }
 
-    function setQuickFilter(filter, btnElement) {
+    function setQuickFilter(filter) {
       currentQuickFilter = filter;
-      document.querySelectorAll('.segmented-item').forEach(el => el.classList.remove('active'));
-      if (btnElement) {
-        btnElement.classList.add('active');
-      } else {
-        const activeBtn = document.getElementById(`segBtn-${filter}`);
-        if (activeBtn) activeBtn.classList.add('active');
-      }
+
+      ['all', 'unverified', 'urgent', 'verified'].forEach(k => {
+        const pill = document.getElementById(`segBtn-${k}`);
+        if (pill) {
+          if (k === filter) pill.classList.add('active');
+          else pill.classList.remove('active');
+        }
+      });
+
       applyFilters();
     }
 
@@ -536,27 +568,14 @@
       const startDateVal = document.getElementById('startDateFilter').value;
       const endDateVal = document.getElementById('endDateFilter').value;
 
-      let activeFilterCount = 0;
-      if (searchVal) activeFilterCount++;
-      if (siteVal) activeFilterCount++;
-      if (startDateVal) activeFilterCount++;
-      if (endDateVal) activeFilterCount++;
-
-      const btnLabel = document.getElementById('btnFilterLabel');
-      if (btnLabel) {
-        if (activeFilterCount > 0) {
-          btnLabel.innerHTML = `Filter Lanjutan <span class="filter-active-badge">${activeFilterCount}</span> ▾`;
-        } else {
-          btnLabel.innerText = 'Filter Lanjutan ▾';
-        }
-      }
-
       let filtered = [...rawQueueData];
 
       if (currentQuickFilter === 'urgent') {
-        filtered = filtered.filter(x => x.severity === 'urgent');
+        filtered = filtered.filter(x => x.severity === 'urgent' && x.reviewStatus !== 'Terverifikasi');
       } else if (currentQuickFilter === 'unverified') {
         filtered = filtered.filter(x => x.reviewStatus !== 'Terverifikasi');
+      } else if (currentQuickFilter === 'verified') {
+        filtered = filtered.filter(x => x.reviewStatus === 'Terverifikasi');
       } else if (currentQuickFilter === 'sensitive') {
         filtered = filtered.filter(x => x.isSensitive);
       }
@@ -579,6 +598,7 @@
           (x.kodeKegiatan || '').toLowerCase().includes(searchVal) ||
           (x.ringkasan || '').toLowerCase().includes(searchVal) ||
           (x.lokasi || '').toLowerCase().includes(searchVal) ||
+          (x.divisi || '').toLowerCase().includes(searchVal) ||
           (x.reportId || '').toLowerCase().includes(searchVal)
         );
       }
@@ -620,36 +640,81 @@
       const pageSlice = currentFilteredData.slice(startIndex, endIndex);
 
       if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
-        document.getElementById('paginationInfo').innerText = 'Menampilkan 0 laporan';
-        document.getElementById('pageIndicator').innerText = 'Halaman 1 dari 1';
-        document.getElementById('btnPrevPage').disabled = true;
-        document.getElementById('btnNextPage').disabled = true;
+        tbody.innerHTML = '<tr><td colspan="8" class="text-muted-center" style="padding: 3.5rem 1.5rem; text-align: center;"><div style="font-size: 1.75rem; margin-bottom: 0.5rem;">📋</div><strong style="color: var(--text-primary); font-size: 0.95rem;">Tidak ada laporan yang sesuai kriteria</strong><br><span style="font-size: 0.825rem; color: var(--text-muted);">Coba ubah kriteria pencarian atau pilih filter status lain.</span></td></tr>';
+        document.getElementById('paginationInfo').innerText = '0 dari 0 laporan';
+        renderPagination(0, 1);
         return;
       }
 
       pageSlice.forEach((item, index) => {
         const tr = document.createElement('tr');
-        const badgeClass = `badge-${item.severity}`;
         const itemGlobalIndex = startIndex + index;
         const isVerified = (item.reviewStatus === 'Terverifikasi');
+        const isUrgent = (item.severity === 'urgent');
+
+        let datePart = item.timestamp || '-';
+        let timePart = '';
+        if (item.timestamp && item.timestamp.includes(' ')) {
+          const parts = item.timestamp.split(' ');
+          datePart = parts[0];
+          timePart = parts.slice(1).join(' ') + ' WIB';
+        }
+
+        let chipsHtml = '';
+        if (item.jumlahPanen > 0) {
+          chipsHtml += `<span class="chip-panen">🌾 ${item.jumlahPanen} Kg</span>`;
+        }
+        if (item.nilaiPenjualanRp > 0) {
+          chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
+        }
+        if (item.kendala) {
+          chipsHtml += `<span class="chip-kendala" title="${item.kendala}">⚠️ Kendala</span>`;
+        }
+
+        const picInitials = getInitials(item.empId || item.namaPic);
 
         tr.innerHTML = `
-          <td data-label="Kode Kegiatan"><code>${item.kodeKegiatan}</code></td>
-          <td data-label="Waktu">${item.timestamp || '-'}</td>
-          <td data-label="PIC Pelapor"><strong>${item.empId || item.namaPic || '-'}</strong></td>
-          <td data-label="Divisi">${item.divisi}</td>
-          <td data-label="Lokasi">${item.lokasi}</td>
-          <td data-label="Ringkasan" class="max-w-details">${item.ringkasan}</td>
-          <td data-label="Severity"><span class="badge ${badgeClass}">${item.severity.toUpperCase()}</span></td>
-          <td data-label="Status Verifikasi">
+          <td data-label="Kode Kegiatan">
+            <code class="cell-identifier" title="${item.kodeKegiatan}">${item.kodeKegiatan}</code>
+          </td>
+          <td data-label="Waktu Submit">
+            <div class="time-cell-group">
+              <span class="time-date">${datePart}</span>
+              ${timePart ? `<span class="time-hour">${timePart}</span>` : ''}
+            </div>
+          </td>
+          <td data-label="PIC Pelapor">
+            <div class="pic-cell-group">
+              <div class="pic-avatar-badge">${picInitials}</div>
+              <div class="pic-info-stack">
+                <span class="pic-name" title="${item.empId || item.namaPic}">${item.empId || item.namaPic || '-'}</span>
+                <span class="pic-divisi-badge">${item.divisi}</span>
+              </div>
+            </div>
+          </td>
+          <td data-label="Lokasi">
+            <div class="location-cell" title="${item.lokasi}">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>${item.lokasi}</span>
+            </div>
+          </td>
+          <td data-label="Ringkasan & Detail" class="summary-cell-rich">
+            <div class="summary-title">${item.ringkasan}</div>
+            ${chipsHtml ? `<div class="summary-chips">${chipsHtml}</div>` : ''}
+          </td>
+          <td data-label="Tingkat Keparahan" class="cell-center">
+            <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
+              ${item.severity.toUpperCase()}
+            </span>
+          </td>
+          <td data-label="Status Verifikasi" class="cell-center">
             <select onchange="updateStatus('operasional', '${item.reportId}', this.value, this)" class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" aria-label="Ubah Status Verifikasi">
               <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
               <option value="Terverifikasi" ${isVerified ? 'selected' : ''}>Terverifikasi</option>
             </select>
           </td>
-          <td data-label="Aksi" style="text-align: center;">
-            <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})" title="Lihat Detail Isian Laporan">
+          <td data-label="Aksi" class="cell-center">
+            <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})" title="Lihat Detail Isian Laporan" style="font-weight: 600; padding: 0.35rem 0.65rem;">
               <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 3px; vertical-align: -1px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <span>Lihat</span>
             </button>
@@ -658,16 +723,59 @@
         tbody.appendChild(tr);
       });
 
-      document.getElementById('paginationInfo').innerText = `Menampilkan ${startIndex + 1} - ${endIndex} dari ${totalItems} laporan`;
-      document.getElementById('pageIndicator').innerText = `Halaman ${currentPage} dari ${totalPages}`;
-      document.getElementById('btnPrevPage').disabled = (currentPage === 1);
-      document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+      const rangeText = (totalItems <= 1 || startIndex + 1 === endIndex)
+        ? `${endIndex} dari ${totalItems} laporan`
+        : `${startIndex + 1}-${endIndex} dari ${totalItems} laporan`;
+      document.getElementById('paginationInfo').innerText = rangeText;
+      renderPagination(totalItems, totalPages);
+    }
+
+    function renderPagination(totalItems, totalPages) {
+      const btnPrev = document.getElementById('btnPrevPage');
+      const btnNext = document.getElementById('btnNextPage');
+      const pillsContainer = document.getElementById('pagePillsContainer');
+
+      if (btnPrev) btnPrev.disabled = (currentPage <= 1 || totalItems === 0);
+      if (btnNext) btnNext.disabled = (currentPage >= totalPages || totalItems === 0);
+
+      if (!pillsContainer) return;
+      if (totalPages <= 1) {
+        pillsContainer.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      for (let p = startPage; p <= endPage; p++) {
+        html += `<button class="page-nav-btn ${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+      }
+      pillsContainer.innerHTML = html;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      renderCurrentPage();
+      const container = document.getElementById('tableContainer');
+      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changePageSize(val) {
+      pageSize = parseInt(val, 10) || 25;
+      currentPage = 1;
+      renderCurrentPage();
     }
 
     function changePage(delta) {
       currentPage += delta;
       renderCurrentPage();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const container = document.getElementById('tableContainer');
+      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function openDetailModal(globalIndex) {
@@ -933,6 +1041,8 @@
     }
 
     async function updateStatus(type, reportId, newStatus, selectElement) {
+      if (isUpdatingStatus) return;
+      isUpdatingStatus = true;
       const normalized = normalizeReviewStatus(newStatus);
       const prevClass = selectElement ? (selectElement.classList.contains('is-verified') ? 'is-verified' : 'is-unverified') : null;
 
@@ -965,6 +1075,11 @@
         const filteredItem = currentFilteredData.find(x => String(x.reportId) === String(reportId) || (x.kodeKegiatan && x.kodeKegiatan !== '-' && x.kodeKegiatan === reportId));
         if (filteredItem) filteredItem.reviewStatus = normalized;
 
+        updateKpiCards(rawQueueData);
+        if (currentQuickFilter === 'unverified' || currentQuickFilter === 'urgent') {
+          applyFilters();
+        }
+
         showToast(`Status verifikasi berhasil diperbarui: "${normalized}"`, 'success');
       } catch (err) {
         console.error('Update status error:', err);
@@ -972,6 +1087,8 @@
           selectElement.className = `table-status-select ${prevClass}`;
         }
         showToast('Gagal memperbarui status: ' + (err.message || err.toString()), 'error');
+      } finally {
+        isUpdatingStatus = false;
       }
     }
 

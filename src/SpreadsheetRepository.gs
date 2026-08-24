@@ -372,7 +372,8 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Fetches unified Admin Triage Queue across all form tabs inside the single integrated spreadsheet.
+   * Fetches unified Admin Triage Queue across all registered form tabs inside the single integrated spreadsheet.
+   * Uses an allowlist of registered forms resolved via FormManagementService.resolveFormTab_().
    * Reads fields dynamically by header name and deduplicates across synced/mirror tabs.
    * @returns {Array<Object>} List of QueueItem objects.
    */
@@ -381,15 +382,23 @@ const SpreadsheetRepository = {
     if (!mainSsId) return [];
 
     const ss = SpreadsheetApp.openById(mainSsId);
-    const sheets = ss.getSheets();
+    const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
     const mergedQueue = [];
     const seenFingerprints = new Set();
-    const EXEMPT_SHEETS = ['Photo_Log', 'Archive_Reports', 'Admin_Queue', 'Summary', 'Lookup', 'Template', 'Config', 'Dropdowns', 'Settings', 'Sheet1', 'Master_Data'];
+    const seenSheetIds = new Set();
 
-    sheets.forEach(sheet => {
+    forms.forEach(f => {
+      let sheet = null;
+      try {
+        sheet = FormManagementService.resolveFormTab_(ss, f);
+      } catch (e) {
+        Logger.log(`SpreadsheetRepository Notice: Could not resolve tab for form ${f.id || f.title}: ${e.toString()}`);
+      }
+
+      if (!sheet || seenSheetIds.has(sheet.getSheetId())) return;
+      seenSheetIds.add(sheet.getSheetId());
+
       const sheetName = sheet.getName();
-      if (EXEMPT_SHEETS.includes(sheetName)) return;
-
       try {
         if (sheet.getLastRow() > 1) {
           const headerMap = this.getHeaderMap_(sheet);
@@ -537,7 +546,8 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Updates Review_Status of a report by matching Report_ID or Kode_Kegiatan or synthetic row index across sheets.
+   * Updates Review_Status of a report by matching Report_ID or Kode_Kegiatan or synthetic row index
+   * across registered canonical form tabs.
    * Auto-provisions 'Status Verifikasi' column if not yet present in target tab.
    * @param {string} reportId 
    * @param {string} newStatus 
@@ -552,12 +562,9 @@ const SpreadsheetRepository = {
 
     try {
       const ss = SpreadsheetApp.openById(mainSsId);
-      const sheets = ss.getSheets();
-      const EXEMPT_SHEETS = ['Photo_Log', 'Archive_Reports', 'Admin_Queue', 'Summary', 'Lookup', 'Template', 'Config', 'Dropdowns', 'Settings', 'Sheet1', 'Master_Data'];
-      let updatedCount = 0;
-      let matchedSheetName = '';
-
-      // Check if reportId is in format ROW_SheetName_RowNum
+      const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+      
+      // Check if reportId is in synthetic format ROW_SheetName_RowNum
       let directSheetName = null;
       let directRowNum = null;
       if (String(reportId).startsWith('ROW_')) {
@@ -568,17 +575,40 @@ const SpreadsheetRepository = {
         }
       }
 
-      for (let s = 0; s < sheets.length; s++) {
-        const sheet = sheets[s];
+      // Collect target canonical sheets via allowlist registry resolution
+      const targetSheets = [];
+      const seenSheetIds = new Set();
+
+      if (directSheetName) {
+        const directSheet = ss.getSheetByName(directSheetName);
+        if (directSheet) {
+          targetSheets.push(directSheet);
+          seenSheetIds.add(directSheet.getSheetId());
+        }
+      }
+
+      forms.forEach(f => {
+        try {
+          const sheet = FormManagementService.resolveFormTab_(ss, f);
+          if (sheet && !seenSheetIds.has(sheet.getSheetId())) {
+            seenSheetIds.add(sheet.getSheetId());
+            targetSheets.push(sheet);
+          }
+        } catch (e) {
+          Logger.log(`SpreadsheetRepository Notice: Could not resolve tab for form in updateReviewStatus: ${e.toString()}`);
+        }
+      });
+
+      for (let s = 0; s < targetSheets.length; s++) {
+        const sheet = targetSheets[s];
         const sheetName = sheet.getName();
-        if (EXEMPT_SHEETS.includes(sheetName)) continue;
         if (sheet.getLastRow() <= 1) continue;
 
         const data = sheet.getDataRange().getValues();
         const headerRow = data[0];
         const headers = headerRow.map(h => String(h || '').trim().toLowerCase());
 
-        // Find or provision Status Verifikasi column
+        // Find or provision Status Verifikasi column (checking exact same header variants as getAdminQueueData)
         let reviewColIdx = headers.indexOf('status verifikasi');
         if (reviewColIdx === -1) reviewColIdx = headers.indexOf('status_verifikasi');
         if (reviewColIdx === -1) reviewColIdx = headers.indexOf('status peninjauan');
@@ -596,14 +626,17 @@ const SpreadsheetRepository = {
         // 1. Direct row match if synthetic row ID matches this sheet
         if (directSheetName && directSheetName === sheetName && directRowNum && directRowNum <= sheet.getLastRow()) {
           sheet.getRange(directRowNum, reviewColIdx + 1).setValue(normalized);
-          updatedCount++;
-          matchedSheetName = sheetName;
           Logger.log(`SpreadsheetRepository: Updated direct row ${directRowNum} status to ${normalized} in ${sheetName}`);
-          continue;
+          return {
+            success: true,
+            reportId: reportId,
+            sheet: sheetName,
+            updatedStatus: normalized
+          };
         }
 
-        // 2. Scan rows by Report_ID or Kode_Kegiatan or exact cell content
-        const reportIdCol = headers.indexOf('report_id');
+        // 2. Scan rows strictly by Report_ID or Kode_Kegiatan
+        const reportIdCol = headers.indexOf('report_id') !== -1 ? headers.indexOf('report_id') : headers.indexOf('report id');
         const kodeCol = headers.indexOf('kode_kegiatan') !== -1 ? headers.indexOf('kode_kegiatan') : headers.indexOf('kode kegiatan');
 
         for (let r = 1; r < data.length; r++) {
@@ -614,31 +647,19 @@ const SpreadsheetRepository = {
             isMatch = true;
           } else if (kodeCol !== -1 && String(row[kodeCol] || '').trim() === String(reportId).trim()) {
             isMatch = true;
-          } else {
-            for (let c = 0; c < row.length; c++) {
-              if (String(row[c] || '').trim() === String(reportId).trim()) {
-                isMatch = true;
-                break;
-              }
-            }
           }
 
           if (isMatch) {
             sheet.getRange(r + 1, reviewColIdx + 1).setValue(normalized);
-            updatedCount++;
-            matchedSheetName = sheetName;
             Logger.log(`SpreadsheetRepository: Updated row ${r + 1} (${reportId}) status to ${normalized} in ${sheetName}`);
+            return {
+              success: true,
+              reportId: reportId,
+              sheet: sheetName,
+              updatedStatus: normalized
+            };
           }
         }
-      }
-
-      if (updatedCount > 0) {
-        return {
-          success: true,
-          reportId: reportId,
-          sheet: matchedSheetName,
-          updatedStatus: normalized
-        };
       }
     } catch (err) {
       Logger.log(`SpreadsheetRepository Error updating review status: ${err.toString()}`);
@@ -790,12 +811,14 @@ const SpreadsheetRepository = {
     const currentMonthItems = [];
     const allKnownCodesSet = new Set();
     const parentCodeMap = new Map();
+    const seenSheetIds = new Set();
 
     // 1. First Pass: Read rows across all sheets and extract date & code information
     forms.forEach(f => {
       try {
         const rawSheet = FormManagementService.resolveFormTab_(ss, f);
-        if (rawSheet && rawSheet.getLastRow() > 1) {
+        if (rawSheet && !seenSheetIds.has(rawSheet.getSheetId()) && rawSheet.getLastRow() > 1) {
+          seenSheetIds.add(rawSheet.getSheetId());
           const headerMap = this.getHeaderMap_(rawSheet);
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
 
