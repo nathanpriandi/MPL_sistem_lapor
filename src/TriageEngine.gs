@@ -11,12 +11,15 @@
 const TriageEngine = {
   /**
    * Determines whether a report needs attention based solely on whether
-   * Kendala Kegiatan has non-empty content.
+   * Kendala Kegiatan has non-empty, actual obstacle content (filters out 'tidak ada', 'nihil', 'aman', etc.).
    * @param {string} kendalaText - The report's Kendala field text only.
    * @returns {{ severity: string, rank: number }} TriageResult object.
    */
   evaluate: function(kendalaText) {
-    const hasKendala = !!(kendalaText && String(kendalaText).trim().length > 0 && String(kendalaText).trim() !== '-');
+    const hasKendala = typeof isActualKendala === 'function' 
+      ? isActualKendala(kendalaText) 
+      : (typeof normalizeKendalaText === 'function' ? normalizeKendalaText(kendalaText).length > 0 : !!(kendalaText && String(kendalaText).trim().length > 0 && String(kendalaText).trim() !== '-'));
+
     return hasKendala
       ? TriageResult(ReportSeverity.URGENT, SeverityRank.URGENT)
       : TriageResult(ReportSeverity.NORMAL, SeverityRank.NORMAL);

@@ -453,13 +453,10 @@ const SpreadsheetRepository = {
 
             let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
             let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
-            let kendalaVal = String(this.getCellValue_(row, headerMap, 'Kendala', 26) || '').trim();
-            let upayaVal = String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim();
-
-            let ringkasan = jenis;
-            if (jumlahPanen > 0) ringkasan += ` | Panen: ${jumlahPanen} Kg`;
-            if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
-            if (!ringkasan) ringkasan = `Laporan ${sheetName}`;
+            let rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
+            let kendalaVal = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
+            let upayaVal = kendalaVal ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
+            let ringkasan = jenis || `Laporan ${sheetName}`;
 
             // Multi-criteria robust deduplication across synced/response sheets
             const primaryKey = (kodeKegiatan && kodeKegiatan !== '-') 
@@ -477,12 +474,14 @@ const SpreadsheetRepository = {
 
             let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 28) || this.getCellValue_(row, headerMap, 'Foto_Lampiran') || '');
             if (!photoVal.startsWith('http')) {
-              const foundUrl = row.find(c => typeof c === 'string' && c.trim().startsWith('http'));
-              if (foundUrl) photoVal = String(foundUrl).trim();
+              const fileIdMatch = photoVal.match(/[-\w]{25,}/);
+              if (fileIdMatch) {
+                photoVal = `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
+              }
             }
 
-            let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 29) || (kendalaVal ? ReportSeverity.URGENT : ReportSeverity.NORMAL)).toLowerCase();
-            
+            let severityVal = (kendalaVal && kendalaVal !== '-') ? ReportSeverity.URGENT : ReportSeverity.NORMAL;
+
             // Check all known header variations for status
             let rawReviewStatus = 
               this.getCellValue_(row, headerMap, 'Status Verifikasi') || 
@@ -748,6 +747,11 @@ const SpreadsheetRepository = {
     const priorMonthEnd = new Date(startDate.getTime() - 1);
 
     const DIV_KEYS = {
+      MANAJEMEN: 'Manajemen',
+      BKO: 'BKO 28',
+      PEKERJA_HARIAN: 'Pekerja Harian',
+      ALPROF: 'Alprof',
+      SGA: 'SGA',
       AGRO: 'Agro (Pertanian/Perkebunan)',
       TERNAK: 'Ternak (Peternakan)',
       IKAN: 'Ikan (Perikanan)'
@@ -755,6 +759,21 @@ const SpreadsheetRepository = {
 
     function normalizeDivisi(divisiStr) {
       const s = String(divisiStr || '').toLowerCase();
+      if (s.includes('manajemen') || s === 'mnj') {
+        return DIV_KEYS.MANAJEMEN;
+      }
+      if (s.includes('bko')) {
+        return DIV_KEYS.BKO;
+      }
+      if (s.includes('pekerja') || s.includes('harian') || s === 'pkh') {
+        return DIV_KEYS.PEKERJA_HARIAN;
+      }
+      if (s.includes('alprof') || s === 'alp') {
+        return DIV_KEYS.ALPROF;
+      }
+      if (s.includes('sga')) {
+        return DIV_KEYS.SGA;
+      }
       if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian') || s.includes('perkebunan')) {
         return DIV_KEYS.AGRO;
       }
@@ -764,7 +783,7 @@ const SpreadsheetRepository = {
       if (s.includes('ikan') || s.includes('kolam') || s.includes('tambak') || s.includes('perikanan')) {
         return DIV_KEYS.IKAN;
       }
-      return DIV_KEYS.AGRO;
+      return divisiStr || DIV_KEYS.ALPROF;
     }
 
     function parseDateSafe(val) {
@@ -798,6 +817,11 @@ const SpreadsheetRepository = {
     let unansweredObstaclesCount = 0;
 
     const divisiBreakdown = {
+      [DIV_KEYS.ALPROF]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+      [DIV_KEYS.SGA]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+      [DIV_KEYS.PEKERJA_HARIAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+      [DIV_KEYS.BKO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+      [DIV_KEYS.MANAJEMEN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
       [DIV_KEYS.AGRO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
       [DIV_KEYS.TERNAK]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Ekor / Unit' },
       [DIV_KEYS.IKAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' }
@@ -844,9 +868,10 @@ const SpreadsheetRepository = {
             const tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 16);
             const jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
             const nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
-            const kendala = String(this.getCellValue_(row, headerMap, 'Kendala', 26) || '').trim();
-            const upaya = String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim();
-            const severity = String(this.getCellValue_(row, headerMap, 'Severity', 29) || 'normal').toLowerCase();
+            const rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
+            const kendala = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
+            const upaya = kendala ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
+            const severity = String(this.getCellValue_(row, headerMap, 'Severity', 29) || (kendala ? 'urgent' : 'normal')).toLowerCase();
             const rawReviewStatus = 
               this.getCellValue_(row, headerMap, 'Status Verifikasi') || 
               this.getCellValue_(row, headerMap, 'Status_Verifikasi') || 
@@ -1022,8 +1047,9 @@ const SpreadsheetRepository = {
         }
       }
 
-      // Open Obstacles Evaluation (Only unverified obstacles are active)
-      if (item.kendala && item.kendala !== '-') {
+      // Open Obstacles Evaluation (Only unverified actual obstacles are active)
+      const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-');
+      if (isKendalaReal) {
         if (item.reviewStatus !== ReviewStatus.VERIFIED) {
           openObstaclesCount++;
           const hasNoUpaya = !item.upaya || item.upaya === '-';

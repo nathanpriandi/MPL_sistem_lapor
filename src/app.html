@@ -589,11 +589,12 @@ function computePeriodSummary(rows, startDateStr, endDateStr) {
     }
     
     const reviewStatus = String(item.reviewStatus || 'Belum Terverifikasi');
-    const kendalaText = String(item.kendala || (item.raw ? item.raw[20] : '') || '').trim();
-    const upayaText = String(item.upaya || (item.raw ? item.raw[21] : '') || '').trim();
+    const rawKendala = item.kendala || (item.raw ? item.raw[20] : '') || '';
+    const kendalaText = normalizeKendalaText(rawKendala);
+    const upayaText = kendalaText ? String(item.upaya || (item.raw ? item.raw[21] : '') || '').trim() : '';
     
     const isVerified = (reviewStatus.toLowerCase() === 'terverifikasi' || reviewStatus.toLowerCase() === 'closed' || reviewStatus.toLowerCase() === 'verified');
-    const isUnresolved = (!isVerified) && (kendalaText !== '' && kendalaText !== '-');
+    const isUnresolved = (!isVerified) && isActualKendala(kendalaText);
     if (isUnresolved) {
       unresolvedKendalaRows.push(item);
     }
@@ -609,5 +610,86 @@ function computePeriodSummary(rows, startDateStr, endDateStr) {
     divisionStats: divisionStats,
     rows: filtered
   };
+}
+
+/**
+ * Normalizes Kendala text, stripping out negative/empty phrases like 'tidak ada', 'nihil', 'aman', '-', etc.
+ * Returns clean obstacle description string, or empty string '' if no actual obstacle is reported.
+ */
+function normalizeKendalaText(text) {
+  if (!text) return '';
+  const s = String(text).trim();
+  if (!s || s === '-' || s === '--' || s === '.' || s === '/' || s === '0') return '';
+
+  const clean = s.toLowerCase()
+    .replace(/^[\s\-_()[\]{}.,:;]+|[\s\-_()[\]{}.,:;]+$/g, '')
+    .trim();
+
+  const noKendalaPhrases = [
+    '',
+    '-',
+    '--',
+    'tidak ada',
+    'tidak ada kendala',
+    'tidak ada kendala sama sekali',
+    'tidak ada kendala apapun',
+    'tidak ada masalah',
+    'tidak ada masalah sama sekali',
+    'tdk ada',
+    'tdk ada kendala',
+    'tdk ada masalah',
+    'tidak ada kendala yang berarti',
+    'ga ada',
+    'ga ada kendala',
+    'gak ada',
+    'gak ada kendala',
+    'gak ada masalah',
+    'belum ada',
+    'belum ada kendala',
+    'belom ada',
+    'belom ada kendala',
+    'nihil',
+    'nil',
+    'none',
+    'na',
+    'n/a',
+    'null',
+    'kosong',
+    'no',
+    'aman',
+    'aman terkendali',
+    'semua aman',
+    'kondisi aman',
+    'lancar',
+    'lancar jaya',
+    'semua lancar',
+    'berjalan lancar',
+    'kondusif',
+    'normal',
+    'baik',
+    'baik-baik saja',
+    'terkendali',
+    'ok',
+    'oke',
+    'siap',
+    'selesai'
+  ];
+
+  if (noKendalaPhrases.includes(clean)) {
+    return '';
+  }
+
+  if (/^(tidak ada|tdk ada|ga ada|gak ada|belum ada|nihil|aman|lancar)\s*(kendala|masalah|hambatan|gangguan)?$/i.test(clean)) {
+    return '';
+  }
+
+  return s;
+}
+
+/**
+ * Checks if a Kendala value represents an actual operational obstacle/incident.
+ */
+function isActualKendala(text) {
+  return normalizeKendalaText(text).length > 0;
 }
 </script>

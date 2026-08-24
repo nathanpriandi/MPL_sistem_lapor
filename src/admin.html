@@ -138,9 +138,14 @@
               <div class="toolbar-filters-group">
                 <select id="siteFilter" class="filter-input" onchange="applyFilters()">
                   <option value="">Semua Divisi</option>
-                  <option value="Agro (Pertanian/Perkebunan)">Agro</option>
-                  <option value="Ternak (Peternakan)">Ternak</option>
-                  <option value="Ikan (Perikanan)">Ikan</option>
+                  <option value="Manajemen">Manajemen</option>
+                  <option value="BKO 28">BKO 28</option>
+                  <option value="Pekerja Harian">Pekerja Harian</option>
+                  <option value="Alprof">Alprof</option>
+                  <option value="SGA">SGA</option>
+                  <option value="Agro (Pertanian/Perkebunan)">Agro (Legacy)</option>
+                  <option value="Ternak (Peternakan)">Ternak (Legacy)</option>
+                  <option value="Ikan (Perikanan)">Ikan (Legacy)</option>
                 </select>
 
                 <input type="date" id="startDateFilter" class="filter-input" onchange="applyFilters()" title="Dari Tanggal">
@@ -299,6 +304,16 @@
     function formatRupiah(num) {
       if (!num || isNaN(num)) return '0';
       return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function getInitials(name) {
@@ -483,56 +498,61 @@
           const queueRows = await runServer('getAdminQueueData');
           rawQueueData = [];
           (queueRows || []).forEach(r => {
+            const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || (r.raw ? String(r.raw[26] || '') : '')) : (r.kendala || '');
+            const normU = normK ? (r.upaya || (r.raw ? String(r.raw[27] || '') : '')) : '';
             rawQueueData.push({
               source: r.source || 'Laporan Operasional',
-              reportId: r.reportId,
-              kodeKegiatan: r.kodeKegiatan || '-',
-              timestamp: r.timestamp,
-              empId: r.namaPic || r.empId || '-',
-              divisi: r.divisi || r.site || '-',
-              lokasi: r.lokasi || r.site || '-',
-              ringkasan: r.ringkasan || r.detail || '-',
-              severity: (r.severity || 'normal').toLowerCase(),
-              rank: r.rank || 2,
+              reportId: r.reportId || (r.raw ? String(r.raw[0] || '') : ''),
+              kodeKegiatan: r.kodeKegiatan || (r.raw ? String(r.raw[1] || '') : '-'),
+              timestamp: r.timestamp || (r.raw ? String(r.raw[3] || '') : '-'),
+              namaPic: r.namaPic || (r.raw ? String(r.raw[4] || '') : '-'),
+              empId: r.empId || r.namaPic || (r.raw ? String(r.raw[4] || '') : '-'),
+              divisi: r.divisi || (r.raw ? String(r.raw[5] || '') : '-'),
+              lokasi: r.lokasi || (r.raw ? String(r.raw[6] || '') : '-'),
+              ringkasan: r.ringkasan || (r.raw ? String(r.raw[7] || '') : '-'),
+              severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
+              rank: r.rank || (normK ? 1 : 2),
               category: r.category,
               reviewStatus: normalizeReviewStatus(r.reviewStatus),
               photoUrl: r.photoUrl || '',
               jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[17] : 0)) || 0,
               nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[22] : 0)) || 0,
-              kendala: r.kendala || (r.raw ? String(r.raw[26] || '') : ''),
-              upaya: r.upaya || (r.raw ? String(r.raw[27] || '') : ''),
+              kendala: normK,
+              upaya: normU,
               fields: r.fields || [],
               raw: r.raw || null,
               isSensitive: String(r.source).includes('Sensitive')
             });
           });
-        } else {
-          rawQueueData = [];
-          const db = getDB();
-          (db.operationalReports || []).forEach(r => {
-            rawQueueData.push({
-              source: 'Laporan_Operasional_Raw',
-              reportId: r.id || r.reportId,
-              kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
-              timestamp: r.timestamp,
-              empId: r.namaPic || r.empId || 'EMP-101',
-              divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
-              lokasi: r.lokasi || r.site || 'Site A',
-              ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
-              severity: (r.severity || 'normal').toLowerCase(),
-              rank: r.rank || 2,
-              category: r.category || 'ROUTINE',
-              reviewStatus: normalizeReviewStatus(r.reviewStatus),
-              photoUrl: r.photoUrl || '',
-              jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
-              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
-              kendala: r.kendala || r.obstacle || '',
-              upaya: r.upaya || r.actionTaken || '',
-              fields: r.fields || [],
-              isSensitive: false
+          } else {
+            rawQueueData = [];
+            const db = getDB();
+            (db.operationalReports || []).forEach(r => {
+              const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || r.obstacle || '') : (r.kendala || '');
+              const normU = normK ? (r.upaya || r.actionTaken || '') : '';
+              rawQueueData.push({
+                source: 'Laporan_Operasional_Raw',
+                reportId: r.id || r.reportId,
+                kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
+                timestamp: r.timestamp,
+                empId: r.namaPic || r.empId || 'EMP-101',
+                divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
+                lokasi: r.lokasi || r.site || 'Site A',
+                ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
+                severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
+                rank: r.rank || (normK ? 1 : 2),
+                category: r.category || 'ROUTINE',
+                reviewStatus: normalizeReviewStatus(r.reviewStatus),
+                photoUrl: r.photoUrl || '',
+                jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
+                nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
+                kendala: normK,
+                upaya: normU,
+                fields: r.fields || [],
+                isSensitive: false
+              });
             });
-          });
-        }
+          }
 
         lastFetchedTimestamp = Date.now();
         updateFreshnessTag();
@@ -691,6 +711,34 @@
           timePart = parts.slice(1).join(' ') + ' WIB';
         }
 
+        // Clean Human-Readable Activity Title
+        let cleanTitle = String(item.jenisKegiatan || item.ringkasan || 'Laporan Operasional').split('|')[0].trim();
+        if (!cleanTitle || cleanTitle === '-') cleanTitle = 'Laporan Operasional';
+
+        let subtextHtml = '';
+        const rawFields = item.fields || [];
+        const komoditasFields = rawFields.filter(f => f.label && f.label.toLowerCase().includes('komoditas') && f.value && f.value !== '-' && String(f.value).trim() !== '');
+        let komoditasVal = '';
+        if (komoditasFields.length > 0) {
+          const uniqueK = [];
+          komoditasFields.forEach(f => {
+            const v = String(f.value).trim();
+            if (!uniqueK.includes(v)) uniqueK.push(v);
+          });
+          komoditasVal = uniqueK.join(', ');
+        } else if (item.raw) {
+          const kTanam = (item.raw[9] && item.raw[9] !== '-') ? String(item.raw[9]).trim() : '';
+          const kPanen = (item.raw[15] && item.raw[15] !== '-') ? String(item.raw[15]).trim() : '';
+          if (kTanam && kPanen && kTanam !== kPanen) {
+            komoditasVal = `${kTanam} (Tanam), ${kPanen} (Panen)`;
+          } else {
+            komoditasVal = kTanam || kPanen || '';
+          }
+        }
+        if (komoditasVal) {
+          subtextHtml = `<div class="summary-detail-subtext">Komoditas: <strong>${escapeHtml(komoditasVal)}</strong></div>`;
+        }
+
         let chipsHtml = '';
         if (item.jumlahPanen > 0) {
           chipsHtml += `<span class="chip-panen">🌾 ${item.jumlahPanen} Kg</span>`;
@@ -698,8 +746,8 @@
         if (item.nilaiPenjualanRp > 0) {
           chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
         }
-        if (item.kendala) {
-          chipsHtml += `<span class="chip-kendala" title="${item.kendala}">⚠️ Kendala</span>`;
+        if (typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-')) {
+          chipsHtml += `<span class="chip-kendala" title="${escapeHtml(item.kendala)}">⚠️ Kendala</span>`;
         }
 
         const picInitials = getInitials(item.empId || item.namaPic);
@@ -727,7 +775,8 @@
             </div>
           </td>
           <td data-label="Ringkasan & Detail" class="summary-cell-rich">
-            <div class="summary-title">${item.ringkasan}</div>
+            <div class="summary-title">${escapeHtml(cleanTitle)}</div>
+            ${subtextHtml}
             ${chipsHtml ? `<div class="summary-chips">${chipsHtml}</div>` : ''}
           </td>
           <td data-label="Tingkat Keparahan" class="cell-center">
@@ -963,9 +1012,10 @@
         </div>
       `;
 
-      // Section 2: Kendala & Tindak Lanjut (if any)
-      if (item.kendala && item.kendala !== '-' && item.kendala !== '') {
-        const hasUpaya = item.upaya && item.upaya !== '-';
+      // Section 2: Kendala & Tindak Lanjut (only if actual obstacle exists)
+      const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-' && item.kendala !== '');
+      if (isKendalaReal) {
+        const hasUpaya = item.upaya && item.upaya !== '-' && item.upaya !== '';
         html += `
           <div class="inspector-section">
             <div class="inspector-section-heading" style="color: #be123c; border-color: #fecdd3;">Kendala &amp; Tindak Lanjut</div>

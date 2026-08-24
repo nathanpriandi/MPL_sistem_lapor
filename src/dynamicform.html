@@ -27,19 +27,63 @@
 
         <!-- Standard Required Fields -->
         <div class="form-group">
-          <label class="form-label" for="empId">Kode Karyawan / Employee ID <span class="text-danger">*</span></label>
-          <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: EMP-102" required>
-          <span class="form-help">Masukkan ID resmi karyawan Anda.</span>
+          <label class="form-label" for="empId">ID Karyawan / Employee ID <span class="text-danger">*</span></label>
+          <div class="emp-id-input-group">
+            <div class="emp-id-input-wrapper">
+              <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: ALP-01, SGA-05, MNJ-02, PKH-03, BKO-01..." oninput="handleDynEmpIdInput(this.value)" required>
+              <div class="emp-id-status-icon" id="dynEmpIdStatusIcon">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+            </div>
+          </div>
+          <span class="form-help">Masukkan ID resmi karyawan Anda (contoh: ALP-01).</span>
+
+          <!-- Auto-filled Verified Employee Card -->
+          <div class="emp-verified-card" id="dynEmpVerifiedCard">
+            <div class="emp-verified-header">
+              <span class="emp-verified-title">Status Data Karyawan</span>
+              <span class="emp-verified-badge emp-badge-unverified" id="dynEmpStatusBadge">
+                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="dynEmpStatusText">Menunggu Input ID</span>
+              </span>
+            </div>
+            <div class="emp-details-grid">
+              <div class="emp-field-box">
+                <span class="emp-field-label">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span>Nama Karyawan</span>
+                  <span class="emp-field-readonly-tag">(View Only)</span>
+                </span>
+                <div class="emp-field-value" id="dynDisplayNama">
+                  <span style="color: #94a3b8; font-weight: normal; font-style: italic;">Otomatis dari ID</span>
+                </div>
+                <input type="hidden" id="dynNamaPic" name="namaPic">
+              </div>
+
+              <div class="emp-field-box">
+                <span class="emp-field-label">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  <span>Divisi</span>
+                  <span class="emp-field-readonly-tag">(View Only)</span>
+                </span>
+                <div class="emp-field-value" id="dynDisplayDivisi">
+                  <span style="color: #94a3b8; font-weight: normal; font-style: italic;">Otomatis dari ID</span>
+                </div>
+                <input type="hidden" id="dynDivisi" name="divisi">
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="site">Lokasi / Site Operasional <span class="text-danger">*</span></label>
+          <label class="form-label" for="site">Lokasi Kegiatan <span class="text-danger">*</span></label>
           <select id="site" name="site" class="form-input" required>
-            <option value="" disabled selected>-- Pilih Lokasi / Site --</option>
-            <option value="Site A — Kebun & Lahan Pertanian">Site A — Kebun &amp; Lahan Pertanian</option>
-            <option value="Site B — Peternakan & Kandang">Site B — Peternakan &amp; Kandang</option>
-            <option value="Site C — Pabrik Pengolahan & Pakan">Site C — Pabrik Pengolahan &amp; Pakan</option>
-            <option value="Site D — Logistik & Gudang">Site D — Logistik &amp; Gudang</option>
+            <option value="" disabled selected>-- Pilih Lokasi Kegiatan --</option>
+            <option value="Sektor 1 + Ciomas">Sektor 1 + Ciomas</option>
+            <option value="Sektor 2">Sektor 2</option>
+            <option value="Sektor 3">Sektor 3</option>
+            <option value="Sektor 4">Sektor 4</option>
+            <option value="Gunung Batu">Gunung Batu</option>
           </select>
         </div>
 
@@ -105,6 +149,99 @@
 
   <?!= includeApp(webAppUrl); ?>
   <script>
+    const DYN_EMPLOYEE_REGISTRY = [
+      { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
+      { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
+      { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen' },
+      { id: 'MNJ-04', name: 'Martati', division: 'Manajemen' },
+      { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen' },
+      { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen' },
+      { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen' },
+      { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen' },
+      { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen' },
+      { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
+      { id: 'BKO-02', name: 'Gultom', division: 'BKO 28' },
+      { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
+      { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian' },
+      { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian' },
+      { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian' },
+      { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian' },
+      { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian' },
+      { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian' },
+      { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian' },
+      { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
+      { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof' },
+      { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof' },
+      { id: 'ALP-04', name: 'M Aris', division: 'Alprof' },
+      { id: 'ALP-05', name: 'Mursito', division: 'Alprof' },
+      { id: 'ALP-06', name: 'Jatniko', division: 'Alprof' },
+      { id: 'ALP-07', name: 'Mislan', division: 'Alprof' },
+      { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
+      { id: 'SGA-02', name: 'Amas S', division: 'SGA' },
+      { id: 'SGA-03', name: 'M Yusuf', division: 'SGA' },
+      { id: 'SGA-04', name: 'Hasanudin', division: 'SGA' },
+      { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA' },
+      { id: 'SGA-06', name: 'Rukman', division: 'SGA' },
+      { id: 'SGA-07', name: 'Subandi', division: 'SGA' },
+      { id: 'SGA-08', name: 'Suganda', division: 'SGA' },
+      { id: 'SGA-09', name: 'Dede', division: 'SGA' },
+      { id: 'SGA-10', name: 'Wafa', division: 'SGA' },
+      { id: 'SGA-11', name: 'Rafi', division: 'SGA' },
+      { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
+    ];
+
+    function handleDynEmpIdInput(val) {
+      const card = document.getElementById('dynEmpVerifiedCard');
+      const badge = document.getElementById('dynEmpStatusBadge');
+      const statusText = document.getElementById('dynEmpStatusText');
+      const statusIcon = document.getElementById('dynEmpIdStatusIcon');
+      const displayNama = document.getElementById('dynDisplayNama');
+      const displayDivisi = document.getElementById('dynDisplayDivisi');
+      const hiddenNama = document.getElementById('dynNamaPic');
+      const hiddenDivisi = document.getElementById('dynDivisi');
+
+      const rawVal = (val || '').trim();
+      if (!rawVal) {
+        card.className = 'emp-verified-card';
+        badge.className = 'emp-verified-badge emp-badge-unverified';
+        statusText.innerText = 'Menunggu Input ID';
+        statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+        displayNama.innerHTML = '<span style="color: #94a3b8; font-style: italic;">Otomatis dari ID</span>';
+        displayDivisi.innerHTML = '<span style="color: #94a3b8; font-style: italic;">Otomatis dari ID</span>';
+        hiddenNama.value = '';
+        hiddenDivisi.value = '';
+        return;
+      }
+
+      const cleanQ = rawVal.toLowerCase().replace(/[\s\-_]/g, '');
+      const lowerQ = rawVal.toLowerCase();
+      const emp = DYN_EMPLOYEE_REGISTRY.find(e => {
+        const cleanId = e.id.toLowerCase().replace(/[\s\-_]/g, '');
+        return cleanId === cleanQ || e.id.toLowerCase() === lowerQ || e.name.toLowerCase() === lowerQ || e.name.toLowerCase().includes(lowerQ);
+      });
+
+      if (emp) {
+        card.className = 'emp-verified-card active-valid';
+        badge.className = 'emp-verified-badge emp-badge-valid';
+        statusText.innerText = 'Terverifikasi';
+        statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+        displayNama.innerText = emp.name;
+        const divSlug = emp.division.toLowerCase().replace(/[\s\-_]/g, '-');
+        displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-${divSlug}">${emp.division}</span>`;
+        hiddenNama.value = emp.name;
+        hiddenDivisi.value = emp.division;
+      } else {
+        card.className = 'emp-verified-card active-invalid';
+        badge.className = 'emp-verified-badge emp-badge-invalid';
+        statusText.innerText = 'ID Tidak Dikenali';
+        statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+        displayNama.innerHTML = '<span style="color: #ef4444;">ID tidak terdaftar</span>';
+        displayDivisi.innerHTML = '<span style="color: #94a3b8;">-</span>';
+        hiddenNama.value = '';
+        hiddenDivisi.value = '';
+      }
+    }
+
     var currentFormId = '';
     var currentSchema = null;
 

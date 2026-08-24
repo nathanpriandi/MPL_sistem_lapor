@@ -961,6 +961,11 @@
       const priorMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
 
       const DIV_KEYS = {
+        MANAJEMEN: 'Manajemen',
+        BKO: 'BKO 28',
+        PEKERJA_HARIAN: 'Pekerja Harian',
+        ALPROF: 'Alprof',
+        SGA: 'SGA',
         AGRO: 'Agro (Pertanian/Perkebunan)',
         TERNAK: 'Ternak (Peternakan)',
         IKAN: 'Ikan (Perikanan)'
@@ -968,10 +973,15 @@
 
       function normDiv(d) {
         const s = String(d || '').toLowerCase();
+        if (s.includes('manajemen') || s === 'mnj') return DIV_KEYS.MANAJEMEN;
+        if (s.includes('bko')) return DIV_KEYS.BKO;
+        if (s.includes('pekerja') || s.includes('harian') || s === 'pkh') return DIV_KEYS.PEKERJA_HARIAN;
+        if (s.includes('alprof') || s === 'alp') return DIV_KEYS.ALPROF;
+        if (s.includes('sga')) return DIV_KEYS.SGA;
         if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian')) return DIV_KEYS.AGRO;
         if (s.includes('ternak') || s.includes('kandang') || s.includes('peternakan')) return DIV_KEYS.TERNAK;
         if (s.includes('ikan') || s.includes('kolam') || s.includes('perikanan')) return DIV_KEYS.IKAN;
-        return DIV_KEYS.AGRO;
+        return d || DIV_KEYS.ALPROF;
       }
 
       let totalReports = 0;
@@ -984,6 +994,11 @@
       let unansweredObstaclesCount = 0;
 
       const divisiBreakdown = {
+        [DIV_KEYS.ALPROF]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.SGA]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.PEKERJA_HARIAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.BKO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.MANAJEMEN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
         [DIV_KEYS.AGRO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
         [DIV_KEYS.TERNAK]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Ekor / Unit' },
         [DIV_KEYS.IKAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' }
@@ -1094,8 +1109,9 @@
           }
         }
 
-        // Kendala
-        if (r.kendala && r.kendala !== '-') {
+        // Kendala (only real obstacles)
+        const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(r.kendala) : (r.kendala && r.kendala !== '-');
+        if (isKendalaReal) {
           if (!isVerified) {
             openObstaclesCount++;
             const hasNoUpaya = !r.upaya || r.upaya === '-';

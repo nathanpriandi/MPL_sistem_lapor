@@ -17,6 +17,24 @@ function submitOperationalReport(payload) {
 }
 
 /**
+ * Returns full employee registry (38 employees across 5 divisions).
+ * @returns {Array<{ id: string, name: string, division: string }>}
+ */
+function getEmployeeRegistry() {
+  return JSON.parse(JSON.stringify(EMPLOYEE_REGISTRY || []));
+}
+
+/**
+ * Searches employee by ID or Name.
+ * @param {string} query 
+ * @returns {{ id: string, name: string, division: string }|null}
+ */
+function lookupEmployeeRPC(query) {
+  const emp = lookupEmployee(query);
+  return emp ? JSON.parse(JSON.stringify(emp)) : null;
+}
+
+/**
  * Returns recent activity codes (Kode Kegiatan) for reference autocomplete.
  * @returns {Array<string>}
  */
