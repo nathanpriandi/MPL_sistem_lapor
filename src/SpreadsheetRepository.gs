@@ -373,7 +373,7 @@ const SpreadsheetRepository = {
 
   /**
    * Fetches unified Admin Triage Queue across all form tabs inside the single integrated spreadsheet.
-   * Reads fields dynamically by header name.
+   * Reads fields dynamically by header name and deduplicates across synced/mirror tabs.
    * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
@@ -383,8 +383,8 @@ const SpreadsheetRepository = {
     const ss = SpreadsheetApp.openById(mainSsId);
     const sheets = ss.getSheets();
     const mergedQueue = [];
-    const seenReportIds = new Set();
-    const EXEMPT_SHEETS = ['Photo_Log', 'Archive_Reports', 'Admin_Queue'];
+    const seenFingerprints = new Set();
+    const EXEMPT_SHEETS = ['Photo_Log', 'Archive_Reports', 'Admin_Queue', 'Summary', 'Lookup', 'Template', 'Config', 'Dropdowns', 'Settings', 'Sheet1', 'Master_Data'];
 
     sheets.forEach(sheet => {
       const sheetName = sheet.getName();
@@ -404,15 +404,13 @@ const SpreadsheetRepository = {
             if (headerMap && headerMap.hasOwnProperty('Report_ID')) {
               reportId = String(row[headerMap['Report_ID']] || '').trim();
             }
-            if (!reportId || reportId === '-') {
-              reportId = `ROW_${sheetName}_${rowIndex + 2}`;
-            }
 
-            if (seenReportIds.has(reportId)) return;
-            seenReportIds.add(reportId);
+            let kodeKegiatan = String(
+              this.getCellValue_(row, headerMap, 'Kode_Kegiatan') || 
+              this.getCellValue_(row, headerMap, 'Kode Kegiatan', 1) || 
+              ''
+            ).trim();
 
-            let kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan') || this.getCellValue_(row, headerMap, 'Kode Kegiatan', 1) || '').trim();
-            
             let rawTime = this.getCellValue_(row, headerMap, 'Timestamp', 3) || this.getCellValue_(row, headerMap, 'Waktu', 0);
             let timestamp = formatDate(rawTime || new Date());
             
@@ -454,6 +452,20 @@ const SpreadsheetRepository = {
             if (nilaiPenjualan > 0) ringkasan += ` | Jual: Rp ${nilaiPenjualan.toLocaleString('id-ID')}`;
             if (!ringkasan) ringkasan = `Laporan ${sheetName}`;
 
+            // Multi-criteria robust deduplication across synced/response sheets
+            const primaryKey = (kodeKegiatan && kodeKegiatan !== '-') 
+              ? `KODE:${kodeKegiatan.toLowerCase()}`
+              : (reportId && !reportId.startsWith('ROW_'))
+                ? `ID:${reportId.toLowerCase()}`
+                : `COMP:${timestamp}|${namaPic.toLowerCase()}|${lokasi.toLowerCase()}|${ringkasan.toLowerCase()}`;
+
+            if (seenFingerprints.has(primaryKey)) return;
+            seenFingerprints.add(primaryKey);
+
+            if (!reportId || reportId === '-') {
+              reportId = (kodeKegiatan && kodeKegiatan !== '-') ? kodeKegiatan : `ROW_${sheetName}_${rowIndex + 2}`;
+            }
+
             let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 28) || this.getCellValue_(row, headerMap, 'Foto_Lampiran') || '');
             if (!photoVal.startsWith('http')) {
               const foundUrl = row.find(c => typeof c === 'string' && c.trim().startsWith('http'));
@@ -461,7 +473,17 @@ const SpreadsheetRepository = {
             }
 
             let severityVal = String(this.getCellValue_(row, headerMap, 'Severity', 29) || (kendalaVal ? ReportSeverity.URGENT : ReportSeverity.NORMAL)).toLowerCase();
-            let rawReviewStatus = this.getCellValue_(row, headerMap, 'Reviewed', 30) || this.getCellValue_(row, headerMap, 'Review_Status');
+            
+            // Check all known header variations for status
+            let rawReviewStatus = 
+              this.getCellValue_(row, headerMap, 'Status Verifikasi') || 
+              this.getCellValue_(row, headerMap, 'Status_Verifikasi') || 
+              this.getCellValue_(row, headerMap, 'Status Peninjauan') || 
+              this.getCellValue_(row, headerMap, 'Status_Peninjauan') || 
+              this.getCellValue_(row, headerMap, 'Reviewed') || 
+              this.getCellValue_(row, headerMap, 'Review_Status') || 
+              this.getCellValue_(row, headerMap, 'Status');
+            
             let reviewStatusVal = normalizeReviewStatus(rawReviewStatus);
 
             // Convert row cells to RPC-safe primitive values (convert Date objects to formatted strings)
@@ -515,7 +537,8 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Updates Review_Status of a report by matching Report_ID across all tabs of integrated spreadsheet.
+   * Updates Review_Status of a report by matching Report_ID or Kode_Kegiatan or synthetic row index across sheets.
+   * Auto-provisions 'Status Verifikasi' column if not yet present in target tab.
    * @param {string} reportId 
    * @param {string} newStatus 
    * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string, error?: string }}
@@ -530,37 +553,99 @@ const SpreadsheetRepository = {
     try {
       const ss = SpreadsheetApp.openById(mainSsId);
       const sheets = ss.getSheets();
+      const EXEMPT_SHEETS = ['Photo_Log', 'Archive_Reports', 'Admin_Queue', 'Summary', 'Lookup', 'Template', 'Config', 'Dropdowns', 'Settings', 'Sheet1', 'Master_Data'];
+      let updatedCount = 0;
+      let matchedSheetName = '';
+
+      // Check if reportId is in format ROW_SheetName_RowNum
+      let directSheetName = null;
+      let directRowNum = null;
+      if (String(reportId).startsWith('ROW_')) {
+        const parts = String(reportId).split('_');
+        if (parts.length >= 3) {
+          directRowNum = parseInt(parts[parts.length - 1], 10);
+          directSheetName = parts.slice(1, parts.length - 1).join('_');
+        }
+      }
 
       for (let s = 0; s < sheets.length; s++) {
         const sheet = sheets[s];
+        const sheetName = sheet.getName();
+        if (EXEMPT_SHEETS.includes(sheetName)) continue;
         if (sheet.getLastRow() <= 1) continue;
 
         const data = sheet.getDataRange().getValues();
-        const headers = data[0].map(h => String(h || '').trim().toLowerCase());
-        let reviewColIdx = headers.indexOf('reviewed');
-        if (reviewColIdx === -1) reviewColIdx = headers.indexOf('review_status');
+        const headerRow = data[0];
+        const headers = headerRow.map(h => String(h || '').trim().toLowerCase());
+
+        // Find or provision Status Verifikasi column
+        let reviewColIdx = headers.indexOf('status verifikasi');
+        if (reviewColIdx === -1) reviewColIdx = headers.indexOf('status_verifikasi');
         if (reviewColIdx === -1) reviewColIdx = headers.indexOf('status peninjauan');
+        if (reviewColIdx === -1) reviewColIdx = headers.indexOf('status_peninjauan');
+        if (reviewColIdx === -1) reviewColIdx = headers.indexOf('reviewed');
+        if (reviewColIdx === -1) reviewColIdx = headers.indexOf('review_status');
         if (reviewColIdx === -1) reviewColIdx = headers.indexOf('status');
-        if (reviewColIdx === -1) reviewColIdx = data[0].length - 1;
+
+        if (reviewColIdx === -1) {
+          const newCol = sheet.getLastColumn() + 1;
+          sheet.getRange(1, newCol).setValue('Status Verifikasi').setFontWeight('bold').setBackground('#f1f5f9');
+          reviewColIdx = newCol - 1;
+        }
+
+        // 1. Direct row match if synthetic row ID matches this sheet
+        if (directSheetName && directSheetName === sheetName && directRowNum && directRowNum <= sheet.getLastRow()) {
+          sheet.getRange(directRowNum, reviewColIdx + 1).setValue(normalized);
+          updatedCount++;
+          matchedSheetName = sheetName;
+          Logger.log(`SpreadsheetRepository: Updated direct row ${directRowNum} status to ${normalized} in ${sheetName}`);
+          continue;
+        }
+
+        // 2. Scan rows by Report_ID or Kode_Kegiatan or exact cell content
+        const reportIdCol = headers.indexOf('report_id');
+        const kodeCol = headers.indexOf('kode_kegiatan') !== -1 ? headers.indexOf('kode_kegiatan') : headers.indexOf('kode kegiatan');
 
         for (let r = 1; r < data.length; r++) {
-          if (String(data[r][0] || '').trim() === String(reportId).trim()) {
+          const row = data[r];
+          let isMatch = false;
+
+          if (reportIdCol !== -1 && String(row[reportIdCol] || '').trim() === String(reportId).trim()) {
+            isMatch = true;
+          } else if (kodeCol !== -1 && String(row[kodeCol] || '').trim() === String(reportId).trim()) {
+            isMatch = true;
+          } else {
+            for (let c = 0; c < row.length; c++) {
+              if (String(row[c] || '').trim() === String(reportId).trim()) {
+                isMatch = true;
+                break;
+              }
+            }
+          }
+
+          if (isMatch) {
             sheet.getRange(r + 1, reviewColIdx + 1).setValue(normalized);
-            Logger.log(`SpreadsheetRepository: Updated Report_ID ${reportId} status to ${normalized} in sheet tab ${sheet.getName()}`);
-            return {
-              success: true,
-              reportId: reportId,
-              sheet: sheet.getName(),
-              updatedStatus: normalized
-            };
+            updatedCount++;
+            matchedSheetName = sheetName;
+            Logger.log(`SpreadsheetRepository: Updated row ${r + 1} (${reportId}) status to ${normalized} in ${sheetName}`);
           }
         }
       }
+
+      if (updatedCount > 0) {
+        return {
+          success: true,
+          reportId: reportId,
+          sheet: matchedSheetName,
+          updatedStatus: normalized
+        };
+      }
     } catch (err) {
-      Logger.log(`SpreadsheetRepository Notice: Error updating review status: ${err.toString()}`);
+      Logger.log(`SpreadsheetRepository Error updating review status: ${err.toString()}`);
+      return { success: false, reportId: reportId, error: err.toString() };
     }
 
-    return { success: false, reportId: reportId, error: 'Report_ID tidak ditemukan di sheet.' };
+    return { success: false, reportId: reportId, error: 'Laporan tidak ditemukan di sheet.' };
   },
 
   /**
@@ -731,7 +816,14 @@ const SpreadsheetRepository = {
             const kendala = String(this.getCellValue_(row, headerMap, 'Kendala', 26) || '').trim();
             const upaya = String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim();
             const severity = String(this.getCellValue_(row, headerMap, 'Severity', 29) || 'normal').toLowerCase();
-            const rawReviewStatus = this.getCellValue_(row, headerMap, 'Reviewed', 30) || this.getCellValue_(row, headerMap, 'Review_Status');
+            const rawReviewStatus = 
+              this.getCellValue_(row, headerMap, 'Status Verifikasi') || 
+              this.getCellValue_(row, headerMap, 'Status_Verifikasi') || 
+              this.getCellValue_(row, headerMap, 'Status Peninjauan') || 
+              this.getCellValue_(row, headerMap, 'Status_Peninjauan') || 
+              this.getCellValue_(row, headerMap, 'Reviewed') || 
+              this.getCellValue_(row, headerMap, 'Review_Status') || 
+              this.getCellValue_(row, headerMap, 'Status');
             const reviewStatus = normalizeReviewStatus(rawReviewStatus);
 
             if (!reportId && !kodeKegiatan && !namaPic) return;
