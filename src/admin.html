@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Queue — Sistem Pelaporan Digital</title>
   <?!= include('style'); ?>
 </head>
+
 <body>
 
   <div class="app-shell">
@@ -16,7 +18,12 @@
       <header class="topbar-internal">
         <div class="topbar-left">
           <button class="btn-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
           </button>
           <div class="topbar-breadcrumb">
             <span class="breadcrumb-root">Konsol Internal</span>
@@ -27,15 +34,19 @@
 
         <div id="userIdentityStrip" data-populated="1">
           <div class="user-identity-menu">
-            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
+            <div class="user-avatar">
+              <?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?>
+            </div>
             <div class="user-info">
-              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
+              <span class="user-email">
+                <?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?>
+              </span>
               <? if (userRole === 'both') { ?>
-                <span class="badge badge-primary">Admin &amp; Manager</span>
+              <span class="badge badge-primary">Admin &amp; Manager</span>
               <? } else if (userRole === 'admin') { ?>
-                <span class="badge badge-primary">Admin Operasional</span>
+              <span class="badge badge-primary">Admin Operasional</span>
               <? } else if (userRole === 'manager') { ?>
-                <span class="badge badge-normal">Executive Manager</span>
+              <span class="badge badge-normal">Executive Manager</span>
               <? } ?>
             </div>
           </div>
@@ -43,235 +54,104 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <!-- EXECUTIVE HEADER & PERIOD CONTROL STRIP (Task 1 & Task 6) -->
-        <div class="flex-between-wrap print-header-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
+        <!-- OPERATIONAL QUEUE HEADER -->
+        <div class="flex-between-wrap" style="margin-bottom: 1.25rem; align-items: flex-start; gap: 1rem;">
           <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-              <h1 class="card-title" style="margin-bottom: 0; line-height: 1.25;">Antrean Admin &amp; Laporan Mingguan</h1>
-              <span class="period-badge" id="execPeriodBadge">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span>Periode: <strong id="execPeriodLabel">Minggu Ini</strong></span>
-              </span>
-            </div>
-            <p class="card-subtitle" style="margin-bottom: 0;">Ringkasan eksekutif mingguan, evaluasi pencapaian divisi, dan daftar kendala operasional yang membutuhkan penanganan.</p>
-          </div>
-
-          <!-- Task 1 Period Control + Task 6 Report Summary Actions -->
-          <div class="no-print" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
-            <div class="button-group-flex" style="align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-              <div class="segmented-control" role="tablist" aria-label="Filter Periode Eksekutif">
-                <button class="segmented-item active" onclick="setExecutivePeriod('this_week', this)" id="periodBtn-this_week">Minggu Ini</button>
-                <button class="segmented-item" onclick="setExecutivePeriod('last_week', this)" id="periodBtn-last_week">Minggu Lalu</button>
-                <button class="segmented-item" onclick="setExecutivePeriod('this_month', this)" id="periodBtn-this_month">Bulan Ini</button>
-                <button class="segmented-item" onclick="setExecutivePeriod('custom', this)" id="periodBtn-custom">Kustom</button>
-              </div>
-
-              <button class="btn btn-secondary table-btn-sm" onclick="openExecutiveReportSummary()" title="Buka Ringkasan Periode untuk Cetak/Salin Report Manajer" style="display: inline-flex; align-items: center; gap: 0.35rem; width: auto;">
-                <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                <span>Ringkasan Periode</span>
-              </button>
-            </div>
-
-            <!-- Task 1 Custom Date Range Pickers (hidden by default) -->
-            <div id="execCustomDateBar" style="display: none; align-items: center; gap: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm);">
-              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Dari:</span>
-              <input type="date" id="execCustomStartDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="updateExecutiveStats()">
-              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">s/d:</span>
-              <input type="date" id="execCustomEndDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="updateExecutiveStats()">
-            </div>
+            <h1 class="card-title" style="margin-bottom: 0.25rem; line-height: 1.25;">Antrean Admin Operasional</h1>
+            <p class="card-subtitle" style="margin-bottom: 0;">Verifikasi, filter, dan kelola antrean laporan operasional harian seluruh bidang usaha.</p>
           </div>
         </div>
 
-        <!-- TASK 2: EXECUTIVE KPI STRIP -->
-        <div class="metrics-grid print-section" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">
-          <!-- 1. Total Laporan -->
-          <div class="metric-card">
-            <span class="metric-label">Total Laporan</span>
-            <span class="metric-value" id="kpiExecTotalLaporan">0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendTotalLaporan">
-              <span id="trendIconTotalLaporan">▲</span> <span id="trendTextTotalLaporan">vs periode lalu</span>
-            </span>
-          </div>
-
-          <!-- 2. Total Panen -->
-          <div class="metric-card">
-            <div>
-              <span class="metric-label">Total Hasil Panen</span>
-              <span class="metric-sublabel" style="margin-top: 0;">Satuan: Kg/Unit</span>
-            </div>
-            <span class="metric-value" id="kpiExecTotalPanen" style="font-size: 1.6rem;">0 Kg/Unit</span>
-            <span class="metric-trend metric-trend-neutral" id="trendTotalPanen">
-              <span id="trendIconTotalPanen">▲</span> <span id="trendTextTotalPanen">vs periode lalu</span>
-            </span>
-          </div>
-
-          <!-- 3. Total Nilai Penjualan -->
-          <div class="metric-card">
-            <span class="metric-label">Total Nilai Penjualan</span>
-            <span class="metric-value" id="kpiExecTotalSales" style="font-size: 1.4rem; word-break: break-all;">Rp 0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendTotalSales">
-              <span id="trendIconTotalSales">▲</span> <span id="trendTextTotalSales">vs periode lalu</span>
-            </span>
-          </div>
-
-          <!-- 4. Kendala Belum Ditangani -->
-          <div class="metric-card">
-            <span class="metric-label">Kendala Belum Ditangani</span>
-            <span class="metric-value metric-value-urgent" id="kpiExecKendalaCount">0</span>
-            <span class="metric-trend metric-trend-neutral" id="trendKendalaCount">
-              <span id="trendIconKendalaCount">▼</span> <span id="trendTextKendalaCount">vs periode lalu</span>
-            </span>
-          </div>
-
-          <!-- 5. Cakupan Lokasi -->
-          <div class="metric-card" title="Kecocokan nama lokasi yang melapor dibanding periode lalu (pendekatan perkiraan)">
-            <span class="metric-label">Cakupan Lokasi</span>
-            <span class="metric-value" id="kpiExecCoverageFraction" style="font-size: 1.3rem;">0 dari 0</span>
-            <span class="metric-sublabel" id="kpiExecCoverageSub" style="font-size: 0.725rem; color: var(--text-muted);">Perkiraan vs periode lalu</span>
-          </div>
-        </div>
-
-        <!-- TASK 3 & TASK 5: DIVISION COMPARISON & COVERAGE APPROXIMATION -->
-        <div class="dashboard-two-col print-section" style="margin-bottom: 1.5rem;">
-          
-          <!-- Task 3: Division Comparison Block -->
-          <div class="card" style="margin-bottom: 0;">
-            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-              <span>Perbandingan Performa Divisi (Periode Ini)</span>
-            </h3>
-            
-            <div class="kpi-division-grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.6rem;">
-              <!-- Agro -->
-              <div class="kpi-division-item" style="padding: 0.65rem 0.5rem; text-align: left;">
-                <span class="kpi-division-name" style="color: #15803D; display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
-                  Agro
-                </span>
-                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.2rem;">
-                  <div>Laporan: <strong id="divCountAgro" style="color: var(--text-primary);">0</strong></div>
-                  <div>Panen: <strong id="divPanenAgro" style="color: var(--text-primary);">0 Kg</strong></div>
-                  <div>Sales: <strong id="divSalesAgro" style="color: var(--text-primary);">Rp 0</strong></div>
-                </div>
+        <!-- OPERATIONAL DETAIL QUEUE TABLE CARD -->
+        <div class="table-card-enterprise no-print">
+          <!-- INTEGRATED STATUS TABS & TOOLBAR -->
+          <div class="enterprise-toolbar">
+            <!-- Top Row: Search & Utilities -->
+            <div class="enterprise-toolbar-top">
+              <div class="search-input-wrapper">
+                <svg class="svg-icon search-input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" id="searchInput" class="search-input-field" placeholder="Cari Kode Kegiatan, Nama Karyawan, Divisi, Lokasi, Catatan..." oninput="onSearchInput()">
+                <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" title="Hapus pencarian">&times;</button>
               </div>
 
-              <!-- Ternak -->
-              <div class="kpi-division-item" style="padding: 0.65rem 0.5rem; text-align: left;">
-                <span class="kpi-division-name" style="color: #D97706; display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
-                  Ternak
-                </span>
-                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.2rem;">
-                  <div>Laporan: <strong id="divCountTernak" style="color: var(--text-primary);">0</strong></div>
-                  <div>Panen: <strong id="divPanenTernak" style="color: var(--text-primary);">0 Ekor</strong></div>
-                  <div>Sales: <strong id="divSalesTernak" style="color: var(--text-primary);">Rp 0</strong></div>
-                </div>
-              </div>
+              <div class="toolbar-utilities">
+                <span id="lastUpdatedTag" class="status-timestamp" style="font-size: 0.75rem;"></span>
 
-              <!-- Ikan -->
-              <div class="kpi-division-item" style="padding: 0.65rem 0.5rem; text-align: left;">
-                <span class="kpi-division-name" style="color: #2563EB; display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
-                  Ikan
-                </span>
-                <div style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.2rem;">
-                  <div>Laporan: <strong id="divCountIkan" style="color: var(--text-primary);">0</strong></div>
-                  <div>Panen: <strong id="divPanenIkan" style="color: var(--text-primary);">0 Kg</strong></div>
-                  <div>Sales: <strong id="divSalesIkan" style="color: var(--text-primary);">Rp 0</strong></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Task 5: Coverage Approximation Breakdown -->
-          <div class="card" style="margin-bottom: 0;">
-            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; display: flex; align-items: center; gap: 0.5rem;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Status Cakupan &amp; Keaktifan Lokasi</span>
-            </h3>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.6rem;">
-              Berdasarkan kecocokan nama lokasi — varian penulisan mungkin tidak terdeteksi.
-            </p>
-            
-            <div id="coverageBreakdownBox" style="font-size: 0.825rem; color: var(--text-secondary);">
-              <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem;" id="coverageHeadline">
-                Memuat data lokasi...
-              </div>
-              <div id="missingLocationsContainer">
-                <!-- Rendered dynamically -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TASK 4: EXCEPTION LIST (Kendala Belum Ditangani) -->
-        <div class="card print-section" style="margin-bottom: 1.5rem;">
-          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.75rem;">
-            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--urgent); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span>Daftar Kendala Belum Ditangani (Periode Ini)</span>
-            </h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);" id="exceptionCountTag">0 Laporan</span>
-          </div>
-
-          <div class="attention-container" id="exceptionListBody" style="max-height: 360px;">
-            <!-- Exception cards rendered dynamically -->
-          </div>
-        </div>
-
-        <!-- BOTTOM TIER: WORKING OPERATIONAL DETAIL TABLE (UNCHANGED CORE LOGIC) -->
-        <div class="card no-print">
-          <div class="flex-between-wrap">
-            <div>
-              <h2 class="card-title" style="font-size: 1.05rem;">Rincian Log Antrean Operasional</h2>
-              <p class="card-subtitle">Semua laporan yang masuk, filterable dan dapat diunduh sebagai file CSV audit.</p>
-            </div>
-            <div class="button-group-flex" style="align-items: center;">
-              <!-- Segmented Control for Quick Filters -->
-              <div class="segmented-control" role="tablist" aria-label="Filter Status Antrean">
-                <button class="segmented-item active" onclick="setQuickFilter('all', this)" id="segBtn-all" role="tab">Semua Pending</button>
-                <button class="segmented-item" onclick="setQuickFilter('urgent', this)" id="segBtn-urgent" role="tab">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/></svg>
-                  <span>Mendesak</span>
-                </button>
-              </div>
-
-              <button class="btn btn-secondary table-btn-sm" onclick="toggleAdvancedFilters()" id="btnToggleAdvancedFilter">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                <span id="btnFilterLabel">Filter Lanjutan ▾</span>
-              </button>
-
-              <div class="toolbar-divider"></div>
-
-              <div class="toolbar-cluster">
-                <span id="lastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.25rem;"></span>
                 <button class="btn-icon-ghost" onclick="exportAdminCSV()" title="Ekspor CSV Data Antrean" aria-label="Ekspor CSV Data Antrean">
-                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
                 </button>
                 <button class="btn-icon-ghost" onclick="fetchAndRenderQueue(true)" title="Perbarui Data Antrean" aria-label="Perbarui Data Antrean">
-                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
                 </button>
               </div>
             </div>
-          </div>
 
-          <!-- Advanced Filter Bar -->
-          <div class="filter-bar" id="advancedFilterBar" style="display: none;">
-            <div class="filter-group">
-              <input type="text" id="searchInput" class="filter-input" placeholder="Cari Kode Kegiatan / PIC / Detail..." oninput="applyFilters()">
-            </div>
-            <div class="filter-group">
-              <select id="siteFilter" class="filter-input" onchange="applyFilters()">
-                <option value="">-- Semua Divisi --</option>
-                <option value="Agro (Pertanian/Perkebunan)">Agro (Pertanian/Perkebunan)</option>
-                <option value="Ternak (Peternakan)">Ternak (Peternakan)</option>
-                <option value="Ikan (Perikanan)">Ikan (Perikanan)</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <input type="date" id="startDateFilter" class="filter-input" onchange="applyFilters()" title="Dari Tanggal">
-              <span style="font-size: 0.85rem; color: var(--text-muted);">s/d</span>
-              <input type="date" id="endDateFilter" class="filter-input" onchange="applyFilters()" title="Sampai Tanggal">
+            <!-- Bottom Row: Status Filter Pills (Left) & Division / Date Filters (Right) -->
+            <div class="enterprise-toolbar-filters">
+              <!-- Segmented Status Tabs -->
+              <div class="segmented-filter-pills" role="tablist" aria-label="Filter Status Antrean">
+                <button class="filter-pill active pill-unverified" onclick="setQuickFilter('unverified')" id="segBtn-unverified" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>Belum Verifikasi</span>
+                  <span class="filter-pill-count" id="badgeCount-unverified">0</span>
+                </button>
+                <button class="filter-pill pill-urgent" onclick="setQuickFilter('urgent')" id="segBtn-urgent" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z" />
+                  </svg>
+                  <span>Mendesak</span>
+                  <span class="filter-pill-count" id="badgeCount-urgent">0</span>
+                </button>
+                <button class="filter-pill pill-verified" onclick="setQuickFilter('verified')" id="segBtn-verified" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <span>Terverifikasi</span>
+                  <span class="filter-pill-count" id="badgeCount-verified">0</span>
+                </button>
+                <button class="filter-pill" onclick="setQuickFilter('all')" id="segBtn-all" role="tab">
+                  <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                  <span>Semua Laporan</span>
+                  <span class="filter-pill-count" id="badgeCount-all">0</span>
+                </button>
+              </div>
+
+              <!-- Division & Date Filters -->
+              <div class="toolbar-filters-group">
+                <select id="siteFilter" class="filter-input" onchange="applyFilters()">
+                  <option value="">Semua Divisi</option>
+                  <option value="Manajemen">Manajemen</option>
+                  <option value="BKO 28">BKO 28</option>
+                  <option value="Pekerja Harian">Pekerja Harian</option>
+                  <option value="Alprof">Alprof</option>
+                  <option value="SGA">SGA</option>
+                  <option value="Agro (Pertanian/Perkebunan)">Agro (Legacy)</option>
+                  <option value="Ternak (Peternakan)">Ternak (Legacy)</option>
+                  <option value="Ikan (Perikanan)">Ikan (Legacy)</option>
+                </select>
+
+                <input type="date" id="startDateFilter" class="filter-input" onchange="applyFilters()" title="Dari Tanggal">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">s/d</span>
+                <input type="date" id="endDateFilter" class="filter-input" onchange="applyFilters()" title="Sampai Tanggal">
+              </div>
             </div>
           </div>
 
@@ -279,96 +159,117 @@
             <table class="table-sticky-col responsive-card-table">
               <thead>
                 <tr>
-                  <th>Kode Kegiatan</th>
-                  <th onclick="toggleSort('timestamp')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan waktu">
-                    Waktu Submit <span id="sort-timestamp">↕</span>
+                  <th style="min-width: 160px; white-space: nowrap;">Kode Kegiatan</th>
+                  <th onclick="toggleSort('timestamp')" class="th-sortable" style="min-width: 130px;" title="Klik untuk mengurutkan berdasarkan waktu">
+                    <div class="th-content">
+                      <span>Waktu Submit</span> <span id="sort-timestamp" class="sort-indicator">↕</span>
+                    </div>
                   </th>
-                  <th>PIC Pelapor</th>
-                  <th>Divisi</th>
-                  <th>Lokasi</th>
-                  <th>Ringkasan (Kegiatan/Panen)</th>
-                  <th onclick="toggleSort('severity')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan keparahan">
-                    Tingkat Keparahan <span id="sort-severity">↕</span>
+                  <th style="min-width: 150px;">Nama Karyawan</th>
+                  <th style="min-width: 110px;">Lokasi</th>
+                  <th style="min-width: 220px;">Ringkasan &amp; Detail</th>
+                  <th onclick="toggleSort('severity')" class="th-sortable th-center" style="min-width: 120px;" title="Klik untuk mengurutkan berdasarkan keparahan">
+                    <div class="th-content th-content-center">
+                      <span>Tingkat Keparahan</span> <span id="sort-severity" class="sort-indicator">↕</span>
+                    </div>
                   </th>
-                  <th>Kategori Triage</th>
-                  <th onclick="toggleSort('reviewStatus')" style="cursor: pointer;" title="Klik untuk mengurutkan berdasarkan status">
-                    Status Peninjauan <span id="sort-reviewStatus">↕</span>
+                  <th onclick="toggleSort('reviewStatus')" class="th-sortable th-center" style="min-width: 150px;" title="Klik untuk mengurutkan berdasarkan status verifikasi">
+                    <div class="th-content th-content-center">
+                      <span>Status Verifikasi</span> <span id="sort-reviewStatus" class="sort-indicator">↕</span>
+                    </div>
                   </th>
-                  <th style="text-align: center;">Aksi</th>
+                  <th class="th-center" style="min-width: 80px;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="queueBody">
                 <tr>
-                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                  <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+                  <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+                  <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+                  <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+                  <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
                 </tr>
                 <tr>
-                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                  <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+                  <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+                  <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+                  <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+                  <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
                 </tr>
                 <tr>
-                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
-                </tr>
-                <tr>
-                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
-                </tr>
-                <tr>
-                  <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-                  <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
-                  <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+                  <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+                  <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+                  <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 100px;"></div></td>
+                  <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 85px;"></div></td>
+                  <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 180px;"></div></td>
+                  <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+                  <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+                  <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Pagination Control Bar -->
-          <div class="pagination-bar">
-            <div class="pagination-info" id="paginationInfo">Menampilkan 0 laporan</div>
-            <div class="pagination-controls">
-              <button class="btn btn-secondary table-btn-sm" id="btnPrevPage" onclick="changePage(-1)" disabled>&laquo; Sebelumnya</button>
-              <span id="pageIndicator" style="font-size: 0.85rem; font-weight: 600; padding: 0 0.5rem;">Halaman 1</span>
-              <button class="btn btn-secondary table-btn-sm" id="btnNextPage" onclick="changePage(1)" disabled>Berikutnya &raquo;</button>
+          <!-- ENTERPRISE PAGINATION BAR -->
+          <div class="pagination-bar-enterprise">
+            <div class="pagination-left">
+              <span class="pagination-info-text" id="paginationInfo">Menampilkan 0 laporan</span>
+              <select class="page-size-selector" id="pageSizeSelect" onchange="changePageSize(this.value)" aria-label="Jumlah baris per halaman">
+                <option value="10">10 per halaman</option>
+                <option value="25" selected>25 per halaman</option>
+                <option value="50">50 per halaman</option>
+              </select>
+            </div>
+            <div class="pagination-right" id="paginationControls">
+              <button class="page-nav-btn" id="btnPrevPage" onclick="changePage(-1)" disabled title="Halaman Sebelumnya">&lsaquo;</button>
+              <div id="pagePillsContainer" style="display: inline-flex; gap: 4px;"></div>
+              <button class="page-nav-btn" id="btnNextPage" onclick="changePage(1)" disabled title="Halaman Berikutnya">&rsaquo;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: FORM REVIEW INSPECTOR -->
+        <div class="modal-overlay" id="reportDetailModal" hidden onclick="handleBackdropClick(event)">
+          <div class="modal-card modal-inspector" onclick="event.stopPropagation()">
+            <div class="modal-header" style="align-items: flex-start; padding-bottom: 0.75rem;">
+              <div class="inspector-header-container">
+                <div class="inspector-title-row">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <h3 class="modal-title" id="modalInspectorTitle" style="margin: 0;">Detail Laporan Operasional</h3>
+                    <span id="modalSourceBadge" class="badge badge-neutral">Form</span>
+                  </div>
+                </div>
+                <div class="inspector-controls-bar" id="modalHeaderMeta">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+              <button type="button" class="modal-close" onclick="closeDetailModal()" aria-label="Tutup Modal">&times;</button>
+            </div>
+
+            <div class="modal-body" id="modalBody" style="max-height: 72vh; overflow-y: auto;">
+              <!-- Dynamic content rendered by openDetailModal -->
+            </div>
+
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary table-btn-sm" id="btnModalPrev" onclick="navigateModal(-1)">
+                  &larr; Sebelumnya
+                </button>
+                <span id="modalItemCounter" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">1 / 1</span>
+                <button type="button" class="btn btn-secondary table-btn-sm" id="btnModalNext" onclick="navigateModal(1)">
+                  Berikutnya &rarr;
+                </button>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeDetailModal()">Tutup</button>
+              </div>
             </div>
           </div>
         </div>
@@ -376,55 +277,62 @@
     </div>
   </div>
 
-  <!-- Executive Report Summary Print / Copy Modal (Task 6) -->
-  <div id="execReportSummaryModal" class="modal-overlay" hidden>
-    <div class="modal-container" style="max-width: 720px;">
-      <div class="modal-header">
-        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
-          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <span>Ringkasan Periode Eksekutif</span>
-        </h3>
-        <button class="modal-close" onclick="closeExecutiveReportSummary()">&times;</button>
-      </div>
-      <div class="modal-body" id="execReportSummaryBody" style="max-height: 65vh; overflow-y: auto;">
-        <!-- Populated dynamically -->
-      </div>
-      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-        <button class="btn btn-secondary table-btn-sm" onclick="copyExecutiveSummaryText()" style="width: auto;">
-          <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span>Salin Ringkasan Text</span>
-        </button>
-        <div style="display: flex; gap: 0.5rem;">
-          <button class="btn btn-secondary table-btn-sm" onclick="closeExecutiveReportSummary()" style="width: auto;">Tutup</button>
-          <button class="btn btn-primary table-btn-sm" onclick="triggerExecutivePrint()" style="width: auto;">
-            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            <span>Cetak / Export PDF</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
+  <?!= includeApp(webAppUrl); ?>
   <script>
     let rawQueueData = [];
     let currentFilteredData = [];
-    let currentQuickFilter = 'all';
+    let currentQuickFilter = 'unverified';
     let currentPage = 1;
-    const pageSize = 25;
+    let pageSize = 25;
     let autoRefreshInterval = null;
     let currentSortCol = 'severity';
     let currentSortDir = 'asc';
+    let currentModalIndex = -1;
 
     let lastFetchedTimestamp = null;
+    let searchDebounce = null;
+
+    function normalizeReviewStatus(val) {
+      if (!val) return 'Belum Terverifikasi';
+      const s = String(val).trim().toLowerCase();
+      if (s === 'terverifikasi' || s === 'verified' || s === 'closed' || s === 'selesai' || s === 'reviewed') {
+        return 'Terverifikasi';
+      }
+      return 'Belum Terverifikasi';
+    }
+
+    function formatRupiah(num) {
+      if (!num || isNaN(num)) return '0';
+      return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getInitials(name) {
+      if (!name || name === '-') return 'PIC';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const initialFilter = urlParams.get('filter');
       if (initialFilter) {
-        currentQuickFilter = initialFilter;
+        currentQuickFilter = (['all', 'urgent', 'verified', 'unverified'].includes(initialFilter)) ? initialFilter : 'unverified';
+      } else {
+        currentQuickFilter = 'unverified';
       }
 
+      setQuickFilter(currentQuickFilter);
       loadQuickLinks();
       loadDiagnostics();
       fetchAndRenderQueue();
@@ -444,13 +352,27 @@
       }
 
       autoRefreshInterval = setInterval(() => {
+        if (isFetchingQueue || isUpdatingStatus) return;
         const modal = document.getElementById('reportDetailModal');
-        if (modal && modal.hasAttribute('hidden')) {
+        if (modal && (modal.hasAttribute('hidden') || modal.style.display === 'none')) {
           fetchAndRenderQueue(false);
         }
       }, 60000);
 
       setInterval(updateFreshnessTag, 30000);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('reportDetailModal');
+      if (modal && !modal.hasAttribute('hidden') && modal.style.display !== 'none') {
+        if (e.key === 'Escape') {
+          closeDetailModal();
+        } else if (e.key === 'ArrowLeft') {
+          navigateModal(-1);
+        } else if (e.key === 'ArrowRight') {
+          navigateModal(1);
+        }
+      }
     });
 
     function getDriveThumbnail(url) {
@@ -476,18 +398,24 @@
       else tag.innerText = 'Diperbarui ' + elapsedMin + ' mnt lalu';
     }
 
-    function toggleAdvancedFilters() {
-      const filterBar = document.getElementById('advancedFilterBar');
-      const btnLabel = document.getElementById('btnFilterLabel');
-      if (!filterBar || !btnLabel) return;
-
-      if (filterBar.style.display === 'none' || !filterBar.style.display) {
-        filterBar.style.display = 'flex';
-        btnLabel.innerText = 'Sembunyikan Filter ▴';
-      } else {
-        filterBar.style.display = 'none';
-        btnLabel.innerText = 'Filter Lanjutan ▾';
+    function onSearchInput() {
+      const input = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (clearBtn) {
+        clearBtn.style.display = (input && input.value) ? 'block' : 'none';
       }
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        applyFilters();
+      }, 200);
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('searchInput');
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+      applyFilters();
     }
 
     function toggleSort(col) {
@@ -507,10 +435,29 @@
         if (!el) return;
         if (currentSortCol === col) {
           el.innerText = (currentSortDir === 'asc') ? '▲' : '▼';
+          el.classList.add('active');
         } else {
           el.innerText = '↕';
+          el.classList.remove('active');
         }
       });
+    }
+
+    function updateKpiCards(data) {
+      const total = data.length;
+      const unverified = data.filter(x => x.reviewStatus !== 'Terverifikasi').length;
+      const urgent = data.filter(x => x.severity === 'urgent' && x.reviewStatus !== 'Terverifikasi').length;
+      const verified = data.filter(x => x.reviewStatus === 'Terverifikasi').length;
+
+      const bTotal = document.getElementById('badgeCount-all');
+      const bUnverified = document.getElementById('badgeCount-unverified');
+      const bUrgent = document.getElementById('badgeCount-urgent');
+      const bVerified = document.getElementById('badgeCount-verified');
+
+      if (bTotal) bTotal.innerText = total;
+      if (bUnverified) bUnverified.innerText = unverified;
+      if (bUrgent) bUrgent.innerText = urgent;
+      if (bVerified) bVerified.innerText = verified;
     }
 
     function renderQueueSkeleton() {
@@ -520,105 +467,120 @@
       for (let i = 0; i < 5; i++) {
         html += `
           <tr>
-            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 95px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 100px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 90px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 180px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 75px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 70px;"></div></td>
-            <td><div class="skeleton-table-cell" style="width: 85px;"></div></td>
-            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 55px; margin: 0 auto;"></div></td>
+            <td data-label="Kode Kegiatan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+            <td data-label="Waktu Submit"><div class="skeleton-table-cell" style="width: 110px;"></div></td>
+            <td data-label="Nama Karyawan"><div class="skeleton-table-cell" style="width: 130px;"></div></td>
+            <td data-label="Lokasi"><div class="skeleton-table-cell" style="width: 90px;"></div></td>
+            <td data-label="Ringkasan & Detail"><div class="skeleton-table-cell" style="width: 200px;"></div></td>
+            <td data-label="Tingkat Keparahan" class="cell-center"><div class="skeleton-table-cell" style="width: 75px; margin: 0 auto;"></div></td>
+            <td data-label="Status Verifikasi" class="cell-center"><div class="skeleton-table-cell" style="width: 135px; margin: 0 auto;"></div></td>
+            <td data-label="Aksi" class="cell-center"><div class="skeleton-table-cell" style="width: 60px; margin: 0 auto;"></div></td>
           </tr>
         `;
       }
       tbody.innerHTML = html;
     }
 
+    let isFetchingQueue = false;
+    let isUpdatingStatus = false;
+
     async function fetchAndRenderQueue(manualRefresh = false) {
+      if (isFetchingQueue || isUpdatingStatus) return;
+      isFetchingQueue = true;
+
       const tbody = document.getElementById('queueBody');
       if (!manualRefresh && rawQueueData.length === 0) {
         renderQueueSkeleton();
       }
 
-      rawQueueData = [];
-
-      if (isLiveServer()) {
-        try {
+      try {
+        if (isLiveServer()) {
           const queueRows = await runServer('getAdminQueueData');
+          rawQueueData = [];
           (queueRows || []).forEach(r => {
+            const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || (r.raw ? String(r.raw[26] || '') : '')) : (r.kendala || '');
+            const normU = normK ? (r.upaya || (r.raw ? String(r.raw[27] || '') : '')) : '';
             rawQueueData.push({
-              source: r.source || 'Operasional',
-              reportId: r.reportId,
-              kodeKegiatan: r.kodeKegiatan || '-',
-              timestamp: r.timestamp,
-              empId: r.namaPic || r.empId || '-',
-              divisi: r.divisi || r.site || '-',
-              lokasi: r.lokasi || r.site || '-',
-              ringkasan: r.ringkasan || r.detail || '-',
-              severity: (r.severity || 'normal').toLowerCase(),
-              rank: r.rank || 3,
+              source: r.source || 'Laporan Operasional',
+              reportId: r.reportId || (r.raw ? String(r.raw[0] || '') : ''),
+              kodeKegiatan: r.kodeKegiatan || (r.raw ? String(r.raw[1] || '') : '-'),
+              timestamp: r.timestamp || (r.raw ? String(r.raw[3] || '') : '-'),
+              namaPic: r.namaPic || (r.raw ? String(r.raw[4] || '') : '-'),
+              empId: r.empId || r.namaPic || (r.raw ? String(r.raw[4] || '') : '-'),
+              divisi: r.divisi || (r.raw ? String(r.raw[5] || '') : '-'),
+              lokasi: r.lokasi || (r.raw ? String(r.raw[6] || '') : '-'),
+              ringkasan: r.ringkasan || (r.raw ? String(r.raw[7] || '') : '-'),
+              severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
+              rank: r.rank || (normK ? 1 : 2),
               category: r.category,
-              reviewStatus: r.reviewStatus,
+              reviewStatus: normalizeReviewStatus(r.reviewStatus),
               photoUrl: r.photoUrl || '',
-              jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[15] : 0)) || 0,
-              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[19] : 0)) || 0,
-              kendala: r.kendala || (r.raw ? String(r.raw[20] || '') : ''),
-              upaya: r.upaya || (r.raw ? String(r.raw[21] || '') : ''),
+              jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[17] : 0)) || 0,
+              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[22] : 0)) || 0,
+              kendala: normK,
+              upaya: normU,
+              fields: r.fields || [],
               raw: r.raw || null,
               isSensitive: String(r.source).includes('Sensitive')
             });
           });
-        } catch (err) {
-          console.error('Server error getting admin queue:', err);
-          showToast('Gagal memuat data dari server', 'error');
+          } else {
+            rawQueueData = [];
+            const db = getDB();
+            (db.operationalReports || []).forEach(r => {
+              const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || r.obstacle || '') : (r.kendala || '');
+              const normU = normK ? (r.upaya || r.actionTaken || '') : '';
+              rawQueueData.push({
+                source: 'Laporan_Operasional_Raw',
+                reportId: r.id || r.reportId,
+                kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
+                timestamp: r.timestamp,
+                empId: r.namaPic || r.empId || 'EMP-101',
+                divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
+                lokasi: r.lokasi || r.site || 'Site A',
+                ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
+                severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
+                rank: r.rank || (normK ? 1 : 2),
+                category: r.category || 'ROUTINE',
+                reviewStatus: normalizeReviewStatus(r.reviewStatus),
+                photoUrl: r.photoUrl || '',
+                jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
+                nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
+                kendala: normK,
+                upaya: normU,
+                fields: r.fields || [],
+                isSensitive: false
+              });
+            });
+          }
+
+        lastFetchedTimestamp = Date.now();
+        updateFreshnessTag();
+        updateKpiCards(rawQueueData);
+        applyFilters();
+
+        if (manualRefresh) {
+          showToast('Data antrean berhasil diperbarui', 'info');
         }
-      } else {
-        const db = getDB();
-        (db.operationalReports || []).forEach(r => {
-          rawQueueData.push({
-            source: 'Laporan_Operasional_Raw',
-            reportId: r.id,
-            kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
-            timestamp: r.timestamp,
-            empId: r.namaPic || r.empId || 'EMP-101',
-            divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
-            lokasi: r.lokasi || r.site || 'Site A',
-            ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
-            severity: r.severity || 'normal',
-            rank: r.rank || 3,
-            category: r.category || 'ROUTINE',
-            reviewStatus: r.reviewStatus || 'Unreviewed',
-            photoUrl: r.photoUrl || '',
-            jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
-            nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
-            kendala: r.kendala || r.obstacle || '',
-            upaya: r.upaya || r.actionTaken || '',
-            isSensitive: false
-          });
-        });
-      }
-
-      lastFetchedTimestamp = Date.now();
-      updateFreshnessTag();
-      updateExecutiveStats();
-      applyFilters();
-
-      if (manualRefresh) {
-        showToast('Data antrean berhasil diperbarui', 'info');
+      } catch (err) {
+        console.error('Server error getting admin queue:', err);
+        showToast('Gagal memuat data dari server', 'error');
+      } finally {
+        isFetchingQueue = false;
       }
     }
 
-    function setQuickFilter(filter, btnElement) {
+    function setQuickFilter(filter) {
       currentQuickFilter = filter;
-      document.querySelectorAll('.segmented-item').forEach(el => el.classList.remove('active'));
-      if (btnElement) {
-        btnElement.classList.add('active');
-      } else {
-        const activeBtn = document.getElementById(`segBtn-${filter}`);
-        if (activeBtn) activeBtn.classList.add('active');
-      }
+
+      ['all', 'unverified', 'urgent', 'verified'].forEach(k => {
+        const pill = document.getElementById(`segBtn-${k}`);
+        if (pill) {
+          if (k === filter) pill.classList.add('active');
+          else pill.classList.remove('active');
+        }
+      });
+
       applyFilters();
     }
 
@@ -628,35 +590,21 @@
       const startDateVal = document.getElementById('startDateFilter').value;
       const endDateVal = document.getElementById('endDateFilter').value;
 
-      let activeFilterCount = 0;
-      if (searchVal) activeFilterCount++;
-      if (siteVal) activeFilterCount++;
-      if (startDateVal) activeFilterCount++;
-      if (endDateVal) activeFilterCount++;
-
-      const btnLabel = document.getElementById('btnFilterLabel');
-      if (btnLabel) {
-        if (activeFilterCount > 0) {
-          btnLabel.innerHTML = `Filter Lanjutan <span class="filter-active-badge">${activeFilterCount}</span> ▾`;
-        } else {
-          btnLabel.innerText = 'Filter Lanjutan ▾';
-        }
-      }
-
       let filtered = [...rawQueueData];
 
       if (currentQuickFilter === 'urgent') {
-        filtered = filtered.filter(x => x.severity === 'urgent');
+        filtered = filtered.filter(x => x.severity === 'urgent' && x.reviewStatus !== 'Terverifikasi');
+      } else if (currentQuickFilter === 'unverified') {
+        filtered = filtered.filter(x => x.reviewStatus !== 'Terverifikasi');
+      } else if (currentQuickFilter === 'verified') {
+        filtered = filtered.filter(x => x.reviewStatus === 'Terverifikasi');
       } else if (currentQuickFilter === 'sensitive') {
         filtered = filtered.filter(x => x.isSensitive);
-      } else {
-        if (!searchVal) {
-          filtered = filtered.filter(x => x.reviewStatus !== 'Closed');
-        }
       }
+      // 'all' shows all records
 
       if (siteVal) {
-        filtered = filtered.filter(x => x.divisi.includes(siteVal) || x.lokasi.includes(siteVal));
+        filtered = filtered.filter(x => (x.divisi && x.divisi.includes(siteVal)) || (x.lokasi && x.lokasi.includes(siteVal)));
       }
 
       if (startDateVal) {
@@ -667,11 +615,12 @@
       }
 
       if (searchVal) {
-        filtered = filtered.filter(x => 
-          (x.empId || '').toLowerCase().includes(searchVal) ||
+        filtered = filtered.filter(x =>
+          (x.empId || x.namaPic || '').toLowerCase().includes(searchVal) ||
           (x.kodeKegiatan || '').toLowerCase().includes(searchVal) ||
           (x.ringkasan || '').toLowerCase().includes(searchVal) ||
           (x.lokasi || '').toLowerCase().includes(searchVal) ||
+          (x.divisi || '').toLowerCase().includes(searchVal) ||
           (x.reportId || '').toLowerCase().includes(searchVal)
         );
       }
@@ -685,9 +634,9 @@
           valA = a.reviewStatus || '';
           valB = b.reviewStatus || '';
         } else {
-          const order = { urgent: 1, warning: 2, normal: 3 };
-          valA = a.rank || order[a.severity] || 3;
-          valB = b.rank || order[b.severity] || 3;
+          const order = { urgent: 1, normal: 2 };
+          valA = a.rank || order[a.severity] || 2;
+          valB = b.rank || order[b.severity] || 2;
         }
 
         if (valA < valB) return (currentSortDir === 'asc') ? -1 : 1;
@@ -698,6 +647,24 @@
       currentFilteredData = filtered;
       currentPage = 1;
       renderCurrentPage();
+    }
+
+    function resetFilters() {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = '';
+      const clearBtn = document.getElementById('searchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+
+      const siteFilter = document.getElementById('siteFilter');
+      if (siteFilter) siteFilter.value = '';
+
+      const startDateFilter = document.getElementById('startDateFilter');
+      if (startDateFilter) startDateFilter.value = '';
+
+      const endDateFilter = document.getElementById('endDateFilter');
+      if (endDateFilter) endDateFilter.value = '';
+
+      setQuickFilter('unverified');
     }
 
     function renderCurrentPage() {
@@ -713,186 +680,561 @@
       const pageSlice = currentFilteredData.slice(startIndex, endIndex);
 
       if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-muted-center" style="padding: 3rem 1.5rem;">Tidak ada laporan yang sesuai kriteria filter.</td></tr>';
-        document.getElementById('paginationInfo').innerText = 'Menampilkan 0 laporan';
-        document.getElementById('pageIndicator').innerText = 'Halaman 1 dari 1';
-        document.getElementById('btnPrevPage').disabled = true;
-        document.getElementById('btnNextPage').disabled = true;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="padding: 4rem 1.5rem; text-align: center;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #f1f5f9; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <h4 style="font-size: 0.95rem; font-weight: 600; color: #1e293b; margin-bottom: 0.25rem;">Tidak Ada Laporan Ditemukan</h4>
+              <p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 1rem;">Kriteria pencarian atau filter status yang Anda pilih tidak memiliki hasil.</p>
+              <button class="btn btn-secondary table-btn-sm" onclick="resetFilters()" style="font-size: 0.775rem; height: 30px; padding: 0 0.85rem; border-radius: 6px;">Reset Semua Filter</button>
+            </td>
+          </tr>
+        `;
+        document.getElementById('paginationInfo').innerText = '0 dari 0 laporan';
+        renderPagination(0, 1);
         return;
       }
 
       pageSlice.forEach((item, index) => {
         const tr = document.createElement('tr');
-        const badgeClass = `badge-${item.severity}`;
         const itemGlobalIndex = startIndex + index;
+        const isVerified = (item.reviewStatus === 'Terverifikasi');
+        const isUrgent = (item.severity === 'urgent');
+
+        let datePart = item.timestamp || '-';
+        let timePart = '';
+        if (item.timestamp && item.timestamp.includes(' ')) {
+          const parts = item.timestamp.split(' ');
+          datePart = parts[0];
+          timePart = parts.slice(1).join(' ') + ' WIB';
+        }
+
+        // Clean Human-Readable Activity Title
+        let cleanTitle = String(item.jenisKegiatan || item.ringkasan || 'Laporan Operasional').split('|')[0].trim();
+        if (!cleanTitle || cleanTitle === '-') cleanTitle = 'Laporan Operasional';
+
+        let subtextHtml = '';
+        const rawFields = item.fields || [];
+        const komoditasFields = rawFields.filter(f => f.label && f.label.toLowerCase().includes('komoditas') && f.value && f.value !== '-' && String(f.value).trim() !== '');
+        let komoditasVal = '';
+        if (komoditasFields.length > 0) {
+          const uniqueK = [];
+          komoditasFields.forEach(f => {
+            const v = String(f.value).trim();
+            if (!uniqueK.includes(v)) uniqueK.push(v);
+          });
+          komoditasVal = uniqueK.join(', ');
+        } else if (item.raw) {
+          const kTanam = (item.raw[9] && item.raw[9] !== '-') ? String(item.raw[9]).trim() : '';
+          const kPanen = (item.raw[15] && item.raw[15] !== '-') ? String(item.raw[15]).trim() : '';
+          if (kTanam && kPanen && kTanam !== kPanen) {
+            komoditasVal = `${kTanam} (Tanam), ${kPanen} (Panen)`;
+          } else {
+            komoditasVal = kTanam || kPanen || '';
+          }
+        }
+        if (komoditasVal) {
+          subtextHtml = `<div class="summary-detail-subtext">Komoditas: <strong>${escapeHtml(komoditasVal)}</strong></div>`;
+        }
+
+        let chipsHtml = '';
+        if (item.jumlahPanen > 0) {
+          chipsHtml += `<span class="chip-panen">🌾 ${item.jumlahPanen} Kg</span>`;
+        }
+        if (item.nilaiPenjualanRp > 0) {
+          chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
+        }
+        if (typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-')) {
+          chipsHtml += `<span class="chip-kendala" title="${escapeHtml(item.kendala)}">⚠️ Kendala</span>`;
+        }
+
+        const picInitials = getInitials(item.empId || item.namaPic);
 
         tr.innerHTML = `
-          <td data-label="Kode Kegiatan"><code>${item.kodeKegiatan}</code></td>
-          <td data-label="Waktu">${item.timestamp || '-'}</td>
-          <td data-label="PIC Pelapor"><strong>${item.empId}</strong></td>
-          <td data-label="Divisi">${item.divisi}</td>
-          <td data-label="Lokasi">${item.lokasi}</td>
-          <td data-label="Ringkasan" class="max-w-details">${item.ringkasan}</td>
-          <td data-label="Severity"><span class="badge ${badgeClass}">${item.severity}</span></td>
-          <td data-label="Kategori Triage">${item.category}</td>
-          <td data-label="Review Status">
-            <select onchange="updateStatus('operasional', '${item.reportId}', this.value)" class="table-select" aria-label="Ubah Review Status">
-              <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
-              <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
-              <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
-              <option value="Closed" ${item.reviewStatus==='Closed'?'selected':''}>Closed (Selesai)</option>
+          <td data-label="Kode Kegiatan">
+            <code class="cell-identifier" title="${item.kodeKegiatan}">${item.kodeKegiatan}</code>
+          </td>
+          <td data-label="Waktu Submit">
+            <div class="time-cell-group">
+              <span class="time-date">${datePart}</span>
+              ${timePart ? `<span class="time-hour">${timePart}</span>` : ''}
+            </div>
+          </td>
+          <td data-label="Nama Karyawan">
+            <div class="pic-info-stack">
+              <span class="pic-name" title="${item.empId || item.namaPic}">${item.empId || item.namaPic || '-'}</span>
+              <span class="pic-divisi-badge">${item.divisi}</span>
+            </div>
+          </td>
+          <td data-label="Lokasi">
+            <div class="location-cell" title="${item.lokasi}">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8; flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>${item.lokasi}</span>
+            </div>
+          </td>
+          <td data-label="Ringkasan & Detail" class="summary-cell-rich">
+            <div class="summary-title">${escapeHtml(cleanTitle)}</div>
+            ${subtextHtml}
+            ${chipsHtml ? `<div class="summary-chips">${chipsHtml}</div>` : ''}
+          </td>
+          <td data-label="Tingkat Keparahan" class="cell-center">
+            <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
+              ${item.severity === 'urgent' ? 'Mendesak' : 'Normal'}
+            </span>
+          </td>
+          <td data-label="Status Verifikasi" class="cell-center">
+            <select onchange="updateStatus('operasional', '${item.reportId}', this.value, this)" class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" aria-label="Ubah Status Verifikasi">
+              <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
+              <option value="Terverifikasi" ${isVerified ? 'selected' : ''}>Terverifikasi</option>
             </select>
           </td>
-          <td data-label="Aksi" style="text-align: center;">
-            <button class="btn btn-secondary table-btn-sm" onclick="openDetailModal(${itemGlobalIndex})">Lihat</button>
+          <td data-label="Aksi" class="cell-center">
+            <button class="table-action-btn" onclick="openDetailModal(${itemGlobalIndex})" title="Lihat Detail Isian Laporan">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>Lihat</span>
+            </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
 
-      document.getElementById('paginationInfo').innerText = `Menampilkan ${startIndex + 1} - ${endIndex} dari ${totalItems} laporan`;
-      document.getElementById('pageIndicator').innerText = `Halaman ${currentPage} dari ${totalPages}`;
-      document.getElementById('btnPrevPage').disabled = (currentPage === 1);
-      document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+      const rangeText = (totalItems <= 1 || startIndex + 1 === endIndex)
+        ? `${endIndex} dari ${totalItems} laporan`
+        : `${startIndex + 1}-${endIndex} dari ${totalItems} laporan`;
+      document.getElementById('paginationInfo').innerText = rangeText;
+      renderPagination(totalItems, totalPages);
+    }
+
+    function renderPagination(totalItems, totalPages) {
+      const btnPrev = document.getElementById('btnPrevPage');
+      const btnNext = document.getElementById('btnNextPage');
+      const pillsContainer = document.getElementById('pagePillsContainer');
+
+      if (btnPrev) btnPrev.disabled = (currentPage <= 1 || totalItems === 0);
+      if (btnNext) btnNext.disabled = (currentPage >= totalPages || totalItems === 0);
+
+      if (!pillsContainer) return;
+      if (totalPages <= 1) {
+        pillsContainer.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      for (let p = startPage; p <= endPage; p++) {
+        html += `<button class="page-nav-btn ${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+      }
+      pillsContainer.innerHTML = html;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      renderCurrentPage();
+      const container = document.getElementById('tableContainer');
+      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changePageSize(val) {
+      pageSize = parseInt(val, 10) || 25;
+      currentPage = 1;
+      renderCurrentPage();
     }
 
     function changePage(delta) {
       currentPage += delta;
       renderCurrentPage();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const container = document.getElementById('tableContainer');
+      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function openDetailModal(globalIndex) {
-      const item = currentFilteredData[globalIndex];
+    function copyModalCode(code, btnElement) {
+      if (!code || code === '-') return;
+      navigator.clipboard.writeText(code).then(() => {
+        if (btnElement) {
+          const originalHtml = btnElement.innerHTML;
+          btnElement.innerHTML = `<svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Tersalin!`;
+          btnElement.style.background = '#dcfce7';
+          btnElement.style.color = '#15803d';
+          btnElement.style.borderColor = '#86efac';
+          setTimeout(() => {
+            btnElement.innerHTML = originalHtml;
+            btnElement.style.background = '';
+            btnElement.style.color = '';
+            btnElement.style.borderColor = '';
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Gagal menyalin:', err);
+      });
+    }
+
+    function formatFieldLabel(key) {
+      if (!key) return '';
+      const customLabels = {
+        'kode_kegiatan': 'Kode Kegiatan',
+        'nama_pic': 'Nama Karyawan',
+        'bidang_divisi': 'Divisi / Bidang',
+        'lokasi_kegiatan': 'Lokasi Lapangan',
+        'jenis_kegiatan': 'Jenis Kegiatan',
+        'pengawasan': 'Pengawasan Komoditas',
+        'capaian_kegiatan': 'Capaian Kegiatan',
+        'kendala': 'Kendala Lapangan',
+        'upaya': 'Upaya Penanganan',
+        'jumlah_panen': 'Jumlah Panen',
+        'nilai_penjualan': 'Nilai Penjualan',
+        'catatan': 'Catatan Tambahan',
+        'kondisi_cuaca': 'Kondisi Cuaca',
+        'peralatan_digunakan': 'Peralatan Digunakan',
+        'tgl_tanam': 'Tgl Tanam',
+        'tgl_panen': 'Tgl Panen',
+        'tgl_penjualan': 'Tgl Penjualan',
+        'estimasi_panen_hst': 'Estimasi Panen HST',
+        'jumlah_panen_kg': 'Jumlah Panen Kg'
+      };
+      const cleanKey = String(key).trim().toLowerCase();
+      if (customLabels[cleanKey]) return customLabels[cleanKey];
+
+      return String(key)
+        .replace(/_/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function formatFieldValue(val, label) {
+      if (val === undefined || val === null) return '-';
+      let str = String(val).trim();
+      if (!str || str === '-') return '-';
+
+      // Strip clock if it is midnight 00:00 or ISO midnight
+      str = str.replace(/^(\d{4}-\d{2}-\d{2})\s+00:00(:00)?$/, '$1');
+      str = str.replace(/^(\d{4}-\d{2}-\d{2})T00:00:00(\.000)?Z?$/, '$1');
+
+      // If label has Tgl / Tanggal, strip any trailing clock portion
+      const isDateLabel = label && /^(tgl|tanggal|date|tgl_)/i.test(label);
+      if (isDateLabel) {
+        str = str.replace(/\s+\d{2}:\d{2}(:\d{2})?$/, '');
+      }
+
+      return str;
+    }
+
+    function openDetailModal(itemIndex) {
+      const item = currentFilteredData[itemIndex];
       if (!item) return;
 
+      currentModalIndex = itemIndex;
+      const globalIndex = itemIndex;
+
       const modal = document.getElementById('reportDetailModal');
+      const titleEl = document.getElementById('modalInspectorTitle');
+      const sourceBadgeEl = document.getElementById('modalSourceBadge');
+      const headerMetaEl = document.getElementById('modalHeaderMeta');
       const modalBody = document.getElementById('modalBody');
-      const badgeClass = `badge-${item.severity}`;
-      const raw = item.raw || [];
+      const modalItemCounter = document.getElementById('modalItemCounter');
+      const btnPrev = document.getElementById('btnModalPrev');
+      const btnNext = document.getElementById('btnModalNext');
 
-      modalBody.innerHTML = `
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="detail-label">Report ID</span>
-            <span class="detail-value"><code>${item.reportId}</code></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Kode Kegiatan</span>
-            <span class="detail-value"><code>${item.kodeKegiatan}</code></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">PIC Pelapor</span>
-            <span class="detail-value"><strong>${item.empId}</strong></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Bidang / Divisi</span>
-            <span class="detail-value">${item.divisi}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Lokasi Kegiatan</span>
-            <span class="detail-value">${item.lokasi}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Waktu Submit</span>
-            <span class="detail-value">${item.timestamp}</span>
-          </div>
-        </div>
+      const isVerified = (item.reviewStatus === 'Terverifikasi');
+      const isUrgent = (item.severity === 'urgent');
 
-        <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Ringkasan &amp; Status</h4>
-          <div class="detail-value-box">${item.ringkasan}</div>
-        </div>
-
-        ${raw && raw.length >= 20 ? `
-          <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Data Panen &amp; Penjualan</h4>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Tanggal Panen</span>
-                <span class="detail-value">${raw[14] || '-'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Jumlah Panen</span>
-                <span class="detail-value">${raw[15] ? raw[15] + ' Kg/Unit' : '-'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Tanggal Penjualan</span>
-                <span class="detail-value">${raw[16] || '-'}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Nilai Penjualan Total</span>
-                <span class="detail-value">${raw[19] ? 'Rp ' + Number(raw[19]).toLocaleString('id-ID') : '-'}</span>
-              </div>
-            </div>
+      if (titleEl) {
+        titleEl.innerHTML = `
+          <div class="inspector-code-group">
+            <span class="inspector-code-badge">${item.kodeKegiatan || 'Laporan'}</span>
+            ${item.kodeKegiatan && item.kodeKegiatan !== '-' ? `
+              <button class="inspector-copy-btn" onclick="copyModalCode('${item.kodeKegiatan}', this)" title="Salin Kode Kegiatan">
+                <span>Salin</span>
+              </button>
+            ` : ''}
           </div>
-        ` : ''}
+        `;
+      }
 
-        ${item.photoUrl ? `
-          <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Foto Bukti Lampiran</h4>
-            ${item.photoUrl.startsWith('http') ? `
-              <div style="margin-bottom: 0.75rem;">
-                <a href="${item.photoUrl}" target="_blank">
-                  <img src="${getDriveThumbnail(item.photoUrl)}" style="max-width: 100%; max-height: 320px; border-radius: 10px; border: 1px solid var(--border); object-fit: cover;" onerror="this.style.display='none'" />
-                </a>
-              </div>
-              <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                <span>Buka Foto Resolusi Penuh di Drive ↗</span>
-              </a>
-            ` : `
-              <span class="badge badge-normal" style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-weight: 600;">${item.photoUrl}</span>
-            `}
-          </div>
-        ` : ''}
+      if (sourceBadgeEl) {
+        sourceBadgeEl.innerText = item.source || 'Laporan Operasional';
+      }
 
-        <div class="detail-item" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-          <label for="modalStatusSelect" class="detail-label">Update Review Status</label>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <select id="modalStatusSelect" style="max-width: 260px;">
-              <option value="Unreviewed" ${item.reviewStatus==='Unreviewed'?'selected':''}>Unreviewed</option>
-              <option value="In Review" ${item.reviewStatus==='In Review'?'selected':''}>In Review</option>
-              <option value="Action Needed" ${item.reviewStatus==='Action Needed'?'selected':''}>Action Needed</option>
-              <option value="Closed" ${item.reviewStatus==='Closed'?'selected':''}>Closed (Selesai)</option>
+      if (headerMetaEl) {
+        headerMetaEl.innerHTML = `
+          <div class="inspector-controls-left">
+            <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
+              ${isUrgent ? 'Mendesak' : 'Normal'}
+            </span>
+            <select class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" onchange="toggleModalVerification('${item.reportId}', this.value)" aria-label="Status Verifikasi">
+              <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
+              <option value="Terverifikasi" ${isVerified ? 'selected' : ''}>Terverifikasi</option>
             </select>
-            <button class="btn btn-primary table-btn-sm" onclick="saveModalStatus('${item.reportId}')">Simpan Status</button>
+          </div>
+          <div class="inspector-controls-right">
+            <span>Waktu Pengiriman: <strong>${item.timestamp || '-'}</strong></span>
+          </div>
+        `;
+      }
+
+      if (modalItemCounter) {
+        modalItemCounter.innerText = `${globalIndex + 1} dari ${currentFilteredData.length}`;
+      }
+      if (btnPrev) btnPrev.disabled = (globalIndex <= 0);
+      if (btnNext) btnNext.disabled = (globalIndex >= currentFilteredData.length - 1);
+
+      const raw = item.raw || [];
+      const fields = item.fields || [];
+
+      let html = `
+        <!-- Section 1: Ringkasan Utama -->
+        <div class="inspector-section">
+          <div class="inspector-section-heading">Informasi Umum</div>
+          <div class="inspector-data-grid">
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Nama Karyawan</span>
+              <span class="inspector-data-value highlight-value">${item.empId || item.namaPic || '-'}</span>
+            </div>
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Divisi / Bidang</span>
+              <span class="inspector-data-value">${item.divisi || '-'}</span>
+            </div>
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Lokasi Kegiatan</span>
+              <span class="inspector-data-value">${item.lokasi || '-'}</span>
+            </div>
           </div>
         </div>
       `;
 
+      // Section 2: Kendala & Tindak Lanjut (only if actual obstacle exists)
+      const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-' && item.kendala !== '');
+      if (isKendalaReal) {
+        const hasUpaya = item.upaya && item.upaya !== '-' && item.upaya !== '';
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading" style="color: #be123c; border-color: #fecdd3;">Kendala &amp; Tindak Lanjut</div>
+            <div class="inspector-data-grid" style="grid-template-columns: 1fr;">
+              <div class="inspector-data-item">
+                <span class="inspector-data-label" style="color: #be123c;">Deskripsi Kendala</span>
+                <span class="inspector-data-value warning-value">${item.kendala}</span>
+              </div>
+              <div class="inspector-data-item" style="margin-top: 4px;">
+                <span class="inspector-data-label">Upaya Penanganan</span>
+                <span class="inspector-data-value">${hasUpaya ? item.upaya : 'Belum ada catatan upaya penanganan'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Section 3: Panen & Penjualan (if any)
+      if (item.jumlahPanen > 0 || item.nilaiPenjualanRp > 0 || (raw && raw.length >= 19 && (raw[16] || raw[18]))) {
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading">Hasil Panen &amp; Penjualan</div>
+            <div class="inspector-data-grid">
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Volume Panen</span>
+                <span class="inspector-data-value highlight-value">${item.jumlahPanen ? item.jumlahPanen + ' Kg' : (raw[17] ? raw[17] + ' Kg' : '-')}</span>
+                ${raw[16] ? `<span style="font-size: 0.725rem; color: #64748b; margin-top: 1px;">Tanggal Panen: ${formatFieldValue(raw[16], 'tgl_panen')}</span>` : ''}
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Total Nilai Penjualan</span>
+                <span class="inspector-data-value money-value">
+                  ${item.nilaiPenjualanRp ? 'Rp ' + Number(item.nilaiPenjualanRp).toLocaleString('id-ID') : (raw[22] ? 'Rp ' + Number(raw[22]).toLocaleString('id-ID') : '-')}
+                </span>
+                ${raw[18] ? `<span style="font-size: 0.725rem; color: #64748b; margin-top: 1px;">Tanggal Penjualan: ${formatFieldValue(raw[18], 'tgl_penjualan')}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Section 4: Ringkasan Catatan Kegiatan (if any)
+      if (item.ringkasan && item.ringkasan !== '-' && item.ringkasan.trim() !== '') {
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading">Ringkasan Kegiatan</div>
+            <div style="font-size: 0.875rem; color: #1e293b; line-height: 1.5; padding: 0.25rem 0;">
+              ${item.ringkasan}
+            </div>
+          </div>
+        `;
+      }
+
+      // Section 5: Rincian Isian Formulir Lengkap (Clean Human-Readable KV Table)
+      const ignoredKeys = new Set([
+        'report_id', 'reportid', 'kode_kegiatan', 'kodekegiatan', 'kode_kegiatan_ref',
+        'nama_pic', 'namapic', 'bidang_divisi', 'divisi', 'lokasi_kegiatan', 'lokasi',
+        'timestamp', 'waktu_submit', 'foto_url', 'photourl', 'foto_lampiran', 'kendala', 'upaya',
+        'ringkasan', 'ringkasan_kegiatan'
+      ]);
+
+      const meaningfulFields = (fields || []).filter(f => {
+        const rawLabel = String(f.label || '').trim().toLowerCase();
+        if (!rawLabel || ignoredKeys.has(rawLabel) || rawLabel.startsWith('foto')) return false;
+        const val = f.value !== undefined && f.value !== null ? String(f.value).trim() : '';
+        return val !== '' && val !== '-';
+      });
+
+      if (meaningfulFields.length > 0) {
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading">Rincian Isian Formulir</div>
+            <table class="inspector-kv-table">
+              <tbody>
+                ${meaningfulFields.map(f => `
+                  <tr>
+                    <td class="kv-key">${formatFieldLabel(f.label)}</td>
+                    <td class="kv-val">${formatFieldValue(f.value, f.label)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      // Section 6: Bukti Foto Lampiran
+      html += `
+        <div class="inspector-section">
+          <div class="inspector-section-heading">Foto Bukti Lapangan</div>
+      `;
+
+      if (item.photoUrl && item.photoUrl.startsWith('http')) {
+        html += `
+          <div class="inspector-photo-card">
+            <a href="${item.photoUrl}" target="_blank" title="Buka di Google Drive">
+              <img src="${getDriveThumbnail(item.photoUrl)}" class="inspector-photo-preview" alt="Foto Bukti Lapangan" onerror="this.src='${item.photoUrl}'; this.onerror=null;" />
+            </a>
+            <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.775rem;">
+              <span>Buka Foto Resolusi Penuh di Google Drive</span>
+            </a>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="font-size: 0.8125rem; color: #94a3b8; font-style: italic; padding: 0.25rem 0;">
+            Tidak ada foto lampiran untuk laporan ini.
+          </div>
+        `;
+      }
+      html += `</div>`;
+
+      // Technical Metadata Footer
+      html += `
+        <div class="inspector-tech-footer">
+          <span>Report ID: ${item.reportId || '-'}</span>
+          <span>Sumber: ${item.source || 'Laporan Operasional'}</span>
+        </div>
+      `;
+
+      modalBody.innerHTML = html;
       modal.removeAttribute('hidden');
+      modal.style.display = 'flex';
+    }
+
+    function navigateModal(delta) {
+      const newIndex = currentModalIndex + delta;
+      if (newIndex >= 0 && newIndex < currentFilteredData.length) {
+        openDetailModal(newIndex);
+      }
+    }
+
+    function handleBackdropClick(event) {
+      if (event.target && event.target.id === 'reportDetailModal') {
+        closeDetailModal();
+      }
     }
 
     function closeDetailModal() {
       const modal = document.getElementById('reportDetailModal');
-      modal.setAttribute('hidden', 'true');
+      if (modal) {
+        modal.setAttribute('hidden', 'true');
+        modal.style.display = 'none';
+      }
+      currentModalIndex = -1;
     }
 
-    async function saveModalStatus(reportId) {
-      const select = document.getElementById('modalStatusSelect');
-      if (!select) return;
-      const newStatus = select.value;
-      await updateStatus('operasional', reportId, newStatus);
-      closeDetailModal();
+    // Modal keyboard shortcuts (Esc, Left, Right)
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('reportDetailModal');
+      if (!modal || modal.style.display === 'none' || modal.hasAttribute('hidden')) return;
+
+      if (e.key === 'Escape') {
+        closeDetailModal();
+      } else if (e.key === 'ArrowLeft') {
+        navigateModal(-1);
+      } else if (e.key === 'ArrowRight') {
+        navigateModal(1);
+      }
+    });
+
+    async function toggleModalVerification(reportId, targetStatus) {
+      await updateStatus('operasional', reportId, targetStatus);
+      const item = currentFilteredData[currentModalIndex];
+      if (item && item.reportId === reportId) {
+        item.reviewStatus = targetStatus;
+      }
+      openDetailModal(currentModalIndex);
+      renderCurrentPage();
     }
 
-    async function updateStatus(type, reportId, newStatus) {
+    async function updateStatus(type, reportId, newStatus, selectElement) {
+      if (isUpdatingStatus) return;
+      isUpdatingStatus = true;
+      const normalized = normalizeReviewStatus(newStatus);
+      const prevClass = selectElement ? (selectElement.classList.contains('is-verified') ? 'is-verified' : 'is-unverified') : null;
+
       try {
+        if (selectElement) {
+          if (normalized === 'Terverifikasi') {
+            selectElement.classList.remove('is-unverified');
+            selectElement.classList.add('is-verified');
+          } else {
+            selectElement.classList.remove('is-verified');
+            selectElement.classList.add('is-unverified');
+          }
+        }
+
         if (isLiveServer()) {
-          await runServer('updateReviewStatus', reportId, newStatus);
+          const res = await runServer('updateReviewStatus', reportId, normalized);
+          if (res && res.success === false) {
+            throw new Error(res.error || 'Gagal menyimpan status ke spreadsheet');
+          }
         } else {
           const db = getDB();
-          const item = (db.operationalReports || []).find(x => String(x.id) === String(reportId));
-          if (item) item.reviewStatus = newStatus;
+          const item = (db.operationalReports || []).find(x => String(x.id) === String(reportId) || String(x.reportId) === String(reportId));
+          if (item) item.reviewStatus = normalized;
           saveDB(db);
         }
 
-        showToast(`Review Status laporan berhasil diperbarui: "${newStatus}"`, 'success');
-        await fetchAndRenderQueue(false);
+        const cachedItem = rawQueueData.find(x => String(x.reportId) === String(reportId) || (x.kodeKegiatan && x.kodeKegiatan !== '-' && x.kodeKegiatan === reportId));
+        if (cachedItem) cachedItem.reviewStatus = normalized;
+
+        const filteredItem = currentFilteredData.find(x => String(x.reportId) === String(reportId) || (x.kodeKegiatan && x.kodeKegiatan !== '-' && x.kodeKegiatan === reportId));
+        if (filteredItem) filteredItem.reviewStatus = normalized;
+
+        updateKpiCards(rawQueueData);
+        if (currentQuickFilter === 'unverified' || currentQuickFilter === 'urgent') {
+          applyFilters();
+        }
+
+        showToast(`Status verifikasi berhasil diperbarui: "${normalized}"`, 'success');
       } catch (err) {
         console.error('Update status error:', err);
-        showToast('Gagal memperbarui status laporan', 'error');
+        if (selectElement && prevClass) {
+          selectElement.className = `table-status-select ${prevClass}`;
+        }
+        showToast('Gagal memperbarui status: ' + (err.message || err.toString()), 'error');
+      } finally {
+        isUpdatingStatus = false;
       }
     }
 
@@ -902,459 +1244,23 @@
         return;
       }
 
-      const headers = ['Report_ID', 'Kode_Kegiatan', 'Timestamp', 'PIC_Pelapor', 'Divisi', 'Lokasi', 'Ringkasan', 'Severity', 'Kategori_Triage', 'Review_Status'];
+      const headers = ['Report_ID', 'Kode_Kegiatan', 'Timestamp', 'PIC_Pelapor', 'Divisi', 'Lokasi', 'Ringkasan', 'Severity', 'Status_Verifikasi'];
       const rows = currentFilteredData.map(item => [
         item.reportId,
         item.kodeKegiatan,
         item.timestamp || '',
-        item.empId,
+        item.empId || item.namaPic || '',
         item.divisi,
         item.lokasi,
         item.ringkasan,
         item.severity,
-        item.category,
         item.reviewStatus
       ]);
 
       downloadCSV(`Admin_Queue_Export_${Date.now()}.csv`, headers, rows);
       showToast(`Ekspor CSV berhasil (${currentFilteredData.length} laporan)`, 'success');
     }
-
-    /* Executive Tier Logic (Tasks 1 to 6) */
-    let currentExecPeriod = 'this_week';
-    let isExceptionListExpanded = false;
-
-    function setExecutivePeriod(periodKey, btnEl) {
-      currentExecPeriod = periodKey;
-      document.querySelectorAll('#periodBtn-this_week, #periodBtn-last_week, #periodBtn-this_month, #periodBtn-custom').forEach(b => b.classList.remove('active'));
-      if (btnEl) {
-        btnEl.classList.add('active');
-      } else {
-        const b = document.getElementById(`periodBtn-${periodKey}`);
-        if (b) b.classList.add('active');
-      }
-
-      const customBar = document.getElementById('execCustomDateBar');
-      if (periodKey === 'custom') {
-        if (customBar) customBar.style.display = 'inline-flex';
-      } else {
-        if (customBar) customBar.style.display = 'none';
-      }
-
-      updateExecutiveStats();
-    }
-
-    function updateExecutiveStats() {
-      const customStart = document.getElementById('execCustomStartDate') ? document.getElementById('execCustomStartDate').value : '';
-      const customEnd = document.getElementById('execCustomEndDate') ? document.getElementById('execCustomEndDate').value : '';
-
-      const range = getPeriodDateRanges(currentExecPeriod, customStart, customEnd);
-      
-      const labelEl = document.getElementById('execPeriodLabel');
-      if (labelEl) {
-        if (currentExecPeriod === 'custom') {
-          labelEl.innerText = `Kustom (${range.startDate} s/d ${range.endDate})`;
-        } else {
-          labelEl.innerText = `${range.label} (${range.startDate} s/d ${range.endDate})`;
-        }
-      }
-
-      const currentSummary = computePeriodSummary(rawQueueData, range.startDate, range.endDate);
-      const prevSummary = computePeriodSummary(rawQueueData, range.prevStartDate, range.prevEndDate);
-
-      // Task 2: KPI Strip
-      document.getElementById('kpiExecTotalLaporan').innerText = currentSummary.totalLaporan.toLocaleString('id-ID');
-      renderTrendBadge('trendTotalLaporan', 'trendIconTotalLaporan', 'trendTextTotalLaporan', currentSummary.totalLaporan, prevSummary.totalLaporan, true);
-
-      document.getElementById('kpiExecTotalPanen').innerText = `${currentSummary.totalPanen.toLocaleString('id-ID')} Kg/Unit`;
-      renderTrendBadge('trendTotalPanen', 'trendIconTotalPanen', 'trendTextTotalPanen', currentSummary.totalPanen, prevSummary.totalPanen, true);
-
-      document.getElementById('kpiExecTotalSales').innerText = `Rp ${currentSummary.totalNilaiPenjualan.toLocaleString('id-ID')}`;
-      renderTrendBadge('trendTotalSales', 'trendIconTotalSales', 'trendTextTotalSales', currentSummary.totalNilaiPenjualan, prevSummary.totalNilaiPenjualan, true);
-
-      document.getElementById('kpiExecKendalaCount').innerText = currentSummary.unresolvedCount.toLocaleString('id-ID');
-      renderTrendBadge('trendKendalaCount', 'trendIconKendalaCount', 'trendTextKendalaCount', currentSummary.unresolvedCount, prevSummary.unresolvedCount, false);
-
-      // Task 3: Division Comparison Block
-      ['Agro', 'Ternak', 'Ikan'].forEach(divKey => {
-        const curDiv = currentSummary.divisionStats[divKey] || { count: 0, panen: 0, sales: 0 };
-        const countEl = document.getElementById(`divCount${divKey}`);
-        const panenEl = document.getElementById(`divPanen${divKey}`);
-        const salesEl = document.getElementById(`divSales${divKey}`);
-        
-        if (countEl) countEl.innerText = curDiv.count.toLocaleString('id-ID');
-        if (panenEl) panenEl.innerText = `${curDiv.panen.toLocaleString('id-ID')} ${divKey === 'Ternak' ? 'Ekor' : 'Kg'}`;
-        if (salesEl) salesEl.innerText = `Rp ${curDiv.sales.toLocaleString('id-ID')}`;
-      });
-
-      // Task 5: Coverage Approximation
-      renderCoverageSection(currentSummary.locationsMap, prevSummary.locationsMap, range);
-
-      // Task 4: Exception List
-      renderExceptionList(currentSummary.unresolvedRows);
-    }
-
-    function renderTrendBadge(containerId, iconId, textId, curVal, prevVal, higherIsBetter = true) {
-      const container = document.getElementById(containerId);
-      const icon = document.getElementById(iconId);
-      const text = document.getElementById(textId);
-      if (!container || !icon || !text) return;
-
-      container.className = 'metric-trend';
-
-      if (prevVal === 0) {
-        if (curVal === 0) {
-          container.classList.add('metric-trend-neutral');
-          icon.innerText = '•';
-          text.innerText = '0% vs peri. lalu';
-        } else {
-          const isGood = higherIsBetter;
-          container.classList.add(isGood ? 'metric-trend-up' : 'metric-trend-down');
-          icon.innerText = isGood ? '▲' : '▼';
-          text.innerText = '+100% vs peri. lalu';
-        }
-        return;
-      }
-
-      const pctChange = Math.round(((curVal - prevVal) / prevVal) * 100);
-      const pctAbs = Math.abs(pctChange);
-
-      if (pctChange > 0) {
-        const isGood = higherIsBetter;
-        container.classList.add(isGood ? 'metric-trend-up' : 'metric-trend-down');
-        icon.innerText = '▲';
-        text.innerText = `+${pctAbs}% vs peri. lalu`;
-      } else if (pctChange < 0) {
-        const isGood = !higherIsBetter;
-        container.classList.add(isGood ? 'metric-trend-up' : 'metric-trend-down');
-        icon.innerText = '▼';
-        text.innerText = `-${pctAbs}% vs peri. lalu`;
-      } else {
-        container.classList.add('metric-trend-neutral');
-        icon.innerText = '•';
-        text.innerText = '0% vs peri. lalu';
-      }
-    }
-
-    function renderCoverageSection(curLocsMap, prevLocsMap, range) {
-      const fractionEl = document.getElementById('kpiExecCoverageFraction');
-      const headlineEl = document.getElementById('coverageHeadline');
-      const containerEl = document.getElementById('missingLocationsContainer');
-
-      const prevKeys = Object.keys(prevLocsMap || {});
-      const curKeys = Object.keys(curLocsMap || {});
-      
-      const prevTotal = prevKeys.length;
-      const matchedKeys = prevKeys.filter(k => curKeys.includes(k));
-      const matchedCount = matchedKeys.length;
-      const missingKeys = prevKeys.filter(k => !curKeys.includes(k));
-
-      if (fractionEl) {
-        if (prevTotal === 0) {
-          fractionEl.innerText = `${curKeys.length} lokasi aktif`;
-        } else {
-          fractionEl.innerText = `${matchedCount} dari ${prevTotal} lokasi`;
-        }
-      }
-
-      if (headlineEl) {
-        if (prevTotal === 0) {
-          headlineEl.innerText = `Lokasi Aktif Periode Ini (${curKeys.length} lokasi melapor)`;
-        } else {
-          headlineEl.innerText = `Cakupan Pelaporan: ${matchedCount} dari ${prevTotal} lokasi periode lalu melapor di periode ini`;
-        }
-      }
-
-      if (containerEl) {
-        if (prevTotal === 0) {
-          if (curKeys.length === 0) {
-            containerEl.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem;">Belum ada laporan lokasi pada periode ini.</div>';
-          } else {
-            const activeList = curKeys.map(k => `<span class="badge badge-normal" style="margin: 2px;">${curLocsMap[k]}</span>`).join(' ');
-            containerEl.innerHTML = `<div style="font-size: 0.8rem; margin-top: 0.25rem;">Lokasi Melapor: ${activeList}</div>`;
-          }
-        } else if (missingKeys.length === 0) {
-          containerEl.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 0.35rem; color: var(--normal); font-weight: 600; font-size: 0.825rem; margin-top: 0.25rem;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 5 12"/></svg>
-              <span>Semua ${prevTotal} lokasi dari periode lalu telah melapor kembali.</span>
-            </div>
-          `;
-        } else {
-          const missingList = missingKeys.map(k => `<span class="badge badge-urgent" style="margin: 2px;">${prevLocsMap[k]}</span>`).join(' ');
-          containerEl.innerHTML = `
-            <div style="font-size: 0.825rem; color: var(--urgent); font-weight: 600; margin-top: 0.25rem;">
-              ⚠️ ${missingKeys.length} Lokasi Belum Melapor Periode Ini:
-            </div>
-            <div style="margin-top: 0.35rem;">${missingList}</div>
-          `;
-        }
-      }
-    }
-
-    function renderExceptionList(unresolvedRows) {
-      const container = document.getElementById('exceptionListBody');
-      const countTag = document.getElementById('exceptionCountTag');
-      if (!container) return;
-
-      const total = unresolvedRows.length;
-      if (countTag) countTag.innerText = `${total} Laporan Membutuhkan Attention`;
-
-      if (total === 0) {
-        container.innerHTML = `
-          <div class="attention-empty">
-            <svg class="svg-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--normal)" stroke-width="2" style="margin-bottom: 0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <div style="font-weight: 700; color: var(--text-primary);">Semua Kendala Periode Ini Teratasi</div>
-            <div style="font-size: 0.8rem; margin-top: 0.25rem;">Tidak ada laporan dengan status pending atau kendala tanpa penanganan.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const limit = isExceptionListExpanded ? total : 6;
-      const slice = unresolvedRows.slice(0, limit);
-
-      const now = Date.now();
-
-      let html = slice.map(item => {
-        const kendalaText = item.kendala || (item.raw ? item.raw[20] : '') || item.ringkasan || 'Kendala operasional';
-        const truncatedKendala = kendalaText.length > 90 ? (kendalaText.substring(0, 90) + '...') : kendalaText;
-
-        let daysOpen = 0;
-        if (item.timestamp) {
-          const reportDate = new Date(item.timestamp.replace(' ', 'T'));
-          if (!isNaN(reportDate.getTime())) {
-            daysOpen = Math.max(0, Math.floor((now - reportDate.getTime()) / (1000 * 60 * 60 * 24)));
-          }
-        }
-
-        const cardClass = item.severity === 'urgent' ? 'attention-urgent' : (item.severity === 'warning' ? 'attention-warning' : 'attention-card');
-
-        return `
-          <div class="attention-card ${cardClass}" onclick="openDetailModalByReportId('${item.reportId}')" style="cursor: pointer;" title="Klik untuk melihat detail laporan lengkap">
-            <div class="attention-header">
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <code style="font-weight: 700; font-size: 0.8rem;">${item.kodeKegiatan}</code>
-                <span class="badge badge-${item.severity}">${item.severity}</span>
-                <span class="badge badge-neutral">${item.reviewStatus}</span>
-              </div>
-              <span style="font-size: 0.75rem; font-weight: 600; color: var(--urgent);">${daysOpen} Hari Terbuka</span>
-            </div>
-            <div class="attention-title" style="margin-top: 0.25rem; font-size: 0.875rem;">
-              ${item.empId} — ${item.divisi} (${item.lokasi})
-            </div>
-            <div class="attention-details" style="font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
-              <strong>Kendala:</strong> ${truncatedKendala}
-            </div>
-            <div class="attention-meta">
-              <span class="attention-meta-item">Waktu Submit: ${item.timestamp}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      if (total > 6) {
-        if (!isExceptionListExpanded) {
-          html += `
-            <div style="text-align: center; margin-top: 0.5rem;">
-              <button class="btn btn-secondary table-btn-sm" onclick="toggleExpandExceptionList(true)" style="width: auto;">
-                Lihat Semua (${total}) Kendala Belum Ditangani ▾
-              </button>
-            </div>
-          `;
-        } else {
-          html += `
-            <div style="text-align: center; margin-top: 0.5rem;">
-              <button class="btn btn-secondary table-btn-sm" onclick="toggleExpandExceptionList(false)" style="width: auto;">
-                Tampilkan Lebih Sedikit ▴
-              </button>
-            </div>
-          `;
-        }
-      }
-
-      container.innerHTML = html;
-    }
-
-    function toggleExpandExceptionList(expand) {
-      isExceptionListExpanded = expand;
-      updateExecutiveStats();
-    }
-
-    function openDetailModalByReportId(reportId) {
-      let idx = currentFilteredData.findIndex(x => String(x.reportId) === String(reportId));
-      if (idx === -1) {
-        const item = rawQueueData.find(x => String(x.reportId) === String(reportId));
-        if (item) {
-          currentFilteredData.unshift(item);
-          idx = 0;
-        }
-      }
-      if (idx !== -1) {
-        openDetailModal(idx);
-      } else {
-        showToast('Laporan tidak ditemukan', 'warning');
-      }
-    }
-
-    /* Task 6 — Executive Summary Modal & Export / Copy Actions */
-    function openExecutiveReportSummary() {
-      const modal = document.getElementById('execReportSummaryModal');
-      const modalBody = document.getElementById('execReportSummaryBody');
-      if (!modal || !modalBody) return;
-
-      const customStart = document.getElementById('execCustomStartDate') ? document.getElementById('execCustomStartDate').value : '';
-      const customEnd = document.getElementById('execCustomEndDate') ? document.getElementById('execCustomEndDate').value : '';
-      const range = getPeriodDateRanges(currentExecPeriod, customStart, customEnd);
-      const curSummary = computePeriodSummary(rawQueueData, range.startDate, range.endDate);
-
-      modalBody.innerHTML = `
-        <div style="background: var(--primary-tint); border: 1px solid var(--primary-border); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
-          <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.25rem;">
-            Laporan Operasional Eksekutif Mingguan
-          </h4>
-          <div style="font-size: 0.85rem; color: var(--text-secondary);">
-            Periode: <strong>${range.label} (${range.startDate} s/d ${range.endDate})</strong>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-          <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">1. Ringkasan Capaian Utama</h5>
-          <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
-            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
-              <span class="metric-label">Total Laporan Submit</span>
-              <span class="metric-value" style="font-size: 1.25rem;">${curSummary.totalLaporan}</span>
-            </div>
-            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
-              <span class="metric-label">Total Hasil Panen</span>
-              <span class="metric-value" style="font-size: 1.25rem;">${curSummary.totalPanen.toLocaleString('id-ID')} Kg/Unit</span>
-            </div>
-            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
-              <span class="metric-label">Total Nilai Penjualan</span>
-              <span class="metric-value" style="font-size: 1.25rem;">Rp ${curSummary.totalNilaiPenjualan.toLocaleString('id-ID')}</span>
-            </div>
-            <div class="metric-card" style="min-height: auto; padding: 0.75rem;">
-              <span class="metric-label">Kendala Belum Ditangani</span>
-              <span class="metric-value metric-value-urgent" style="font-size: 1.25rem;">${curSummary.unresolvedCount}</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-          <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">2. Breakdown Performa Per Divisi</h5>
-          <table class="responsive-card-table" style="font-size: 0.825rem; width: 100%;">
-            <thead>
-              <tr style="background: var(--bg-app);">
-                <th>Divisi</th>
-                <th>Laporan</th>
-                <th>Total Panen</th>
-                <th>Nilai Penjualan</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${['Agro', 'Ternak', 'Ikan'].map(div => {
-                const d = curSummary.divisionStats[div];
-                return `
-                  <tr>
-                    <td><strong>Divisi ${div}</strong></td>
-                    <td>${d.count}</td>
-                    <td>${d.panen.toLocaleString('id-ID')} ${div === 'Ternak' ? 'Ekor' : 'Kg'}</td>
-                    <td>Rp ${d.sales.toLocaleString('id-ID')}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-
-        <div>
-          <h5 style="font-size: 0.875rem; font-weight: 700; color: var(--urgent); margin-bottom: 0.5rem;">3. List Kendala Belum Ditangani (${curSummary.unresolvedCount})</h5>
-          ${curSummary.unresolvedCount === 0 ? `
-            <div style="font-size: 0.825rem; color: var(--text-muted); padding: 0.5rem; background: var(--bg-app); border-radius: var(--radius-sm);">
-              Nihil — Seluruh laporan periode ini berada dalam status Closed / Selesai.
-            </div>
-          ` : `
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              ${curSummary.unresolvedRows.map(r => `
-                <div style="font-size: 0.8rem; background: var(--bg-app); border: 1px solid var(--border-color); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
-                  <div style="font-weight: 700; color: var(--text-primary);">[${r.kodeKegiatan}] ${r.empId} — ${r.divisi} (${r.lokasi})</div>
-                  <div style="color: var(--text-secondary); margin-top: 2px;"><strong>Kendala:</strong> ${r.kendala || r.ringkasan}</div>
-                </div>
-              `).join('')}
-            </div>
-          `}
-        </div>
-      `;
-
-      modal.removeAttribute('hidden');
-    }
-
-    function closeExecutiveReportSummary() {
-      const modal = document.getElementById('execReportSummaryModal');
-      if (modal) modal.setAttribute('hidden', 'true');
-    }
-
-    function copyExecutiveSummaryText() {
-      const customStart = document.getElementById('execCustomStartDate') ? document.getElementById('execCustomStartDate').value : '';
-      const customEnd = document.getElementById('execCustomEndDate') ? document.getElementById('execCustomEndDate').value : '';
-      const range = getPeriodDateRanges(currentExecPeriod, customStart, customEnd);
-      const curSummary = computePeriodSummary(rawQueueData, range.startDate, range.endDate);
-
-      let text = `========================================\n`;
-      text += `RINGKASAN EKSEKUTIF OPERASIONAL AVALANCHE\n`;
-      text += `Periode: ${range.label} (${range.startDate} s/d ${range.endDate})\n`;
-      text += `Waktu Cetak: ${new Date().toLocaleString('id-ID')}\n`;
-      text += `========================================\n\n`;
-
-      text += `1. RINGKASAN CAPAIAN UTAMA (KPI)\n`;
-      text += `   - Total Laporan: ${curSummary.totalLaporan} laporan\n`;
-      text += `   - Total Hasil Panen: ${curSummary.totalPanen.toLocaleString('id-ID')} Kg/Unit\n`;
-      text += `   - Total Nilai Penjualan: Rp ${curSummary.totalNilaiPenjualan.toLocaleString('id-ID')}\n`;
-      text += `   - Kendala Belum Ditangani: ${curSummary.unresolvedCount} laporan\n\n`;
-
-      text += `2. PERFORMANSA PER DIVISI\n`;
-      ['Agro', 'Ternak', 'Ikan'].forEach(div => {
-        const d = curSummary.divisionStats[div];
-        text += `   - Divisi ${div}: ${d.count} laporan | Panen: ${d.panen.toLocaleString('id-ID')} | Sales: Rp ${d.sales.toLocaleString('id-ID')}\n`;
-      });
-      text += `\n`;
-
-      text += `3. DAFTAR KENDALA BELUM DITANGANI (${curSummary.unresolvedCount})\n`;
-      if (curSummary.unresolvedCount === 0) {
-        text += `   (Nihil - Seluruh kendala telah ditangani/closed)\n`;
-      } else {
-        curSummary.unresolvedRows.forEach((r, idx) => {
-          const kendala = r.kendala || (r.raw ? r.raw[20] : '') || r.ringkasan || '-';
-          text += `   ${idx + 1}. [${r.kodeKegiatan}] PIC: ${r.empId} | Divisi: ${r.divisi} | Lokasi: ${r.lokasi}\n`;
-          text += `      Kendala: ${kendala}\n`;
-        });
-      }
-      text += `\n========================================\n`;
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast('Ringkasan periode berhasil disalin ke clipboard!', 'success');
-        }).catch(err => {
-          console.error('Clipboard copy error:', err);
-          showToast('Gagal menyalin ringkasan text', 'error');
-        });
-      } else {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('Ringkasan periode berhasil disalin ke clipboard!', 'success');
-      }
-    }
-
-    function triggerExecutivePrint() {
-      closeExecutiveReportSummary();
-      setTimeout(() => {
-        window.print();
-      }, 300);
-    }
   </script>
 </body>
+
 </html>

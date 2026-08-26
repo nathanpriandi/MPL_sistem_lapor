@@ -12,7 +12,6 @@
  */
 const ReportSeverity = Object.freeze({
   URGENT: 'urgent',
-  WARNING: 'warning',
   NORMAL: 'normal'
 });
 
@@ -21,44 +20,45 @@ const ReportSeverity = Object.freeze({
  */
 const SeverityRank = Object.freeze({
   URGENT: 1,
-  WARNING: 2,
-  NORMAL: 3
+  NORMAL: 2
 });
 
 /**
- * Domain Enum for Report Review Statuses
+ * Domain Enum for Report Review/Verification Statuses
  */
 const ReviewStatus = Object.freeze({
-  UNREVIEWED: 'Unreviewed',
-  IN_REVIEW: 'In Review',
-  ACTION_NEEDED: 'Action Needed',
-  CLOSED: 'Closed'
+  UNVERIFIED: 'Belum Terverifikasi',
+  VERIFIED: 'Terverifikasi',
+  // Backward-compatibility aliases
+  UNREVIEWED: 'Belum Terverifikasi',
+  IN_REVIEW: 'Belum Terverifikasi',
+  ACTION_NEEDED: 'Belum Terverifikasi',
+  CLOSED: 'Terverifikasi'
 });
 
 /**
- * Domain Enum for Triage Categories
+ * Normalizes any legacy or custom status string to standard binary ReviewStatus.
+ * @param {string|any} val
+ * @returns {'Belum Terverifikasi'|'Terverifikasi'}
  */
-const ReportCategory = Object.freeze({
-  ROUTINE: 'routine',
-  INCIDENT: 'incident',
-  BIOLOGICAL_OUTBREAK: 'biological/outbreak',
-  EQUIPMENT_BREAKDOWN: 'equipment_breakdown',
-  OPERATIONAL_DELAY: 'operational_delay',
-  WEATHER_IMPACT: 'weather_impact',
-  MINOR_EQUIPMENT: 'minor_equipment'
-});
+function normalizeReviewStatus(val) {
+  if (!val) return ReviewStatus.UNVERIFIED;
+  const s = String(val).trim().toLowerCase();
+  if (s === 'terverifikasi' || s === 'verified' || s === 'closed' || s === 'selesai' || s === 'reviewed') {
+    return ReviewStatus.VERIFIED;
+  }
+  return ReviewStatus.UNVERIFIED;
+}
 
 /**
  * Domain Value Object: Triage Result
- * @param {'urgent'|'warning'|'normal'} severity 
+ * @param {'urgent'|'normal'} severity 
  * @param {number} rank 
- * @param {string} category 
  */
-function TriageResult(severity, rank, category) {
+function TriageResult(severity, rank) {
   return {
     severity: severity || ReportSeverity.NORMAL,
-    rank: rank || SeverityRank.NORMAL,
-    category: category || ReportCategory.ROUTINE
+    rank: rank || SeverityRank.NORMAL
   };
 }
 
@@ -82,10 +82,180 @@ function extractStringUrl(val) {
 }
 
 /**
+ * Normalizes Kendala text, stripping out negative/empty phrases like 'tidak ada', 'nihil', 'aman', '-', etc.
+ * Returns clean obstacle description string, or empty string '' if no actual obstacle is reported.
+ * @param {string|any} text
+ * @returns {string} Clean obstacle text or empty string ''.
+ */
+function normalizeKendalaText(text) {
+  if (!text) return '';
+  const s = String(text).trim();
+  if (!s || s === '-' || s === '--' || s === '.' || s === '/' || s === '0') return '';
+
+  // Remove surrounding punctuation/brackets e.g. "(tidak ada kendala)", "- tidak ada -"
+  const clean = s.toLowerCase()
+    .replace(/^[\s\-_()[\]{}.,:;]+|[\s\-_()[\]{}.,:;]+$/g, '')
+    .trim();
+
+  const noKendalaPhrases = [
+    '',
+    '-',
+    '--',
+    'tidak ada',
+    'tidak ada kendala',
+    'tidak ada kendala sama sekali',
+    'tidak ada kendala apapun',
+    'tidak ada masalah',
+    'tidak ada masalah sama sekali',
+    'tdk ada',
+    'tdk ada kendala',
+    'tdk ada masalah',
+    'tidak ada kendala yang berarti',
+    'ga ada',
+    'ga ada kendala',
+    'gak ada',
+    'gak ada kendala',
+    'gak ada masalah',
+    'belum ada',
+    'belum ada kendala',
+    'belom ada',
+    'belom ada kendala',
+    'nihil',
+    'nil',
+    'none',
+    'na',
+    'n/a',
+    'null',
+    'kosong',
+    'no',
+    'aman',
+    'aman terkendali',
+    'semua aman',
+    'kondisi aman',
+    'lancar',
+    'lancar jaya',
+    'semua lancar',
+    'berjalan lancar',
+    'kondusif',
+    'normal',
+    'baik',
+    'baik-baik saja',
+    'terkendali',
+    'ok',
+    'oke',
+    'siap',
+    'selesai'
+  ];
+
+  if (noKendalaPhrases.includes(clean)) {
+    return '';
+  }
+
+  // Check if starts with negative phrase like "tidak ada kendala ..."
+  if (/^(tidak ada|tdk ada|ga ada|gak ada|belum ada|nihil|aman|lancar)\s*(kendala|masalah|hambatan|gangguan)?$/i.test(clean)) {
+    return '';
+  }
+
+  return s;
+}
+
+/**
+ * Checks if a Kendala value represents an actual operational obstacle/incident.
+ * @param {string|any} text
+ * @returns {boolean}
+ */
+function isActualKendala(text) {
+  return normalizeKendalaText(text).length > 0;
+}
+
+/**
+ * Master Employee Registry (38 Karyawan, 5 Divisi)
+ * Mudah diingat untuk kelompok usia lanjut (Prefix Divisi + 2 Digit)
+ */
+const EMPLOYEE_REGISTRY = Object.freeze([
+  // Manajemen (9 Orang)
+  { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
+  { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
+  { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen' },
+  { id: 'MNJ-04', name: 'Martati', division: 'Manajemen' },
+  { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen' },
+  { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen' },
+  { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen' },
+  { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen' },
+  { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen' },
+
+  // BKO 28 (2 Orang)
+  { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
+  { id: 'BKO-02', name: 'Gultom', division: 'BKO 28' },
+
+  // Pekerja Harian (8 Orang)
+  { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
+  { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian' },
+  { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian' },
+  { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian' },
+  { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian' },
+  { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian' },
+  { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian' },
+  { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian' },
+
+  // Alprof (7 Orang)
+  { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
+  { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof' },
+  { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof' },
+  { id: 'ALP-04', name: 'M Aris', division: 'Alprof' },
+  { id: 'ALP-05', name: 'Mursito', division: 'Alprof' },
+  { id: 'ALP-06', name: 'Jatniko', division: 'Alprof' },
+  { id: 'ALP-07', name: 'Mislan', division: 'Alprof' },
+
+  // SGA (12 Orang)
+  { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
+  { id: 'SGA-02', name: 'Amas S', division: 'SGA' },
+  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA' },
+  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA' },
+  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA' },
+  { id: 'SGA-06', name: 'Rukman', division: 'SGA' },
+  { id: 'SGA-07', name: 'Subandi', division: 'SGA' },
+  { id: 'SGA-08', name: 'Suganda', division: 'SGA' },
+  { id: 'SGA-09', name: 'Dede', division: 'SGA' },
+  { id: 'SGA-10', name: 'Wafa', division: 'SGA' },
+  { id: 'SGA-11', name: 'Rafi', division: 'SGA' },
+  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
+]);
+
+/**
+ * Searches employee by ID or Name with flexible forgiving match
+ * (case-insensitive, trims, ignores hyphens/spaces for IDs).
+ * @param {string} query
+ * @returns {{ id: string, name: string, division: string }|null}
+ */
+function lookupEmployee(query) {
+  if (!query) return null;
+  const rawQ = String(query).trim();
+  if (!rawQ) return null;
+
+  const cleanQ = rawQ.toLowerCase().replace(/[\s\-_]/g, '');
+  const lowerQ = rawQ.toLowerCase();
+
+  // 1. Exact ID match or normalized ID match (e.g. "alp01" -> "ALP-01", "mnj-02" -> "MNJ-02")
+  const idMatch = EMPLOYEE_REGISTRY.find(e => {
+    const cleanId = e.id.toLowerCase().replace(/[\s\-_]/g, '');
+    return cleanId === cleanQ || e.id.toLowerCase() === lowerQ;
+  });
+  if (idMatch) return Object.assign({}, idMatch);
+
+  // 2. Exact Name match (case-insensitive full name)
+  const exactNameMatch = EMPLOYEE_REGISTRY.find(e => e.name.toLowerCase() === lowerQ);
+  if (exactNameMatch) return Object.assign({}, exactNameMatch);
+
+  return null;
+}
+
+/**
  * Domain Entity: Unified Operational Report (Kegiatan, Panen & Penjualan)
  */
 const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'reportId', header: 'Report_ID', getValue: (r) => r.reportId || '' },
+  { key: 'idKaryawan', header: 'ID_Karyawan', getValue: (r) => r.idKaryawan || r.empId || '' },
   { key: 'kodeKegiatan', header: 'Kode_Kegiatan', getValue: (r) => r.kodeKegiatan || '' },
   { key: 'kodeKegiatanRef', header: 'Kode_Kegiatan_Ref', getValue: (r) => r.kodeKegiatanRef || '' },
   { key: 'timestamp', header: 'Timestamp', getValue: (r) => r.timestamp || '' },
@@ -94,7 +264,8 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'lokasiKegiatan', header: 'Lokasi_Kegiatan', getValue: (r) => r.lokasiKegiatan || '' },
   { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', getValue: (r) => r.jenisKegiatan || '' },
   { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', getValue: (r) => r.kegiatanTambahan || '' },
-  { key: 'pengawasan', header: 'Pengawasan', getValue: (r) => r.pengawasan || '' },
+  { key: 'pengawasan', header: 'Pengawasan', getValue: (r) => r.pengawasan ? (r.pengawasan + (r.detailPengawasan ? ` — ${r.detailPengawasan}` : '')) : '' },
+  { key: 'administrasi', header: 'Administrasi', getValue: (r) => r.detailAdministrasi || r.administrasi || '' },
   { key: 'statusPengelolaan', header: 'Status_Pengelolaan', getValue: (r) => r.statusPengelolaan || '' },
   { key: 'komoditas', header: 'Komoditas', getValue: (r) => r.komoditas || '' },
   { key: 'luasLahanM2', header: 'Luas_Lahan_M2', getValue: (r) => r.luasLahanM2 || r.luasAreaHa || '' },
@@ -115,25 +286,59 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'upaya', header: 'Upaya', getValue: (r) => r.upaya || '' },
   { key: 'fotoUrl', header: 'Foto_URL', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl) },
   { key: 'severity', header: 'Severity', getValue: (r, f) => (f && f.severity) ? f.severity : ReportSeverity.NORMAL },
-  { key: 'flaggedKeywords', header: 'Flagged_Keywords', getValue: (r, f) => (f && f.keywords && f.keywords.length) ? f.keywords.join(', ') : '' },
   { key: 'reviewed', header: 'Reviewed', getValue: () => ReviewStatus.UNREVIEWED }
 ]);
 
 function OperationalReport(data) {
   const resolvedPhotoUrl = extractStringUrl(data.fotoUrl || data.photoUrl);
+  let idKaryawan = data.idKaryawan || data.empId || '';
+  let namaPic = data.namaPic || '';
+  let bidangDivisi = data.bidangDivisi || data.site || '';
+
+  // Auto-resolve from registry if ID or name is provided
+  if (idKaryawan && (!namaPic || !bidangDivisi)) {
+    const emp = lookupEmployee(idKaryawan);
+    if (emp) {
+      idKaryawan = emp.id;
+      namaPic = namaPic || emp.name;
+      bidangDivisi = bidangDivisi || emp.division;
+    }
+  } else if (!idKaryawan && namaPic) {
+    const emp = lookupEmployee(namaPic);
+    if (emp) {
+      idKaryawan = emp.id;
+      namaPic = emp.name;
+      bidangDivisi = bidangDivisi || emp.division;
+    }
+  }
+
   return {
     reportId: data.reportId || '',
+    idKaryawan: idKaryawan,
+    empId: idKaryawan,
     kodeKegiatan: data.kodeKegiatan || '',
     kodeKegiatanRef: data.kodeKegiatanRef || '',
     timestamp: data.timestamp || '',
-    namaPic: data.namaPic || data.empId || '',
-    bidangDivisi: data.bidangDivisi || data.site || '',
+    namaPic: namaPic || idKaryawan || '',
+    bidangDivisi: bidangDivisi || '',
     lokasiKegiatan: data.lokasiKegiatan || '',
     jenisKegiatan: data.jenisKegiatan || '',
     kegiatanTambahan: Array.isArray(data.kegiatanTambahan) ? data.kegiatanTambahan.join(', ') : (data.kegiatanTambahan || ''),
     pengawasan: data.pengawasan || '',
+    detailPengawasan: data.detailPengawasan || '',
+    administrasi: data.administrasi || data.detailAdministrasi || '',
+    detailAdministrasi: data.detailAdministrasi || data.administrasi || '',
     statusPengelolaan: data.statusPengelolaan || '',
-    komoditas: data.komoditas || '',
+    statusPengelolaanPanen: data.statusPengelolaanPanen || '',
+    komoditas: (() => {
+      const kTanam = String(data.komoditas || '').trim();
+      const kPanen = String(data.komoditasPanen || '').trim();
+      if (kTanam && kPanen) {
+        return (kTanam === kPanen) ? kTanam : `${kTanam} (Tanam), ${kPanen} (Panen)`;
+      }
+      return kTanam || kPanen || '';
+    })(),
+    komoditasPanen: data.komoditasPanen || '',
     luasLahanM2: parseFloat(data.luasLahanM2) || 0,
     jumlahBenih: parseFloat(data.jumlahBenih) || 0,
     tglTanam: data.tglTanam || '',
@@ -150,8 +355,8 @@ function OperationalReport(data) {
     jumlahUnitPenggunaan: parseFloat(data.jumlahUnitPenggunaan) || 0,
     tujuanPenggunaan: Array.isArray(data.tujuanPenggunaan) ? data.tujuanPenggunaan.join(', ') : (data.tujuanPenggunaan || ''),
     capaianKegiatan: data.capaianKegiatan || '',
-    kendala: data.kendala || '',
-    upaya: data.upaya || '',
+    kendala: normalizeKendalaText(data.kendala),
+    upaya: normalizeKendalaText(data.kendala) ? (data.upaya || '') : '',
     fotoUrl: resolvedPhotoUrl
   };
 }
@@ -160,24 +365,27 @@ function OperationalReport(data) {
  * Domain Entity: Admin Queue Row Item
  */
 function QueueItem(data) {
+  const normKendala = normalizeKendalaText(data.kendala);
   return {
     source: data.source || 'Laporan Operasional',
     reportId: data.reportId || '',
     kodeKegiatan: data.kodeKegiatan || '',
     timestamp: data.timestamp || '',
     namaPic: data.namaPic || data.empId || '',
+    empId: data.empId || data.namaPic || '',
     divisi: data.divisi || data.site || '',
     lokasi: data.lokasi || '',
+    jenisKegiatan: data.jenisKegiatan || data.jenis || '',
     ringkasan: data.ringkasan || data.detail || '',
-    severity: data.severity || ReportSeverity.NORMAL,
-    rank: data.rank || SeverityRank.NORMAL,
-    category: data.category || ReportCategory.ROUTINE,
-    reviewStatus: data.reviewStatus || ReviewStatus.UNREVIEWED,
+    severity: data.severity || (normKendala ? ReportSeverity.URGENT : ReportSeverity.NORMAL),
+    rank: data.rank || (normKendala ? SeverityRank.URGENT : SeverityRank.NORMAL),
+    reviewStatus: normalizeReviewStatus(data.reviewStatus),
     photoUrl: data.photoUrl || '',
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,
     nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
-    kendala: data.kendala || '',
-    upaya: data.upaya || '',
+    kendala: normKendala,
+    upaya: normKendala ? (data.upaya || '') : '',
+    fields: Array.isArray(data.fields) ? data.fields : [],
     raw: data.raw || null
   };
 }

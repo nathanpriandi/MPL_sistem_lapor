@@ -9,15 +9,12 @@
 
 /**
  * Handles HTTP GET requests for Apps Script Web App.
- * Routes to index, general, admin, or dashboard HTML views.
+ * Routes to index (operational form), dynamicform, admin queue, manager dashboard, or form management views.
  * @param {Object} e - HTTP GET Event object.
  * @returns {HtmlOutput} Evaluated HTML response.
  */
 function doGet(e) {
   let pageParam = (e && e.parameter && e.parameter.page ? e.parameter.page : '').toLowerCase().trim();
-  if (pageParam === 'general' || pageParam === 'harian') {
-    pageParam = 'index';
-  }
   const allowed = { 
     index: 'index', 
     dynamicform: 'dynamicform',
@@ -91,8 +88,6 @@ function doGet(e) {
   template.userRole = templateUserRole;
   template.userEmail = userEmail;
   template.currentPage = file;
-  template.urgentKeywordsJson = JSON.stringify(typeof URGENT_KEYWORDS !== 'undefined' ? URGENT_KEYWORDS : []);
-  template.warningKeywordsJson = JSON.stringify(typeof WARNING_KEYWORDS !== 'undefined' ? WARNING_KEYWORDS : []);
 
   return template.evaluate()
     .setTitle('Sistem Pelaporan Digital — Integrated Agriculture')
@@ -146,11 +141,9 @@ function include(filename) {
  * @param {string} warningKeywordsJson 
  * @returns {string}
  */
-function includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson) {
+function includeApp(webAppUrl) {
   const scriptTag = '<script>\n' +
     '  window.SERVER_WEB_APP_URL = ' + JSON.stringify(webAppUrl || '') + ';\n' +
-    '  window.SERVER_URGENT_KEYWORDS = ' + (urgentKeywordsJson || '[]') + ';\n' +
-    '  window.SERVER_WARNING_KEYWORDS = ' + (warningKeywordsJson || '[]') + ';\n' +
     '</script>\n';
   return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
 }

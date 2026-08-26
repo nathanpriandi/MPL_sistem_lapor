@@ -9,6 +9,7 @@
 const SHEET_NAMES = Object.freeze({
   OPERATIONAL_RAW: 'Laporan_Operasional_Raw',
   ADMIN_QUEUE: 'Admin_Queue',
+  MASTER_KARYAWAN: 'Master_Karyawan',
   ARCHIVE_REPORTS: 'Archive_Reports'
 });
 
@@ -22,8 +23,6 @@ function setupReportingSystem() {
   // Clear legacy script properties (DAILY_FORM_ID, GENERAL_FORM_ID, REGISTERED_FORMS_JSON)
   try {
     const props = PropertiesService.getScriptProperties();
-    props.deleteProperty('DAILY_FORM_ID');
-    props.deleteProperty('GENERAL_FORM_ID');
     props.deleteProperty('REGISTERED_FORMS_JSON');
     Logger.log('Purged legacy script properties.');
   } catch (e) {}
@@ -45,6 +44,10 @@ function setupReportingSystem() {
   mainSheet.setName(SHEET_NAMES.OPERATIONAL_RAW);
 
   const adminQueueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE) || ss.insertSheet(SHEET_NAMES.ADMIN_QUEUE);
+  let photoLogSheet = ss.getSheetByName('Photo_Log') || ss.insertSheet('Photo_Log');
+
+  // Setup Master Karyawan tab
+  setupMasterKaryawanSheet(ss);
 
   // Remove default "Sheet1" if present
   const defaultSheet = ss.getSheetByName('Sheet1') || ss.getSheetByName('Lembur1') || ss.getSheetByName('Sheet 1');
@@ -53,7 +56,7 @@ function setupReportingSystem() {
   }
 
   // 4. Define and Set Headers via SpreadsheetRepository
-  setupSheetHeaders(mainSheet, adminQueueSheet);
+  setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
 
   // 5. Store Properties via ConfigRepository
   ConfigRepository.setProperties({
@@ -69,10 +72,32 @@ function setupReportingSystem() {
 }
 
 /**
+ * Sets up Master_Karyawan sheet tab and seeds the 38 employees across 5 divisions.
+ * @param {Spreadsheet} ss
+ */
+function setupMasterKaryawanSheet(ss) {
+  if (!ss) return;
+  let sheet = ss.getSheetByName(SHEET_NAMES.MASTER_KARYAWAN);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAMES.MASTER_KARYAWAN);
+  }
+  const headers = ['ID_Karyawan', 'Nama_Karyawan', 'Divisi', 'Status'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#e2e8f0');
+  sheet.setFrozenRows(1);
+
+  if (sheet.getLastRow() <= 1 && typeof EMPLOYEE_REGISTRY !== 'undefined') {
+    const rows = EMPLOYEE_REGISTRY.map(e => [e.id, e.name, e.division, 'Aktif']);
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+    Logger.log(`Populated Master_Karyawan with ${rows.length} employee records.`);
+  }
+}
+
+/**
  * Configure Headers and Formulas for all Tabs
  */
-function setupSheetHeaders(mainSheet, adminQueueSheet) {
-  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet);
+function setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet) {
+  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
 }
 
 /**
@@ -102,8 +127,45 @@ function repairSpreadsheetHeadersAndData() {
     photoLogSheet = ss.insertSheet('Photo_Log');
   }
 
+  setupMasterKaryawanSheet(ss);
   SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
   Logger.log('Successfully repaired headers for ' + mainSheet.getName());
+}
+
+/**
+ * Phase 20 Data & Header Maintenance:
+ * Clears stale test data rows and re-applies Phase 20 headers cleanly.
+ */
+function resetTestDataAndHeaders() {
+  const ss = SpreadsheetRepository.getSpreadsheet();
+  if (!ss) return;
+
+  const forms = FormManagementService.getFormList();
+  const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
+  const mainSheet = FormManagementService.resolveFormTab_(ss, opForm);
+  const adminQueueSheet = ss.getSheetByName(SHEET_NAMES.ADMIN_QUEUE);
+
+  if (mainSheet) {
+    mainSheet.clearContents();
+  }
+  if (adminQueueSheet) {
+    adminQueueSheet.clearContents();
+  }
+
+  let photoLogSheet = ss.getSheetByName('Photo_Log');
+  setupMasterKaryawanSheet(ss);
+  SpreadsheetRepository.setupSheetHeaders(mainSheet, adminQueueSheet, photoLogSheet);
+  Logger.log('Reset test data and re-applied Phase 20 headers successfully.');
+}
+
+/**
+ * Diagnostic helper to test admin queue query from Apps Script Editor.
+ */
+function testAdminQueue() {
+  const queue = AdminService.getAdminQueueData();
+  Logger.log('Admin Queue Count: ' + (queue ? queue.length : 0));
+  Logger.log('First 2 Items: ' + JSON.stringify((queue || []).slice(0, 2)));
+  return queue;
 }
 
 /**
@@ -121,7 +183,17 @@ function authorizeDriveScope() {
 }
 
 /**
- * Creates and configures the Unified Operational Form (Kegiatan, Panen & Penjualan)
+ * Diagnostic helper to test dashboard stats calculation from Apps Script Editor.
+ */
+function testDashboardStats() {
+  const stats = AdminService.getDashboardStats({ period: 'this_month' });
+  Logger.log('Dashboard Stats Result: ' + JSON.stringify(stats));
+  return stats;
+}
+
+/**
+ * Creates and configures the Unified Operational Form (Matching Latest Google Form Configuration)
+ * Eliminates manual Nama & Divisi inputs in favor of ID Karyawan.
  */
 function setupOperationalForm(ssId) {
   const form = FormApp.create('Laporan Harian MPL');
@@ -129,42 +201,33 @@ function setupOperationalForm(ssId) {
   try { form.setCollectEmail(false); } catch (e) {}
   try { form.setRequireLogin(false); } catch (e) {}
 
-  // Page 1: Informasi Utama & Kegiatan
+  // Page 1: Identitas & Informasi Utama
   form.addTextItem()
-    .setTitle('Nama')
+    .setTitle('ID Karyawan')
+    .setHelpText('Masukkan ID resmi karyawan Anda (contoh: ALP-01, SGA-05, MNJ-02, PKH-03, BKO-01)')
     .setRequired(true);
 
-  form.addMultipleChoiceItem()
-    .setTitle('Divisi')
-    .setChoiceValues(['Agro', 'Ternak', 'Ikan', 'Lainnya'])
-    .setRequired(true);
-
-  form.addMultipleChoiceItem()
+  form.addCheckboxItem()
     .setTitle('Lokasi Kegiatan')
     .setChoiceValues(['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'])
     .setRequired(true);
 
-  form.addParagraphTextItem()
+  form.addMultipleChoiceItem()
     .setTitle('Kegiatan yang Dilakukan')
+    .setChoiceValues(['Tanam atau tebar', 'Panen atau penjualan', 'Pengawasan'])
     .setRequired(true);
-
-  form.addMultipleChoiceItem()
-    .setTitle('Kegiatan tambahan')
-    .setChoiceValues(['Tanam atau Tebar', 'Panen atau Penjualan']);
-
-  form.addMultipleChoiceItem()
-    .setTitle('Pengawasan')
-    .setChoiceValues(['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan']);
 
   // Page 2: Kegiatan Tanam / Tebar
   form.addPageBreakItem().setTitle('Kegiatan Tanam / Tebar');
   form.addMultipleChoiceItem()
     .setTitle('Status Pengelolaan')
-    .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan']);
+    .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan'])
+    .setRequired(true);
 
   form.addMultipleChoiceItem()
     .setTitle('Komoditas')
-    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian']);
+    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'])
+    .setRequired(true);
 
   form.addTextItem().setTitle('Luas Lahan (m²)');
   form.addTextItem().setTitle('Jumlah Benih yang Digunakan');
@@ -175,11 +238,13 @@ function setupOperationalForm(ssId) {
   form.addPageBreakItem().setTitle('Kegiatan Panen & Penjualan');
   form.addMultipleChoiceItem()
     .setTitle('Status Pengelolaan')
-    .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan']);
+    .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan'])
+    .setRequired(true);
 
   form.addMultipleChoiceItem()
     .setTitle('Komoditas')
-    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian']);
+    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'])
+    .setRequired(true);
 
   form.addTextItem().setTitle('Luas Lahan (m²)');
   form.addDateItem().setTitle('Tanggal Panen');
@@ -202,15 +267,25 @@ function setupOperationalForm(ssId) {
     .setTitle('Tujuan Penggunaan')
     .setChoiceValues(['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih']);
 
-  // Page 6: Kendala & Catatan Pelaporan
-  form.addSectionHeaderItem().setTitle('Kendala & Catatan Pelaporan');
+  // Page 6: Kegiatan Pengawasan
+  form.addPageBreakItem().setTitle('Kegiatan Pengawasan');
+  form.addMultipleChoiceItem()
+    .setTitle('Pengawasan')
+    .setChoiceValues(['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'])
+    .setRequired(true);
+  form.addParagraphTextItem()
+    .setTitle('Detail Pengawasan')
+    .setRequired(true);
+
+  // Page 7: Kendala & Catatan Pelaporan
+  form.addPageBreakItem().setTitle('Kendala & Catatan Pelaporan');
   form.addParagraphTextItem().setTitle('Capaian Kegiatan');
   form.addParagraphTextItem().setTitle('Kendala Kegiatan (jika ada)');
   form.addParagraphTextItem().setTitle('Upaya Yang Dilakukan (jika ada)');
 
   form.addSectionHeaderItem()
     .setTitle('Catatan Bukti Foto')
-    .setHelpText('Untuk melampirkan foto bukti kegiatan, gunakan Formulir Web App.');
+    .setHelpText('Untuk melampirkan foto bukti kegiatan snapshot kamera langsung, gunakan Formulir Web App.');
 
   form.setDestination(FormApp.DestinationType.SPREADSHEET, ssId);
   Logger.log('Operational Form Published URL: ' + form.getPublishedUrl());

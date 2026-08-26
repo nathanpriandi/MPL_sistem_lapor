@@ -67,6 +67,7 @@ const FormManagementService = {
       forms = [];
     }
     if (!Array.isArray(forms) || forms.length === 0) {
+      const mainSsId = ConfigRepository.getSpreadsheetId();
       const mainFormId = ConfigRepository.getMainFormId();
       let tabGid = null;
       if (mainSsId) {
@@ -250,15 +251,15 @@ const FormManagementService = {
     let sensitiveSheet = ss.getSheetByName('Sensitive');
     if (!sensitiveSheet) {
       sensitiveSheet = ss.insertSheet('Sensitive');
-      sensitiveSheet.getRange('A1:K1').setValues([[
+      sensitiveSheet.getRange('A1:J1').setValues([[
         'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-        'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Flagged_Keywords', 'Reviewed'
+        'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Reviewed'
       ]]);
-      sensitiveSheet.getRange('A1:K1').setFontWeight('bold').setBackground('#fef2f2');
+      sensitiveSheet.getRange('A1:J1').setFontWeight('bold').setBackground('#fef2f2');
       sensitiveSheet.setFrozenRows(1);
     }
 
-    // Set standard headers for operational form tab derived from single source of truth (32 columns)
+    // Set standard headers for operational form tab derived from single source of truth (29 columns)
     const opHeaders = (typeof OPERATIONAL_REPORT_FIELDS !== 'undefined') 
       ? OPERATIONAL_REPORT_FIELDS.map(f => f.header) 
       : [
@@ -267,7 +268,7 @@ const FormManagementService = {
           'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 'Estimasi_Panen_HST', 
           'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 'Jumlah_Penjualan_Unit', 
           'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 'Tujuan_Penggunaan', 
-          'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Flagged_Keywords', 'Reviewed'
+          'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Reviewed'
         ];
     rawSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
     rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
@@ -535,10 +536,8 @@ const FormManagementService = {
     let publicUrl = '';
     if (formType === 'kustom') {
       publicUrl = baseUrl ? `${baseUrl}?page=dynamicform&formId=${newFormId}` : `?page=dynamicform&formId=${newFormId}`;
-    } else if (formType === 'harian') {
-      publicUrl = baseUrl ? `${baseUrl}?page=index` : '?page=index';
     } else {
-      publicUrl = baseUrl ? `${baseUrl}?page=general` : '?page=general';
+      publicUrl = baseUrl ? `${baseUrl}?page=index` : '?page=index';
     }
 
     const newRecord = {

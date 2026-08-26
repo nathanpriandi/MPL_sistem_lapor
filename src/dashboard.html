@@ -44,7 +44,7 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
-        <!-- Header & Action Row -->
+        <!-- Header & Interactive Period Control Row -->
         <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
           <div>
             <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
@@ -56,16 +56,35 @@
             </div>
             <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi tata kelola operasional agribisnis: perbandingan divisi, peringatan panen, kendala lapangan, dan tren pendapatan.</p>
           </div>
-          <div class="button-group-flex" style="align-items: center;">
-            <span id="dashLastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.35rem;"></span>
-            <button class="btn btn-secondary" onclick="exportDashboardCSV()" title="Unduh ringkasan data statistik dalam format CSV">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Ekspor CSV</span>
-            </button>
-            <button class="btn btn-secondary" onclick="renderDashboard(true)" title="Muat ulang data statistik terbaru dari server">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              <span>Perbarui</span>
-            </button>
+          
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+            <div class="button-group-flex" style="align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+              <!-- Interactive Period Selector -->
+              <div class="segmented-control" role="tablist" aria-label="Filter Periode Manajer" id="dashPeriodControl">
+                <button class="segmented-item" onclick="setDashboardPeriod('this_week', this)" id="dashPeriodBtn-this_week">Minggu Ini</button>
+                <button class="segmented-item" onclick="setDashboardPeriod('last_week', this)" id="dashPeriodBtn-last_week">Minggu Lalu</button>
+                <button class="segmented-item active" onclick="setDashboardPeriod('this_month', this)" id="dashPeriodBtn-this_month">Bulan Ini</button>
+                <button class="segmented-item" onclick="setDashboardPeriod('custom', this)" id="dashPeriodBtn-custom">Kustom</button>
+              </div>
+
+              <span id="dashLastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.35rem;"></span>
+              <button class="btn btn-secondary" onclick="exportDashboardCSV()" title="Unduh ringkasan data statistik dalam format CSV">
+                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Ekspor CSV</span>
+              </button>
+              <button class="btn btn-secondary" onclick="renderDashboard(true)" title="Muat ulang data statistik terbaru dari server">
+                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Perbarui</span>
+              </button>
+            </div>
+
+            <!-- Custom Date Range Picker (hidden by default) -->
+            <div id="dashCustomDateBar" style="display: none; align-items: center; gap: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm);">
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Dari:</span>
+              <input type="date" id="dashCustomStartDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="renderDashboard(false)">
+              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">s/d:</span>
+              <input type="date" id="dashCustomEndDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="renderDashboard(false)">
+            </div>
           </div>
         </div>
 
@@ -258,6 +277,33 @@
           </div>
         </div>
 
+        <!-- Location Coverage & Staleness Analysis Card -->
+        <div class="card" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>Status Cakupan &amp; Keaktifan Lokasi</span>
+              </h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">
+                Kecocokan keaktifan lokasi melapor dalam periode terpilih.
+              </p>
+            </div>
+            <span class="period-badge" id="coverageFractionBadge">
+              <span>Cakupan: <strong id="dashCoverageFraction">0 dari 0</strong></span>
+            </span>
+          </div>
+
+          <div id="dashCoverageBreakdownBox">
+            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;" id="dashCoverageHeadline">
+              Memuat data cakupan lokasi...
+            </div>
+            <div id="dashMissingLocationsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
         <!-- 3.5 Footer Link: Drilldown to Admin Queue -->
         <div class="drilldown-banner">
           <div class="drilldown-banner-text">
@@ -272,7 +318,7 @@
     </div>
   </div>
 
-  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
+  <?!= includeApp(webAppUrl); ?>
   <script>
     let divisiComparisonChartInstance = null;
     let weeklyTrendChartInstance = null;
@@ -423,6 +469,27 @@
       }
     }
 
+    let currentDashPeriod = 'this_month';
+
+    function setDashboardPeriod(period, btnElement) {
+      currentDashPeriod = period;
+      document.querySelectorAll('#dashPeriodControl .segmented-item').forEach(el => el.classList.remove('active'));
+      if (btnElement) {
+        btnElement.classList.add('active');
+      } else {
+        const activeBtn = document.getElementById(`dashPeriodBtn-${period}`);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+
+      const customBar = document.getElementById('dashCustomDateBar');
+      if (period === 'custom') {
+        if (customBar) customBar.style.display = 'flex';
+      } else {
+        if (customBar) customBar.style.display = 'none';
+        renderDashboard(false);
+      }
+    }
+
     async function renderDashboard(isManualRefresh = false) {
       if (isManualRefresh) {
         renderDashboardSkeletons();
@@ -430,9 +497,15 @@
 
       let stats = null;
 
+      const options = {
+        period: currentDashPeriod,
+        startDate: document.getElementById('dashCustomStartDate') ? document.getElementById('dashCustomStartDate').value : '',
+        endDate: document.getElementById('dashCustomEndDate') ? document.getElementById('dashCustomEndDate').value : ''
+      };
+
       if (isLiveServer()) {
         try {
-          stats = await runServer('getDashboardStats');
+          stats = await runServer('getDashboardStats', options);
         } catch (err) {
           console.error('Server error fetching dashboard stats:', err);
           showToast('Gagal memuat statistik dari server: ' + err.message, 'error');
@@ -459,7 +532,11 @@
       const kpiDistinctEl = document.getElementById('kpiDistinctActivities');
       if (kpiDistinctEl) kpiDistinctEl.innerText = (stats.distinctActivityCount || 0).toLocaleString('id-ID');
       const kpiRawEl = document.getElementById('kpiRawReports');
-      if (kpiRawEl) kpiRawEl.innerText = `${(stats.totalReports || 0).toLocaleString('id-ID')} total laporan masuk`;
+      if (kpiRawEl) {
+        const total = (stats.totalReports || 0);
+        const verified = (stats.verifiedCount || 0);
+        kpiRawEl.innerText = `${total} Laporan (${verified} Terverifikasi)`;
+      }
 
       // 2.2 Total Nilai Penjualan & Trend
       const kpiSalesEl = document.getElementById('kpiTotalPenjualan');
@@ -503,7 +580,7 @@
       const kpiUnansweredSubEl = document.getElementById('kpiUnansweredSub');
       if (kpiUnansweredSubEl) {
         const unanswered = stats.unansweredObstaclesCount || 0;
-        kpiUnansweredSubEl.innerText = `${unanswered} belum ada upaya`;
+        kpiUnansweredSubEl.innerText = `${unanswered} tanpa respon | ${stats.unverifiedCount || 0} belum verifikasi`;
       }
       const trendObstaclesEl = document.getElementById('trendObstacles');
       const kpiObstaclesTrendText = document.getElementById('kpiObstaclesTrendText');
@@ -511,10 +588,10 @@
         const openObs = stats.openObstaclesCount || 0;
         if (openObs > 0) {
           trendObstaclesEl.className = 'metric-trend metric-trend-down';
-          kpiObstaclesTrendText.innerText = `${openObs} Kendala Terlaporkan`;
+          kpiObstaclesTrendText.innerText = `${openObs} Kendala Terbuka`;
         } else {
           trendObstaclesEl.className = 'metric-trend metric-trend-up';
-          kpiObstaclesTrendText.innerText = 'Kondisi Lapangan Lancar';
+          kpiObstaclesTrendText.innerText = 'Semua Kendala Terverifikasi';
         }
       }
 
@@ -525,6 +602,44 @@
 
       // 4. Render Attention List
       renderAttentionList(stats.attentionList || []);
+
+      // 5. Render Location Coverage Breakdown
+      if (stats.locationCoverage) {
+        const fractionEl = document.getElementById('dashCoverageFraction');
+        const headlineEl = document.getElementById('dashCoverageHeadline');
+        const containerEl = document.getElementById('dashMissingLocationsContainer');
+
+        if (fractionEl) fractionEl.innerText = stats.locationCoverage.fraction || '0 dari 0';
+        
+        const missing = stats.locationCoverage.missing || [];
+        if (headlineEl) {
+          if (missing.length === 0) {
+            headlineEl.innerHTML = '<span style="color: var(--primary);">✅ 100% Lokasi Aktif Melapor dalam Periode Ini</span>';
+          } else {
+            headlineEl.innerHTML = `<span style="color: var(--warning);">⚠️ ${missing.length} Lokasi Belum / Tidak Melapor dalam Periode Ini</span>`;
+          }
+        }
+
+        if (containerEl) {
+          if (missing.length === 0) {
+            containerEl.innerHTML = `
+              <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-app); padding: 0.6rem; border-radius: var(--radius-sm);">
+                Seluruh lokasi operasional telah mengirimkan laporan pada periode ini.
+              </div>
+            `;
+          } else {
+            containerEl.innerHTML = missing.map(m => `
+              <div style="font-size: 0.825rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                  <strong style="color: var(--text-primary);">${m.lokasi}</strong>
+                  <span style="color: var(--text-secondary); margin-left: 0.35rem;">(${m.divisi} — ${m.pic})</span>
+                </div>
+                <span class="badge badge-warning" style="font-size: 0.75rem;">Terakhir: ${m.lastDateStr} (${m.daysInactive} hari pasif)</span>
+              </div>
+            `).join('');
+          }
+        }
+      }
 
       if (isManualRefresh) {
         showToast('Dashboard statistik berhasil diperbarui', 'info');
@@ -846,6 +961,11 @@
       const priorMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
 
       const DIV_KEYS = {
+        MANAJEMEN: 'Manajemen',
+        BKO: 'BKO 28',
+        PEKERJA_HARIAN: 'Pekerja Harian',
+        ALPROF: 'Alprof',
+        SGA: 'SGA',
         AGRO: 'Agro (Pertanian/Perkebunan)',
         TERNAK: 'Ternak (Peternakan)',
         IKAN: 'Ikan (Perikanan)'
@@ -853,10 +973,15 @@
 
       function normDiv(d) {
         const s = String(d || '').toLowerCase();
+        if (s.includes('manajemen') || s === 'mnj') return DIV_KEYS.MANAJEMEN;
+        if (s.includes('bko')) return DIV_KEYS.BKO;
+        if (s.includes('pekerja') || s.includes('harian') || s === 'pkh') return DIV_KEYS.PEKERJA_HARIAN;
+        if (s.includes('alprof') || s === 'alp') return DIV_KEYS.ALPROF;
+        if (s.includes('sga')) return DIV_KEYS.SGA;
         if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian')) return DIV_KEYS.AGRO;
         if (s.includes('ternak') || s.includes('kandang') || s.includes('peternakan')) return DIV_KEYS.TERNAK;
         if (s.includes('ikan') || s.includes('kolam') || s.includes('perikanan')) return DIV_KEYS.IKAN;
-        return DIV_KEYS.AGRO;
+        return d || DIV_KEYS.ALPROF;
       }
 
       let totalReports = 0;
@@ -869,6 +994,11 @@
       let unansweredObstaclesCount = 0;
 
       const divisiBreakdown = {
+        [DIV_KEYS.ALPROF]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.SGA]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.PEKERJA_HARIAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.BKO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
+        [DIV_KEYS.MANAJEMEN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
         [DIV_KEYS.AGRO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
         [DIV_KEYS.TERNAK]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Ekor / Unit' },
         [DIV_KEYS.IKAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' }
@@ -928,8 +1058,15 @@
       const distinctSet = new Set();
       const divActSet = { [DIV_KEYS.AGRO]: new Set(), [DIV_KEYS.TERNAK]: new Set(), [DIV_KEYS.IKAN]: new Set() };
 
+      let verifiedCount = 0;
+      let unverifiedCount = 0;
+
       curMonthReports.forEach(r => {
         totalReports++;
+        const isVerified = (String(r.reviewStatus || '').toLowerCase() === 'terverifikasi' || String(r.reviewStatus || '').toLowerCase() === 'closed' || String(r.reviewStatus || '').toLowerCase() === 'verified');
+        if (isVerified) verifiedCount++;
+        else unverifiedCount++;
+
         const code = String(r.kodeKegiatan || '').trim();
         const root = code ? getRoot(code) : `_anon_${r.id || Math.random()}`;
         distinctSet.add(root);
@@ -950,7 +1087,7 @@
           const pDate = new Date(r.tglPerkiraanPanen);
           if (!isNaN(pDate.getTime()) && pDate.getTime() < now.getTime()) {
             const daysLate = Math.floor((now.getTime() - pDate.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysLate >= 8) {
+            if (daysLate >= 8 && !isVerified) {
               const isUrgent = daysLate >= 15;
               if (isUrgent) urgentOverdueCount++;
               else warningOverdueCount++;
@@ -972,25 +1109,28 @@
           }
         }
 
-        // Kendala
-        if (r.kendala && r.kendala !== '-') {
-          openObstaclesCount++;
-          const hasNoUpaya = !r.upaya || r.upaya === '-';
-          if (hasNoUpaya) unansweredObstaclesCount++;
-          attentionList.push({
-            id: r.id || r.kodeKegiatan,
-            type: 'open_obstacle',
-            severity: hasNoUpaya ? 'urgent' : 'warning',
-            rank: hasNoUpaya ? 1 : 2,
-            badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
-            kodeKegiatan: r.kodeKegiatan || '-',
-            lokasi: r.lokasiKegiatan || r.lokasi || '-',
-            pic: r.namaPic || '-',
-            divisi: r.normDiv,
-            details: `Kendala: "${r.kendala}"${!hasNoUpaya ? ' | Upaya: "' + r.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
-            hasNoUpaya: hasNoUpaya,
-            timestamp: r.timestamp
-          });
+        // Kendala (only real obstacles)
+        const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(r.kendala) : (r.kendala && r.kendala !== '-');
+        if (isKendalaReal) {
+          if (!isVerified) {
+            openObstaclesCount++;
+            const hasNoUpaya = !r.upaya || r.upaya === '-';
+            if (hasNoUpaya) unansweredObstaclesCount++;
+            attentionList.push({
+              id: r.id || r.kodeKegiatan,
+              type: 'open_obstacle',
+              severity: hasNoUpaya ? 'urgent' : 'warning',
+              rank: hasNoUpaya ? 1 : 2,
+              badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
+              kodeKegiatan: r.kodeKegiatan || '-',
+              lokasi: r.lokasiKegiatan || r.lokasi || '-',
+              pic: r.namaPic || '-',
+              divisi: r.normDiv,
+              details: `Kendala: "${r.kendala}"${!hasNoUpaya ? ' | Upaya: "' + r.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
+              hasNoUpaya: hasNoUpaya,
+              timestamp: r.timestamp
+            });
+          }
         }
 
         // Weekly bucketing
@@ -1033,6 +1173,9 @@
       return {
         currentPeriodLabel: currentPeriodLabel,
         totalReports: totalReports,
+        verifiedCount: verifiedCount,
+        unverifiedCount: unverifiedCount,
+        verificationRate: totalReports > 0 ? Math.round((verifiedCount / totalReports) * 100) : 0,
         distinctActivityCount: distinctSet.size,
         totalActiveKegiatan: totalActiveKegiatan,
         totalNilaiPenjualanRp: totalNilaiPenjualanRp,

@@ -232,7 +232,7 @@
     </div>
   </div>
 
-  <?!= includeApp(webAppUrl, urgentKeywordsJson, warningKeywordsJson); ?>
+  <?!= includeApp(webAppUrl); ?>
   <script>
     var registeredForms = [];
 
@@ -502,7 +502,7 @@
       if (elOrigId) elOrigId.value = form.id;
       if (elTitle) elTitle.value = form.title || '';
       if (elDesc) elDesc.value = form.description || '';
-      if (elIdInput) elIdInput.value = (form.id && form.id !== 'DEFAULT_DAILY_FORM' && form.id !== 'DEFAULT_GENERAL_FORM' && form.type !== 'kustom') ? form.id : '';
+      if (elIdInput) elIdInput.value = (form.id && form.type !== 'kustom') ? form.id : '';
       if (elStatus) elStatus.value = (form.status || 'aktif').toLowerCase();
 
       var modal = document.getElementById('editFormModalOverlay');

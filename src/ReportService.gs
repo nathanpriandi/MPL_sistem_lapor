@@ -11,21 +11,27 @@ const ReportService = {
   /**
    * Generates formatted Kode Kegiatan reference string.
    * Format: {DIVISI_KODE}-{LOKASI_SLUG}-{YYYYMMDD}-{2DIGIT_INDEX}
-   * Example: AGR-KEBUNA-20260807-01
+   * Example: ALP-SEKTOR1-20260824-01
    * @param {string} divisi 
    * @param {string} lokasi 
    * @returns {string} Kode Kegiatan
    */
   generateKodeKegiatan: function(divisi, lokasi) {
-    let divCode = 'AGR';
+    let divCode = 'MPL';
     const divLower = String(divisi || '').toLowerCase();
-    if (divLower.includes('ternak') || divLower.includes('peternakan')) divCode = 'TRN';
+    if (divLower.includes('manajemen') || divLower === 'mnj') divCode = 'MNJ';
+    else if (divLower.includes('bko') || divLower === 'bko') divCode = 'BKO';
+    else if (divLower.includes('pekerja') || divLower.includes('harian') || divLower === 'pkh') divCode = 'PKH';
+    else if (divLower.includes('alprof') || divLower === 'alp') divCode = 'ALP';
+    else if (divLower.includes('sga') || divLower === 'sga') divCode = 'SGA';
+    else if (divLower.includes('ternak') || divLower.includes('peternakan')) divCode = 'TRN';
     else if (divLower.includes('ikan') || divLower.includes('perikanan')) divCode = 'IKN';
+    else if (divLower.includes('agro') || divLower.includes('pertanian') || divLower.includes('perkebunan')) divCode = 'AGR';
 
-    const locSlug = String(lokasi || 'SIT')
+    const locSlug = String(lokasi || 'SEK')
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, '')
-      .substring(0, 6) || 'SITEA';
+      .substring(0, 6) || 'SEK1';
 
     const d = new Date();
     const yyyy = d.getFullYear();
@@ -44,8 +50,35 @@ const ReportService = {
    * @returns {{ success: boolean, reportId: string, kodeKegiatan: string }}
    */
   submitOperationalReport: function(payload) {
-    if (!payload || !payload.namaPic || !payload.bidangDivisi || !payload.lokasiKegiatan || !payload.jenisKegiatan) {
-      throw new Error('Mohon lengkapi semua kolom wajib (Nama PIC, Divisi, Lokasi, Jenis Kegiatan).');
+    if (!payload) {
+      throw new Error('Payload data laporan tidak ditemukan.');
+    }
+
+    // Auto-resolve employee ID if provided
+    let empId = payload.idKaryawan || payload.empId || '';
+    if (empId) {
+      const emp = lookupEmployee(empId);
+      if (emp) {
+        payload.idKaryawan = emp.id;
+        payload.empId = emp.id;
+        payload.namaPic = payload.namaPic || emp.name;
+        payload.bidangDivisi = payload.bidangDivisi || emp.division;
+      }
+    } else if (payload.namaPic) {
+      const emp = lookupEmployee(payload.namaPic);
+      if (emp) {
+        payload.idKaryawan = emp.id;
+        payload.empId = emp.id;
+        payload.namaPic = emp.name;
+        payload.bidangDivisi = payload.bidangDivisi || emp.division;
+      }
+    }
+
+    if (!payload.idKaryawan && !payload.namaPic) {
+      throw new Error('ID Karyawan wajib diisi.');
+    }
+    if (!payload.lokasiKegiatan || !payload.jenisKegiatan) {
+      throw new Error('Mohon lengkapi semua kolom wajib (Lokasi Kegiatan, Kegiatan yang Dilakukan).');
     }
 
     if (!payload.reportId) {
@@ -73,21 +106,19 @@ const ReportService = {
     }
 
     payload.timestamp = formatDate(new Date());
+    payload.kendala = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(payload.kendala) : (payload.kendala || '');
+    payload.upaya = payload.kendala ? (payload.upaya || '') : '';
 
     const report = OperationalReport(payload);
     
-    // Evaluate triage
-    const flagText = [
-      report.namaPic, report.bidangDivisi, report.lokasiKegiatan, 
-      report.jenisKegiatan, report.capaianKegiatan, report.kendala, report.upaya
-    ];
-    const flag = TriageEngine.evaluate(flagText.join(' '));
+    // Evaluate triage (Flagged solely if Kendala is actual non-empty obstacle)
+    const flag = TriageEngine.evaluate(report.kendala);
 
     // Save into central spreadsheet (auto-handles triage highlighting & sensitive routing)
     const result = SpreadsheetRepository.saveOperationalReport(report, flag);
 
-    // Send notifications if high severity
-    if (flag && (flag.severity === ReportSeverity.WARNING || flag.severity === ReportSeverity.URGENT)) {
+    // Send notifications if urgent severity
+    if (flag && flag.severity === ReportSeverity.URGENT) {
       try {
         NotificationAdapter.sendIncidentNotification(report, flag);
       } catch (e) {
@@ -283,7 +314,10 @@ const ReportService = {
     });
     const details = textPieces.join(' | ');
 
-    const flag = TriageEngine.evaluate([empId, site, date, details]);
+    const rawKendala = payload.kendala || payload.Kendala || payload.kendalaKegiatan || payload.kendala_kegiatan || '';
+    const kendalaVal = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala).trim();
+    const upayaVal = kendalaVal ? String(payload.upaya || '').trim() : '';
+    const flag = TriageEngine.evaluate(kendalaVal);
     const targetSsId = ConfigRepository.getSpreadsheetId();
     if (!targetSsId) throw new Error('Sheet data form belum terkonfigurasi.');
 
@@ -291,9 +325,10 @@ const ReportService = {
     const targetSheet = FormManagementService.resolveFormTab_(ss, form);
 
     const rowData = [
-      reportId, '', '', nowStr, empId, site, site, details, 'Target', 0, 0,
-      '', '', date, '', 0, '', 0, 0, 0, details, '', photoUrl,
-      flag.severity, flag.keywords.join(', '), ReviewStatus.UNREVIEWED
+      reportId, '', '', nowStr, empId, site, site, details, '', '', '',
+      '', 0, 0, date, 0, '', 0, '', '', 0,
+      0, 0, 0, '', '', kendalaVal, upayaVal, photoUrl,
+      flag.severity, ReviewStatus.UNVERIFIED
     ];
 
     targetSheet.appendRow(rowData);
@@ -322,9 +357,28 @@ const ReportService = {
       const reportId = SpreadsheetRepository.ensureReportId(sheet, row, rowData);
       rowData = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-      // Native Google Form submit evaluate
-      const flagText = rowData.slice(1, 10).join(' ');
-      const flag = TriageEngine.evaluate(flagText);
+      // Native Google Form submit evaluate by header name
+      const headerMap = SpreadsheetRepository.getHeaderMap_(sheet);
+      const kendalaVal = String(SpreadsheetRepository.getCellValue_(rowData, headerMap, 'Kendala', 20) || '').trim();
+      const flag = TriageEngine.evaluate(kendalaVal);
+
+      // Auto-resolve ID Karyawan to Nama PIC & Bidang Divisi if needed
+      const rawIdKaryawan = String(SpreadsheetRepository.getCellValue_(rowData, headerMap, 'ID_Karyawan') || 
+                                   SpreadsheetRepository.getCellValue_(rowData, headerMap, 'ID Karyawan') || 
+                                   SpreadsheetRepository.getCellValue_(rowData, headerMap, 'Kode Karyawan') || '').trim();
+      if (rawIdKaryawan) {
+        const emp = lookupEmployee(rawIdKaryawan);
+        if (emp) {
+          const picCol = headerMap['nama_pic'] || headerMap['nama'];
+          const divCol = headerMap['bidang_divisi'] || headerMap['divisi'];
+          if (picCol && !sheet.getRange(row, picCol + 1).getValue()) {
+            sheet.getRange(row, picCol + 1).setValue(emp.name);
+          }
+          if (divCol && !sheet.getRange(row, divCol + 1).getValue()) {
+            sheet.getRange(row, divCol + 1).setValue(emp.division);
+          }
+        }
+      }
 
       SpreadsheetRepository.applyRowHighlighting(sheet, row, flag.severity);
 

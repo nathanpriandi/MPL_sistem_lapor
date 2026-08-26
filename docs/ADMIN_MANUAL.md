@@ -95,7 +95,7 @@ Spreadsheet ini memiliki tab utama:
 1. **Email Notifikasi Urgent**:
    Jika ada laporan mengandung kata kunci kritis (misal: *kecelakaan, kebakaran, hama meledak*), sistem otomatis mengirimkan email alert seketika ke `ADMIN_EMAIL`.
 2. **Laporan Sensitif**:
-   Jika pelapor mencentang *Informasi Sensitif?*, laporan tersebut dipindahkan secara otomatis ke tab `Sensitive_Restricted` dan dihapus dari aliran publik `General_Raw`.
+   Jika pelapor mencentang *Informasi Sensitif?*, laporan tersebut dipindahkan secara otomatis ke tab `Sensitive_Restricted` dan dihapus dari aliran publik `Laporan_Operasional_Raw`.
 
 ---
 

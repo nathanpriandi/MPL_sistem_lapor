@@ -36,7 +36,7 @@ The default form site dropdown options represent an integrated agriculture suppl
 3. **Site C — Pabrik Pengolahan & Pakan** (Processing Plant / Feed Mill / End-Product Unit)
 4. **Site D — Logistik & Gudang Distribution** (Warehouse & Transport Hub)
 
-*To customize these site names, edit `src/Setup.gs` in `setupDailyForm()` and `setupGeneralForm()` before running provision.*
+*To customize these site names, edit `src/Setup.gs` in `setupOperationalForm()` before running provision.*
 
 ---
 

@@ -26,21 +26,6 @@ function onFormSubmit(e) {
   ReportService.processFormSubmit(e);
 }
 
-/**
- * Backward compatibility alias for onDailyFormSubmit.
- * Decision: Retained as permanent backward-compatibility wrapper for legacy triggers.
- */
-function onDailyFormSubmit(e) {
-  onFormSubmit(e);
-}
-
-/**
- * Backward compatibility alias for onGeneralFormSubmit.
- * Decision: Retained as permanent backward-compatibility wrapper for legacy triggers.
- */
-function onGeneralFormSubmit(e) {
-  onFormSubmit(e);
-}
 
 /**
  * Moves sensitive row to Sensitive_Restricted sheet and deletes it from source sheet.

@@ -17,6 +17,24 @@ function submitOperationalReport(payload) {
 }
 
 /**
+ * Returns full employee registry (38 employees across 5 divisions).
+ * @returns {Array<{ id: string, name: string, division: string }>}
+ */
+function getEmployeeRegistry() {
+  return JSON.parse(JSON.stringify(EMPLOYEE_REGISTRY || []));
+}
+
+/**
+ * Searches employee by ID or Name.
+ * @param {string} query 
+ * @returns {{ id: string, name: string, division: string }|null}
+ */
+function lookupEmployeeRPC(query) {
+  const emp = lookupEmployee(query);
+  return emp ? JSON.parse(JSON.stringify(emp)) : null;
+}
+
+/**
  * Returns recent activity codes (Kode Kegiatan) for reference autocomplete.
  * @returns {Array<string>}
  */
@@ -24,21 +42,6 @@ function getRecentActivityCodes() {
   return ReportService.getRecentActivityCodes();
 }
 
-/**
- * Backward compatibility alias for submitDailyReport.
- * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
- */
-function submitDailyReport(payload) {
-  return submitOperationalReport(payload);
-}
-
-/**
- * Backward compatibility alias for submitGeneralReport.
- * Decision: Retained as permanent backward-compatibility wrapper for legacy form integration harnesses.
- */
-function submitGeneralReport(payload) {
-  return submitOperationalReport(payload);
-}
 
 /**
  * Uploads a base64 photo attachment into form's dedicated Drive folder.
@@ -120,8 +123,8 @@ function updateReviewStatus(reportId, newStatus) {
  * Returns aggregated stats for Executive Manager Dashboard.
  * @returns {Object|null} JSON stats object for dashboard rendering.
  */
-function getDashboardStats() {
-  return AdminService.getDashboardStats();
+function getDashboardStats(options) {
+  return AdminService.getDashboardStats(options);
 }
 
 /**

@@ -14,21 +14,21 @@ A zero-budget, modern digital reporting system designed for an integrated agricu
 ```mermaid
 flowchart TD
     subgraph Client Layer
-        A1[Staf & Mandor Lapangan] -->|Submit Mobile Portal / QR Code| B1[Deployment A: Public Web Portal<br/>Daily Report + General Report + Dynamic Custom Forms]
+        A1[Staf & Mandor Lapangan] -->|Submit Mobile Portal / QR Code| B1[Deployment A: Public Web Portal<br/>Unified Operational Form + Dynamic Custom Forms]
         A2[Admin Operasional] -->|Visit Internal URL| B2[Deployment B: Internal Operations Console<br/>Admin Queue & Form Management]
         A3[Manager Operasional] -->|Visit Internal URL| B3[Deployment B: Internal Operations Console<br/>Manager Dashboard]
     end
 
     subgraph Server Layer - Apps Script Engine
-        B1 -->|ClientAPI submitDailyReport / submitGeneralReport / submitDynamicFormResponse| C[Google Apps Script Engine<br/>Web.gs / FormHandlers.gs / ReportService.gs]
-        C --> D[Automation.gs<br/>Triage Engine & Keyword Evaluation]
+        B1 -->|ClientAPI submitOperationalReport / submitDynamicFormResponse| C[Google Apps Script Engine<br/>Web.gs / FormHandlers.gs / ReportService.gs]
+        C --> D[Automation.gs<br/>Triage Engine & Kendala Evaluation]
         D -->|Urgent Alert| E1[Instant Email Alert to ADMIN_EMAIL]
         D -->|Normal / Warning| E2[Single Integrated Google Spreadsheet]
         C -->|Sensitive Flag Checked| F[Sensitive Tab<br/>Isolated Restricted Sheet Access]
     end
 
     subgraph Data & Analytics Layer
-        E2 -->|Tab-per-Form: Laporan Operasional Harian / Laporan Umum / Custom Tabs| G1[Admin Queue Triage View]
+        E2 -->|Tab-per-Form: Laporan Operasional Raw / Custom Form Tabs| G1[Admin Queue Triage View]
         E2 -->|Per-Form Photo Folders| G2[Reporting System Photos Drive Folder]
         E2 -->|Integrated Dashboard Analytics| G3[Manager Dashboard & Looker Studio]
         E2 -->|Monthly Trigger| H[archiveClosedReports Trigger<br/>Data Retention Archive]
@@ -54,8 +54,8 @@ MPL_sistem_lapor/
 │   ├── FormManagementService.gs # Form registry CRUD, integrated spreadsheet tab-per-form provisioner
 │   ├── SpreadsheetRepository.gs # DAO layer for single integrated spreadsheet reads/writes & GID lookups
 │   ├── ConfigRepository.gs    # Script Properties configuration wrapper
-│   ├── DomainEntities.gs      # Domain data models (DailyReport, GeneralReport, QueueItem)
-│   ├── TriageEngine.gs        # Triage keyword matcher & severity ranker
+│   ├── DomainEntities.gs      # Domain data models (OperationalReport, QueueItem)
+│   ├── TriageEngine.gs        # Triage kendala evaluator & severity ranker
 │   ├── NotificationAdapter.gs # Email alert dispatcher
 │   ├── FormHandlers.gs        # Native Google Form trigger handlers
 │   ├── Triggers.gs            # Time-driven and event trigger setup
@@ -64,8 +64,7 @@ MPL_sistem_lapor/
 │   ├── Web.gs                 # HTTP doGet router, RBAC auth, deployment check, includeApp()
 │   ├── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run)
 │   │
-│   ├── index.html             # Public Daily Report Form view
-│   ├── general.html           # Public General Report Form view
+│   ├── index.html             # Public Unified Operational Report Form view
 │   ├── dynamicform.html       # Public Dynamic Custom Form intake view (supports photo upload)
 │   ├── admin.html             # Internal Admin Triage Queue view (Modal detail, search, filter, CSV)
 │   ├── dashboard.html         # Internal Executive Manager Dashboard view (KPIs, Charts, CSV export)
@@ -131,7 +130,7 @@ In the Apps Script Editor, go to **Project Settings** (⚙️) → **Script Prop
 | `REGISTERED_FORMS_JSON` | **Auto** | JSON array of all registered forms, tab GIDs, and Drive photo folder metadata. |
 | `PUBLIC_WEB_APP_URL` | **Yes** | Web App URL of **Deployment A** (Public Access). Set after creating Deployment A. |
 | `INTERNAL_WEB_APP_URL` | **Yes** | Web App URL of **Deployment B** (Internal Operations Console). Set after creating Deployment B. |
-| `RETENTION_DAYS` | Optional | Archive threshold in days for `archiveClosedReports()`. Defaults to `30` if unset. |
+| `RETENTION_DAYS` | Optional | Archive threshold in days for `archiveOldReports()`. Defaults to safe `90` days if unset. |
 
 ---
 
@@ -145,7 +144,7 @@ To maintain zero friction for field staff while strictly securing internal admin
 - **Description**: `Deployment A — Public Field Staff Intake`
 - **Execute as**: `Me`
 - **Who has access**: `Anyone` *(No Google Login required)*
-- **Result**: Field staff land directly on Daily Report, General Report, or Dynamic Custom forms.
+- **Result**: Field staff land directly on Unified Operational Form or Dynamic Custom forms.
 
 ### Deployment B — Internal Operations Console (Admin & Manager)
 - **Deploy** → **New deployment**
@@ -161,7 +160,7 @@ To maintain zero friction for field staff while strictly securing internal admin
 
 ## ⚡ Core Features & Technical Highlights
 
-1. **Zero-Friction Field Intake (`index.html`, `general.html`, `dynamicform.html`)**:
+1. **Zero-Friction Field Intake (`index.html`, `dynamicform.html`)**:
    - Mobile-responsive layout, clean form validation, and dynamic issue checkbox selectors.
    - Supports photo attachments (`Foto_Lampiran`) stored cleanly in per-form Drive folders.
 
@@ -171,19 +170,19 @@ To maintain zero friction for field staff while strictly securing internal admin
    - **Direct Tab Links (`#gid=...`)**: `Buka Sheet Data` opens the integrated spreadsheet directly at the form's specific tab GID.
 
 3. **Automated Triage Engine (`TriageEngine.gs`)**:
-   - Scans narrative text against Indonesian keyword dictionaries (`urgent` vs `warning` severity).
-   - Automatically ranks incidents and dispatches instant email alerts to `ADMIN_EMAIL` for urgent flags (e.g. *kebakaran, kecelakaan, wabah, mati masal*).
+   - Evaluates field reports for presence of operational obstacle text (`Kendala Kegiatan`).
+   - Automatically flags a report as `URGENT` if kendala text is present, placing it at top priority for admin triage and sending instant email notifications to `ADMIN_EMAIL`. Reports without kendala default to `NORMAL`.
 
 4. **Sensitive Data Isolation (`SpreadsheetRepository.gs`)**:
-   - Reports marked with *Informasi Sensitif?* are isolated exclusively to a single shared `Sensitive` tab, keeping confidential reports hidden from standard sheet views.
+   - Reports marked with *Informasi Sensitif?* are isolated exclusively to a dedicated `Sensitive_Restricted` tab, keeping confidential reports hidden from standard sheet views.
 
 5. **Strict Per-Role RBAC & Role-Aware Landing (`Web.gs`)**:
    - Gated via `getUserRole()` against `ADMIN_EMAIL` and `MANAGER_EMAIL`.
    - Bare URLs on Deployment B automatically route based on role (`admin` -> Admin Queue, `manager` -> Manager Dashboard).
    - Deployment A attempts to access internal pages are cleanly blocked with an Access Restricted card.
 
-6. **Automated Data Lifecycle (`archiveClosedReports`)**:
-   - Time-driven trigger archives closed reports older than retention threshold into `Archive_Reports`, keeping active sheets fast and lightweight.
+6. **Automated Data Lifecycle (`archiveOldReports`)**:
+   - Time-driven trigger archives closed reports older than 90 days into `Archive_Reports`, keeping active sheets fast and lightweight.
 
 ---
 

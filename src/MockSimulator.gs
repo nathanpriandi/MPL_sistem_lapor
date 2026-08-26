@@ -35,7 +35,7 @@ function seedMockData() {
       'Agro (Pertanian/Perkebunan)', 'Kebun A - Blok 3', 'Penanaman Bibit Sawit', 'Target 500 bibit', 
       12.5, 500, formatDate(past5Days).split(' ')[0], '', '2026-11-15', '', 0, '', 0, 0, 0, 
       'Pompa irigasi tersumbat', 'Pembersihan filter irigasi secara manual', '', 
-      ReportSeverity.WARNING, 'irigasi, tersumbat', ReviewStatus.UNREVIEWED
+      ReportSeverity.WARNING, 'irigasi, tersumbat', ReviewStatus.UNVERIFIED
     ],
     // 2. Continuation Report of Activity 1 (Matches Kode_Kegiatan_Ref -> folds into AGR-KEBUNA-202608-01)
     [
@@ -43,7 +43,7 @@ function seedMockData() {
       'Agro (Pertanian/Perkebunan)', 'Kebun A - Blok 3', 'Pemupukan Lanjutan Sawit', 'Aplikasi 200 kg NPK', 
       12.5, 500, '', '', '2026-11-15', dateOnly, 1200, dateOnly, 15000, 80, 1200000, 
       '', '', '', 
-      ReportSeverity.NORMAL, '', ReviewStatus.UNREVIEWED
+      ReportSeverity.NORMAL, '', ReviewStatus.UNVERIFIED
     ],
     // 3. Urgent Overdue Harvest (>15 days late, no Tgl_Panen)
     [
@@ -51,7 +51,7 @@ function seedMockData() {
       'Ternak (Peternakan)', 'Kandang Ayam B-2', 'Pembesaran Broiler Periode 4', 'Target 2500 ekor', 
       0, 2500, '', formatDate(past18Days).split(' ')[0], formatDate(past18Days).split(' ')[0], '', 0, '', 0, 0, 0, 
       'Pakan formula lambat datang', 'Pemberian pakan alternatif darurat', '', 
-      ReportSeverity.WARNING, 'pakan, lambat', ReviewStatus.UNREVIEWED
+      ReportSeverity.WARNING, 'pakan, lambat', ReviewStatus.UNVERIFIED
     ],
     // 4. Open Obstacle with NO Upaya (Urgent attention item)
     [
@@ -59,7 +59,7 @@ function seedMockData() {
       'Ikan (Perikanan)', 'Kolam Lele C-1', 'Pemeliharaan Benih Lele', 'Tebar 10.000 benih', 
       2.0, 10000, '', dateOnly, '2026-10-01', '', 0, '', 0, 0, 0, 
       'Kualitas air kolam keruh & pH drop drastis', '', '', 
-      ReportSeverity.URGENT, 'mati masal, terkontaminasi', ReviewStatus.UNREVIEWED
+      ReportSeverity.URGENT, 'mati masal, terkontaminasi', ReviewStatus.UNVERIFIED
     ],
     // 5. Warning Overdue Harvest (8-14 days late, no Tgl_Panen)
     [
@@ -67,7 +67,7 @@ function seedMockData() {
       'Agro (Pertanian/Perkebunan)', 'Lahan Jagung C-4', 'Budidaya Jagung Hibrida', 'Panen 5 Ton', 
       4.0, 15000, formatDate(past10Days).split(' ')[0], '', formatDate(past10Days).split(' ')[0], '', 0, '', 0, 0, 0, 
       '', '', '', 
-      ReportSeverity.NORMAL, '', ReviewStatus.UNREVIEWED
+      ReportSeverity.NORMAL, '', ReviewStatus.UNVERIFIED
     ],
     // 6. Completed Harvest & High Sales (Perikanan)
     [
@@ -75,7 +75,7 @@ function seedMockData() {
       'Ikan (Perikanan)', 'Tambak Udang D-1', 'Panen Total & Penjualan', 'Panen 850 kg Vaname', 
       1.5, 50000, '', dateOnly, dateOnly, dateOnly, 850, dateOnly, 85000, 850, 72250000, 
       '', '', '', 
-      ReportSeverity.NORMAL, '', ReviewStatus.CLOSED
+      ReportSeverity.NORMAL, '', ReviewStatus.VERIFIED
     ]
   ];
 
