@@ -23,7 +23,7 @@ After running `setupReportingSystem()`, you must set the following properties in
 
 | Property Name | Example / Expected Value | Description |
 |---|---|---|
-| `RETENTION_DAYS` | `90` | Optional archive threshold for `archiveOldReports()`. If unset or invalid, the system uses the safe default of 90 days. |
+| `RETENTION_DAYS` | `90` | Optional retention threshold in days for daily spreadsheet tabs (`Laporan_YYYY-MM-DD`) and Google Drive photo folders (`MPL_Dokumentasi_Foto/YYYY-MM-DD`). Default: 90 days. |
 
 ---
 

@@ -29,6 +29,20 @@ const ConfigRepository = {
   },
 
   /**
+   * Sets a single script property.
+   * @param {string} propertyName 
+   * @param {any} value 
+   */
+  setProperty: function(propertyName, value) {
+    try {
+      const props = PropertiesService.getScriptProperties();
+      props.setProperty(propertyName, String(value));
+    } catch (e) {
+      Logger.log(`ConfigRepository Warning: Failed to set property ${propertyName}. Error: ${e.toString()}`);
+    }
+  },
+
+  /**
    * Sets multiple properties in bulk.
    * @param {Object} propertiesObj 
    */
@@ -38,7 +52,7 @@ const ConfigRepository = {
   },
 
   getSpreadsheetId: function() {
-    return this.getProperty('SPREADSHEET_ID');
+    return this.getProperty('SPREADSHEET_ID') || '1kzJI_6Er-DI1Ty7Kc6sEkl6STK0fTih4RcHh8HJf0dI';
   },
 
   getMainFormId: function() {
@@ -90,5 +104,130 @@ const ConfigRepository = {
     const effectiveManager = (managerEmail && managerEmail !== this.PLACEHOLDER_MANAGER) ? managerEmail : null;
 
     return { effectiveAdmin, effectiveManager };
+  },
+
+  /**
+   * Deletes a script property.
+   * @param {string} propertyName 
+   */
+  deleteProperty: function(propertyName) {
+    try {
+      const props = PropertiesService.getScriptProperties();
+      props.deleteProperty(propertyName);
+    } catch (e) {
+      Logger.log(`ConfigRepository Warning: Failed to delete property ${propertyName}. Error: ${e.toString()}`);
+    }
+  },
+
+  /**
+   * Retrieves customized employee registry array from Script Properties.
+   * @returns {Array<Object>|null}
+   */
+  getCustomEmployeeRegistry: function() {
+    try {
+      const raw = this.getProperty('EMPLOYEE_CUSTOM_REGISTRY_JSON');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      Logger.log('ConfigRepository: Error parsing EMPLOYEE_CUSTOM_REGISTRY_JSON: ' + e.toString());
+    }
+    return null;
+  },
+
+  /**
+   * Saves customized employee registry array to Script Properties.
+   * @param {Array<Object>|null} registryArray 
+   */
+  setCustomEmployeeRegistry: function(registryArray) {
+    if (!registryArray) {
+      this.deleteProperty('EMPLOYEE_CUSTOM_REGISTRY_JSON');
+      return;
+    }
+    this.setProperty('EMPLOYEE_CUSTOM_REGISTRY_JSON', JSON.stringify(registryArray));
+  },
+
+  /**
+   * Baseline default reporting form schema.
+   * @returns {Object}
+   */
+  getDefaultReportingFormSchema: function() {
+    return {
+      version: '1.0',
+      title: 'Formulir Laporan Operasional',
+      subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
+      lokasiOptions: [
+        'Sektor 1 + Ciomas',
+        'Sektor 2',
+        'Sektor 3',
+        'Sektor 4',
+        'Gunung Batu'
+      ],
+      kegiatanList: [
+        { key: 'tanam', title: 'Tanam atau tebar', desc: 'Penanaman bibit atau tebar benih', enabled: true },
+        { key: 'panen', title: 'Panen atau penjualan', desc: 'Pemanenan hasil atau penjualan unit', enabled: true },
+        { key: 'pengawasan', title: 'Pengawasan', desc: 'Supervisi lahan, ternak, atau binaan', enabled: true },
+        { key: 'administrasi', title: 'Administrasi', desc: 'Pencatatan, pembukuan, atau surat-menyurat', enabled: true }
+      ],
+      pengawasanCategories: [
+        'Komoditas pertanian / perkebunan',
+        'Komoditas peternakan',
+        'Petani binaan'
+      ],
+      statusPengelolaanOptions: [
+        'Swakelola',
+        'Petani binaan',
+        'Kemitraan'
+      ],
+      komoditasOptions: [
+        'Pisang',
+        'Jagung Manis',
+        'Terong',
+        'Cabe',
+        'Jagung Tebon',
+        'Jagung Hibrida',
+        'Edamame',
+        'Penyemaian'
+      ],
+      tujuanPenggunaanOptions: [
+        'MPL Jonggol',
+        'MPL Cikalong',
+        'Villa Quiling',
+        'Pasir Putih'
+      ],
+      customFields: []
+    };
+  },
+
+  /**
+   * Retrieves active reporting form schema from Script Properties.
+   * @returns {Object}
+   */
+  getReportingFormSchema: function() {
+    try {
+      const raw = this.getProperty('REPORTING_FORM_SCHEMA_JSON');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          return Object.assign(this.getDefaultReportingFormSchema(), parsed);
+        }
+      }
+    } catch (e) {
+      Logger.log('ConfigRepository: Error parsing REPORTING_FORM_SCHEMA_JSON: ' + e.toString());
+    }
+    return this.getDefaultReportingFormSchema();
+  },
+
+  /**
+   * Saves active reporting form schema to Script Properties.
+   * @param {Object|null} schemaObj 
+   */
+  setReportingFormSchema: function(schemaObj) {
+    if (!schemaObj) {
+      this.deleteProperty('REPORTING_FORM_SCHEMA_JSON');
+      return;
+    }
+    this.setProperty('REPORTING_FORM_SCHEMA_JSON', JSON.stringify(schemaObj));
   }
 };

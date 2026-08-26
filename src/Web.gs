@@ -21,6 +21,7 @@ function doGet(e) {
     admin: 'admin', 
     dashboard: 'dashboard',
     forms: 'forms',
+    employees: 'employees',
     camera: 'camera'
   };
 
@@ -42,14 +43,14 @@ function doGet(e) {
   }
 
   // Access control: strict per-role RBAC for internal console pages
-  if ((file === 'admin' || file === 'dashboard' || file === 'forms') && !isInternalDeployment) {
+  if ((file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees') && !isInternalDeployment) {
     return renderAccessRestricted(
       'Akses Internal Console Tidak Tersedia di Deployment Ini',
-      'Halaman Internal Console (Admin Queue, Dashboard Manajer, dan Manajemen Form) hanya tersedia melalui Deployment Admin.'
+      'Halaman Internal Console (Antrean Admin, Dashboard Manajer, Pengaturan Karyawan, dan Pengaturan Form) hanya tersedia melalui Deployment Admin.'
     );
   }
 
-  if (file === 'admin' || file === 'dashboard' || file === 'forms') {
+  if (file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees') {
     if (!userRole) {
       return renderAccessRestricted(
         '🔒 Akses Internal Console Terbatas',

@@ -93,10 +93,20 @@
             </div>
           </div>
 
+          <!-- Nomor Telepon PIC Input (Core Required Field) -->
+          <div class="form-group" id="nomorTeleponGroup" style="margin-bottom: 1rem;">
+            <label class="form-label" for="nomorTelepon">Nomor Telepon <span class="required">*</span></label>
+            <input type="tel" id="nomorTelepon" name="nomorTelepon" class="form-input" placeholder="contoh: 081234567890" inputmode="tel" required>
+            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-top: 0.25rem;">Nomor telepon aktif PIC pelapor untuk koordinasi lapangan.</span>
+          </div>
+
+          <!-- Dynamic Questions Slot: Setelah 1.1 Identitas PIC -->
+          <div id="dynSec_1_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <!-- Lokasi Kegiatan (Multiple Select Checkbox Pills) -->
           <div class="form-group" id="lokasiGroup">
             <label class="form-label" style="margin-bottom: 0.35rem;">Lokasi Kegiatan <span class="required">*</span></label>
-            <div class="checkbox-pill-grid">
+            <div class="checkbox-pill-grid" id="lokasiCheckboxGrid">
               <label class="checkbox-pill-item">
                 <input type="checkbox" name="lokasiKegiatanCheck" value="Sektor 1 + Ciomas">
                 <span>Sektor 1 + Ciomas</span>
@@ -119,6 +129,9 @@
               </label>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 1.2 Lokasi Sektor -->
+          <div id="dynSec_1_2" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
 
           <!-- Kegiatan yang Dilakukan (Multiple Select Checkbox Cards) -->
           <div class="form-group" id="kegiatanGroup">
@@ -155,6 +168,9 @@
             </div>
           </div>
 
+          <!-- Dynamic Questions Slot: Setelah 1.3 Pilihan Kegiatan -->
+          <div id="dynSec_1_3" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <!-- Conditional Pengawasan Sub-Section -->
           <div id="sectionPengawasanContainer" style="display: none; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 1rem; margin-top: 0.75rem; margin-bottom: 1rem;">
             <div style="font-size: 0.875rem; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.75rem;">
@@ -187,6 +203,12 @@
               <textarea id="detailAdministrasi" rows="3" placeholder="Tuliskan catatan kegiatan administrasi, pembukuan, rekapitulasi, atau surat-menyurat..."></textarea>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 1.4 Pengawasan & Administrasi -->
+          <div id="dynSec_1_4" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 1 End / Default) -->
+          <div id="dynamicFieldsStep1" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem;"></div>
 
           <div class="wizard-actions" style="justify-content: flex-end;">
             <button type="button" class="btn btn-primary" onclick="nextStep(1)">
@@ -230,6 +252,9 @@
             </div>
           </div>
 
+          <!-- Dynamic Questions Slot: Setelah 2.1 Komoditas & Status -->
+          <div id="dynSec_2_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <div class="form-row-2col">
             <div class="form-group">
               <label for="luasLahanM2">Luas Lahan (m²) <span class="required">*</span></label>
@@ -241,6 +266,9 @@
             </div>
           </div>
 
+          <!-- Dynamic Questions Slot: Setelah 2.2 Luas & Benih -->
+          <div id="dynSec_2_2" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <div class="form-row-2col">
             <div class="form-group">
               <label for="tglTanam">Tanggal Tanam / Tebar <span class="required">*</span></label>
@@ -251,6 +279,12 @@
               <input type="number" id="estimasiPanenHst" placeholder="Hari Setelah Tanam (contoh: 90)" min="1" max="730" step="1">
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 2.3 Tanggal & HST -->
+          <div id="dynSec_2_3" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 2 End / Default) -->
+          <div id="dynamicFieldsStep2" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem;"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep(2)">
@@ -298,6 +332,9 @@
             </div>
           </div>
 
+          <!-- Dynamic Questions Slot: Setelah 3.1 Status & Komoditas Panen -->
+          <div id="dynSec_3_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <div class="form-row-2col">
             <div class="form-group">
               <label for="tglPanen">Tanggal Panen <span class="required">*</span></label>
@@ -308,6 +345,9 @@
               <input type="date" id="tglPenjualan">
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 3.2 Tanggal Panen & Penjualan -->
+          <div id="dynSec_3_2" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
 
           <div class="form-group">
             <label for="jumlahPanen">Jumlah Panen (kg) <span class="required">*</span></label>
@@ -331,6 +371,12 @@
               </label>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 3.3 Jumlah Panen & Tujuan Distribusi -->
+          <div id="dynSec_3_3" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 3 End / Default) -->
+          <div id="dynamicFieldsStep3" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem;"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep(3)">
@@ -361,10 +407,20 @@
               <input type="number" id="hargaSatuanRp" placeholder="0" min="1" step="1" oninput="calculateTotalHarga()">
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 4.1 Unit & Harga Satuan -->
+          <div id="dynSec_4_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <div class="form-group">
             <label for="totalHargaRp">Total Harga (Rp) <span class="required">*</span></label>
             <input type="number" id="totalHargaRp" placeholder="0" min="1" step="1">
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 4.2 Total Harga -->
+          <div id="dynSec_4_2" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 4 End / Default) -->
+          <div id="dynamicFieldsStep4" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem;"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep(4)">
@@ -390,15 +446,24 @@
             <input type="number" id="jumlahUnitPenggunaan" placeholder="0" min="1" step="1">
           </div>
 
+          <!-- Dynamic Questions Slot: Setelah 5.1 Unit Penggunaan -->
+          <div id="dynSec_5_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <div class="form-group" id="penggunaanGroup">
             <label class="form-label" style="margin-bottom: 0.35rem;">Tujuan Penggunaan <span class="required">*</span></label>
-            <div class="checkbox-pill-grid">
+            <div class="checkbox-pill-grid" id="tujuanPenggunaanCheckboxGrid">
               <label class="checkbox-pill-item"><input type="checkbox" name="tujuanPenggunaan" value="MPL Jonggol"> <span>MPL Jonggol</span></label>
               <label class="checkbox-pill-item"><input type="checkbox" name="tujuanPenggunaan" value="MPL Cikalong"> <span>MPL Cikalong</span></label>
               <label class="checkbox-pill-item"><input type="checkbox" name="tujuanPenggunaan" value="Villa Quiling"> <span>Villa Quiling</span></label>
               <label class="checkbox-pill-item"><input type="checkbox" name="tujuanPenggunaan" value="Pasir Putih"> <span>Pasir Putih</span></label>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 5.2 Lokasi Tujuan Penggunaan -->
+          <div id="dynSec_5_2" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 5 End / Default) -->
+          <div id="dynamicFieldsStep5" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem;"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep(5)">
@@ -434,35 +499,94 @@
             <textarea id="upaya" rows="2" placeholder="Catat solusi atau tindakan penanganan jika ada (opsional)..."></textarea>
           </div>
 
+          <!-- Dynamic Questions Slot: Setelah 6.1 Capaian, Kendala & Upaya -->
+          <div id="dynSec_6_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
           <div class="form-group">
-            <label class="form-label" style="margin-bottom: 0.35rem;">Foto Bukti Kegiatan (Snapshot Kamera Live) <span class="required">*</span></label>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <label class="form-label" style="margin: 0; font-weight: 700;">Foto Bukti Kegiatan (3 Foto Wajib) <span class="required">*</span></label>
+              <span id="photoProgressBadge" class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px;">0 dari 3 foto telah diambil</span>
+            </div>
             
-            <div id="cameraBoxContainer" style="border: 2px dashed var(--border); border-radius: 12px; padding: 1.5rem 1rem; text-align: center; background: var(--surface);">
+            <p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.85rem;">
+              Ambil 3 foto langsung menggunakan kamera untuk mendokumentasikan kegiatan lapangan:
+              <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>.
+            </p>
 
-              <!-- Hidden Native Camera File Input -->
-              <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoSelect(this)">
-
-              <!-- Primary Camera Trigger Button -->
-              <div id="cameraTriggerArea">
-                <button type="button" class="btn btn-primary" onclick="triggerCameraCapture()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);">
-                  <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                  <span>Ambil Foto Snapshot (Kamera)</span>
-                </button>
-              </div>
-
-              <!-- Photo Preview -->
-              <div id="photoPreview" class="photo-preview-box" style="display: none; margin-top: 1rem; text-align: center;">
-                <img id="previewImg" class="photo-preview-image" src="" alt="Preview Foto Bukti" style="max-height: 260px; border-radius: 8px; border: 1px solid var(--border);">
-                <div style="margin-top: 0.75rem;">
-                  <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture()" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                    <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                    <span>Foto Ulang (Ambil Snapshot Baru)</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
+              <!-- Slot 1 -->
+              <div class="photo-slot-card" id="photoSlotCard_0" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
+                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 1: Utama <span class="required">*</span></div>
+                
+                <div id="slotEmpty_0">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(0)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Ambil Foto 1</span>
                   </button>
+                </div>
+
+                <div id="slotPreview_0" style="display: none; width: 100%; text-align: center;">
+                  <img id="slotImg_0" src="" alt="Preview Foto 1" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
+                  <div style="margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(0)" style="font-size: 0.75rem; padding: 3px 8px;">
+                      <span>Foto Ulang</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
+              <!-- Slot 2 -->
+              <div class="photo-slot-card" id="photoSlotCard_1" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
+                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 2: Detail Aktivitas <span class="required">*</span></div>
+                
+                <div id="slotEmpty_1">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(1)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Ambil Foto 2</span>
+                  </button>
+                </div>
+
+                <div id="slotPreview_1" style="display: none; width: 100%; text-align: center;">
+                  <img id="slotImg_1" src="" alt="Preview Foto 2" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
+                  <div style="margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(1)" style="font-size: 0.75rem; padding: 3px 8px;">
+                      <span>Foto Ulang</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Slot 3 -->
+              <div class="photo-slot-card" id="photoSlotCard_2" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
+                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 3: Hasil / Area <span class="required">*</span></div>
+                
+                <div id="slotEmpty_2">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(2)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Ambil Foto 3</span>
+                  </button>
+                </div>
+
+                <div id="slotPreview_2" style="display: none; width: 100%; text-align: center;">
+                  <img id="slotImg_2" src="" alt="Preview Foto 3" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
+                  <div style="margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(2)" style="font-size: 0.75rem; padding: 3px 8px;">
+                      <span>Foto Ulang</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <!-- Hidden Native Camera File Input for fallback -->
+            <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoSelect(this)">
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 6.2 Foto Bukti Kamera -->
+          <div id="dynSec_6_2" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 6 / Catatan Akhir) -->
+          <div id="dynamicFieldsStep6" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep(6)">
@@ -507,6 +631,10 @@
               <div class="review-item">
                 <span class="review-label">Divisi</span>
                 <span class="review-value" id="revBidangDivisi">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Nomor Telepon</span>
+                <span class="review-value" id="revNomorTelepon">-</span>
               </div>
               <div class="review-item">
                 <span class="review-label">Lokasi Kegiatan</span>
@@ -773,7 +901,7 @@
   <?!= includeApp(webAppUrl); ?>
   <script>
     // Master Employee Registry (Local cache for instant zero-latency lookup)
-    const CLIENT_EMPLOYEE_REGISTRY = [
+    let CLIENT_EMPLOYEE_REGISTRY = [
       // Manajemen (9 Orang)
       { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
       { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
@@ -823,11 +951,216 @@
       { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
     ];
 
+    let capturedPhotos = ['', '', ''];
+    let currentCameraSlot = 0;
     let photoBase64Data = '';
     let photoMimeTypeData = '';
     let photoIsSuspiciousTimestamp = false;
     let currentStep = 1;
     let selectedEmployeeRecord = null;
+
+    let ACTIVE_FORM_SCHEMA = {
+      lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
+      komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'],
+      pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
+      statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
+      tujuanPenggunaanOptions: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
+      customFields: []
+    };
+
+    function escapeHtmlAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function applyDynamicFormSchema(schema) {
+      if (!schema || typeof schema !== 'object') return;
+      ACTIVE_FORM_SCHEMA = Object.assign(ACTIVE_FORM_SCHEMA, schema);
+
+      // 1. Hydrate Lokasi Options
+      if (Array.isArray(schema.lokasiOptions) && schema.lokasiOptions.length > 0) {
+        const grid = document.getElementById('lokasiCheckboxGrid');
+        if (grid) {
+          const selectedVals = Array.from(document.querySelectorAll('input[name="lokasiKegiatanCheck"]:checked')).map(cb => cb.value);
+          grid.innerHTML = schema.lokasiOptions.map(loc => {
+            const isChecked = selectedVals.includes(loc);
+            return `
+              <label class="checkbox-pill-item">
+                <input type="checkbox" name="lokasiKegiatanCheck" value="${escapeHtmlAttr(loc)}" ${isChecked ? 'checked' : ''}>
+                <span>${escapeHtmlAttr(loc)}</span>
+              </label>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Hydrate Komoditas (Tanam & Panen)
+      if (Array.isArray(schema.komoditasOptions) && schema.komoditasOptions.length > 0) {
+        const selTanam = document.getElementById('komoditas');
+        const selPanen = document.getElementById('komoditasPanen');
+        let comHtml = '<option value="">-- Pilih Komoditas --</option>';
+        schema.komoditasOptions.forEach(com => {
+          comHtml += `<option value="${escapeHtmlAttr(com)}">${escapeHtmlAttr(com)}</option>`;
+        });
+        if (selTanam) {
+          const prevVal = selTanam.value;
+          selTanam.innerHTML = comHtml;
+          if (prevVal) selTanam.value = prevVal;
+        }
+        if (selPanen) {
+          const prevVal = selPanen.value;
+          selPanen.innerHTML = comHtml;
+          if (prevVal) selPanen.value = prevVal;
+        }
+      }
+
+      // 3. Hydrate Pengawasan Categories
+      if (Array.isArray(schema.pengawasanCategories) && schema.pengawasanCategories.length > 0) {
+        const sel = document.getElementById('pengawasan');
+        if (sel) {
+          const curVal = sel.value;
+          let optsHtml = '<option value="">-- Pilih Kategori Pengawasan --</option>';
+          schema.pengawasanCategories.forEach(cat => {
+            optsHtml += `<option value="${escapeHtmlAttr(cat)}" ${curVal === cat ? 'selected' : ''}>${escapeHtmlAttr(cat)}</option>`;
+          });
+          sel.innerHTML = optsHtml;
+        }
+      }
+
+      // 4. Hydrate Status Pengelolaan
+      if (Array.isArray(schema.statusPengelolaanOptions) && schema.statusPengelolaanOptions.length > 0) {
+        const selStatus = document.getElementById('statusPengelolaan');
+        const selStatusPanen = document.getElementById('statusPengelolaanPanen');
+        let statusHtml = '<option value="">-- Pilih Status --</option>';
+        schema.statusPengelolaanOptions.forEach(st => {
+          statusHtml += `<option value="${escapeHtmlAttr(st)}">${escapeHtmlAttr(st)}</option>`;
+        });
+        if (selStatus) {
+          const prevVal = selStatus.value;
+          selStatus.innerHTML = statusHtml;
+          if (prevVal) selStatus.value = prevVal;
+        }
+        if (selStatusPanen) {
+          const prevVal = selStatusPanen.value;
+          selStatusPanen.innerHTML = statusHtml;
+          if (prevVal) selStatusPanen.value = prevVal;
+        }
+      }
+
+      // 5. Hydrate Tujuan Penggunaan Internal
+      if (Array.isArray(schema.tujuanPenggunaanOptions) && schema.tujuanPenggunaanOptions.length > 0) {
+        const gridPenggunaan = document.getElementById('tujuanPenggunaanCheckboxGrid');
+        if (gridPenggunaan) {
+          const selectedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaan"]:checked')).map(cb => cb.value);
+          gridPenggunaan.innerHTML = schema.tujuanPenggunaanOptions.map(tp => {
+            const isChecked = selectedPenggunaan.includes(tp);
+            return `
+              <label class="checkbox-pill-item">
+                <input type="checkbox" name="tujuanPenggunaan" value="${escapeHtmlAttr(tp)}" ${isChecked ? 'checked' : ''}>
+                <span>${escapeHtmlAttr(tp)}</span>
+              </label>
+            `;
+          }).join('');
+        }
+      }
+
+      // 6. Render Custom Questions Across All 6 Steps
+      renderDynamicCustomFieldStep(1, 'dynamicFieldsStep1');
+      renderDynamicCustomFieldStep(2, 'dynamicFieldsStep2');
+      renderDynamicCustomFieldStep(3, 'dynamicFieldsStep3');
+      renderDynamicCustomFieldStep(4, 'dynamicFieldsStep4');
+      renderDynamicCustomFieldStep(5, 'dynamicFieldsStep5');
+      renderDynamicCustomFieldStep(6, 'dynamicFieldsStep6');
+    }
+
+    function renderDynamicCustomFieldStep(stepNumber, containerId) {
+      // 1. Clear all section slots in this step
+      const stepSlots = document.querySelectorAll(`[id^="dynSec_${stepNumber}_"]`);
+      stepSlots.forEach(el => { el.innerHTML = ''; });
+      const mainContainer = document.getElementById(containerId);
+      if (mainContainer) mainContainer.innerHTML = '';
+
+      const fields = (ACTIVE_FORM_SCHEMA.customFields || []).filter(f => (parseInt(f.step, 10) || 1) === stepNumber);
+      if (fields.length === 0) return;
+
+      fields.forEach(f => {
+        const secCode = (f.section || '').replace('.', '_');
+        let targetSlot = secCode ? document.getElementById(`dynSec_${secCode}`) : null;
+        if (!targetSlot) {
+          targetSlot = mainContainer;
+        }
+        if (!targetSlot) return;
+
+        const reqBadge = f.required ? '<span class="required">*</span>' : '';
+        const reqAttr = f.required ? 'required' : '';
+        const help = f.helpText ? `<span class="form-help" style="margin-top: 0.25rem; font-size: 0.775rem; color: #64748b;">${escapeHtmlAttr(f.helpText)}</span>` : '';
+
+        let fieldHtml = '';
+        if (f.type === 'textarea') {
+          fieldHtml = `
+            <div class="form-group">
+              <label for="cf_${f.id}">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
+              <textarea id="cf_${f.id}" name="cf_${f.id}" rows="2" placeholder="${escapeHtmlAttr(f.helpText || '')}" ${reqAttr}></textarea>
+              ${help}
+            </div>
+          `;
+        } else if (f.type === 'select') {
+          const opts = Array.isArray(f.options) ? f.options : [];
+          fieldHtml = `
+            <div class="form-group">
+              <label for="cf_${f.id}">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
+              <select id="cf_${f.id}" name="cf_${f.id}" ${reqAttr}>
+                <option value="">-- Pilih ${escapeHtmlAttr(f.label)} --</option>
+                ${opts.map(o => `<option value="${escapeHtmlAttr(o)}">${escapeHtmlAttr(o)}</option>`).join('')}
+              </select>
+              ${help}
+            </div>
+          `;
+        } else if (f.type === 'checkbox') {
+          const opts = Array.isArray(f.options) ? f.options : [];
+          fieldHtml = `
+            <div class="form-group">
+              <label class="form-label" style="margin-bottom: 0.35rem;">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
+              <div class="checkbox-pill-grid">
+                ${opts.map(o => `
+                  <label class="checkbox-pill-item">
+                    <input type="checkbox" name="cf_${f.id}" value="${escapeHtmlAttr(o)}">
+                    <span>${escapeHtmlAttr(o)}</span>
+                  </label>
+                `).join('')}
+              </div>
+              ${help}
+            </div>
+          `;
+        } else if (f.type === 'number') {
+          fieldHtml = `
+            <div class="form-group">
+              <label for="cf_${f.id}">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
+              <input type="number" id="cf_${f.id}" name="cf_${f.id}" placeholder="${escapeHtmlAttr(f.helpText || '0')}" ${reqAttr}>
+              ${help}
+            </div>
+          `;
+        } else if (f.type === 'date') {
+          fieldHtml = `
+            <div class="form-group">
+              <label for="cf_${f.id}">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
+              <input type="date" id="cf_${f.id}" name="cf_${f.id}" ${reqAttr}>
+              ${help}
+            </div>
+          `;
+        } else {
+          fieldHtml = `
+            <div class="form-group">
+              <label for="cf_${f.id}">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
+              <input type="text" id="cf_${f.id}" name="cf_${f.id}" placeholder="${escapeHtmlAttr(f.helpText || '')}" ${reqAttr}>
+              ${help}
+            </div>
+          `;
+        }
+
+        targetSlot.insertAdjacentHTML('beforeend', fieldHtml);
+      });
+    }
 
     /**
      * Searches client employee registry for ID or Name match.
@@ -1083,20 +1416,53 @@
       }
     }
 
+    function updatePhotoSlotsUI() {
+      for (let i = 0; i < 3; i++) {
+        const card = document.getElementById('photoSlotCard_' + i);
+        const empty = document.getElementById('slotEmpty_' + i);
+        const preview = document.getElementById('slotPreview_' + i);
+        const img = document.getElementById('slotImg_' + i);
+        if (!card) continue;
+
+        if (capturedPhotos[i]) {
+          if (empty) empty.style.display = 'none';
+          if (preview) preview.style.display = 'block';
+          if (img) img.src = capturedPhotos[i];
+          card.style.borderColor = '#10b981';
+          card.style.background = '#f0fdf4';
+        } else {
+          if (empty) empty.style.display = 'block';
+          if (preview) preview.style.display = 'none';
+          if (img) img.src = '';
+          card.style.borderColor = '#cbd5e1';
+          card.style.background = 'var(--surface)';
+        }
+      }
+
+      const badge = document.getElementById('photoProgressBadge');
+      if (badge) {
+        const count = capturedPhotos.filter(Boolean).length;
+        if (count === 3) {
+          badge.innerText = '3 dari 3 foto telah diambil (Lengkap)';
+          badge.style.background = '#dcfce7';
+          badge.style.color = '#15803d';
+        } else {
+          badge.innerText = `${count} dari 3 foto telah diambil`;
+          badge.style.background = '#e0f2fe';
+          badge.style.color = '#0369a1';
+        }
+      }
+    }
+
     function handleCapturedPhoto(base64Data) {
       if (!base64Data) return;
       compressImageDataUrl(base64Data, 1280, 0.75).then(compressedBase64 => {
-        photoBase64Data = compressedBase64;
+        capturedPhotos[currentCameraSlot] = compressedBase64;
+        photoBase64Data = capturedPhotos[0];
         photoMimeTypeData = 'image/jpeg';
         photoIsSuspiciousTimestamp = false;
-
-        const imgPreview = document.getElementById('previewImg');
-        if (imgPreview) imgPreview.src = photoBase64Data;
-
-        const previewBox = document.getElementById('photoPreview');
-        if (previewBox) previewBox.style.display = 'block';
-
-        showToast('📸 Foto kamera snapshot berhasil diambil!', 'success');
+        updatePhotoSlotsUI();
+        showToast(`📸 Foto ${currentCameraSlot + 1} berhasil diambil!`, 'success');
       });
     }
 
@@ -1108,7 +1474,8 @@
       }
     });
 
-    function triggerCameraCapture() {
+    function triggerCameraCapture(slotIndex) {
+      currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
       const win = window.open('', 'CameraSnapshotWindow', 'width=580,height=680,resizable=yes');
       if (!win) {
         showToast('⚠️ Pop-up terblokir. Izinkan pop-up peramban untuk menggunakan kamera.', 'warning');
@@ -1122,7 +1489,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Snapshot Kamera - Laporan Operasional</title>
+  <title>Snapshot Kamera (Foto ${currentCameraSlot + 1}) - Laporan Operasional</title>
   <style>
     body { margin: 0; background: #0f172a; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
     #videoContainer { position: relative; width: 100%; max-width: 480px; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
@@ -1136,13 +1503,16 @@
   </style>
 </head>
 <body>
+  <div style="margin-bottom: 0.75rem; font-weight: 700; font-size: 1.1rem; color: #f8fafc;">
+    Ambil Foto Bukti #${currentCameraSlot + 1}
+  </div>
   <div id="videoContainer">
     <video id="webcamVideo" autoplay playsinline muted></video>
   </div>
   <div class="controls">
     <button class="btn-cancel" onclick="window.close()">Batal</button>
     <button class="btn-capture" id="btnSnap" onclick="takeSnapshot()">
-      <span>Ambil Foto Langsung</span>
+      <span>Ambil Foto ${currentCameraSlot + 1}</span>
     </button>
   </div>
   <canvas id="snapCanvas" style="display: none;"></canvas>
@@ -1234,9 +1604,6 @@
           if (ageSeconds > 300) {
             showToast('❌ Foto harus diambil langsung dari kamera saat ini. Foto lama dari galeri tidak diperbolehkan!', 'error');
             input.value = '';
-            photoBase64Data = '';
-            photoMimeTypeData = '';
-            document.getElementById('photoPreview').style.display = 'none';
             return;
           }
         }
@@ -1246,9 +1613,11 @@
         const reader = new FileReader();
         reader.onload = function(e) {
           compressImageDataUrl(e.target.result, 1280, 0.75).then(compressedBase64 => {
-            photoBase64Data = compressedBase64;
-            document.getElementById('previewImg').src = photoBase64Data;
-            document.getElementById('photoPreview').style.display = 'block';
+            capturedPhotos[currentCameraSlot] = compressedBase64;
+            photoBase64Data = capturedPhotos[0];
+            photoMimeTypeData = 'image/jpeg';
+            updatePhotoSlotsUI();
+            showToast(`📸 Foto ${currentCameraSlot + 1} berhasil dipilih!`, 'success');
           });
         };
         reader.readAsDataURL(file);
@@ -1278,6 +1647,12 @@
           errors.push({ id: 'idKaryawan', text: 'ID Karyawan wajib diisi.' });
         } else if (!emp) {
           errors.push({ id: 'idKaryawan', text: 'ID Karyawan tidak terdaftar. Gunakan tombol "Cari ID Saya" untuk memilih ID resmi Anda.' });
+        }
+
+        const noTelp = document.getElementById('nomorTelepon');
+        const rawTelp = (noTelp?.value || '').trim();
+        if (!rawTelp) {
+          errors.push({ id: 'nomorTelepon', text: 'Nomor Telepon wajib diisi.' });
         }
 
         const checkedLokasi = Array.from(document.querySelectorAll('input[name="lokasiKegiatanCheck"]:checked')).map(c => c.value);
@@ -1425,8 +1800,13 @@
           errors.push({ id: 'capaianKegiatan', text: 'Capaian Kegiatan wajib diisi.' });
         }
 
-        if (!photoBase64Data) {
-          errors.push({ id: 'photoInput', text: 'Foto Bukti Kegiatan wajib diambil menggunakan kamera snapshot.' });
+        const missingSlots = [];
+        if (!capturedPhotos[0]) missingSlots.push('Foto 1 (Utama)');
+        if (!capturedPhotos[1]) missingSlots.push('Foto 2 (Detail Aktivitas)');
+        if (!capturedPhotos[2]) missingSlots.push('Foto 3 (Hasil / Area)');
+
+        if (missingSlots.length > 0) {
+          errors.push({ id: 'photoSlotCard_0', text: `Wajib melampirkan 3 foto bukti kegiatan: ${missingSlots.join(', ')} belum diambil.` });
         }
       }
 
@@ -1524,6 +1904,7 @@
       document.getElementById('revIdKaryawan').innerText = idKaryawanVal;
       document.getElementById('revNamaPic').innerText = document.getElementById('namaPic').value || '-';
       document.getElementById('revBidangDivisi').innerText = document.getElementById('bidangDivisi').value || '-';
+      document.getElementById('revNomorTelepon').innerText = document.getElementById('nomorTelepon').value || '-';
       document.getElementById('revLokasiKegiatan').innerText = checkedLokasi.length > 0 ? checkedLokasi.join(', ') : '-';
       document.getElementById('revJenisKegiatan').innerText = checkedKegiatan.length > 0 ? checkedKegiatan.join(', ') : '-';
 
@@ -1587,8 +1968,18 @@
       document.getElementById('revUpaya').innerText = cleanK ? (document.getElementById('upaya').value || '-') : '(Tidak ada)';
       
       const photoContainer = document.getElementById('revPhotoContainer');
-      if (photoBase64Data) {
-        photoContainer.innerHTML = `<img src="${photoBase64Data}" alt="Foto Bukti" class="photo-preview-image" style="max-height: 120px; display: block; margin-top: 4px; border-radius: 6px;">`;
+      const filledPhotos = capturedPhotos.filter(Boolean);
+      if (filledPhotos.length > 0) {
+        photoContainer.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
+            ${capturedPhotos.map((p, idx) => p ? `
+              <div style="text-align: center; border: 1px solid var(--border); border-radius: 8px; padding: 4px; background: var(--surface);">
+                <img src="${p}" alt="Foto ${idx+1}" style="max-height: 80px; width: 100%; object-fit: cover; border-radius: 4px;">
+                <div style="font-size: 0.7rem; font-weight: 600; color: #475569; margin-top: 2px;">Foto ${idx+1}</div>
+              </div>
+            ` : '').join('')}
+          </div>
+        `;
       } else {
         photoContainer.innerHTML = `<span class="review-value" style="color: var(--urgent);">Belum ada foto</span>`;
       }
@@ -1649,10 +2040,13 @@
       if (detailAdmin) detailAdmin.value = '';
       const detailPeng = document.getElementById('detailPengawasan');
       if (detailPeng) detailPeng.value = '';
-      document.getElementById('photoPreview').style.display = 'none';
+      
+      capturedPhotos = ['', '', ''];
       photoBase64Data = '';
       photoMimeTypeData = '';
       photoIsSuspiciousTimestamp = false;
+      updatePhotoSlotsUI();
+
       handleEmployeeIdInput('');
       handleJenisKegiatanChange();
       goToStep(1);
@@ -1701,6 +2095,7 @@
         empId: idKaryawanVal,
         namaPic: namaPicVal,
         bidangDivisi: divisiVal,
+        nomorTelepon: (document.getElementById('nomorTelepon')?.value || '').trim(),
         lokasiKegiatan: checkedLokasi.join(', '),
         jenisKegiatan: checkedKegiatan.join(', '),
         pengawasan: isPengawasan ? document.getElementById('pengawasan').value : '',
@@ -1730,9 +2125,42 @@
         capaianKegiatan: document.getElementById('capaianKegiatan').value,
         kendala: kendalaVal,
         upaya: upayaVal,
-        photoBase64: photoBase64Data,
-        photoMimeType: photoMimeTypeData
+        photos: [
+          { base64: capturedPhotos[0], mimeType: 'image/jpeg' },
+          { base64: capturedPhotos[1], mimeType: 'image/jpeg' },
+          { base64: capturedPhotos[2], mimeType: 'image/jpeg' }
+        ],
+        photoBase64: capturedPhotos[0],
+        photoBase64_2: capturedPhotos[1],
+        photoBase64_3: capturedPhotos[2],
+        photoMimeType: 'image/jpeg'
       };
+
+      // Collect dynamic custom questions responses
+      const customResponses = {};
+      const customSummaries = [];
+      ((ACTIVE_FORM_SCHEMA && ACTIVE_FORM_SCHEMA.customFields) || []).forEach(f => {
+        const el = document.getElementById('cf_' + f.id);
+        if (f.type === 'checkbox') {
+          const checked = Array.from(document.querySelectorAll(`input[name="cf_${f.id}"]:checked`)).map(c => c.value);
+          if (checked.length > 0) {
+            const valStr = checked.join(', ');
+            customResponses[f.label] = valStr;
+            customResponses[f.id] = valStr;
+            customSummaries.push(`[${f.label}: ${valStr}]`);
+          }
+        } else if (el && el.value.trim()) {
+          const valStr = el.value.trim();
+          customResponses[f.label] = valStr;
+          customResponses[f.id] = valStr;
+          customSummaries.push(`[${f.label}: ${valStr}]`);
+        }
+      });
+
+      payload.customResponses = customResponses;
+      if (customSummaries.length > 0) {
+        payload.capaianKegiatan = (payload.capaianKegiatan ? (payload.capaianKegiatan + '\n' + customSummaries.join(' ')) : customSummaries.join(' '));
+      }
 
       try {
         let res;
@@ -1803,6 +2231,25 @@
     const formEl = document.getElementById('operationalForm');
     if (formEl) {
       formEl.addEventListener('submit', handleFormSubmit);
+    }
+
+    // Refresh live employee directory & dynamic form schema from server in background
+    if (isLiveServer()) {
+      runServer('getEmployeeRegistry').then(list => {
+        if (list && Array.isArray(list) && list.length > 0) {
+          CLIENT_EMPLOYEE_REGISTRY = list;
+        }
+      }).catch(err => {
+        console.warn('Background employee registry sync skipped:', err);
+      });
+
+      runServer('getReportingFormSchema').then(schema => {
+        if (schema) {
+          applyDynamicFormSchema(schema);
+        }
+      }).catch(err => {
+        console.warn('Background form schema sync skipped:', err);
+      });
     }
   </script>
 </body>

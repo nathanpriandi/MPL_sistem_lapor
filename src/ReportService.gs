@@ -88,22 +88,71 @@ const ReportService = {
     if (!payload.kodeKegiatan) {
       payload.kodeKegiatan = this.generateKodeKegiatan(payload.bidangDivisi, payload.lokasiKegiatan);
     }
-    // Require photo attachment for Web App submissions
-    const photoUrl = typeof extractStringUrl === 'function' ? extractStringUrl(payload.fotoUrl || payload.photoUrl) : (payload.fotoUrl || payload.photoUrl || '');
-    
-    if (payload.photoBase64) {
-      const uploadRes = this.uploadReportAttachment(payload.photoBase64, payload.photoMimeType || 'image/jpeg', 'OPERATIONAL', payload.reportId, payload.kodeKegiatan);
-      if (uploadRes && uploadRes.url) {
-        payload.fotoUrl = uploadRes.url;
-      } else {
-        Logger.log('ReportService Notice: Drive upload fallback marker saved: ' + (uploadRes ? uploadRes.error : 'Unknown'));
-        payload.fotoUrl = '[Foto Terlampir - Menunggu Otorisasi Drive]';
-      }
-    } else if (photoUrl) {
-      payload.fotoUrl = photoUrl;
+    // Validate and process 3 mandatory photos
+    const inputPhotos = [];
+    if (Array.isArray(payload.photos) && payload.photos.length > 0) {
+      payload.photos.forEach(p => {
+        if (p && (p.base64 || p.url)) inputPhotos.push(p);
+      });
     } else {
-      throw new Error('Foto bukti kegiatan wajib dilampirkan.');
+      if (payload.photoBase64 || payload.fotoUrl || payload.photoUrl) {
+        inputPhotos.push({ base64: payload.photoBase64, mimeType: payload.photoMimeType || 'image/jpeg', url: payload.fotoUrl || payload.photoUrl });
+      }
+      if (payload.photoBase64_2 || payload.fotoUrl2 || payload.photoUrl2) {
+        inputPhotos.push({ base64: payload.photoBase64_2, mimeType: payload.photoMimeType_2 || 'image/jpeg', url: payload.fotoUrl2 || payload.photoUrl2 });
+      }
+      if (payload.photoBase64_3 || payload.fotoUrl3 || payload.photoUrl3) {
+        inputPhotos.push({ base64: payload.photoBase64_3, mimeType: payload.photoMimeType_3 || 'image/jpeg', url: payload.fotoUrl3 || payload.photoUrl3 });
+      }
     }
+
+    if (inputPhotos.length < 3) {
+      throw new Error('Wajib melampirkan 3 foto bukti kegiatan (Foto 1, Foto 2, dan Foto 3).');
+    }
+
+    const uploadedUrls = [];
+    const todayDateStr = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
+    
+    // Pre-resolve target folder ONCE for all 3 photos to avoid redundant Drive queries
+    let preResolvedFolder = null;
+    try {
+      const folderRes = this.resolveDailyEmployeePhotoFolder_(todayDateStr, payload.idKaryawan, payload.namaPic);
+      preResolvedFolder = folderRes ? folderRes.folder : null;
+    } catch (eF) {
+      Logger.log('ReportService: Pre-resolving folder notice: ' + eF.toString());
+    }
+
+    for (let i = 0; i < 3; i++) {
+      const p = inputPhotos[i];
+      if (p.base64) {
+        const uploadRes = this.uploadReportAttachment(
+          p.base64, 
+          p.mimeType || 'image/jpeg', 
+          'OPERATIONAL', 
+          payload.reportId, 
+          `${payload.kodeKegiatan}_Foto${i+1}`,
+          payload.idKaryawan,
+          payload.namaPic,
+          todayDateStr,
+          preResolvedFolder
+        );
+        if (uploadRes && uploadRes.url) {
+          uploadedUrls.push(uploadRes.url);
+        } else {
+          Logger.log(`ReportService Notice: Drive upload fallback marker saved for photo ${i+1}: ` + (uploadRes ? uploadRes.error : 'Unknown'));
+          uploadedUrls.push(`[Foto ${i+1} Terlampir - Menunggu Otorisasi Drive]`);
+        }
+      } else if (p.url) {
+        uploadedUrls.push(extractStringUrl(p.url));
+      } else {
+        throw new Error(`Foto bukti kegiatan #${i+1} tidak valid.`);
+      }
+    }
+
+    payload.fotoUrl = uploadedUrls[0] || '';
+    payload.fotoUrl2 = uploadedUrls[1] || '';
+    payload.fotoUrl3 = uploadedUrls[2] || '';
+    payload.photos = uploadedUrls;
 
     payload.timestamp = formatDate(new Date());
     payload.kendala = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(payload.kendala) : (payload.kendala || '');
@@ -158,35 +207,172 @@ const ReportService = {
   },
 
   /**
-   * Uploads base64 encoded photo attachment into form's Drive folder.
+   * Resolves or lazily provisions the structured Google Drive photo folder:
+   * Root (MPL_Dokumentasi_Foto) -> Daily Folder (YYYY-MM-DD) -> Employee Folder ([ID] - [Nama])
+   * @param {string} [dateStr] - YYYY-MM-DD format
+   * @param {string} [empId] - Employee ID
+   * @param {string} [namaPic] - Employee Name
+   * @returns {{ folder: Folder|null, folderId: string|null, rootFolderUrl: string|null }}
+   */
+  resolveDailyEmployeePhotoFolder_: function(dateStr, empId, namaPic) {
+    if (typeof DriveApp === 'undefined') return { folder: null, folderId: null, rootFolderUrl: null };
+
+    try {
+      const now = new Date();
+      const actualDateStr = dateStr || Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd');
+      const rootFolderName = 'MPL_Dokumentasi_Foto';
+      
+      // 1. Get or create Root Folder (MPL_Dokumentasi_Foto)
+      let rootFolder = null;
+      const rootFolderId = ConfigRepository.getProperty('DRIVE_PHOTO_FOLDER_ID');
+      if (rootFolderId) {
+        try {
+          const candidate = DriveApp.getFolderById(rootFolderId);
+          if (candidate && !candidate.isTrashed()) {
+            rootFolder = candidate;
+          }
+        } catch (e) {
+          rootFolder = null;
+        }
+      }
+
+      if (!rootFolder) {
+        const rootIter = DriveApp.getFoldersByName(rootFolderName);
+        while (rootIter && rootIter.hasNext()) {
+          const candidate = rootIter.next();
+          if (!candidate.isTrashed()) {
+            rootFolder = candidate;
+            break;
+          }
+        }
+        if (!rootFolder) {
+          rootFolder = DriveApp.createFolder(rootFolderName);
+        }
+        if (rootFolder) {
+          ConfigRepository.setProperty('DRIVE_PHOTO_FOLDER_ID', rootFolder.getId());
+        }
+      }
+
+      if (!rootFolder) {
+        Logger.log('ReportService Error: Could not obtain MPL_Dokumentasi_Foto root folder.');
+        return { folder: null, folderId: null, rootFolderUrl: null };
+      }
+
+      // 2. Get or create Daily Subfolder: YYYY-MM-DD
+      let dailyFolder = null;
+      const dailyIter = rootFolder.getFoldersByName(actualDateStr);
+      while (dailyIter && dailyIter.hasNext()) {
+        const candidate = dailyIter.next();
+        if (!candidate.isTrashed()) {
+          dailyFolder = candidate;
+          break;
+        }
+      }
+      if (!dailyFolder) {
+        dailyFolder = rootFolder.createFolder(actualDateStr);
+      }
+
+      if (!dailyFolder) dailyFolder = rootFolder;
+
+      // 3. Get or create Employee Subfolder: [ID] - [Nama]
+      const cleanEmpId = String(empId || 'Umum').trim();
+      const cleanName = String(namaPic || '').trim();
+      const empFolderName = cleanName ? `${cleanEmpId} - ${cleanName}` : cleanEmpId;
+
+      let empFolder = null;
+      const empIter = dailyFolder.getFoldersByName(empFolderName);
+      while (empIter && empIter.hasNext()) {
+        const candidate = empIter.next();
+        if (!candidate.isTrashed()) {
+          empFolder = candidate;
+          break;
+        }
+      }
+      if (!empFolder) {
+        empFolder = dailyFolder.createFolder(empFolderName);
+      }
+
+      const target = empFolder || dailyFolder || rootFolder;
+      return {
+        folder: target,
+        folderId: target.getId(),
+        rootFolderUrl: rootFolder.getUrl()
+      };
+    } catch (e) {
+      Logger.log('ReportService: Error in resolveDailyEmployeePhotoFolder_: ' + e.toString());
+      try {
+        const rootIter = DriveApp.getFoldersByName('MPL_Dokumentasi_Foto');
+        if (rootIter && rootIter.hasNext()) {
+          const rf = rootIter.next();
+          return { folder: rf, folderId: rf.getId(), rootFolderUrl: rf.getUrl() };
+        }
+      } catch (eRoot) {}
+      return { folder: null, folderId: null, rootFolderUrl: null };
+    }
+  },
+
+  /**
+   * Uploads base64 encoded photo attachment into structured employee/daily Drive folder.
    * @param {string} base64Data 
    * @param {string} mimeType 
    * @param {string} formId 
+   * @param {string} reportId 
+   * @param {string} kodeKegiatan 
+   * @param {string} [empId]
+   * @param {string} [namaPic]
+   * @param {string} [dateStr]
+   * @param {Folder} [resolvedFolder] - Optional pre-resolved folder instance
    * @returns {{ url: string, fileId: string, error: string|null }} Structured upload result.
    */
-  uploadReportAttachment: function(base64Data, mimeType, formId, reportId, kodeKegiatan) {
+  uploadReportAttachment: function(base64Data, mimeType, formId, reportId, kodeKegiatan, empId, namaPic, dateStr, resolvedFolder) {
     if (!base64Data) return { url: '', fileId: '', error: 'Tidak ada data foto yang dikirim.' };
     
+    // Use pre-resolved folder or resolve on demand
+    let targetFolder = resolvedFolder || null;
+    let targetFolderId = null;
+    if (!targetFolder) {
+      try {
+        const folderRes = this.resolveDailyEmployeePhotoFolder_(dateStr, empId, namaPic);
+        targetFolder = folderRes.folder;
+        targetFolderId = folderRes.folderId;
+      } catch (eF) {
+        Logger.log('ReportService: Folder resolution notice: ' + eF.toString());
+      }
+    } else {
+      try { targetFolderId = targetFolder.getId(); } catch (eId) {}
+    }
+
+    const safeFilename = `${kodeKegiatan || 'Foto'}_${Date.now()}.jpg`;
+
     // 1. Primary path: Native DriveApp API
     try {
       if (typeof DriveApp !== 'undefined') {
-        const forms = FormManagementService.getFormList();
-        const form = forms.find(f => f.id === formId) || { title: 'Form Laporan Operasional', id: formId || 'OPERATIONAL' };
-        const targetFolder = FormManagementService.provisionPhotoFolder_(form.title, form.id);
-        
         let cleanBase64 = String(base64Data);
         if (cleanBase64.indexOf(',') !== -1) {
           cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
         }
         cleanBase64 = cleanBase64.replace(/\s/g, '');
 
-        const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', `Photo_${Date.now()}.jpg`);
+        const blob = Utilities.newBlob(Utilities.base64Decode(cleanBase64), mimeType || 'image/jpeg', safeFilename);
         let file = null;
         if (targetFolder) {
-          try { file = targetFolder.createFile(blob); } catch (e) {}
+          try { 
+            file = targetFolder.createFile(blob); 
+          } catch (eCreate) {
+            Logger.log('ReportService: targetFolder.createFile error: ' + eCreate.toString());
+          }
         }
+        
+        // Fallback: If targetFolder failed, save inside MPL_Dokumentasi_Foto root folder, NOT Drive root
         if (!file) {
-          file = DriveApp.createFile(blob);
+          try {
+            const rootIter = DriveApp.getFoldersByName('MPL_Dokumentasi_Foto');
+            if (rootIter && rootIter.hasNext()) {
+              file = rootIter.next().createFile(blob);
+            }
+          } catch (eRootF) {
+            Logger.log('ReportService: Fallback to MPL_Dokumentasi_Foto failed: ' + eRootF.toString());
+          }
         }
 
         if (file) {
@@ -195,7 +381,6 @@ const ReportService = {
           } catch (err) {}
           const fileUrl = file.getUrl();
           const fileId = file.getId();
-          SpreadsheetRepository.logPhotoUpload(reportId || '', kodeKegiatan || '', fileUrl, fileId);
           return { url: fileUrl, fileId: fileId, error: null };
         }
       }
@@ -205,9 +390,8 @@ const ReportService = {
 
     // 2. Secondary Fallback path: Direct Google Drive REST API v3 via UrlFetchApp & ScriptApp.getOAuthToken()
     try {
-      const restRes = this.uploadReportAttachmentViaRestApi_(base64Data, mimeType, `Photo_${Date.now()}.jpg`);
+      const restRes = this.uploadReportAttachmentViaRestApi_(base64Data, mimeType, safeFilename, targetFolderId);
       if (restRes && restRes.url) {
-        SpreadsheetRepository.logPhotoUpload(reportId || '', kodeKegiatan || '', restRes.url, restRes.fileId || '');
         return restRes;
       }
     } catch (eRest) {
@@ -219,10 +403,10 @@ const ReportService = {
   },
 
   /**
-   * Directly uploads base64 photo via Google Drive API v3 REST endpoint using OAuth Token.
+   * Directly uploads base64 photo via Google Drive API v3 REST endpoint into specific parent folder using OAuth Token.
    * @private
    */
-  uploadReportAttachmentViaRestApi_: function(base64Data, mimeType, filename) {
+  uploadReportAttachmentViaRestApi_: function(base64Data, mimeType, filename, parentFolderId) {
     let cleanBase64 = String(base64Data);
     if (cleanBase64.indexOf(',') !== -1) {
       cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(',') + 1);
@@ -234,6 +418,9 @@ const ReportService = {
       name: filename || `Photo_${Date.now()}.jpg`,
       mimeType: mimeType || 'image/jpeg'
     };
+    if (parentFolderId) {
+      metadata.parents = [parentFolderId];
+    }
 
     const boundary = '-------314159265358979323846';
     const delimiter = "\r\n--" + boundary + "\r\n";
@@ -272,15 +459,18 @@ const ReportService = {
             'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
           },
-          payload: JSON.stringify({ role: 'reader', type: 'anyone' }),
+          payload: JSON.stringify({
+            role: 'reader',
+            type: 'anyone'
+          }),
           muteHttpExceptions: true
         });
-      } catch (ePerm) {}
+      } catch (errPerm) {}
 
       return { url: fileUrl, fileId: fileId, error: null };
-    } else {
-      throw new Error((resJson && resJson.error && resJson.error.message) || 'Drive REST API response error');
     }
+
+    return { url: '', fileId: '', error: (resJson && resJson.error && resJson.error.message) ? resJson.error.message : 'Unknown REST API error' };
   },
 
   /**

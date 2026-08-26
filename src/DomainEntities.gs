@@ -223,10 +223,30 @@ const EMPLOYEE_REGISTRY = Object.freeze([
 ]);
 
 /**
+ * Returns active employee registry, preferring customized script property if present,
+ * falling back to default EMPLOYEE_REGISTRY.
+ * @returns {Array<{ id: string, name: string, division: string }>}
+ */
+function getActiveEmployeeRegistry() {
+  let list = [];
+  if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getCustomEmployeeRegistry) {
+    const custom = ConfigRepository.getCustomEmployeeRegistry();
+    if (custom && Array.isArray(custom) && custom.length > 0) {
+      list = custom;
+    }
+  }
+  if (!list || list.length === 0) {
+    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division }));
+  }
+
+  return JSON.parse(JSON.stringify(list));
+}
+
+/**
  * Searches employee by ID or Name with flexible forgiving match
  * (case-insensitive, trims, ignores hyphens/spaces for IDs).
  * @param {string} query
- * @returns {{ id: string, name: string, division: string }|null}
+ * @returns {{ id: string, name: string, division: string, status?: string }|null}
  */
 function lookupEmployee(query) {
   if (!query) return null;
@@ -235,16 +255,17 @@ function lookupEmployee(query) {
 
   const cleanQ = rawQ.toLowerCase().replace(/[\s\-_]/g, '');
   const lowerQ = rawQ.toLowerCase();
+  const currentRegistry = getActiveEmployeeRegistry(false);
 
   // 1. Exact ID match or normalized ID match (e.g. "alp01" -> "ALP-01", "mnj-02" -> "MNJ-02")
-  const idMatch = EMPLOYEE_REGISTRY.find(e => {
-    const cleanId = e.id.toLowerCase().replace(/[\s\-_]/g, '');
-    return cleanId === cleanQ || e.id.toLowerCase() === lowerQ;
+  const idMatch = currentRegistry.find(e => {
+    const cleanId = String(e.id || '').toLowerCase().replace(/[\s\-_]/g, '');
+    return cleanId === cleanQ || String(e.id || '').toLowerCase() === lowerQ;
   });
   if (idMatch) return Object.assign({}, idMatch);
 
   // 2. Exact Name match (case-insensitive full name)
-  const exactNameMatch = EMPLOYEE_REGISTRY.find(e => e.name.toLowerCase() === lowerQ);
+  const exactNameMatch = currentRegistry.find(e => String(e.name || '').toLowerCase() === lowerQ);
   if (exactNameMatch) return Object.assign({}, exactNameMatch);
 
   return null;
@@ -257,10 +278,10 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'reportId', header: 'Report_ID', getValue: (r) => r.reportId || '' },
   { key: 'idKaryawan', header: 'ID_Karyawan', getValue: (r) => r.idKaryawan || r.empId || '' },
   { key: 'kodeKegiatan', header: 'Kode_Kegiatan', getValue: (r) => r.kodeKegiatan || '' },
-  { key: 'kodeKegiatanRef', header: 'Kode_Kegiatan_Ref', getValue: (r) => r.kodeKegiatanRef || '' },
   { key: 'timestamp', header: 'Timestamp', getValue: (r) => r.timestamp || '' },
   { key: 'namaPic', header: 'Nama_PIC', getValue: (r) => r.namaPic || '' },
   { key: 'bidangDivisi', header: 'Bidang_Divisi', getValue: (r) => r.bidangDivisi || '' },
+  { key: 'nomorTelepon', header: 'Nomor_Telepon', getValue: (r) => r.nomorTelepon || r.noTelepon || r.telepon || '' },
   { key: 'lokasiKegiatan', header: 'Lokasi_Kegiatan', getValue: (r) => r.lokasiKegiatan || '' },
   { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', getValue: (r) => r.jenisKegiatan || '' },
   { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', getValue: (r) => r.kegiatanTambahan || '' },
@@ -284,13 +305,17 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'capaianKegiatan', header: 'Capaian_Kegiatan', getValue: (r) => r.capaianKegiatan || '' },
   { key: 'kendala', header: 'Kendala', getValue: (r) => r.kendala || '' },
   { key: 'upaya', header: 'Upaya', getValue: (r) => r.upaya || '' },
-  { key: 'fotoUrl', header: 'Foto_URL', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl) },
+  { key: 'fotoUrl', header: 'Foto_URL', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl || (Array.isArray(r.photos) && r.photos[0])) },
+  { key: 'fotoUrl2', header: 'Foto_URL_2', getValue: (r) => extractStringUrl(r.fotoUrl2 || r.photoUrl2 || (Array.isArray(r.photos) && r.photos[1])) },
+  { key: 'fotoUrl3', header: 'Foto_URL_3', getValue: (r) => extractStringUrl(r.fotoUrl3 || r.photoUrl3 || (Array.isArray(r.photos) && r.photos[2])) },
   { key: 'severity', header: 'Severity', getValue: (r, f) => (f && f.severity) ? f.severity : ReportSeverity.NORMAL },
   { key: 'reviewed', header: 'Reviewed', getValue: () => ReviewStatus.UNREVIEWED }
 ]);
 
 function OperationalReport(data) {
-  const resolvedPhotoUrl = extractStringUrl(data.fotoUrl || data.photoUrl);
+  const resolvedPhotoUrl = extractStringUrl(data.fotoUrl || data.photoUrl || (Array.isArray(data.photos) && data.photos[0]));
+  const resolvedPhotoUrl2 = extractStringUrl(data.fotoUrl2 || data.photoUrl2 || (Array.isArray(data.photos) && data.photos[1]));
+  const resolvedPhotoUrl3 = extractStringUrl(data.fotoUrl3 || data.photoUrl3 || (Array.isArray(data.photos) && data.photos[2]));
   let idKaryawan = data.idKaryawan || data.empId || '';
   let namaPic = data.namaPic || '';
   let bidangDivisi = data.bidangDivisi || data.site || '';
@@ -317,10 +342,10 @@ function OperationalReport(data) {
     idKaryawan: idKaryawan,
     empId: idKaryawan,
     kodeKegiatan: data.kodeKegiatan || '',
-    kodeKegiatanRef: data.kodeKegiatanRef || '',
     timestamp: data.timestamp || '',
     namaPic: namaPic || idKaryawan || '',
     bidangDivisi: bidangDivisi || '',
+    nomorTelepon: data.nomorTelepon || data.noTelepon || data.telepon || '',
     lokasiKegiatan: data.lokasiKegiatan || '',
     jenisKegiatan: data.jenisKegiatan || '',
     kegiatanTambahan: Array.isArray(data.kegiatanTambahan) ? data.kegiatanTambahan.join(', ') : (data.kegiatanTambahan || ''),
@@ -357,8 +382,39 @@ function OperationalReport(data) {
     capaianKegiatan: data.capaianKegiatan || '',
     kendala: normalizeKendalaText(data.kendala),
     upaya: normalizeKendalaText(data.kendala) ? (data.upaya || '') : '',
-    fotoUrl: resolvedPhotoUrl
+    fotoUrl: resolvedPhotoUrl,
+    fotoUrl2: resolvedPhotoUrl2,
+    fotoUrl3: resolvedPhotoUrl3,
+    photos: [resolvedPhotoUrl, resolvedPhotoUrl2, resolvedPhotoUrl3].filter(Boolean),
+    customResponses: data.customResponses || {}
   };
+}
+
+/**
+ * Formats a clean, readable column header for dynamic custom fields.
+ * E.g. "Nomor Telepon" -> "Nomor_Telepon"
+ * @param {string} label 
+ * @returns {string}
+ */
+function formatCustomFieldHeader(label) {
+  if (!label) return 'Custom_Field';
+  const clean = String(label).trim().replace(/[\s\-_/\\,]+/g, '_');
+  return clean || 'Custom_Field';
+}
+
+/**
+ * Returns the effective header list for operational reports:
+ * 34 standard headers + any dynamic custom field headers.
+ * @param {Array<Object>} customFields 
+ * @returns {Array<string>}
+ */
+function getEffectiveOperationalHeaders(customFields) {
+  const baseHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
+  if (!Array.isArray(customFields) || customFields.length === 0) {
+    return baseHeaders;
+  }
+  const customHeaders = customFields.map(f => formatCustomFieldHeader(f.label));
+  return baseHeaders.concat(customHeaders);
 }
 
 /**
@@ -366,6 +422,13 @@ function OperationalReport(data) {
  */
 function QueueItem(data) {
   const normKendala = normalizeKendalaText(data.kendala);
+  const p1 = extractStringUrl(data.photoUrl || data.fotoUrl);
+  const p2 = extractStringUrl(data.photoUrl2 || data.fotoUrl2);
+  const p3 = extractStringUrl(data.photoUrl3 || data.fotoUrl3);
+  const photosList = Array.isArray(data.photos) && data.photos.length > 0
+    ? data.photos.map(p => extractStringUrl(p)).filter(Boolean)
+    : [p1, p2, p3].filter(Boolean);
+
   return {
     source: data.source || 'Laporan Operasional',
     reportId: data.reportId || '',
@@ -374,13 +437,17 @@ function QueueItem(data) {
     namaPic: data.namaPic || data.empId || '',
     empId: data.empId || data.namaPic || '',
     divisi: data.divisi || data.site || '',
+    nomorTelepon: data.nomorTelepon || '',
     lokasi: data.lokasi || '',
     jenisKegiatan: data.jenisKegiatan || data.jenis || '',
     ringkasan: data.ringkasan || data.detail || '',
     severity: data.severity || (normKendala ? ReportSeverity.URGENT : ReportSeverity.NORMAL),
     rank: data.rank || (normKendala ? SeverityRank.URGENT : SeverityRank.NORMAL),
     reviewStatus: normalizeReviewStatus(data.reviewStatus),
-    photoUrl: data.photoUrl || '',
+    photoUrl: p1,
+    photoUrl2: p2,
+    photoUrl3: p3,
+    photos: photosList,
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,
     nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
     kendala: normKendala,

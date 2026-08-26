@@ -11,33 +11,37 @@
 const SpreadsheetRepository = {
 
   /**
-   * Sets up header rows and formatting for all sheets during system setup.
-   * @param {Sheet} mainSheet 
-   * @param {Sheet} adminQueueSheet 
+   * Applies robust high-contrast header formatting (dark slate font on neutral light-gray background).
+   * Overrides any white text or default themes from Google Form bindings.
+   * @param {Sheet} sheet 
+   * @param {Array<string>} headers 
    */
-  setupSheetHeaders: function(mainSheet, adminQueueSheet, photoLogSheet) {
-    // 1. Operational Raw Sheet (derived from single source of truth OPERATIONAL_REPORT_FIELDS)
-    if (mainSheet) {
+  applyHeaderStyle: function(sheet, headers) {
+    if (!sheet || !headers || headers.length === 0) return;
+    const maxCols = sheet.getMaxColumns();
+    if (maxCols < headers.length) {
+      sheet.insertColumnsAfter(maxCols, headers.length - maxCols);
+    }
+    const range = sheet.getRange(1, 1, 1, headers.length);
+    range.setValues([headers]);
+    range.setFontWeight('bold')
+         .setFontColor('#0f172a')         // High-contrast slate black text
+         .setBackground('#e2e8f0')       // Clean neutral light gray background
+         .setFontSize(10)
+         .setVerticalAlignment('middle')
+         .setWrap(false);
+    sheet.setFrozenRows(1);
+    sheet.setRowHeight(1, 32);
+  },
+
+  /**
+   * Sets up header rows and formatting for standard operational sheet tabs.
+   * @param {Sheet} sheet 
+   */
+  setupSheetHeaders: function(sheet) {
+    if (sheet) {
       const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
-      mainSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
-      mainSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
-      mainSheet.setFrozenRows(1);
-    }
-
-    // 2. Admin Queue Sheet
-    if (adminQueueSheet) {
-      const queueHeaders = [
-        'Sumber', 'Kode_Kegiatan', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-        'Lokasi_Kegiatan', 'Ringkasan', 'Tingkat_Keparahan', 'Status_Peninjauan', 'Foto_URL'
-      ];
-      adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setValues([queueHeaders]);
-      adminQueueSheet.getRange(1, 1, 1, queueHeaders.length).setFontWeight('bold').setBackground('#f1f5f9');
-      adminQueueSheet.setFrozenRows(1);
-    }
-
-    // 3. Photo Log Sheet
-    if (photoLogSheet) {
-      this.setupPhotoLogHeaders(photoLogSheet);
+      this.applyHeaderStyle(sheet, opHeaders);
     }
   },
 
@@ -192,74 +196,149 @@ const SpreadsheetRepository = {
   },
 
   /**
+   * Validates and auto-repairs row 1 headers of a sheet to strictly match effectiveHeaders.
+   * Seamlessly expands columns and applies header styling without mutating existing data.
+   * @param {Sheet} sheet 
+   * @param {Array<string>} effectiveHeaders 
+   */
+  ensureHeaderRow_: function(sheet, effectiveHeaders) {
+    if (!sheet || !Array.isArray(effectiveHeaders) || effectiveHeaders.length === 0) return;
+    
+    // Ensure sheet has enough physical columns
+    const maxCols = sheet.getMaxColumns();
+    if (maxCols < effectiveHeaders.length) {
+      sheet.insertColumnsAfter(maxCols, effectiveHeaders.length - maxCols);
+    }
+
+    if (sheet.getLastRow() === 0 || sheet.getLastColumn() === 0) {
+      this.applyHeaderStyle(sheet, effectiveHeaders);
+      return;
+    }
+    const currentCols = sheet.getLastColumn();
+    const currentHeaders = sheet.getRange(1, 1, 1, Math.max(currentCols, effectiveHeaders.length)).getValues()[0];
+    const isMismatched = currentCols !== effectiveHeaders.length || 
+                         effectiveHeaders.some((h, idx) => String(currentHeaders[idx] || '').trim() !== String(h).trim());
+    if (isMismatched) {
+      this.applyHeaderStyle(sheet, effectiveHeaders);
+    }
+  },
+
+  /**
+   * Synchronizes dynamic custom field headers across Master_Laporan and all active report tabs.
+   * Ensures new custom fields are appended as headers with proper formatting without mutating existing row data.
+   * @param {Array<Object>} customFields 
+   * @returns {{ success: boolean, headersCount: number, customFieldsCount: number }}
+   */
+  syncSpreadsheetCustomHeaders: function(customFields) {
+    const ss = this.getSpreadsheet();
+    const effectiveHeaders = getEffectiveOperationalHeaders(customFields || []);
+
+    // 1. Sync Master_Laporan
+    let masterSheet = ss.getSheetByName('Master_Laporan');
+    if (!masterSheet) {
+      masterSheet = ss.insertSheet('Master_Laporan', 0);
+    }
+    this.ensureHeaderRow_(masterSheet, effectiveHeaders);
+
+    // 2. Sync all active daily tabs (Laporan_YYYY-MM-DD)
+    const sheets = ss.getSheets();
+    sheets.forEach(s => {
+      if (/^Laporan_\d{4}-\d{2}-\d{2}$/i.test(s.getName())) {
+        this.ensureHeaderRow_(s, effectiveHeaders);
+      }
+    });
+    
+    Logger.log(`SpreadsheetRepository: Synced ${effectiveHeaders.length} headers (including ${customFields ? customFields.length : 0} custom fields) to Master_Laporan and daily sheets.`);
+    return {
+      success: true,
+      headersCount: effectiveHeaders.length,
+      customFieldsCount: customFields ? customFields.length : 0
+    };
+  },
+
+  /**
    * Saves a new Operational Report into integrated spreadsheet.
+   * Appends report to both Master_Laporan (permanent history) and Laporan_YYYY-MM-DD (active daily tab),
+   * correctly populating standard 34 columns plus all dynamic custom field values.
    * @param {Object} report 
    * @param {Object} flag 
-   * @returns {{ reportId: string, row: number, kodeKegiatan: string }}
+   * @returns {{ reportId: string, row: number, kodeKegiatan: string, tabName: string }}
    */
   saveOperationalReport: function(report, flag) {
     const ss = this.getSpreadsheet();
-    const forms = FormManagementService.getFormList();
-    const opForm = forms.find(f => (f.type || '').toLowerCase() === 'operasional' || f.isDefaultMain || f.isDefault) || { title: 'Laporan Operasional' };
-    const sheet = FormManagementService.resolveFormTab_(ss, opForm);
+    const now = new Date();
+    const dateStr = Utilities.formatDate(now, 'Asia/Jakarta', 'yyyy-MM-dd');
+    const tabName = 'Laporan_' + dateStr;
 
-    // Auto-verify & re-align Row 1 headers to match OPERATIONAL_REPORT_FIELDS (32 columns)
-    const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
-    if (sheet.getLastRow() === 0) {
-      sheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
-      sheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
-      sheet.setFrozenRows(1);
-    } else {
-      const currentHeaders = sheet.getRange(1, 1, 1, opHeaders.length).getValues()[0];
-      const needsUpdate = opHeaders.some((h, idx) => String(currentHeaders[idx] || '').trim() !== String(h).trim());
-      if (needsUpdate) {
-        sheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
-        sheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
-        sheet.setFrozenRows(1);
+    // Retrieve active form schema for dynamic custom fields
+    let customFields = [];
+    try {
+      const activeSchema = ConfigRepository.getReportingFormSchema();
+      if (activeSchema && Array.isArray(activeSchema.customFields)) {
+        customFields = activeSchema.customFields;
       }
+    } catch (e) {
+      Logger.log('SpreadsheetRepository: Notice reading active schema: ' + e.toString());
     }
+
+    const effectiveHeaders = getEffectiveOperationalHeaders(customFields);
 
     const reportId = report.reportId || this.generateUUID();
     report.reportId = reportId;
 
-    const rowData = OPERATIONAL_REPORT_FIELDS.map(field => field.getValue(report, flag));
+    // 1. Base 34 standard values
+    const baseRowData = OPERATIONAL_REPORT_FIELDS.map(field => field.getValue(report, flag));
 
-    sheet.appendRow(rowData);
-    const newRowIndex = sheet.getLastRow();
-    this.applyRowHighlighting(sheet, newRowIndex, flag ? flag.severity : null);
+    // 2. Dynamic custom field values mapped by label, id, or case-insensitive match
+    const customResponses = report.customResponses || {};
+    const customRowData = customFields.map(field => {
+      let val = '';
+      if (customResponses[field.label] !== undefined && customResponses[field.label] !== null) {
+        val = customResponses[field.label];
+      } else if (customResponses[field.id] !== undefined && customResponses[field.id] !== null) {
+        val = customResponses[field.id];
+      } else {
+        const foundKey = Object.keys(customResponses).find(k => k.toLowerCase().trim() === String(field.label).toLowerCase().trim());
+        if (foundKey) val = customResponses[foundKey];
+      }
+      return Array.isArray(val) ? val.join(', ') : String(val);
+    });
 
-    return { reportId: reportId, row: newRowIndex, kodeKegiatan: report.kodeKegiatan };
+    const fullRowData = baseRowData.concat(customRowData);
+
+    // 1. Permanent Master Sheet Tab: Master_Laporan (Contains every single data ever submitted)
+    let masterSheet = ss.getSheetByName('Master_Laporan');
+    if (!masterSheet) {
+      masterSheet = ss.insertSheet('Master_Laporan', 0);
+    }
+    this.ensureHeaderRow_(masterSheet, effectiveHeaders);
+    masterSheet.appendRow(fullRowData);
+    this.applyRowHighlighting(masterSheet, masterSheet.getLastRow(), flag ? flag.severity : null);
+
+    // 2. Active Daily Tab: Laporan_YYYY-MM-DD (Created on-demand only when a report is submitted)
+    let dailySheet = ss.getSheetByName(tabName);
+    if (!dailySheet) {
+      dailySheet = ss.insertSheet(tabName);
+    }
+    this.ensureHeaderRow_(dailySheet, effectiveHeaders);
+    dailySheet.appendRow(fullRowData);
+    const newRowIndex = dailySheet.getLastRow();
+    this.applyRowHighlighting(dailySheet, newRowIndex, flag ? flag.severity : null);
+
+    return { reportId: reportId, row: newRowIndex, kodeKegiatan: report.kodeKegiatan, tabName: tabName };
   },
 
   /**
-   * Logs photo upload tracking entry into Photo_Log sheet tab.
+   * Logs photo upload tracking entry.
+   * Note: Photo_Log tab creation omitted as per client architecture directive. Photo URLs are stored directly in report rows.
    * @param {string} reportId 
    * @param {string} kodeKegiatan 
    * @param {string} fotoUrl 
    * @param {string} driveFileId 
    */
   logPhotoUpload: function(reportId, kodeKegiatan, fotoUrl, driveFileId) {
-    try {
-      const ss = this.getSpreadsheet();
-      let sheet = ss.getSheetByName('Photo_Log');
-      if (!sheet) {
-        sheet = ss.insertSheet('Photo_Log');
-        this.setupPhotoLogHeaders(sheet);
-      }
-      const now = new Date();
-      const expiry = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-      sheet.appendRow([
-        reportId || '',
-        kodeKegiatan || '',
-        fotoUrl || '',
-        driveFileId || '',
-        formatDate(now),
-        formatDate(expiry),
-        'Aktif'
-      ]);
-    } catch (e) {
-      Logger.log('SpreadsheetRepository Error: Failed to log photo upload. ' + e.toString());
-    }
+    // No-op: Photo URLs are persisted directly in Master_Laporan and daily sheets
+    return;
   },
 
   /**
@@ -372,8 +451,44 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Fetches unified Admin Triage Queue across all registered form tabs inside the single integrated spreadsheet.
-   * Uses an allowlist of registered forms resolved via FormManagementService.resolveFormTab_().
+   * Discovers all report sheets (both dynamic daily tabs Laporan_YYYY-MM-DD and canonical form tabs).
+   * @param {Spreadsheet} ss 
+   * @returns {Array<Sheet>} List of resolved report sheet objects.
+   */
+  getAllReportSheets_: function(ss) {
+    if (!ss) ss = this.getSpreadsheet();
+    const allSheets = ss.getSheets();
+    const matched = [];
+    const seenIds = new Set();
+
+    // 1. Find all daily tabs matching Laporan_YYYY-MM-DD
+    allSheets.forEach(s => {
+      const name = s.getName();
+      if (/^Laporan_\d{4}-\d{2}-\d{2}$/.test(name)) {
+        matched.push(s);
+        seenIds.add(s.getSheetId());
+      }
+    });
+
+    // 2. Also include canonical form tabs for backward compatibility
+    try {
+      const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+      forms.forEach(f => {
+        try {
+          const s = FormManagementService.resolveFormTab_(ss, f);
+          if (s && !seenIds.has(s.getSheetId())) {
+            seenIds.add(s.getSheetId());
+            matched.push(s);
+          }
+        } catch (e) {}
+      });
+    } catch (e) {}
+
+    return matched;
+  },
+
+  /**
+   * Fetches unified Admin Triage Queue across all daily report tabs and registered form tabs.
    * Reads fields dynamically by header name and deduplicates across synced/mirror tabs.
    * @returns {Array<Object>} List of QueueItem objects.
    */
@@ -382,22 +497,28 @@ const SpreadsheetRepository = {
     if (!mainSsId) return [];
 
     const ss = SpreadsheetApp.openById(mainSsId);
-    const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+
+    // Auto-cleanup irrelevant/duplicate tabs if any stale legacy tabs are detected
+    try {
+      if (typeof cleanupIrrelevantSpreadsheetTabs === 'function') {
+        const hasIrrelevant = ss.getSheets().some(s => {
+          const n = s.getName().toLowerCase().trim();
+          return n === 'admin_queue' || n === 'laporan_operasional_raw' || n === 'laporan operasional' || n === 'sensitive' || n === 'photo_log' || n.startsWith('form responses') || n.startsWith('jawaban formulir');
+        });
+        if (hasIrrelevant) {
+          cleanupIrrelevantSpreadsheetTabs();
+        }
+      }
+    } catch (eClean) {
+      Logger.log('SpreadsheetRepository Notice: Stale tab auto-cleanup: ' + eClean.toString());
+    }
+
+    const sheets = this.getAllReportSheets_(ss);
     const mergedQueue = [];
     const seenFingerprints = new Set();
-    const seenSheetIds = new Set();
 
-    forms.forEach(f => {
-      let sheet = null;
-      try {
-        sheet = FormManagementService.resolveFormTab_(ss, f);
-      } catch (e) {
-        Logger.log(`SpreadsheetRepository Notice: Could not resolve tab for form ${f.id || f.title}: ${e.toString()}`);
-      }
-
-      if (!sheet || seenSheetIds.has(sheet.getSheetId())) return;
-      seenSheetIds.add(sheet.getSheetId());
-
+    sheets.forEach(sheet => {
+      if (!sheet) return;
       const sheetName = sheet.getName();
       try {
         if (sheet.getLastRow() > 1) {
@@ -438,6 +559,15 @@ const SpreadsheetRepository = {
               ''
             ).trim();
 
+            let nomorTelepon = String(
+              this.getCellValue_(row, headerMap, 'Nomor_Telepon') || 
+              this.getCellValue_(row, headerMap, 'Nomor Telepon') || 
+              this.getCellValue_(row, headerMap, 'No_Telepon') || 
+              this.getCellValue_(row, headerMap, 'Telepon') || 
+              this.getCellValue_(row, headerMap, 'No. Telepon / WhatsApp') || 
+              ''
+            ).trim();
+
             let lokasi = String(
               this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan') || 
               this.getCellValue_(row, headerMap, 'Lokasi Kegiatan') || 
@@ -472,13 +602,23 @@ const SpreadsheetRepository = {
               reportId = (kodeKegiatan && kodeKegiatan !== '-') ? kodeKegiatan : `ROW_${sheetName}_${rowIndex + 2}`;
             }
 
-            let photoVal = String(this.getCellValue_(row, headerMap, 'Foto_URL', 28) || this.getCellValue_(row, headerMap, 'Foto_Lampiran') || '');
-            if (!photoVal.startsWith('http')) {
-              const fileIdMatch = photoVal.match(/[-\w]{25,}/);
-              if (fileIdMatch) {
-                photoVal = `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
+            function normalizePhotoLink(val) {
+              if (!val) return '';
+              let s = String(val).trim();
+              if (!s || s === '-' || s === '[object Object]') return '';
+              if (!s.startsWith('http')) {
+                const fileIdMatch = s.match(/[-\w]{25,}/);
+                if (fileIdMatch) {
+                  return `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`;
+                }
               }
+              return s;
             }
+
+            let p1 = normalizePhotoLink(this.getCellValue_(row, headerMap, 'Foto_URL') || this.getCellValue_(row, headerMap, 'Foto_Lampiran'));
+            let p2 = normalizePhotoLink(this.getCellValue_(row, headerMap, 'Foto_URL_2'));
+            let p3 = normalizePhotoLink(this.getCellValue_(row, headerMap, 'Foto_URL_3'));
+            const photosList = [p1, p2, p3].filter(Boolean);
 
             let severityVal = (kendalaVal && kendalaVal !== '-') ? ReportSeverity.URGENT : ReportSeverity.NORMAL;
 
@@ -528,9 +668,13 @@ const SpreadsheetRepository = {
               namaPic: namaPic || 'Tanpa Nama',
               empId: namaPic || 'Tanpa Nama',
               divisi: divisi || '-',
+              nomorTelepon: nomorTelepon,
               lokasi: lokasi || '-',
               ringkasan: ringkasan,
-              photoUrl: photoVal.startsWith('http') ? photoVal : '',
+              photoUrl: p1,
+              photoUrl2: p2,
+              photoUrl3: p3,
+              photos: photosList,
               severity: severityVal,
               rank: severityVal === ReportSeverity.URGENT ? 1 : 2,
               reviewStatus: reviewStatusVal,
@@ -582,29 +726,12 @@ const SpreadsheetRepository = {
         }
       }
 
-      // Collect target canonical sheets via allowlist registry resolution
-      const targetSheets = [];
-      const seenSheetIds = new Set();
-
-      if (directSheetName) {
+      // Collect target sheets (both dynamic daily tabs and canonical form tabs)
+      const targetSheets = this.getAllReportSheets_(ss);
+      if (directSheetName && !targetSheets.some(s => s.getName() === directSheetName)) {
         const directSheet = ss.getSheetByName(directSheetName);
-        if (directSheet) {
-          targetSheets.push(directSheet);
-          seenSheetIds.add(directSheet.getSheetId());
-        }
+        if (directSheet) targetSheets.unshift(directSheet);
       }
-
-      forms.forEach(f => {
-        try {
-          const sheet = FormManagementService.resolveFormTab_(ss, f);
-          if (sheet && !seenSheetIds.has(sheet.getSheetId())) {
-            seenSheetIds.add(sheet.getSheetId());
-            targetSheets.push(sheet);
-          }
-        } catch (e) {
-          Logger.log(`SpreadsheetRepository Notice: Could not resolve tab for form in updateReviewStatus: ${e.toString()}`);
-        }
-      });
 
       for (let s = 0; s < targetSheets.length; s++) {
         const sheet = targetSheets[s];
@@ -811,11 +938,6 @@ const SpreadsheetRepository = {
     let warningCount = 0;
     let normalCount = 0;
 
-    let urgentOverdueCount = 0;
-    let warningOverdueCount = 0;
-    let openObstaclesCount = 0;
-    let unansweredObstaclesCount = 0;
-
     const divisiBreakdown = {
       [DIV_KEYS.ALPROF]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
       [DIV_KEYS.SGA]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
@@ -828,8 +950,6 @@ const SpreadsheetRepository = {
     };
 
     const severityDist = { normal: 0, warning: 0, urgent: 0 };
-    const attentionList = [];
-    const coverageMap = new Map();
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const monthShort = INDO_MONTHS[currentMonth].substring(0, 3);
@@ -843,14 +963,12 @@ const SpreadsheetRepository = {
     const currentMonthItems = [];
     const allKnownCodesSet = new Set();
     const parentCodeMap = new Map();
-    const seenSheetIds = new Set();
 
-    // 1. First Pass: Read rows across all sheets and extract date & code information
-    forms.forEach(f => {
+    // 1. First Pass: Read rows across all sheets (dynamic daily tabs & canonical tabs)
+    const targetSheets = this.getAllReportSheets_(ss);
+    targetSheets.forEach(rawSheet => {
       try {
-        const rawSheet = FormManagementService.resolveFormTab_(ss, f);
-        if (rawSheet && !seenSheetIds.has(rawSheet.getSheetId()) && rawSheet.getLastRow() > 1) {
-          seenSheetIds.add(rawSheet.getSheetId());
+        if (rawSheet && rawSheet.getLastRow() > 1) {
           const headerMap = this.getHeaderMap_(rawSheet);
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
 
@@ -886,21 +1004,6 @@ const SpreadsheetRepository = {
 
             const rowDate = parseDateSafe(rawTimestamp) || parseDateSafe(tglPanen) || new Date();
             const normDivisi = normalizeDivisi(divisiRaw);
-
-            // Track coverage for site/PIC across all records
-            if (lokasi && namaPic) {
-              const covKey = `${lokasi}|||${namaPic}`;
-              const existingCov = coverageMap.get(covKey);
-              if (!existingCov || (rowDate && rowDate.getTime() > existingCov.date.getTime())) {
-                coverageMap.set(covKey, {
-                  lokasi: lokasi,
-                  namaPic: namaPic,
-                  divisi: normDivisi,
-                  date: rowDate,
-                  dateStr: formatDateOnly(rowDate)
-                });
-              }
-            }
 
             // Check prior month for trend calculation
             if (rowDate >= priorMonthStart && rowDate <= priorMonthEnd) {
@@ -960,6 +1063,11 @@ const SpreadsheetRepository = {
 
     const distinctActivitiesSet = new Set();
     const divisiActivitiesMap = {
+      [DIV_KEYS.ALPROF]: new Set(),
+      [DIV_KEYS.SGA]: new Set(),
+      [DIV_KEYS.PEKERJA_HARIAN]: new Set(),
+      [DIV_KEYS.BKO]: new Set(),
+      [DIV_KEYS.MANAJEMEN]: new Set(),
       [DIV_KEYS.AGRO]: new Set(),
       [DIV_KEYS.TERNAK]: new Set(),
       [DIV_KEYS.IKAN]: new Set()
@@ -1016,65 +1124,6 @@ const SpreadsheetRepository = {
         severityDist.normal++;
       }
 
-      // Overdue Harvest Evaluation
-      // (Tgl_Panen is empty and Tgl_Perkiraan_Panen is in the past: 8-14 days = warning, 15+ days = urgent)
-      if (!tglPanenStr || tglPanenStr === '-') {
-        const perkiraanDate = parseDateSafe(item.tglPerkiraanPanen);
-        if (perkiraanDate && perkiraanDate.getTime() < now.getTime()) {
-          const diffMs = now.getTime() - perkiraanDate.getTime();
-          const daysLate = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          if (daysLate >= 8 && item.reviewStatus !== ReviewStatus.VERIFIED) {
-            const isUrgent = daysLate >= 15;
-            const itemSev = isUrgent ? ReportSeverity.URGENT : ReportSeverity.WARNING;
-            if (isUrgent) urgentOverdueCount++;
-            else warningOverdueCount++;
-
-            attentionList.push({
-              id: item.reportId || item.kodeKegiatan || `overdue_${Math.random()}`,
-              type: 'overdue_harvest',
-              severity: itemSev,
-              rank: isUrgent ? 1 : 2,
-              badgeLabel: isUrgent ? 'Panen Sangat Terlambat' : 'Panen Terlambat',
-              kodeKegiatan: item.kodeKegiatan || '-',
-              lokasi: item.lokasi || '-',
-              pic: item.namaPic || '-',
-              divisi: item.divisi,
-              details: `Perkiraan panen ${formatDateOnly(perkiraanDate)} (${daysLate} hari lewat). Belum terealisasi.`,
-              daysLate: daysLate,
-              timestamp: item.timestampStr
-            });
-          }
-        }
-      }
-
-      // Open Obstacles Evaluation (Only unverified actual obstacles are active)
-      const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-');
-      if (isKendalaReal) {
-        if (item.reviewStatus !== ReviewStatus.VERIFIED) {
-          openObstaclesCount++;
-          const hasNoUpaya = !item.upaya || item.upaya === '-';
-          if (hasNoUpaya) unansweredObstaclesCount++;
-
-          const itemSev = hasNoUpaya ? ReportSeverity.URGENT : ReportSeverity.WARNING;
-          attentionList.push({
-            id: item.reportId || item.kodeKegiatan || `obstacle_${Math.random()}`,
-            type: 'open_obstacle',
-            severity: itemSev,
-            rank: hasNoUpaya ? 1 : 2,
-            badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
-            kodeKegiatan: item.kodeKegiatan || '-',
-            lokasi: item.lokasi || '-',
-            pic: item.namaPic || '-',
-            divisi: item.divisi,
-            details: `Kendala: "${item.kendala}"${!hasNoUpaya ? ' | Upaya: "' + item.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
-            kendala: item.kendala,
-            upaya: item.upaya,
-            hasNoUpaya: hasNoUpaya,
-            timestamp: item.timestampStr
-          });
-        }
-      }
-
       // Weekly trend bucketing
       if (item.date) {
         const dayOfMonth = item.date.getDate();
@@ -1104,73 +1153,10 @@ const SpreadsheetRepository = {
       divisiBreakdown[k].panenVolume = Math.round(divisiBreakdown[k].panenVolume * 100) / 100;
     });
 
-    // 4. Site/PIC Inactivity Check (Quiet sites: 14+ days)
-    coverageMap.forEach((entry) => {
-      if (entry.date) {
-        const diffMs = now.getTime() - entry.date.getTime();
-        const daysInactive = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        if (daysInactive >= 14) {
-          attentionList.push({
-            id: `quiet_${entry.lokasi}_${entry.namaPic}`,
-            type: 'quiet_site_pic',
-            severity: ReportSeverity.WARNING,
-            rank: 2,
-            badgeLabel: 'Lokasi & PIC Pasif',
-            kodeKegiatan: '-',
-            lokasi: entry.lokasi,
-            pic: entry.namaPic,
-            divisi: entry.divisi,
-            details: `Tidak ada laporan masuk selama ${daysInactive} hari (terakhir: ${entry.dateStr}).`,
-            daysInactive: daysInactive,
-            timestamp: entry.dateStr
-          });
-        }
-      }
-    });
-
-    // 5. Sort attention list: urgent (rank 1) before warning (rank 2); unanswered obstacles and longest overdue first
-    attentionList.sort((a, b) => {
-      if (a.rank !== b.rank) return a.rank - b.rank;
-      if (a.hasNoUpaya && !b.hasNoUpaya) return -1;
-      if (!a.hasNoUpaya && b.hasNoUpaya) return 1;
-      if (a.daysLate !== undefined && b.daysLate !== undefined) {
-        return b.daysLate - a.daysLate;
-      }
-      return (b.daysInactive || 0) - (a.daysInactive || 0);
-    });
-
     // Month-over-month trend calculation
     const salesTrendPercent = priorMonthNilaiPenjualanRp > 0 
       ? Math.round(((totalNilaiPenjualanRp - priorMonthNilaiPenjualanRp) / priorMonthNilaiPenjualanRp) * 100)
       : null;
-
-    // Compute Location Coverage Analysis
-    const allLocationsSet = new Set();
-    const activeLocationsSet = new Set();
-    const missingLocationsList = [];
-
-    coverageMap.forEach((entry) => {
-      if (entry.lokasi) {
-        allLocationsSet.add(entry.lokasi);
-        if (entry.date && entry.date >= curMonthStart && entry.date <= curMonthEnd) {
-          activeLocationsSet.add(entry.lokasi);
-        } else {
-          const diffMs = now.getTime() - (entry.date ? entry.date.getTime() : 0);
-          const daysInactive = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          missingLocationsList.push({
-            lokasi: entry.lokasi,
-            pic: entry.namaPic,
-            divisi: entry.divisi,
-            lastDateStr: entry.dateStr,
-            daysInactive: daysInactive
-          });
-        }
-      }
-    });
-
-    const totalLocs = allLocationsSet.size || activeLocationsSet.size || 1;
-    const activeLocs = activeLocationsSet.size;
-    const coverageFraction = `${activeLocs} dari ${totalLocs}`;
 
     return {
       currentPeriodLabel: currentPeriodLabel,
@@ -1184,84 +1170,151 @@ const SpreadsheetRepository = {
       priorMonthNilaiPenjualanRp: priorMonthNilaiPenjualanRp,
       salesTrendPercent: salesTrendPercent,
       divisiBreakdown: divisiBreakdown,
-      overdueCounts: {
-        urgent: urgentOverdueCount,
-        warning: warningOverdueCount,
-        total: urgentOverdueCount + warningOverdueCount
-      },
-      openObstaclesCount: openObstaclesCount,
-      unansweredObstaclesCount: unansweredObstaclesCount,
       urgentCount: urgentCount,
       warningCount: warningCount,
       normalCount: normalCount,
       severityDist: severityDist,
-      attentionList: attentionList,
-      weeklyTrend: weeklyTrend,
-      locationCoverage: {
-        total: totalLocs,
-        active: activeLocs,
-        fraction: coverageFraction,
-        missing: missingLocationsList
-      }
+      weeklyTrend: weeklyTrend
     };
   },
 
   /**
-   * Archives closed reports older than retentionDays across all tabs in integrated spreadsheet.
-   * Single file open performance optimization.
-   * @param {number} retentionDays 
-   * @returns {{ success: boolean, totalArchived: number }}
+   * Retrieves operational report by UUID across all daily and registered tabs.
+   * @param {string} reportId 
+   * @returns {Object|null}
    */
-  archiveClosedReports: function(retentionDays = 30) {
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return { success: false, totalArchived: 0 };
+  getOperationalReportById: function(reportId) {
+    if (!reportId) return null;
+    const queue = this.getAdminQueueData();
+    const cleanId = String(reportId).trim().toLowerCase();
+    return queue.find(item => 
+      String(item.reportId || '').trim().toLowerCase() === cleanId || 
+      String(item.kodeKegiatan || '').trim().toLowerCase() === cleanId
+    ) || null;
+  },
 
-    const cutoffTime = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
-    let totalArchived = 0;
+  /**
+   * Deletes daily report tabs (Laporan_YYYY-MM-DD) older than retention threshold (default: 90 days).
+   * Note: Pure time-based deletion regardless of review status, as per client specification.
+   * Strictly protects fixed infrastructure tabs (Employee_Registry, Photo_Log, Admin_Queue, Sensitive_Restricted, etc.).
+   * @param {number} [retentionDays=90] 
+   * @returns {{ success: boolean, deletedCount: number }}
+   */
+  deleteExpiredDailyTabs: function(retentionDays) {
+    const thresholdDays = retentionDays || ConfigRepository.getRetentionDays() || 90;
+    Logger.log(`SpreadsheetRepository: Starting deleteExpiredDailyTabs with threshold: ${thresholdDays} days.`);
+    const ss = this.getSpreadsheet();
+    const allSheets = ss.getSheets();
+    const protectedTabs = new Set([
+      'employee_registry', 'photo_log', 'admin_queue', 'sensitive_restricted',
+      'dashboard_config', 'sensitive', 'settings', 'config', 'users', 'roles',
+      'laporan operasional'
+    ]);
 
-    try {
-      const ss = SpreadsheetApp.openById(mainSsId);
-      let archiveSheet = ss.getSheetByName(SHEET_NAMES.ARCHIVE_REPORTS);
-      if (!archiveSheet) {
-        archiveSheet = ss.insertSheet(SHEET_NAMES.ARCHIVE_REPORTS);
-        archiveSheet.getRange('A1:M1').setValues([[
-          'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-          'Yield_Kg_Or_Sensitive', 'Issues', 'Foto_Lampiran', 'Severity', 'Rank', 'Category', 'Review_Status', 'Archived_At'
-        ]]);
-        archiveSheet.getRange('A1:M1').setFontWeight('bold').setBackground('#e2e8f0');
-        archiveSheet.setFrozenRows(1);
-      }
+    let deletedCount = 0;
+    const now = new Date();
 
-      const forms = FormManagementService.getFormList();
-      const sheetsToScan = forms.map(f => FormManagementService.resolveFormTab_(ss, f)).concat([ss.getSheetByName('Sensitive')]).filter(Boolean);
+    allSheets.forEach(sheet => {
+      const sheetName = sheet.getName();
+      const lowerName = sheetName.toLowerCase();
+      if (protectedTabs.has(lowerName)) return;
 
-      sheetsToScan.forEach(sheet => {
-        if (!sheet || sheet.getLastRow() <= 1) return;
+      const match = sheetName.match(/^Laporan_(\d{4}-\d{2}-\d{2})$/);
+      if (match) {
+        const dateStr = match[1];
+        const tabDate = new Date(dateStr + 'T00:00:00');
+        if (!isNaN(tabDate.getTime())) {
+          const diffMs = now.getTime() - tabDate.getTime();
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        const values = sheet.getDataRange().getValues();
-        const lastCol = sheet.getLastColumn();
-
-        for (let r = values.length - 1; r >= 1; r--) {
-          const row = values[r];
-          const status = String(row[lastCol - 1] || '').toLowerCase().trim();
-          const dateVal = row[4] || row[1];
-          const rowTime = dateVal ? new Date(dateVal).getTime() : 0;
-
-          if (status === 'closed' || status === 'ditutup' || status === 'reviewed') {
-            if (rowTime && rowTime < cutoffTime) {
-              const archiveRowData = row.concat([formatDate(new Date())]);
-              archiveSheet.appendRow(archiveRowData);
-              sheet.deleteRow(r + 1);
-              totalArchived++;
+          if (diffDays >= thresholdDays) {
+            try {
+              if (ss.getSheets().length > 1) {
+                ss.deleteSheet(sheet);
+                deletedCount++;
+                Logger.log(`SpreadsheetRepository: Deleted expired daily sheet ${sheetName} (age: ${diffDays} days).`);
+              }
+            } catch (err) {
+              Logger.log(`SpreadsheetRepository Error deleting sheet ${sheetName}: ${err.toString()}`);
             }
           }
         }
-      });
-    } catch (err) {
-      Logger.log(`SpreadsheetRepository Error archiving closed reports: ${err.toString()}`);
-    }
+      }
+    });
 
-    Logger.log(`SpreadsheetRepository: Archived ${totalArchived} closed reports.`);
-    return { success: true, totalArchived: totalArchived };
+    Logger.log(`SpreadsheetRepository: Finished deleteExpiredDailyTabs. Deleted ${deletedCount} tab(s).`);
+    return { success: true, deletedCount: deletedCount };
+  },
+
+  /**
+   * Scans for daily tabs approaching the 90-day deletion threshold (within 5 days).
+   * Used for safety warning banners in the Admin Queue.
+   * @returns {Array<{ tabName: string, dateStr: string, daysRemaining: number, rowCount: number, retentionDays: number }>}
+   */
+  getExpiringDailyTabs: function() {
+    const retentionDays = ConfigRepository.getRetentionDays() || 90;
+    const warningWindowDays = 5;
+    const ss = this.getSpreadsheet();
+    const allSheets = ss.getSheets();
+    const expiring = [];
+    const now = new Date();
+
+    allSheets.forEach(sheet => {
+      const sheetName = sheet.getName();
+      const match = sheetName.match(/^Laporan_(\d{4}-\d{2}-\d{2})$/);
+      if (match) {
+        const dateStr = match[1];
+        const tabDate = new Date(dateStr + 'T00:00:00');
+        if (!isNaN(tabDate.getTime())) {
+          const diffMs = now.getTime() - tabDate.getTime();
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const daysRemaining = retentionDays - diffDays;
+
+          if (daysRemaining <= warningWindowDays && daysRemaining > 0) {
+            const rowCount = Math.max(0, sheet.getLastRow() - 1);
+            expiring.push({
+              tabName: sheetName,
+              dateStr: dateStr,
+              daysRemaining: daysRemaining,
+              rowCount: rowCount,
+              retentionDays: retentionDays
+            });
+          }
+        }
+      }
+    });
+
+    expiring.sort((a, b) => a.daysRemaining - b.daysRemaining);
+    return expiring;
+  },
+
+  /**
+   * Generates a CSV data string for a specified daily sheet tab for 1-click download.
+   * @param {string} tabName 
+   * @returns {string} CSV formatted data.
+   */
+  getDailyTabCsvData: function(tabName) {
+    if (!tabName) throw new Error('Nama tab wajib disertakan.');
+    const ss = this.getSpreadsheet();
+    const sheet = ss.getSheetByName(tabName);
+    if (!sheet) throw new Error(`Tab ${tabName} tidak ditemukan.`);
+
+    const data = sheet.getDataRange().getValues();
+    if (!data || data.length === 0) return '';
+
+    const csvRows = data.map(row => {
+      return row.map(cell => {
+        let val = (cell === null || cell === undefined) ? '' : String(cell);
+        if (cell instanceof Date) {
+          val = formatDate(cell);
+        }
+        if (val.includes('"') || val.includes(',') || val.includes('\n') || val.includes('\r')) {
+          val = '"' + val.replace(/"/g, '""') + '"';
+        }
+        return val;
+      }).join(',');
+    });
+
+    return csvRows.join('\r\n');
   }
 };

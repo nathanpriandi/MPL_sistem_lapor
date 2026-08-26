@@ -3,8 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manajemen Form — Sistem Pelaporan Digital</title>
+  <title>Pengaturan Form — Sistem Pelaporan Digital</title>
   <?!= include('style'); ?>
+  <style>
+    .step-blueprint-card {
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+    .step-blueprint-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+    .step-badge-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .step-badge-conditional {
+      background: #f59e0b;
+    }
+    .step-title-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .step-tag-conditional {
+      font-size: 0.725rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    .step-tag-core {
+      font-size: 0.725rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 9999px;
+      background: #e0e7ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+    }
+
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+      align-items: center;
+      min-height: 36px;
+    }
+    .chip-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 9999px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: #1e293b;
+      transition: all 0.15s ease;
+    }
+    .chip-item:hover {
+      border-color: #94a3b8;
+      background: #e2e8f0;
+    }
+    .chip-delete-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 1rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 0.15rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .chip-delete-btn:hover {
+      color: #dc2626;
+    }
+    .add-chip-group {
+      display: flex;
+      gap: 0.5rem;
+      max-width: 480px;
+    }
+
+    .static-field-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.65rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .question-builder-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.15rem;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.15s ease;
+      margin-top: 0.5rem;
+    }
+    .question-builder-card:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.08);
+    }
+    .badge-type {
+      font-size: 0.725rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .badge-type-text { background: #e0e7ff; color: #3730a3; }
+    .badge-type-select { background: #dbeafe; color: #1d4ed8; }
+    .badge-type-checkbox { background: #ccfbf1; color: #0f766e; }
+    .badge-type-number { background: #fef3c7; color: #92400e; }
+    .badge-type-textarea { background: #f3e8ff; color: #6b21a8; }
+    .badge-type-date { background: #fee2e2; color: #991b1b; }
+
+    .btn-icon-control {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.15s ease;
+    }
+    .btn-icon-control:hover:not(:disabled) {
+      background: #f1f5f9;
+      color: var(--text-primary);
+      border-color: #94a3b8;
+    }
+    .btn-icon-control:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .custom-modal-warning-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #fef3c7;
+      color: #d97706;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem auto;
+    }
+
+    /* Single-line Top Header */
+    .forms-header-single-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: nowrap;
+      width: 100%;
+    }
+    .forms-title-area {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .forms-actions-area {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .draft-status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.25rem;
+      font-size: 0.825rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .draft-status-synced {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #047857;
+    }
+    .draft-status-modified {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #b45309;
+    }
+  </style>
 </head>
 <body>
 
@@ -21,15 +250,15 @@
           <div class="topbar-breadcrumb">
             <span class="breadcrumb-root">Konsol Internal</span>
             <span class="breadcrumb-sep">/</span>
-            <span class="breadcrumb-current">Manajemen Form</span>
+            <span class="breadcrumb-current">Pengaturan Form</span>
           </div>
         </div>
 
         <div id="userIdentityStrip" data-populated="1">
           <div class="user-identity-menu">
-            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'S' ?></div>
+            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'A' ?></div>
             <div class="user-info">
-              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'staf.operasional@agri.co.id' ?></span>
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'admin.operasional@agri.co.id' ?></span>
               <? if (userRole === 'both') { ?>
                 <span class="badge badge-primary">Admin &amp; Manager</span>
               <? } else if (userRole === 'admin') { ?>
@@ -43,653 +272,519 @@
         </div>
       </header>
 
-      <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: center; justify-content: space-between; gap: 1rem;">
-          <div style="flex: 1; min-width: 240px;">
-            <h1 class="card-title" style="margin-bottom: 0.25rem;">Manajemen Form Laporan</h1>
-            <p class="card-subtitle" style="margin-bottom: 0;">Kelola formulir pelaporan digital, konfigurasi Google Forms, dan registrasi form intake.</p>
+      <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
+        
+        <!-- PAGE HEADER & REAL-TIME CONTROLS STRICTLY IN ONE ROW -->
+        <div class="forms-header-single-line">
+          <div class="forms-title-area">
+            <h1 class="card-title" style="margin-bottom: 0.2rem; font-size: 1.35rem; line-height: 1.2;">Pengaturan Alur &amp; Isian Formulir</h1>
+            <p class="card-subtitle" style="margin-bottom: 0; font-size: 0.825rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Kelola struktur 6 langkah formulir, master komoditas/sektor, dan susun pertanyaan dinamis.</p>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap; flex-shrink: 0;">
-            <!-- Stat Pill: Total -->
-            <div style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0 0.75rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); height: 34px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0;">
-              <span style="color: var(--text-muted);">Total:</span>
-              <strong id="metricTotalForms" style="color: var(--text-primary); font-weight: 700; font-size: 0.9rem;">0</strong>
-            </div>
 
-            <!-- Stat Pill: Aktif -->
-            <div style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0 0.75rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500; color: #047857; height: 34px; box-sizing: border-box; white-space: nowrap; flex-shrink: 0;">
-              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
-              <span>Aktif:</span>
-              <strong id="metricActiveForms" style="font-weight: 700; font-size: 0.9rem;">0</strong>
-            </div>
-
-            <!-- Action Button: Buat Form Baru -->
-            <button class="btn btn-primary" onclick="openCreateFormModal()" style="height: 34px; padding: 0 0.85rem; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0; width: auto; max-width: max-content;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              <span>Buat Form Baru</span>
+          <div class="forms-actions-area">
+            <!-- Reset Button -->
+            <button class="btn btn-secondary table-btn-sm" onclick="openResetSchemaModal()" title="Kembalikan ke Setelan Awal Standar" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span>Reset Bawaan</span>
             </button>
 
-            <!-- Action Button: Perbarui -->
-            <button class="btn btn-secondary" onclick="fetchAndRenderForms(true)" title="Perbarui Daftar Form" style="height: 34px; padding: 0 0.75rem; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; flex-shrink: 0; width: auto; max-width: max-content;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              <span>Perbarui</span>
+            <!-- Discard Draft Button -->
+            <button class="btn btn-secondary table-btn-sm" id="btnDiscardDraft" onclick="discardDraftChanges()" title="Batalkan seluruh draf perubahan dan muat ulang konfigurasi aktif" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;" disabled>
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              <span>Batalkan Draf</span>
+            </button>
+
+            <!-- Preview Live Form Button -->
+            <button class="btn btn-secondary table-btn-sm" onclick="openLiveReportingForm()" title="Buka Form Pelaporan Staf Lapangan" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span>Pratinjau Form</span>
+            </button>
+
+            <!-- Publish Button -->
+            <button class="btn btn-primary table-btn-sm" id="btnPublishSchema" onclick="saveFormSchemaToServer()" style="height: 32px; padding: 0 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; font-weight: 600; width: auto;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Publikasikan Perubahan</span>
             </button>
           </div>
         </div>
 
-        <!-- Registered Forms Container -->
-        <div class="card" style="margin-top: 1rem;">
-          <h2 class="card-title-sm" style="margin-bottom: 1rem;">Daftar Form Laporan Terdaftar</h2>
-          
-          <div id="formsContainer" class="button-group-flex" style="flex-direction: column; gap: 1rem;">
-            <div class="skeleton-form-card">
-              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
-                <div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>
-                <div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-                  <div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>
-                  <div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>
-                </div>
-              </div>
-              <div style="display: flex; gap: 0.5rem;">
-                <div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>
-                <div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>
+        <!-- DRAFT / SYNC STATUS BANNER -->
+        <div id="draftStatusBanner" class="draft-status-banner draft-status-synced">
+          <div style="display: flex; align-items: center; gap: 0.5rem;" id="draftStatusText">
+            <span>✅ Seluruh konfigurasi formulir telah tersinkronisasi dan aktif di form publik staf.</span>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             LANGKAH 1: IDENTITAS PELAPOR & LOKASI
+        ========================================== -->
+        <div class="step-blueprint-card">
+          <div class="step-blueprint-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <span class="step-badge-circle">1</span>
+              <div>
+                <div class="step-title-text">Langkah 1 — Identitas Pelapor, Lokasi &amp; Jenis Kegiatan</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Langkah wajib awal untuk verifikasi ID pelapor, lokasi sektor, dan penentuan alur kegiatan.</div>
               </div>
             </div>
-            <div class="skeleton-form-card">
-              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
-                <div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>
-                <div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-                  <div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>
-                  <div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>
-                </div>
+            <span class="step-tag-core">Wajib (Seluruh Pelapor)</span>
+          </div>
+
+          <!-- Section 1.1: ID Karyawan & PIC -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.1 Verifikasi Identitas &amp; Kontak PIC Lapangan</label>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="static-field-pill">🔒 ID Karyawan (Lookup Otomatis)</span>
+              <span class="static-field-pill">🔒 Nama Lengkap PIC</span>
+              <span class="static-field-pill">🔒 Bidang / Divisi Penugasan</span>
+              <span class="static-field-pill">📱 Nomor Telepon</span>
+            </div>
+            <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.35rem; display: block;">Identitas diverifikasi langsung dari database karyawan dan kontak pelapor diisi aktif.</small>
+          </div>
+
+          <!-- Section 1.2: Lokasi Sektor Chips -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.2 Pilihan Lokasi Kegiatan (Sektor Lapangan)</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Daftar lokasi sektor yang dapat dipilih oleh staf (multi-select):</p>
+            <div class="chip-container" id="lokasiChipsContainer"></div>
+            <div class="add-chip-group">
+              <input type="text" id="newLokasiInput" class="form-input" placeholder="Nama sektor baru (contoh: Sektor 5, Ciomas Timur...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLokasiOption();}" style="height: 34px; font-size: 0.825rem;">
+              <button type="button" class="btn btn-secondary" onclick="addLokasiOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
+                <span>+ Tambah Sektor</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 1.3: 4 Activity Cards -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.3 Pilihan Kegiatan yang Dilakukan (Routing Wizard Alur Form)</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.65rem;">
+              <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🌿 Tanam atau tebar</div>
+                <div style="font-size: 0.75rem; color: #64748b;">Membuka Langkah 2 (Tanam/Tebar)</div>
               </div>
-              <div style="display: flex; gap: 0.5rem;">
-                <div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>
-                <div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>
+              <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🌾 Panen atau penjualan</div>
+                <div style="font-size: 0.75rem; color: #64748b;">Membuka Langkah 3 &amp; 4 (Panen)</div>
+              </div>
+              <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🔍 Pengawasan</div>
+                <div style="font-size: 0.75rem; color: #64748b;">Membuka isian Kategori Pengawasan</div>
+              </div>
+              <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">📋 Administrasi</div>
+                <div style="font-size: 0.75rem; color: #64748b;">Membuka isian Catatan Administrasi</div>
               </div>
             </div>
           </div>
+
+          <!-- Section 1.4: Kategori Pengawasan Chips -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.4 Kategori Pengawasan Lapangan</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Opsi dropdown saat staf mencentang kegiatan "Pengawasan":</p>
+            <div class="chip-container" id="pengawasanChipsContainer"></div>
+            <div class="add-chip-group">
+              <input type="text" id="newPengawasanInput" class="form-input" placeholder="Kategori baru (contoh: Lahan Plasma, Pupuk...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPengawasanOption();}" style="height: 34px; font-size: 0.825rem;">
+              <button type="button" class="btn btn-secondary" onclick="addPengawasanOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
+                <span>+ Tambah Kategori</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 1.5: Pertanyaan Dinamis Langkah 1 -->
+          <div style="padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #7c3aed;">Pertanyaan Tambahan di Langkah 1:</span>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="openAddQuestionModal(1)" style="font-size: 0.75rem; padding: 2px 8px;">
+                <span>+ Tambah di Langkah 1</span>
+              </button>
+            </div>
+            <div id="dynamicQuestionsStep1Container"></div>
+          </div>
         </div>
+
+        <!-- ==========================================
+             LANGKAH 2: KEGIATAN TANAM / TEBAR
+        ========================================== -->
+        <div class="step-blueprint-card">
+          <div class="step-blueprint-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <span class="step-badge-circle step-badge-conditional">2</span>
+              <div>
+                <div class="step-title-text">Langkah 2 — Kegiatan Tanam / Tebar Benih</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Khusus pencatatan penanaman komoditas pertanian, tebar benih ikan/ternak, dan estimasi panen.</div>
+              </div>
+            </div>
+            <span class="step-tag-conditional">Kondisional (Jika Tanam/Tebar Dipilih)</span>
+          </div>
+
+          <!-- Master Komoditas -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">2.1 Master Komoditas Pertanian / Perkebunan (Tanam &amp; Panen)</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Daftar komoditas aktif yang muncul pada dropdown Langkah 2 (Tanam) dan Langkah 3 (Panen):</p>
+            <div class="chip-container" id="komoditasChipsContainer"></div>
+            <div class="add-chip-group">
+              <input type="text" id="newKomoditasInput" class="form-input" placeholder="Komoditas baru (contoh: Semangka, Melon, Jahe Merah...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKomoditasOption();}" style="height: 34px; font-size: 0.825rem;">
+              <button type="button" class="btn btn-secondary" onclick="addKomoditasOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
+                <span>+ Tambah Komoditas</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Pengelolaan -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">2.2 Status Pengelolaan Lahan</label>
+            <div class="chip-container" id="statusChipsContainer"></div>
+            <div class="add-chip-group">
+              <input type="text" id="newStatusInput" class="form-input" placeholder="Status baru..." onkeydown="if(event.key==='Enter'){event.preventDefault();addStatusOption();}" style="height: 34px; font-size: 0.825rem;">
+              <button type="button" class="btn btn-secondary" onclick="addStatusOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
+                <span>+ Tambah Status</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Parameter Standar -->
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">2.3 Parameter Baku Pengisian Lapangan</label>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="static-field-pill">📐 Luas Lahan (m²)</span>
+              <span class="static-field-pill">🌱 Jumlah Benih / Bibit</span>
+              <span class="static-field-pill">📅 Tanggal Mulai Tanam</span>
+              <span class="static-field-pill">⏱️ Estimasi Umur Panen (HST)</span>
+            </div>
+          </div>
+
+          <!-- Pertanyaan Dinamis Langkah 2 -->
+          <div style="padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #7c3aed;">Pertanyaan Tambahan di Langkah 2:</span>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="openAddQuestionModal(2)" style="font-size: 0.75rem; padding: 2px 8px;">
+                <span>+ Tambah di Langkah 2</span>
+              </button>
+            </div>
+            <div id="dynamicQuestionsStep2Container"></div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             LANGKAH 3: KEGIATAN PANEN
+        ========================================== -->
+        <div class="step-blueprint-card">
+          <div class="step-blueprint-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <span class="step-badge-circle step-badge-conditional">3</span>
+              <div>
+                <div class="step-title-text">Langkah 3 — Kegiatan Panen Komoditas</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Pencatatan hasil panen kg, tanggal pemanenan, dan penentuan tujuan distribusi.</div>
+              </div>
+            </div>
+            <span class="step-tag-conditional">Kondisional (Jika Panen/Penjualan Dipilih)</span>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Parameter Panen Standar:</label>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="static-field-pill">⚖️ Jumlah Hasil Panen (kg)</span>
+              <span class="static-field-pill">📅 Tanggal Panen / Pemotongan</span>
+              <span class="static-field-pill">🚚 Tujuan Distribusi (Penjualan Eksternal / Internal / Penggunaan)</span>
+            </div>
+          </div>
+
+          <!-- Pertanyaan Dinamis Langkah 3 -->
+          <div style="padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #7c3aed;">Pertanyaan Tambahan di Langkah 3:</span>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="openAddQuestionModal(3)" style="font-size: 0.75rem; padding: 2px 8px;">
+                <span>+ Tambah di Langkah 3</span>
+              </button>
+            </div>
+            <div id="dynamicQuestionsStep3Container"></div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             LANGKAH 4: DETAIL PENJUALAN
+        ========================================== -->
+        <div class="step-blueprint-card">
+          <div class="step-blueprint-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <span class="step-badge-circle step-badge-conditional">4</span>
+              <div>
+                <div class="step-title-text">Langkah 4 — Detail Penjualan Hasil Panen</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Pencatatan unit terjual, harga satuan, dan kalkulasi total nominal penjualan otomatis.</div>
+              </div>
+            </div>
+            <span class="step-tag-conditional">Kondisional (Jika Penjualan Dipilih)</span>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Parameter Penjualan Standar:</label>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="static-field-pill">📦 Jumlah Unit Terjual</span>
+              <span class="static-field-pill">💰 Harga Satuan (Rp)</span>
+              <span class="static-field-pill">💵 Total Nilai Penjualan (Rp - Dihitung Otomatis)</span>
+            </div>
+          </div>
+
+          <!-- Pertanyaan Dinamis Langkah 4 -->
+          <div style="padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #7c3aed;">Pertanyaan Tambahan di Langkah 4:</span>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="openAddQuestionModal(4)" style="font-size: 0.75rem; padding: 2px 8px;">
+                <span>+ Tambah di Langkah 4</span>
+              </button>
+            </div>
+            <div id="dynamicQuestionsStep4Container"></div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             LANGKAH 5: DETAIL PENGGUNAAN INTERNAL
+        ========================================== -->
+        <div class="step-blueprint-card">
+          <div class="step-blueprint-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <span class="step-badge-circle step-badge-conditional">5</span>
+              <div>
+                <div class="step-title-text">Langkah 5 — Detail Penggunaan Internal Hasil Panen</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Pencatatan alokasi hasil panen untuk kebutuhan internal, konsumsi, atau bibit.</div>
+              </div>
+            </div>
+            <span class="step-tag-conditional">Kondisional (Jika Distribusi "Penggunaan" Dipilih)</span>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Daftar Lokasi Tujuan Penggunaan Internal</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Pilihan kotak centang tujuan distribusi internal hasil panen:</p>
+            <div class="chip-container" id="penggunaanChipsContainer"></div>
+            <div class="add-chip-group">
+              <input type="text" id="newPenggunaanInput" class="form-input" placeholder="Lokasi baru (contoh: Gudang Pusat, Villa Quiling...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPenggunaanOption();}" style="height: 34px; font-size: 0.825rem;">
+              <button type="button" class="btn btn-secondary" onclick="addPenggunaanOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
+                <span>+ Tambah Lokasi</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Pertanyaan Dinamis Langkah 5 -->
+          <div style="padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #7c3aed;">Pertanyaan Tambahan di Langkah 5:</span>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="openAddQuestionModal(5)" style="font-size: 0.75rem; padding: 2px 8px;">
+                <span>+ Tambah di Langkah 5</span>
+              </button>
+            </div>
+            <div id="dynamicQuestionsStep5Container"></div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             LANGKAH 6: CAPAIAN, KENDALA & BUKTI FOTO
+        ========================================== -->
+        <div class="step-blueprint-card">
+          <div class="step-blueprint-header">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <span class="step-badge-circle">6</span>
+              <div>
+                <div class="step-title-text">Langkah 6 — Capaian Kegiatan, Kendala &amp; 3 Foto Bukti</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Evaluasi hasil lapangan, pelaporan kendala &amp; upaya, serta pengambilan 3 foto wajib kamera.</div>
+              </div>
+            </div>
+            <span class="step-tag-core">Wajib (Seluruh Pelapor)</span>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Parameter Evaluasi &amp; Foto Standar:</label>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="static-field-pill">📝 Catatan Capaian Kegiatan (Wajib)</span>
+              <span class="static-field-pill">⚠️ Kendala di Lapangan (Opsional)</span>
+              <span class="static-field-pill">🛠️ Upaya Solusi yang Dilakukan (Opsional)</span>
+              <span class="static-field-pill">📸 3 Foto Wajib: Slot 1 Utama, Slot 2 Detail, Slot 3 Hasil/Area</span>
+            </div>
+          </div>
+
+          <!-- Pertanyaan Dinamis Langkah 6 -->
+          <div style="padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.85rem; color: #7c3aed;">Pertanyaan Tambahan di Langkah 6 (Catatan Akhir):</span>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="openAddQuestionModal(6)" style="font-size: 0.75rem; padding: 2px 8px;">
+                <span>+ Tambah di Langkah 6</span>
+              </button>
+            </div>
+            <div id="dynamicQuestionsStep6Container"></div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             INTEGRASI TAUTAN TERPUSAT
+        ========================================== -->
+        <div class="card">
+          <h2 class="card-title-sm" style="margin-bottom: 0.25rem;">Tautan Integrasi &amp; Akses Penyimpanan</h2>
+          <p style="margin: 0 0 1.25rem 0; font-size: 0.825rem; color: var(--text-secondary);">Akses cepat ke form staf, Google Spreadsheet Master, dan folder foto Drive.</p>
+
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a id="linkOpenPublicForm" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary table-btn-sm" style="text-decoration: none; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span>Buka Form Pelaporan Staf</span>
+            </a>
+            <a id="linkOpenSpreadsheet" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary table-btn-sm" style="text-decoration: none; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span>Buka Master Spreadsheet</span>
+            </a>
+            <a id="linkOpenDrivePhotos" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary table-btn-sm" style="text-decoration: none; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <span>Buka Folder Foto Drive</span>
+            </a>
+          </div>
+        </div>
+
       </main>
     </div>
   </div>
 
-  <!-- Modal: Buat Form Baru -->
-  <div class="modal-overlay" id="createFormModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 620px;">
-      <div class="modal-header">
-        <h3 class="modal-title">Buat Form Laporan Baru</h3>
-        <button class="modal-close-btn" onclick="closeCreateFormModal()">&times;</button>
-      </div>
-      <form id="createFormEl" onsubmit="handleCreateFormSubmit(event)">
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <!-- Section 1: Form Details -->
-          <div>
-            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.35rem;">1. Detail &amp; Identitas Form</h4>
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="newFormTitle">Judul Form <span class="text-danger">*</span></label>
-                <input type="text" id="newFormTitle" class="form-input" placeholder="contoh: Form Laporan Pemeliharaan Alat" required>
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="newFormDesc">Deskripsi Form</label>
-                <textarea id="newFormDesc" class="form-input" rows="2" placeholder="Jelaskan tujuan dan petunjuk pengisian form ini..."></textarea>
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="newFormType">Tipe Form / Template <span class="text-danger">*</span></label>
-                <select id="newFormType" class="form-input" onchange="toggleCustomFieldBuilder()" required>
-                  <option value="harian">Form Harian (Google Form Native - Status Tugas, Hasil Panen)</option>
-                  <option value="umum">Form Umum (Google Form Native - Narasi Deskriptif, Insiden)</option>
-                  <option value="kustom">Form Kustom Lapangan (Dynamic Form Builder + Foto)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: Dynamic Field Builder (for kustom forms) -->
-          <div id="customFieldBuilder" style="display: none; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-            <div class="flex-between-wrap" style="margin-bottom: 0.75rem; align-items: flex-start;">
-              <div>
-                <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">2. Susun Pertanyaan Form</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">Tambahkan dan konfigurasi bidang pertanyaan kustom untuk formulir ini.</p>
-              </div>
-              <button type="button" class="btn btn-secondary table-btn-sm" onclick="addCustomFieldRow()" style="display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>Tambah Field</span>
-              </button>
-            </div>
-            <div id="customFieldsList" class="custom-fields-scroll-container" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
-          </div>
-        </div>
-        <div class="modal-footer" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button type="button" class="btn btn-secondary" onclick="closeCreateFormModal()">Batal</button>
-          <button type="submit" class="btn btn-primary" id="btnSubmitCreateForm">Simpan &amp; Provision Form</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Edit Konfigurasi Form -->
-  <div class="modal-overlay" id="editFormModalOverlay" style="display: none;">
+  <!-- MODAL: TAMBAH / EDIT PERTANYAAN KUSTOM -->
+  <div class="modal-overlay" id="questionModalOverlay" style="display: none;">
     <div class="modal-card" style="max-width: 520px;">
       <div class="modal-header">
-        <h3 class="modal-title">Edit Tampilan Form</h3>
-        <button class="modal-close-btn" onclick="closeEditFormModal()">&times;</button>
+        <h3 class="modal-title" id="questionModalTitle">Tambah Pertanyaan Lapangan</h3>
+        <button class="modal-close-btn" onclick="closeQuestionModal()">&times;</button>
       </div>
-      <form id="editFormEl" onsubmit="handleEditFormSubmit(event)">
-        <input type="hidden" id="editFormOriginalId">
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="editFormTitle">Judul Form <span class="text-danger">*</span></label>
-            <input type="text" id="editFormTitle" class="form-input" required>
+      <form id="questionFormEl" onsubmit="handleQuestionFormSubmit(event)">
+        <input type="hidden" id="qModalFieldId" value="">
+        <input type="hidden" id="qModalStep" value="1">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;">
+          
+          <!-- Label Pertanyaan -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qModalLabel">Label / Judul Pertanyaan <span class="text-danger">*</span></label>
+            <input type="text" id="qModalLabel" class="form-input" placeholder="contoh: Nomor Telepon, Catatan Cuaca..." required>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="editFormDesc">Deskripsi Form</label>
-            <textarea id="editFormDesc" class="form-input" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="editFormIdInput">Google Form ID (Google Drive File ID)</label>
-            <input type="text" id="editFormIdInput" class="form-input" placeholder="contoh: 1aB2c3D4e5F6g7H8i9J0kL">
-            <small style="color: var(--text-muted); font-size: 0.75rem;">Masukkan ID file Google Form jika Anda ingin menghubungkan Google Form yang sudah dibuat sebelumnya.</small>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="editFormStatus">Status Form <span class="text-danger">*</span></label>
-            <select id="editFormStatus" class="form-input" required>
-              <option value="aktif">Aktif (Menerima Pengisian Laporan)</option>
-              <option value="nonaktif">Nonaktif (Diarsipkan / Ditutup)</option>
+
+          <!-- Tipe Input -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qModalType">Tipe Isian Jawaban <span class="text-danger">*</span></label>
+            <select id="qModalType" class="form-input" onchange="onQuestionTypeChange()" required>
+              <option value="text">Teks Singkat (Short Text)</option>
+              <option value="number">Angka / Jumlah Numerik (Number)</option>
+              <option value="textarea">Catatan Paragraf Panjang (Textarea)</option>
+              <option value="select">Pilihan Dropdown Tunggal (Dropdown Select)</option>
+              <option value="checkbox">Pilihan Kotak Centang (Multi-Select Checkbox)</option>
+              <option value="date">Tanggal (Date Picker)</option>
             </select>
           </div>
+
+          <!-- Opsi Pilihan (Hanya untuk select / checkbox) -->
+          <div class="form-group" id="qModalOptionsGroup" style="display: none; margin-bottom: 0;">
+            <label class="form-label" for="qModalOptions">Pilihan Opsi (Pisahkan dengan koma) <span class="text-danger">*</span></label>
+            <textarea id="qModalOptions" class="form-input" rows="3" placeholder="contoh: Cerah, Berawan, Hujan Ringan, Hujan Deras"></textarea>
+            <small style="color: var(--text-muted); font-size: 0.75rem;">Masukkan daftar pilihan yang dipisahkan dengan tanda koma (,).</small>
+          </div>
+
+          <!-- Single Clean Section Placement Dropdown -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qModalSection">Posisi Penempatan <span class="text-danger">*</span></label>
+            <select id="qModalSection" class="form-input" required></select>
+          </div>
+
+          <!-- Teks Bantuan / Placeholder -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qModalHelp">Petunjuk Pengisian (Help text / Placeholder)</label>
+            <input type="text" id="qModalHelp" class="form-input" placeholder="contoh: Masukkan nomor telepon aktif / catatan">
+          </div>
+
+          <!-- Required Toggle -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="qModalRequired">Status Keharusan Mengisi</label>
+            <select id="qModalRequired" class="form-input">
+              <option value="false" selected>Opsional (Tidak Wajib)</option>
+              <option value="true">Wajib Diisi (* Required)</option>
+            </select>
+          </div>
+
         </div>
-        <div class="modal-footer" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button type="button" class="btn btn-secondary" onclick="closeEditFormModal()">Batal</button>
-          <button type="submit" class="btn btn-primary" id="btnSubmitEditForm">Simpan Perubahan</button>
+        <div class="modal-footer" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color); background: #f8fafc; border-radius: 0 0 var(--radius-md) var(--radius-md);">
+          <button type="button" class="btn btn-secondary" onclick="closeQuestionModal()">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Pertanyaan</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal: Konfirmasi Hapus Form -->
-  <div class="modal-overlay" id="deleteFormModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 460px;">
-      <div class="modal-header">
-        <h3 class="modal-title text-danger">Konfirmasi Hapus Form</h3>
-        <button class="modal-close-btn" onclick="closeDeleteFormModal()">&times;</button>
+  <!-- CUSTOM ENTERPRISE MODAL: KONFIRMASI RESET FORM SCHEMA -->
+  <div class="modal-overlay" id="resetSchemaModalOverlay" style="display: none;">
+    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 1.5rem;">
+      <div class="custom-modal-warning-icon">
+        <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
-      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem;">
-        <input type="hidden" id="deleteTargetFormId">
-        <p>Apakah Anda yakin ingin menghapus registrasi form <strong id="deleteTargetFormTitle">...</strong>?</p>
-        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); cursor: pointer;">
-          <input type="checkbox" id="chkDeleteDriveFile">
-          <span>Pindahkan file Google Form ke Trash di Google Drive</span>
-        </label>
-      </div>
-      <div class="modal-footer" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
-        <button type="button" class="btn btn-secondary" onclick="closeDeleteFormModal()">Batal</button>
-        <button type="button" class="btn btn-danger" id="btnSubmitDeleteForm" onclick="handleDeleteFormConfirm()">Hapus Form</button>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Reset ke Setelan Awal Pabrik?</h3>
+      <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
+        Tindakan ini akan mengembalikan seluruh skema formulir ke konfigurasi standar awal (5 Sektor Lapangan, 8 Master Komoditas, 3 Kategori Pengawasan, dan menghapus seluruh pertanyaan tambahan).
+      </p>
+
+      <div style="display: flex; gap: 0.5rem; justify-content: center;">
+        <button type="button" class="btn btn-secondary" onclick="closeResetSchemaModal()" style="flex: 1;">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmResetSchema" onclick="executeResetFormSchema()" style="flex: 1; font-weight: 600;">Ya, Reset ke Awal</button>
       </div>
     </div>
   </div>
 
   <?!= includeApp(webAppUrl); ?>
-  <script>
-    var registeredForms = [];
 
-    document.addEventListener('DOMContentLoaded', function() {
-      loadQuickLinks();
-      loadDiagnostics();
-      fetchAndRenderForms();
-    });
+  <script>
+    const STEP_SECTIONS_CONFIG = {
+      1: [
+        { code: '1.1', label: 'Setelah 1.1 Verifikasi Identitas & Nomor Telepon' },
+        { code: '1.2', label: 'Setelah 1.2 Pilihan Lokasi Sektor' },
+        { code: '1.3', label: 'Setelah 1.3 Pilihan Kegiatan Lapangan' },
+        { code: '1.4', label: 'Setelah 1.4 Pengawasan & Administrasi' },
+        { code: '1.end', label: 'Di Akhir Langkah 1 (Default)' }
+      ],
+      2: [
+        { code: '2.1', label: 'Setelah 2.1 Master Komoditas & Status' },
+        { code: '2.2', label: 'Setelah 2.2 Luas Lahan & Jumlah Benih' },
+        { code: '2.3', label: 'Setelah 2.3 Tanggal Tanam & Estimasi HST' },
+        { code: '2.end', label: 'Di Akhir Langkah 2 (Default)' }
+      ],
+      3: [
+        { code: '3.1', label: 'Setelah 3.1 Status & Komoditas Panen' },
+        { code: '3.2', label: 'Setelah 3.2 Tanggal Panen & Penjualan' },
+        { code: '3.3', label: 'Setelah 3.3 Jumlah Panen & Tujuan Distribusi' },
+        { code: '3.end', label: 'Di Akhir Langkah 3 (Default)' }
+      ],
+      4: [
+        { code: '4.1', label: 'Setelah 4.1 Jumlah Unit & Harga Satuan' },
+        { code: '4.2', label: 'Setelah 4.2 Total Nilai Penjualan' },
+        { code: '4.end', label: 'Di Akhir Langkah 4 (Default)' }
+      ],
+      5: [
+        { code: '5.1', label: 'Setelah 5.1 Jumlah Unit Penggunaan' },
+        { code: '5.2', label: 'Setelah 5.2 Lokasi Tujuan Penggunaan Internal' },
+        { code: '5.end', label: 'Di Akhir Langkah 5 (Default)' }
+      ],
+      6: [
+        { code: '6.1', label: 'Setelah 6.1 Catatan Capaian, Kendala & Upaya' },
+        { code: '6.2', label: 'Setelah 6.2 Foto Bukti Kamera' },
+        { code: '6.end', label: 'Di Akhir Langkah 6 (Default)' }
+      ]
+    };
+
+    let activeSchema = {
+      version: '1.0',
+      title: 'Formulir Laporan Operasional',
+      subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
+      lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
+      komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'],
+      pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
+      statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
+      tujuanPenggunaanOptions: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
+      customFields: []
+    };
+    let publishedServerSchema = null;
+    let hasDraftChanges = false;
+    let resolvedQuickLinks = null;
 
     function toggleSidebar() {
-      var sidebar = document.getElementById('appSidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('sidebar-open');
-      }
-    }
-
-    function renderFormsSkeleton() {
-      var container = document.getElementById('formsContainer');
-      if (!container) return;
-      var html = '';
-      for (var i = 0; i < 3; i++) {
-        html += '<div class="skeleton-form-card">' +
-          '<div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">' +
-            '<div class="skeleton-table-cell" style="width: 220px; height: 18px;"></div>' +
-            '<div class="skeleton-table-cell" style="width: 320px; height: 12px;"></div>' +
-            '<div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">' +
-              '<div class="skeleton-table-cell" style="width: 80px; height: 14px;"></div>' +
-              '<div class="skeleton-table-cell" style="width: 100px; height: 14px;"></div>' +
-            '</div>' +
-          '</div>' +
-          '<div style="display: flex; gap: 0.5rem;">' +
-            '<div class="skeleton-table-cell" style="width: 70px; height: 32px; border-radius: var(--radius-sm);"></div>' +
-            '<div class="skeleton-table-cell" style="width: 80px; height: 32px; border-radius: var(--radius-sm);"></div>' +
-          '</div>' +
-        '</div>';
-      }
-      container.innerHTML = html;
-    }
-
-    async function fetchAndRenderForms(isManual) {
-      var container = document.getElementById('formsContainer');
-      if (!isManual && container) {
-        renderFormsSkeleton();
-      }
-
-      registeredForms = [];
-
-      if (isLiveServer()) {
-        try {
-          var res = await runServer('getRegisteredForms');
-          if (Array.isArray(res) && res.length > 0) {
-            registeredForms = res;
-          } else {
-            registeredForms = getFallbackDefaultForms();
-          }
-        } catch (err) {
-          console.error('Failed to fetch forms from server, using fallback:', err);
-          registeredForms = getFallbackDefaultForms();
-        }
-      } else {
-        registeredForms = getFallbackDefaultForms();
-      }
-
-      renderFormMetrics();
-      renderFormsList();
-
-      if (isManual) {
-        showToast('Daftar form berhasil diperbarui', 'info');
-      }
-    }
-
-    async function openFormSheetData(formId) {
-      if (isLiveServer()) {
-        try {
-          showToast('Membuka spreadsheet data...', 'info');
-          var url = await runServer('getFormSheetUrl', formId);
-          if (url) {
-            window.open(url, '_blank');
-          } else {
-            showToast('Spreadsheet data belum tersedia.', 'warning');
-          }
-        } catch (err) {
-          showToast('Gagal memuat URL spreadsheet: ' + err.message, 'error');
-        }
-      } else {
-        showToast('Local Mode — Spreadsheet live di Google Apps Script', 'info');
-      }
-    }
-
-    function getFallbackDefaultForms() {
-      var baseUrl = window.SERVER_WEB_APP_URL ? window.SERVER_WEB_APP_URL.split('?')[0] : '';
-      return [
-        {
-          id: 'DEFAULT_MAIN_FORM',
-          title: 'Laporan Operasional',
-          description: 'Formulir harian operasional pertanian, peternakan, perikanan, panen, dan penjualan.',
-          type: 'operasional',
-          status: 'aktif',
-          editUrl: '',
-          publicUrl: baseUrl ? baseUrl + '?page=index' : '?page=index',
-          responseCount: 0,
-          isAccessible: false,
-          isDefault: true
-        }
-      ];
-    }
-
-    function renderFormMetrics() {
-      var total = registeredForms.length;
-      var active = registeredForms.filter(function(f) { return (f.status || '').toLowerCase() === 'aktif'; }).length;
-
-      var elTotal = document.getElementById('metricTotalForms');
-      var elActive = document.getElementById('metricActiveForms');
-
-      if (elTotal) elTotal.innerText = total;
-      if (elActive) elActive.innerText = active;
-    }
-
-    function renderFormsList() {
-      var container = document.getElementById('formsContainer');
-      if (!container) return;
-
-      if (!registeredForms || registeredForms.length === 0) {
-        container.innerHTML = '<div class="empty-state-card" style="text-align: center; padding: 3rem 1.5rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">' +
-          '<svg class="svg-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>' +
-          '<h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Belum Ada Form Terdaftar</h3>' +
-          '<p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.5rem auto; line-height: 1.5;">Kelola formulir pelaporan digital Anda di sini. Buat form kustom baru atau perbarui daftar form yang terintegrasi.</p>' +
-          '<button class="btn btn-primary" onclick="openCreateFormModal()" style="display: inline-flex; align-items: center; gap: 0.5rem;">' +
-            '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
-            '<span>Buat Form Pertama</span>' +
-          '</button>' +
-        '</div>';
-        return;
-      }
-
-      var html = '';
-      registeredForms.forEach(function(f) {
-        var isActive = (f.status || 'aktif').toLowerCase() === 'aktif';
-        var targetSheetUrl = f.sheetUrl || (f.sheetId ? 'https://docs.google.com/spreadsheets/d/' + f.sheetId + '/edit' : '');
-        
-        var sheetBtnHtml = '';
-        if (targetSheetUrl) {
-          sheetBtnHtml = '<a href="' + targetSheetUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Buka Spreadsheet Data"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Buka Sheet Data</span></a>';
-        } else {
-          sheetBtnHtml = '<button class="btn btn-secondary table-btn-sm" onclick="openFormSheetData(\'' + f.id + '\')" title="Buka Spreadsheet Data"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Buka Sheet Data</span></button>';
-        }
-
-        var editorBtnHtml = '';
-        if (f.editUrl) {
-          editorBtnHtml = '<a href="' + f.editUrl + '" target="_blank" class="btn btn-ghost table-btn-sm" title="Buka Editor Google Form Native"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Google Form Editor</span></a>';
-        }
-
-        var previewBtnHtml = '';
-        if (f.publicUrl) {
-          previewBtnHtml = '<a href="' + f.publicUrl + '" target="_blank" class="btn btn-secondary table-btn-sm" title="Pratinjau Form Publik"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg><span>Pratinjau</span></a>';
-        }
-
-        var isDefault = f.isDefault || f.isDefaultMain || f.id === 'DEFAULT_MAIN_FORM';
-        var safeTitle = escapeHtml(f.title || 'Form Tanpa Judul').replace(/'/g, "\\'");
-        var deleteBtnHtml = isDefault ? '' :
-          '<button class="btn btn-ghost-danger table-btn-sm" onclick="confirmDeleteForm(\'' + f.id + '\', \'' + safeTitle + '\')" title="Hapus Form"><svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
-
-        html += '<div class="card card-no-margin" style="border-left: 4px solid ' + (isActive ? 'var(--primary)' : 'var(--border-strong)') + '; padding: 1.25rem 1.5rem;">' +
-          '<div class="flex-between-wrap" style="align-items: center; gap: 1rem;">' +
-            '<div style="flex: 1; min-width: 260px;">' +
-              '<div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; flex-wrap: wrap;">' +
-                '<h3 class="card-title-sm" style="margin: 0; font-size: 1.1rem; font-weight: 700;">' + escapeHtml(f.title || 'Form Tanpa Judul') + '</h3>' +
-                '<span class="badge ' + (isActive ? 'badge-primary' : 'badge-normal') + '">' + (isActive ? 'Aktif' : 'Nonaktif') + '</span>' +
-                '<span class="badge badge-neutral" style="font-size: 0.75rem; font-weight: 600;">' + (f.responseCount || 0) + ' Respons</span>' +
-              '</div>' +
-              '<p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0; line-height: 1.4;">' + escapeHtml(f.description || 'Tidak ada deskripsi.') + '</p>' +
-            '</div>' +
-            '<div class="button-group-flex" style="align-items: center; gap: 0.5rem;">' +
-              previewBtnHtml +
-              sheetBtnHtml +
-              '<button class="btn btn-secondary table-btn-sm" onclick="openEditFormModal(\'' + f.id + '\')" title="Edit Tampilan Form">' +
-                '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' +
-                '<span>Edit Tampilan</span>' +
-              '</button>' +
-              editorBtnHtml +
-              deleteBtnHtml +
-            '</div>' +
-          '</div>' +
-        '</div>';
-      });
-
-      container.innerHTML = html;
-    }
-
-    function toggleCustomFieldBuilder() {
-      var type = document.getElementById('newFormType').value;
-      var builder = document.getElementById('customFieldBuilder');
-      if (builder) {
-        builder.style.display = (type === 'kustom') ? 'block' : 'none';
-        if (type === 'kustom' && document.getElementById('customFieldsList').children.length === 0) {
-          addCustomFieldRow();
-        }
-      }
-    }
-
-    function addCustomFieldRow() {
-      var list = document.getElementById('customFieldsList');
-      if (!list) return;
-
-      var row = document.createElement('div');
-      row.className = 'custom-field-row fade-in-highlight';
-      row.style.display = 'flex';
-      row.style.flexDirection = 'column';
-      row.style.gap = '0.5rem';
-
-      row.innerHTML = '' +
-        '<div style="display: flex; gap: 0.5rem; align-items: center;">' +
-          '<input type="text" class="form-input f-label" placeholder="Label Pertanyaan (e.g. Kondisi Alat Lapangan)" required style="flex: 2; height: 38px;">' +
-          '<select class="form-input f-type" style="flex: 1.5; height: 38px;">' +
-            '<option value="text">Teks Singkat</option>' +
-            '<option value="textarea">Paragraf / Textarea</option>' +
-            '<option value="select">Pilihan Dropdown</option>' +
-            '<option value="checkbox">Pilihan Checkbox (Multi-select)</option>' +
-            '<option value="date">Tanggal</option>' +
-            '<option value="photo">Foto Lampiran Lapangan</option>' +
-          '</select>' +
-          '<button type="button" class="btn btn-ghost-danger table-btn-sm" onclick="this.closest(\'.custom-field-row\').remove()" title="Hapus Pertanyaan" style="height: 38px; width: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">' +
-            '<svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-          '</button>' +
-        '</div>' +
-        '<input type="text" class="form-input f-options" placeholder="Opsi Pilihan (pisahkan koma, contoh: Baik, Perlu Perbaikan, Rusak)" style="display: none; height: 36px; font-size: 0.85rem;">';
-
-      var selectEl = row.querySelector('.f-type');
-      var optionsEl = row.querySelector('.f-options');
-      selectEl.addEventListener('change', function() {
-        if (selectEl.value === 'select' || selectEl.value === 'checkbox') {
-          optionsEl.style.display = 'block';
-        } else {
-          optionsEl.style.display = 'none';
-        }
-      });
-
-      list.appendChild(row);
-      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // Modal Control Functions
-    function openCreateFormModal() {
-      var formEl = document.getElementById('createFormEl');
-      if (formEl) formEl.reset();
-      document.getElementById('customFieldsList').innerHTML = '';
-      toggleCustomFieldBuilder();
-      var modal = document.getElementById('createFormModalOverlay');
-      if (modal) modal.style.display = 'flex';
-    }
-
-    function closeCreateFormModal() {
-      var modal = document.getElementById('createFormModalOverlay');
-      if (modal) modal.style.display = 'none';
-    }
-
-    function openEditFormModal(formId) {
-      var form = registeredForms.find(function(f) { return f.id === formId; });
-      if (!form) return;
-
-      var elOrigId = document.getElementById('editFormOriginalId');
-      var elTitle = document.getElementById('editFormTitle');
-      var elDesc = document.getElementById('editFormDesc');
-      var elIdInput = document.getElementById('editFormIdInput');
-      var elStatus = document.getElementById('editFormStatus');
-
-      if (elOrigId) elOrigId.value = form.id;
-      if (elTitle) elTitle.value = form.title || '';
-      if (elDesc) elDesc.value = form.description || '';
-      if (elIdInput) elIdInput.value = (form.id && form.type !== 'kustom') ? form.id : '';
-      if (elStatus) elStatus.value = (form.status || 'aktif').toLowerCase();
-
-      var modal = document.getElementById('editFormModalOverlay');
-      if (modal) modal.style.display = 'flex';
-    }
-
-    function closeEditFormModal() {
-      var modal = document.getElementById('editFormModalOverlay');
-      if (modal) modal.style.display = 'none';
-    }
-
-    function confirmDeleteForm(formId, formTitle) {
-      var elTargetId = document.getElementById('deleteTargetFormId');
-      var elTargetTitle = document.getElementById('deleteTargetFormTitle');
-      var elChkDrive = document.getElementById('chkDeleteDriveFile');
-
-      if (elTargetId) elTargetId.value = formId;
-      if (elTargetTitle) elTargetTitle.innerText = formTitle;
-      if (elChkDrive) elChkDrive.checked = false;
-
-      var modal = document.getElementById('deleteFormModalOverlay');
-      if (modal) modal.style.display = 'flex';
-    }
-
-    function closeDeleteFormModal() {
-      var modal = document.getElementById('deleteFormModalOverlay');
-      if (modal) modal.style.display = 'none';
-    }
-
-    // Form Submit Handlers
-    async function handleCreateFormSubmit(e) {
-      e.preventDefault();
-      var btn = document.getElementById('btnSubmitCreateForm');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Memproses & Provisioning...';
-      }
-
-      var formType = document.getElementById('newFormType').value;
-      var fields = [];
-
-      if (formType === 'kustom') {
-        var rows = document.querySelectorAll('#customFieldsList .custom-field-row');
-        rows.forEach(function(r) {
-          var label = r.querySelector('.f-label').value.trim();
-          var type = r.querySelector('.f-type').value;
-          var optsRaw = r.querySelector('.f-options').value.trim();
-          var opts = optsRaw ? optsRaw.split(',').map(function(s) { return s.trim(); }) : [];
-          if (label) {
-            var key = label.toLowerCase().replace(/[^a-z0-9]/g, '_');
-            fields.push({ key: key, label: label, type: type, options: opts, required: true });
-          }
-        });
-      }
-
-      var payload = {
-        title: document.getElementById('newFormTitle').value,
-        description: document.getElementById('newFormDesc').value,
-        formType: formType,
-        fields: fields
-      };
-
-      if (isLiveServer()) {
-        try {
-          var created = await runServer('createNewReportingForm', payload);
-          showToast('Form "' + created.title + '" berhasil dibuat & di-provision!', 'success');
-          closeCreateFormModal();
-          fetchAndRenderForms();
-        } catch (err) {
-          console.error('Error creating form:', err);
-          showToast('Gagal membuat form: ' + err.message, 'error');
-        } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerText = 'Simpan & Provision Form';
-          }
-        }
-      } else {
-        registeredForms.push({
-          id: 'mock-form-' + Date.now(),
-          title: payload.title,
-          description: payload.description,
-          type: payload.formType,
-          status: 'aktif',
-          responseCount: 0
-        });
-        showToast('Form "' + payload.title + '" berhasil dibuat!', 'success');
-        closeCreateFormModal();
-        renderFormMetrics();
-        renderFormsList();
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = 'Simpan & Provision Form';
-        }
-      }
-    }
-
-    async function handleEditFormSubmit(e) {
-      e.preventDefault();
-      var btn = document.getElementById('btnSubmitEditForm');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Menyimpan...';
-      }
-
-      var originalId = document.getElementById('editFormOriginalId').value;
-      var updates = {
-        title: document.getElementById('editFormTitle').value,
-        description: document.getElementById('editFormDesc').value,
-        newFormId: document.getElementById('editFormIdInput').value,
-        status: document.getElementById('editFormStatus').value
-      };
-
-      if (isLiveServer()) {
-        try {
-          await runServer('updateReportingForm', originalId, updates);
-          showToast('Konfigurasi form berhasil diperbarui!', 'success');
-          closeEditFormModal();
-          fetchAndRenderForms();
-        } catch (err) {
-          console.error('Error updating form:', err);
-          showToast('Gagal memperbarui form: ' + err.message, 'error');
-        } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerText = 'Simpan Perubahan';
-          }
-        }
-      } else {
-        var idx = registeredForms.findIndex(function(f) { return f.id === originalId; });
-        if (idx !== -1) {
-          var newId = updates.newFormId || originalId;
-          registeredForms[idx] = Object.assign({}, registeredForms[idx], {
-            id: newId,
-            title: updates.title,
-            description: updates.description,
-            status: updates.status,
-            editUrl: newId ? 'https://docs.google.com/forms/d/' + newId + '/edit' : ''
-          });
-        }
-        showToast('Konfigurasi form berhasil diperbarui!', 'success');
-        closeEditFormModal();
-        renderFormMetrics();
-        renderFormsList();
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = 'Simpan Perubahan';
-        }
-      }
-    }
-
-    async function handleDeleteFormConfirm() {
-      var btn = document.getElementById('btnSubmitDeleteForm');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Menghapus...';
-      }
-
-      var formId = document.getElementById('deleteTargetFormId').value;
-      var deleteDriveFile = document.getElementById('chkDeleteDriveFile').checked;
-
-      if (isLiveServer()) {
-        try {
-          await runServer('deleteReportingForm', formId, deleteDriveFile);
-          showToast('Form berhasil dihapus dari registri!', 'success');
-          closeDeleteFormModal();
-          fetchAndRenderForms();
-        } catch (err) {
-          console.error('Error deleting form:', err);
-          showToast('Gagal menghapus form: ' + err.message, 'error');
-        } finally {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerText = 'Hapus Form';
-          }
-        }
-      } else {
-        registeredForms = registeredForms.filter(function(f) { return f.id !== formId; });
-        showToast('Form berhasil dihapus!', 'success');
-        closeDeleteFormModal();
-        renderFormMetrics();
-        renderFormsList();
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = 'Hapus Form';
-        }
-      }
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
     }
 
     function escapeHtml(str) {
@@ -701,6 +796,639 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
+
+    function markFormDraftChanged(isChanged) {
+      hasDraftChanges = isChanged;
+      const banner = document.getElementById('draftStatusBanner');
+      const bannerText = document.getElementById('draftStatusText');
+      const discardBtn = document.getElementById('btnDiscardDraft');
+
+      if (discardBtn) discardBtn.disabled = !isChanged;
+
+      if (banner && bannerText) {
+        if (isChanged) {
+          banner.className = 'draft-status-banner draft-status-modified';
+          bannerText.innerHTML = `
+            <span>⚠️ Terdapat perubahan draf yang belum dipublikasikan. Klik <strong>"Publikasikan Perubahan"</strong> di atas untuk menerapkan ke form publik staf.</span>
+          `;
+        } else {
+          banner.className = 'draft-status-banner draft-status-synced';
+          bannerText.innerHTML = `
+            <span>✅ Seluruh konfigurasi formulir telah tersinkronisasi dan aktif di form publik staf.</span>
+          `;
+        }
+      }
+    }
+
+    async function loadFormSchemaFromBackend() {
+      try {
+        if (isLiveServer()) {
+          const schema = await runServer('getReportingFormSchema');
+          if (schema && typeof schema === 'object') {
+            activeSchema = JSON.parse(JSON.stringify(schema));
+            publishedServerSchema = JSON.parse(JSON.stringify(schema));
+          }
+        } else {
+          publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
+        }
+      } catch (e) {
+        console.warn('Could not load schema from server, using local fallback:', e);
+        publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
+      }
+      markFormDraftChanged(false);
+      renderAllSchemaSections();
+    }
+
+    function discardDraftChanges() {
+      if (!publishedServerSchema) return;
+      activeSchema = JSON.parse(JSON.stringify(publishedServerSchema));
+      markFormDraftChanged(false);
+      renderAllSchemaSections();
+      showToast('Perubahan draf dibatalkan. Konfigurasi dikembalikan ke skema aktif.', 'info');
+    }
+
+    function renderAllSchemaSections() {
+      renderLokasiChips();
+      renderPengawasanChips();
+      renderKomoditasChips();
+      renderStatusChips();
+      renderPenggunaanChips();
+      renderCustomQuestionsAllSteps();
+    }
+
+    // SECTION 1.2: LOKASI CHIPS
+    function renderLokasiChips() {
+      const container = document.getElementById('lokasiChipsContainer');
+      if (!container) return;
+      const list = activeSchema.lokasiOptions || [];
+      if (list.length === 0) {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Belum ada opsi lokasi terdaftar. Tambahkan di bawah.</span>';
+        return;
+      }
+      container.innerHTML = list.map((loc, idx) => `
+        <span class="chip-item">
+          <span>${escapeHtml(loc)}</span>
+          <button type="button" class="chip-delete-btn" onclick="removeLokasiOption(${idx})" title="Hapus Lokasi">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    function addLokasiOption() {
+      const input = document.getElementById('newLokasiInput');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+      if (!activeSchema.lokasiOptions) activeSchema.lokasiOptions = [];
+      if (activeSchema.lokasiOptions.includes(val)) {
+        showToast('Lokasi ini sudah terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.lokasiOptions.push(val);
+      input.value = '';
+      markFormDraftChanged(true);
+      renderLokasiChips();
+    }
+
+    function removeLokasiOption(idx) {
+      if (activeSchema.lokasiOptions && activeSchema.lokasiOptions.length <= 1) {
+        showToast('Minimal harus ada 1 opsi lokasi terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.lokasiOptions.splice(idx, 1);
+      markFormDraftChanged(true);
+      renderLokasiChips();
+    }
+
+    // SECTION 1.4: PENGAWASAN CHIPS
+    function renderPengawasanChips() {
+      const container = document.getElementById('pengawasanChipsContainer');
+      if (!container) return;
+      const list = activeSchema.pengawasanCategories || [];
+      if (list.length === 0) {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Belum ada kategori pengawasan. Tambahkan di bawah.</span>';
+        return;
+      }
+      container.innerHTML = list.map((cat, idx) => `
+        <span class="chip-item">
+          <span>${escapeHtml(cat)}</span>
+          <button type="button" class="chip-delete-btn" onclick="removePengawasanOption(${idx})" title="Hapus Kategori">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    function addPengawasanOption() {
+      const input = document.getElementById('newPengawasanInput');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+      if (!activeSchema.pengawasanCategories) activeSchema.pengawasanCategories = [];
+      if (activeSchema.pengawasanCategories.includes(val)) {
+        showToast('Kategori ini sudah terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.pengawasanCategories.push(val);
+      input.value = '';
+      markFormDraftChanged(true);
+      renderPengawasanChips();
+    }
+
+    function removePengawasanOption(idx) {
+      activeSchema.pengawasanCategories.splice(idx, 1);
+      markFormDraftChanged(true);
+      renderPengawasanChips();
+    }
+
+    // SECTION 2.1: KOMODITAS CHIPS
+    function renderKomoditasChips() {
+      const container = document.getElementById('komoditasChipsContainer');
+      if (!container) return;
+      const list = activeSchema.komoditasOptions || [];
+      if (list.length === 0) {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Belum ada komoditas terdaftar. Tambahkan di bawah.</span>';
+        return;
+      }
+      container.innerHTML = list.map((com, idx) => `
+        <span class="chip-item">
+          <span>${escapeHtml(com)}</span>
+          <button type="button" class="chip-delete-btn" onclick="removeKomoditasOption(${idx})" title="Hapus Komoditas">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    function addKomoditasOption() {
+      const input = document.getElementById('newKomoditasInput');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+      if (!activeSchema.komoditasOptions) activeSchema.komoditasOptions = [];
+      if (activeSchema.komoditasOptions.includes(val)) {
+        showToast('Komoditas ini sudah terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.komoditasOptions.push(val);
+      input.value = '';
+      markFormDraftChanged(true);
+      renderKomoditasChips();
+    }
+
+    function removeKomoditasOption(idx) {
+      if (activeSchema.komoditasOptions && activeSchema.komoditasOptions.length <= 1) {
+        showToast('Minimal harus ada 1 komoditas terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.komoditasOptions.splice(idx, 1);
+      markFormDraftChanged(true);
+      renderKomoditasChips();
+    }
+
+    // SECTION 2.2: STATUS CHIPS
+    function renderStatusChips() {
+      const container = document.getElementById('statusChipsContainer');
+      if (!container) return;
+      const list = activeSchema.statusPengelolaanOptions || ['Swakelola', 'Petani binaan', 'Kemitraan'];
+      container.innerHTML = list.map((st, idx) => `
+        <span class="chip-item">
+          <span>${escapeHtml(st)}</span>
+          <button type="button" class="chip-delete-btn" onclick="removeStatusOption(${idx})" title="Hapus Status">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    function addStatusOption() {
+      const input = document.getElementById('newStatusInput');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+      if (!activeSchema.statusPengelolaanOptions) activeSchema.statusPengelolaanOptions = [];
+      if (activeSchema.statusPengelolaanOptions.includes(val)) {
+        showToast('Status ini sudah terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.statusPengelolaanOptions.push(val);
+      input.value = '';
+      markFormDraftChanged(true);
+      renderStatusChips();
+    }
+
+    function removeStatusOption(idx) {
+      if (activeSchema.statusPengelolaanOptions && activeSchema.statusPengelolaanOptions.length <= 1) {
+        showToast('Minimal harus ada 1 status pengelolaan.', 'warning');
+        return;
+      }
+      activeSchema.statusPengelolaanOptions.splice(idx, 1);
+      markFormDraftChanged(true);
+      renderStatusChips();
+    }
+
+    // SECTION 5: PENGGUNAAN INTERNAL CHIPS
+    function renderPenggunaanChips() {
+      const container = document.getElementById('penggunaanChipsContainer');
+      if (!container) return;
+      const list = activeSchema.tujuanPenggunaanOptions || [];
+      if (list.length === 0) {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Belum ada lokasi penggunaan. Tambahkan di bawah.</span>';
+        return;
+      }
+      container.innerHTML = list.map((item, idx) => `
+        <span class="chip-item">
+          <span>${escapeHtml(item)}</span>
+          <button type="button" class="chip-delete-btn" onclick="removePenggunaanOption(${idx})" title="Hapus Lokasi">&times;</button>
+        </span>
+      `).join('');
+    }
+
+    function addPenggunaanOption() {
+      const input = document.getElementById('newPenggunaanInput');
+      const val = (input?.value || '').trim();
+      if (!val) return;
+      if (!activeSchema.tujuanPenggunaanOptions) activeSchema.tujuanPenggunaanOptions = [];
+      if (activeSchema.tujuanPenggunaanOptions.includes(val)) {
+        showToast('Lokasi tujuan ini sudah terdaftar.', 'warning');
+        return;
+      }
+      activeSchema.tujuanPenggunaanOptions.push(val);
+      input.value = '';
+      markFormDraftChanged(true);
+      renderPenggunaanChips();
+    }
+
+    function removePenggunaanOption(idx) {
+      activeSchema.tujuanPenggunaanOptions.splice(idx, 1);
+      markFormDraftChanged(true);
+      renderPenggunaanChips();
+    }
+
+    function getSectionDisplayBadge(stepNum, sectionCode) {
+      const sections = STEP_SECTIONS_CONFIG[stepNum] || [];
+      const sec = sections.find(s => s.code === sectionCode);
+      if (sec) return sec.label;
+      return sectionCode ? `Bagian ${sectionCode}` : `Di Akhir Langkah ${stepNum}`;
+    }
+
+    // DYNAMIC QUESTIONS PER STEP (STEPS 1 TO 6)
+    function renderCustomQuestionsAllSteps() {
+      for (let s = 1; s <= 6; s++) {
+        renderStepQuestionsList(s, `dynamicQuestionsStep${s}Container`);
+      }
+    }
+
+    function renderStepQuestionsList(stepNum, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const list = activeSchema.customFields || [];
+      const stepFields = list.filter(q => (parseInt(q.step, 10) || 1) === stepNum);
+
+      if (stepFields.length === 0) {
+        container.innerHTML = '<div style="font-size: 0.775rem; color: #94a3b8; font-style: italic; padding: 0.35rem 0;">Belum ada pertanyaan tambahan di langkah ini.</div>';
+        return;
+      }
+
+      container.innerHTML = stepFields.map((q, idxInStep) => {
+        const typeClass = 'badge-type-' + (q.type || 'text');
+        const isFirst = idxInStep === 0;
+        const isLast = idxInStep === stepFields.length - 1;
+        const sectionBadgeText = getSectionDisplayBadge(stepNum, q.section);
+        const optionsPreview = Array.isArray(q.options) && q.options.length > 0
+          ? `<div style="margin-top: 0.25rem; font-size: 0.725rem; color: #64748b;">Opsi: ${q.options.map(o => `<code>${escapeHtml(o)}</code>`).join(', ')}</div>`
+          : '';
+
+        return `
+          <div class="question-builder-card">
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
+                <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary);">${escapeHtml(q.label)}</span>
+                <span class="badge-type ${typeClass}">${escapeHtml(q.type)}</span>
+                ${q.required ? '<span style="font-size: 0.68rem; background: #fee2e2; color: #dc2626; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px;">Wajib</span>' : '<span style="font-size: 0.68rem; background: #f1f5f9; color: #64748b; padding: 0.1rem 0.35rem; border-radius: 4px;">Opsional</span>'}
+                <span style="font-size: 0.68rem; background: #ede9fe; color: #6d28d9; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 4px;">📍 ${escapeHtml(sectionBadgeText)}</span>
+              </div>
+              ${q.helpText ? `<p style="margin: 0; font-size: 0.76rem; color: var(--text-secondary);">${escapeHtml(q.helpText)}</p>` : ''}
+              ${optionsPreview}
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0;">
+              <button type="button" class="btn-icon-control" onclick="moveQuestionInStep('${q.id}', -1)" ${isFirst ? 'disabled' : ''} title="Geser ke Atas di Langkah Ini">▲</button>
+              <button type="button" class="btn-icon-control" onclick="moveQuestionInStep('${q.id}', 1)" ${isLast ? 'disabled' : ''} title="Geser ke Bawah di Langkah Ini">▼</button>
+              <button type="button" class="btn-icon-control" onclick="openEditQuestionModal('${q.id}')" title="Edit Pertanyaan">
+                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
+              <button type="button" class="btn-icon-control" onclick="deleteQuestionById('${q.id}')" title="Hapus Pertanyaan" style="color: #dc2626;">
+                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function moveQuestionInStep(fieldId, direction) {
+      const list = activeSchema.customFields || [];
+      const currentQ = list.find(q => q.id === fieldId);
+      if (!currentQ) return;
+      const stepNum = parseInt(currentQ.step, 10) || 1;
+
+      // Get all fields in this step
+      const stepFields = list.filter(q => (parseInt(q.step, 10) || 1) === stepNum);
+      const idxInStep = stepFields.findIndex(q => q.id === fieldId);
+      const targetIdxInStep = idxInStep + direction;
+      if (targetIdxInStep < 0 || targetIdxInStep >= stepFields.length) return;
+
+      const neighborQ = stepFields[targetIdxInStep];
+      const globalIdxCurrent = list.findIndex(q => q.id === currentQ.id);
+      const globalIdxNeighbor = list.findIndex(q => q.id === neighborQ.id);
+
+      list[globalIdxCurrent] = neighborQ;
+      list[globalIdxNeighbor] = currentQ;
+
+      markFormDraftChanged(true);
+      renderCustomQuestionsAllSteps();
+    }
+
+    function deleteQuestionById(fieldId) {
+      if (!activeSchema.customFields) return;
+      activeSchema.customFields = activeSchema.customFields.filter(q => q.id !== fieldId);
+      markFormDraftChanged(true);
+      renderCustomQuestionsAllSteps();
+      showToast('Pertanyaan dihapus dari draf formulir.', 'info');
+    }
+
+    function onQuestionTypeChange() {
+      const type = document.getElementById('qModalType').value;
+      const group = document.getElementById('qModalOptionsGroup');
+      if (group) {
+        group.style.display = (type === 'select' || type === 'checkbox') ? 'block' : 'none';
+      }
+    }
+
+    function populateSectionOptions(stepNum, selectedCode) {
+      const select = document.getElementById('qModalSection');
+      if (!select) return;
+      const sections = STEP_SECTIONS_CONFIG[stepNum] || [
+        { code: `${stepNum}.end`, label: `Di Akhir Langkah ${stepNum} (Default)` }
+      ];
+      select.innerHTML = sections.map(s => `
+        <option value="${s.code}" ${s.code === selectedCode ? 'selected' : ''}>${escapeHtml(s.label)}</option>
+      `).join('');
+      if (!selectedCode) {
+        select.value = `${stepNum}.end`;
+      }
+    }
+
+    function openAddQuestionModal(stepDefault) {
+      const step = parseInt(stepDefault, 10) || 1;
+      document.getElementById('questionModalTitle').innerText = `Tambah Pertanyaan di Langkah ${step}`;
+      document.getElementById('qModalFieldId').value = '';
+      document.getElementById('qModalStep').value = String(step);
+      document.getElementById('qModalLabel').value = '';
+      document.getElementById('qModalType').value = 'text';
+      document.getElementById('qModalOptions').value = '';
+      populateSectionOptions(step, `${step}.end`);
+      document.getElementById('qModalHelp').value = '';
+      document.getElementById('qModalRequired').value = 'false';
+      onQuestionTypeChange();
+      document.getElementById('questionModalOverlay').style.display = 'flex';
+    }
+
+    function openEditQuestionModal(fieldId) {
+      const list = activeSchema.customFields || [];
+      const q = list.find(x => x.id === fieldId);
+      if (!q) return;
+
+      const step = parseInt(q.step, 10) || 1;
+      document.getElementById('questionModalTitle').innerText = `Edit Pertanyaan: ${q.label}`;
+      document.getElementById('qModalFieldId').value = q.id;
+      document.getElementById('qModalStep').value = String(step);
+      document.getElementById('qModalLabel').value = q.label || '';
+      document.getElementById('qModalType').value = q.type || 'text';
+      document.getElementById('qModalOptions').value = Array.isArray(q.options) ? q.options.join(', ') : (q.options || '');
+      populateSectionOptions(step, q.section || `${step}.end`);
+      document.getElementById('qModalHelp').value = q.helpText || '';
+      document.getElementById('qModalRequired').value = q.required ? 'true' : 'false';
+      onQuestionTypeChange();
+      document.getElementById('questionModalOverlay').style.display = 'flex';
+    }
+
+    function closeQuestionModal() {
+      document.getElementById('questionModalOverlay').style.display = 'none';
+    }
+
+    function handleQuestionFormSubmit(e) {
+      e.preventDefault();
+      const existingId = document.getElementById('qModalFieldId').value;
+      const step = parseInt(document.getElementById('qModalStep').value, 10) || 1;
+      const section = document.getElementById('qModalSection').value || `${step}.end`;
+      const label = document.getElementById('qModalLabel').value.trim();
+      const type = document.getElementById('qModalType').value;
+      const rawOptions = document.getElementById('qModalOptions').value.trim();
+      const helpText = document.getElementById('qModalHelp').value.trim();
+      const required = document.getElementById('qModalRequired').value === 'true';
+
+      if (!label) {
+        showToast('Label pertanyaan wajib diisi.', 'warning');
+        return;
+      }
+
+      let options = [];
+      if (type === 'select' || type === 'checkbox') {
+        options = rawOptions.split(',').map(s => s.trim()).filter(Boolean);
+        if (options.length === 0) {
+          showToast('Masukkan minimal 1 pilihan opsi untuk dropdown/checkbox.', 'warning');
+          return;
+        }
+      }
+
+      const qObj = {
+        id: existingId || ('field_' + Date.now()),
+        label,
+        type,
+        options,
+        step,
+        section,
+        helpText,
+        required
+      };
+
+      if (!activeSchema.customFields) activeSchema.customFields = [];
+
+      if (existingId) {
+        const idx = activeSchema.customFields.findIndex(x => x.id === existingId);
+        if (idx >= 0) {
+          activeSchema.customFields[idx] = qObj;
+        } else {
+          activeSchema.customFields.push(qObj);
+        }
+      } else {
+        activeSchema.customFields.push(qObj);
+      }
+
+      closeQuestionModal();
+      markFormDraftChanged(true);
+      renderCustomQuestionsAllSteps();
+      showToast(`Pertanyaan "${label}" berhasil disimpan di Langkah ${step}.`, 'info');
+    }
+
+    async function saveFormSchemaToServer() {
+      const btn = document.getElementById('btnPublishSchema');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Mempublikasikan...</span>';
+      }
+
+      try {
+        if (isLiveServer()) {
+          const res = await runServer('saveReportingFormSchema', activeSchema);
+          if (res && res.success) {
+            publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
+            markFormDraftChanged(false);
+            showToast(res.message || 'Konfigurasi formulir berhasil dipublikasikan dan aktif secara instan!', 'success');
+          } else {
+            showToast(res.message || 'Gagal mempublikasikan konfigurasi.', 'error');
+          }
+        } else {
+          publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
+          markFormDraftChanged(false);
+          showToast('✅ [Simulasi Lokal] Konfigurasi formulir dipublikasikan secara instan.', 'success');
+        }
+      } catch (err) {
+        console.error('Save schema error:', err);
+        showToast('Gagal mempublikasikan formulir: ' + (err.message || err.toString()), 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Publikasikan Perubahan</span>';
+        }
+      }
+    }
+
+    // CUSTOM ENTERPRISE RESET SCHEMA MODAL
+    function openResetSchemaModal() {
+      document.getElementById('resetSchemaModalOverlay').style.display = 'flex';
+    }
+
+    function closeResetSchemaModal() {
+      document.getElementById('resetSchemaModalOverlay').style.display = 'none';
+    }
+
+    async function executeResetFormSchema() {
+      const btn = document.getElementById('btnConfirmResetSchema');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Mereset...';
+      }
+
+      try {
+        if (isLiveServer()) {
+          const res = await runServer('resetReportingFormSchema');
+          if (res && res.schema) {
+            activeSchema = JSON.parse(JSON.stringify(res.schema));
+            publishedServerSchema = JSON.parse(JSON.stringify(res.schema));
+            markFormDraftChanged(false);
+            renderAllSchemaSections();
+            showToast(res.message || 'Formulir berhasil di-reset ke setelan awal.', 'success');
+          }
+        } else {
+          activeSchema = {
+            version: '1.0',
+            title: 'Formulir Laporan Operasional',
+            subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
+            lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
+            komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'],
+            pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
+            statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
+            tujuanPenggunaanOptions: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
+            customFields: []
+          };
+          publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
+          markFormDraftChanged(false);
+          renderAllSchemaSections();
+          showToast('✅ [Simulasi Lokal] Skema formulir di-reset ke setelan awal.', 'success');
+        }
+
+        closeResetSchemaModal();
+      } catch (err) {
+        showToast('Gagal mereset skema: ' + (err.message || err.toString()), 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'Ya, Reset ke Awal';
+        }
+      }
+    }
+
+    async function loadFormsQuickLinks() {
+      let publicUrl = '';
+      let spreadsheetUrl = '';
+      let photoFolderUrl = '';
+
+      if (isLiveServer()) {
+        try {
+          const links = await runServer('getAdminQuickLinks');
+          if (links) {
+            publicUrl = links.publicWebAppUrl || '';
+            spreadsheetUrl = links.spreadsheetUrl || '';
+            photoFolderUrl = links.photoFolderUrl || '';
+            resolvedQuickLinks = links;
+          }
+        } catch (e) {
+          console.warn('Failed to fetch quick links:', e);
+        }
+      }
+
+      if (!publicUrl) {
+        const rawUrl = (window.SERVER_WEB_APP_URL || window.location.href);
+        publicUrl = rawUrl.split('?')[0] + '?page=index';
+      }
+
+      const btnForm = document.getElementById('linkOpenPublicForm');
+      if (btnForm) {
+        btnForm.href = publicUrl;
+        btnForm.target = '_blank';
+      }
+
+      const btnSheet = document.getElementById('linkOpenSpreadsheet');
+      if (btnSheet) {
+        if (spreadsheetUrl) {
+          btnSheet.href = spreadsheetUrl;
+          btnSheet.target = '_blank';
+        } else {
+          btnSheet.onclick = (e) => {
+            e.preventDefault();
+            showToast('Mencari URL Master Spreadsheet...', 'info');
+            runServer('getAdminQuickLinks').then(l => {
+              if (l && l.spreadsheetUrl) window.open(l.spreadsheetUrl, '_blank');
+              else showToast('URL Spreadsheet belum dikonfigurasi.', 'warning');
+            });
+          };
+        }
+      }
+
+      const btnDrive = document.getElementById('linkOpenDrivePhotos');
+      if (btnDrive) {
+        if (photoFolderUrl) {
+          btnDrive.href = photoFolderUrl;
+          btnDrive.target = '_blank';
+        } else {
+          btnDrive.onclick = (e) => {
+            e.preventDefault();
+            showToast('Mencari folder foto Google Drive...', 'info');
+            runServer('getAdminQuickLinks').then(l => {
+              if (l && l.photoFolderUrl) window.open(l.photoFolderUrl, '_blank');
+              else showToast('Folder foto Google Drive belum terdeteksi.', 'warning');
+            });
+          };
+        }
+      }
+    }
+
+    function openLiveReportingForm() {
+      if (resolvedQuickLinks && resolvedQuickLinks.publicWebAppUrl) {
+        window.open(resolvedQuickLinks.publicWebAppUrl, '_blank');
+      } else {
+        const target = (window.SERVER_WEB_APP_URL || window.location.href).split('?')[0] + '?page=index';
+        window.open(target, '_blank');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadQuickLinks();
+      loadFormsQuickLinks();
+      loadFormSchemaFromBackend();
+    });
   </script>
 </body>
 </html>
