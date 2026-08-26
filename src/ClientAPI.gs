@@ -17,11 +17,71 @@ function submitOperationalReport(payload) {
 }
 
 /**
- * Returns full employee registry (38 employees across 5 divisions).
- * @returns {Array<{ id: string, name: string, division: string }>}
+ * Returns full employee registry (38 default employees + custom additions).
+ * @param {boolean} [includeInactive=false]
+ * @returns {Array<{ id: string, name: string, division: string, status?: string }>}
  */
-function getEmployeeRegistry() {
-  return JSON.parse(JSON.stringify(EMPLOYEE_REGISTRY || []));
+function getEmployeeRegistry(includeInactive) {
+  return AdminService.getEmployeeRegistry(includeInactive);
+}
+
+/**
+ * Creates or updates employee record in custom registry.
+ * @param {{ id: string, name: string, division: string, status?: string, oldId?: string }} empData 
+ * @returns {{ success: boolean, message: string, employee: Object }}
+ */
+function saveEmployee(empData) {
+  return AdminService.saveEmployee(empData);
+}
+
+/**
+ * Deletes employee from registry.
+ * @param {string} empId 
+ * @returns {{ success: boolean, message: string }}
+ */
+function deleteEmployee(empId) {
+  return AdminService.deleteEmployee(empId);
+}
+
+/**
+ * Resets employee registry back to 38 default records.
+ * @returns {{ success: boolean, message: string }}
+ */
+function resetEmployeeRegistry() {
+  return AdminService.resetEmployeeRegistry();
+}
+
+/**
+ * Retrieves reporting form schema.
+ * @returns {Object}
+ */
+function getReportingFormSchema() {
+  return AdminService.getReportingFormSchema();
+}
+
+/**
+ * Saves reporting form schema.
+ * @param {Object} schema 
+ * @returns {{ success: boolean, message: string, schema: Object }}
+ */
+function saveReportingFormSchema(schema) {
+  return AdminService.saveReportingFormSchema(schema);
+}
+
+/**
+ * Resets reporting form schema to default.
+ * @returns {{ success: boolean, message: string, schema: Object }}
+ */
+function resetReportingFormSchema() {
+  return AdminService.resetReportingFormSchema();
+}
+
+/**
+ * Explicitly synchronizes custom fields with Google Spreadsheet headers.
+ * @returns {{ success: boolean, message: string }}
+ */
+function syncFormSchemaWithSpreadsheet() {
+  return AdminService.syncFormSchemaWithSpreadsheet();
 }
 
 /**
@@ -44,14 +104,20 @@ function getRecentActivityCodes() {
 
 
 /**
- * Uploads a base64 photo attachment into form's dedicated Drive folder.
+ * Uploads a base64 photo attachment into employee/daily structured Drive folder.
  * @param {string} base64Data 
  * @param {string} mimeType 
  * @param {string} formId 
- * @returns {string} File view URL.
+ * @param {string} [reportId]
+ * @param {string} [kodeKegiatan]
+ * @param {string} [empId]
+ * @param {string} [namaPic]
+ * @param {string} [dateStr]
+ * @returns {string|Object} File view URL or object.
  */
-function uploadReportAttachment(base64Data, mimeType, formId) {
-  return ReportService.uploadReportAttachment(base64Data, mimeType, formId);
+function uploadReportAttachment(base64Data, mimeType, formId, reportId, kodeKegiatan, empId, namaPic, dateStr) {
+  const res = ReportService.uploadReportAttachment(base64Data, mimeType, formId, reportId, kodeKegiatan, empId, namaPic, dateStr);
+  return (res && res.url) ? res.url : (res || '');
 }
 
 /**
@@ -195,4 +261,57 @@ function runHistoricalMigration() {
  */
 function getFormSheetUrl(formId) {
   return FormManagementService.getFormSheetUrl(formId);
+}
+
+/**
+ * Returns list of daily tabs approaching expiration (<= 5 days left) for safety warnings.
+ * @returns {Array}
+ */
+function getExpiringDailyTabs() {
+  return AdminService.getExpiringDailyTabs();
+}
+
+/**
+ * Exports CSV data for a specific daily report tab.
+ * @param {string} tabName 
+ * @returns {string}
+ */
+function getDailyTabCsvData(tabName) {
+  return AdminService.getDailyTabCsvData(tabName);
+}
+
+/**
+ * Omits irrelevant and duplicate tabs from the central spreadsheet.
+ * @returns {Object}
+ */
+function cleanupIrrelevantSpreadsheetTabs() {
+  return AdminService.cleanupIrrelevantSpreadsheetTabs();
+}
+
+/**
+ * Returns Google Drive photo storage status, root URL, and expiring folder warnings.
+ * @returns {Object}
+ */
+function getPhotoStorageStatus() {
+  const res = AdminService.getPhotoStorageStatus();
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Triggers manual cleanup of Google Drive daily photo folders older than 90 days.
+ * @param {number} [retentionDays=90]
+ * @returns {Object}
+ */
+function triggerPhotoStorageCleanup(retentionDays) {
+  const res = AdminService.cleanupExpiredDailyPhotoFolders(retentionDays);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Triggers purge of legacy 'Reporting System Photos' folder.
+ * @returns {Object}
+ */
+function purgeLegacyPhotoFolders() {
+  const res = AdminService.purgeLegacyPhotoFolders();
+  return JSON.parse(JSON.stringify(res || {}));
 }

@@ -23,19 +23,18 @@ function sendWeeklyManagerDigest() {
 }
 
 /**
- * Monthly time-driven trigger function to archive closed reports older than retention threshold.
- * Default retention threshold is 90 days (configurable via Script Property RETENTION_DAYS).
- * @returns {{ success: boolean, totalArchived: number }}
+ * Daily time-driven trigger function to delete daily report tabs (Laporan_YYYY-MM-DD) older than 90 days.
+ * @returns {{ success: boolean, deletedCount: number }}
  */
-function archiveOldReports() {
-  return AdminService.archiveOldReports();
+function deleteExpiredDailyTabs() {
+  return AdminService.deleteExpiredDailyTabs();
 }
 
+
 /**
- * Daily time-driven trigger function to purge (trash) photos older than 7 days.
- * Updates Photo_Log status to 'Dihapus' and replaces Foto_URL in operational sheet with deletion marker.
- * @returns {{ success: boolean, purgedCount: number }}
+ * Daily time-driven trigger function to purge (trash) Google Drive daily photo folders older than 90 days.
+ * @returns {{ success: boolean, deletedFolderCount: number, deletedFolders: Array<string> }}
  */
-function purgeExpiredPhotos() {
-  return AdminService.purgeExpiredPhotos();
+function cleanupExpiredDailyPhotoFolders() {
+  return AdminService.cleanupExpiredDailyPhotoFolders();
 }

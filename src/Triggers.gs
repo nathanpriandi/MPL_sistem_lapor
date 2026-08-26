@@ -46,21 +46,22 @@ function createTriggers() {
     .create();
   Logger.log('Created trigger: sendWeeklyManagerDigest (Mondays at 08:00 WIB)');
 
-  // 4. Time-driven Monthly Data Archival Trigger (1st day of month at 01:00 AM WIB)
-  ScriptApp.newTrigger('archiveOldReports')
-    .timeBased()
-    .onMonthDay(1)
-    .atHour(1)
-    .create();
-  Logger.log('Created trigger: archiveOldReports (Monthly on 1st at 01:00 AM WIB)');
-
-  // 5. Time-driven Daily Photo Auto-Purge Trigger (Everyday at 02:00 AM WIB)
-  ScriptApp.newTrigger('purgeExpiredPhotos')
+  // 4. Time-driven Daily Expired Daily Tabs Purge Trigger (Everyday at 03:00 AM WIB)
+  ScriptApp.newTrigger('deleteExpiredDailyTabs')
     .timeBased()
     .everyDays(1)
-    .atHour(2)
+    .atHour(3)
     .create();
-  Logger.log('Created trigger: purgeExpiredPhotos (Daily at 02:00 AM WIB)');
+  Logger.log('Created trigger: deleteExpiredDailyTabs (Daily at 03:00 AM WIB)');
+
+  // 5. Time-driven Daily Expired Photo Folders Purge Trigger (Everyday at 03:30 AM WIB)
+  ScriptApp.newTrigger('cleanupExpiredDailyPhotoFolders')
+    .timeBased()
+    .everyDays(1)
+    .atHour(3)
+    .nearMinute(30)
+    .create();
+  Logger.log('Created trigger: cleanupExpiredDailyPhotoFolders (Daily at 03:30 AM WIB)');
 
   Logger.log('=== ALL TRIGGERS INSTALLED SUCCESSFULLY ===');
 }

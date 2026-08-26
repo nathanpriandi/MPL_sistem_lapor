@@ -77,16 +77,16 @@ Spreadsheet ini memiliki tab utama:
 - Laporan yang ditandai sensitif secara otomatis diisolasi ke tab **`Sensitive_Restricted`** dan **tidak akan pernah muncul di `Admin_Queue`** demi menjaga kerahasiaan data.
 - Admin yang berwenang wajib meninjau tab sensitif melalui tombol filter *Sensitif* atau membuka tab spreadsheet `Sensitive_Restricted` secara berkala.
 
-### 8. Manajemen Form & Custom Form Builder (`forms.html`)
-- **Kartu Metrik Summary**: Menampilkan metrik terpusat (*Total Form Terdaftar*, *Form Status Aktif*, *Form Harian & Umum*, *Form Kustom Lapangan*) dalam grid 4-kolom responsif.
-- **Tautan Spreadsheet Dedicated (`Buka Sheet Data`)**: Setiap kartu formulir memiliki tombol dedicated *Buka Sheet Data* yang mengarahkan langsung ke Google Spreadsheet / tab data khusus dari form tersebut.
-- **Pembuatan Form Kustom Lapangan**:
-  - Klik **Buat Form Baru** untuk membuka modal multi-seksi (*Detail & Identitas Form* dan *Susun Pertanyaan Form*).
-  - Pilihan Tipe Pertanyaan Kustom: *Teks Singkat*, *Paragraf / Textarea*, *Pilihan Dropdown*, *Pilihan Checkbox (Multi-select)*, *Tanggal*, dan *Foto Lampiran Lapangan*.
-  - Penyusunan bidang dilengkapi fitur tambah row beranimasi, scrollbar mandiri, serta pratinjau foto interaktif pada `dynamicform.html`.
-- **Pratinjau & Akses Publik**:
-  - Tombol **Pratinjau** pada setiap kartu form membuka tampilan publik form yang siap digunakan staf lapangan.
-  - Opsi **Google Form Editor** dan tombol utilitas hapus terisolasi dengan hierarki visual yang rapi.
+### 8. Pengaturan Data & Master Karyawan (`forms.html`)
+- **Manajemen Data Master ID Karyawan**:
+  - Menampilkan seluruh data staf operasional terdaftar (ID Karyawan, Nama Lengkap, Divisi, dan Status Keaktifan).
+  - Dilengkapi fitur pencarian instan, filter divisi (*Manajemen, BKO 28, Pekerja Harian, Alprof, SGA*), dan filter status (*Aktif / Nonaktif*).
+  - Modal **Tambah Karyawan Baru** dengan generator saran ID otomatis berdasarkan divisi yang dipilih (contoh: `ALP-08` untuk penambahan staf Alprof ke-8).
+  - Kemampuan mengedit data staf dan menonaktifkan akun karyawan tanpa merusak riwayat laporan lama.
+  - Tombol **Reset Bawaan** untuk mengembalikan data ke daftar standar 38 karyawan kapan saja.
+- **Konfigurasi & Tautan Integrasi Operasional**:
+  - Akses terpusat ke Google Form operasional, Master Spreadsheet (`Master_Laporan`), dan Folder Foto Google Drive (`MPL_Dokumentasi_Foto`).
+  - Ringkasan parameter operasional (Masa Retensi 90 hari, struktur folder foto harian per karyawan).
 
 ---
 

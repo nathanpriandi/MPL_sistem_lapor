@@ -62,6 +62,11 @@
           </div>
         </div>
 
+        <!-- RETENTION EXPIRATION SAFETY BANNER -->
+        <div id="retentionWarningContainer" style="display: none; margin-bottom: 1.25rem;">
+          <!-- Injected dynamically by JavaScript -->
+        </div>
+
         <!-- OPERATIONAL DETAIL QUEUE TABLE CARD -->
         <div class="table-card-enterprise no-print">
           <!-- INTEGRATED STATUS TABS & TOOLBAR -->
@@ -79,6 +84,27 @@
 
               <div class="toolbar-utilities">
                 <span id="lastUpdatedTag" class="status-timestamp" style="font-size: 0.75rem;"></span>
+
+                <a id="btnOpenDriveFolder" class="btn-icon-ghost" href="#" target="_blank" title="Buka Folder Google Drive Foto (MPL_Dokumentasi_Foto)" aria-label="Buka Folder Google Drive Foto" style="display: none; text-decoration: none; color: inherit; align-items: center; justify-content: center;">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </a>
+
+                <button class="btn-icon-ghost" onclick="triggerPhotoCleanup()" title="Bersihkan Folder Foto Drive Kadaluarsa (>90 Hari)" aria-label="Bersihkan Foto Drive Kadaluarsa">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                </button>
+
+                <button class="btn-icon-ghost" onclick="triggerCleanupTabs()" title="Bersihkan Tab Duplikat / Usang di Spreadsheet" aria-label="Bersihkan Tab Duplikat">
+                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
 
                 <button class="btn-icon-ghost" onclick="exportAdminCSV()" title="Ekspor CSV Data Antrean" aria-label="Ekspor CSV Data Antrean">
                   <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -111,7 +137,7 @@
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z" />
                   </svg>
-                  <span>Mendesak</span>
+                  <span>Kendala</span>
                   <span class="filter-pill-count" id="badgeCount-urgent">0</span>
                 </button>
                 <button class="filter-pill pill-verified" onclick="setQuickFilter('verified')" id="segBtn-verified" role="tab">
@@ -500,6 +526,13 @@
           (queueRows || []).forEach(r => {
             const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || (r.raw ? String(r.raw[26] || '') : '')) : (r.kendala || '');
             const normU = normK ? (r.upaya || (r.raw ? String(r.raw[27] || '') : '')) : '';
+            const p1 = r.photoUrl || (r.raw ? String(r.raw[28] || '') : '');
+            const p2 = r.photoUrl2 || (r.raw ? String(r.raw[29] || '') : '');
+            const p3 = r.photoUrl3 || (r.raw ? String(r.raw[30] || '') : '');
+            const photosList = Array.isArray(r.photos) && r.photos.length > 0
+              ? r.photos
+              : [p1, p2, p3].filter(Boolean);
+
             rawQueueData.push({
               source: r.source || 'Laporan Operasional',
               reportId: r.reportId || (r.raw ? String(r.raw[0] || '') : ''),
@@ -514,7 +547,10 @@
               rank: r.rank || (normK ? 1 : 2),
               category: r.category,
               reviewStatus: normalizeReviewStatus(r.reviewStatus),
-              photoUrl: r.photoUrl || '',
+              photoUrl: p1,
+              photoUrl2: p2,
+              photoUrl3: p3,
+              photos: photosList,
               jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[17] : 0)) || 0,
               nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[22] : 0)) || 0,
               kendala: normK,
@@ -524,35 +560,57 @@
               isSensitive: String(r.source).includes('Sensitive')
             });
           });
-          } else {
-            rawQueueData = [];
-            const db = getDB();
-            (db.operationalReports || []).forEach(r => {
-              const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || r.obstacle || '') : (r.kendala || '');
-              const normU = normK ? (r.upaya || r.actionTaken || '') : '';
-              rawQueueData.push({
-                source: 'Laporan_Operasional_Raw',
-                reportId: r.id || r.reportId,
-                kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
-                timestamp: r.timestamp,
-                empId: r.namaPic || r.empId || 'EMP-101',
-                divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
-                lokasi: r.lokasi || r.site || 'Site A',
-                ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
-                severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
-                rank: r.rank || (normK ? 1 : 2),
-                category: r.category || 'ROUTINE',
-                reviewStatus: normalizeReviewStatus(r.reviewStatus),
-                photoUrl: r.photoUrl || '',
-                jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
-                nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
-                kendala: normK,
-                upaya: normU,
-                fields: r.fields || [],
-                isSensitive: false
-              });
-            });
+
+          // Fetch expiring daily tabs & Drive photo storage status
+          try {
+            const [expiringTabs, photoStatus] = await Promise.all([
+              runServer('getExpiringDailyTabs'),
+              runServer('getPhotoStorageStatus')
+            ]);
+            renderRetentionWarnings(expiringTabs, photoStatus);
+            if (photoStatus && photoStatus.rootFolderUrl) {
+              const driveBtn = document.getElementById('btnOpenDriveFolder');
+              if (driveBtn) {
+                driveBtn.href = photoStatus.rootFolderUrl;
+                driveBtn.style.display = 'inline-flex';
+              }
+            }
+          } catch (eExp) {
+            console.warn('Could not check expiring retention status:', eExp);
           }
+
+        } else {
+          rawQueueData = [];
+          const db = getDB();
+          (db.operationalReports || []).forEach(r => {
+            const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || r.obstacle || '') : (r.kendala || '');
+            const normU = normK ? (r.upaya || r.actionTaken || '') : '';
+            rawQueueData.push({
+              source: 'Laporan_Operasional_Raw',
+              reportId: r.id || r.reportId,
+              kodeKegiatan: r.kodeKegiatan || 'AGR-MOCK-01',
+              timestamp: r.timestamp,
+              empId: r.namaPic || r.empId || 'EMP-101',
+              divisi: r.divisi || 'Agro (Pertanian/Perkebunan)',
+              lokasi: r.lokasi || r.site || 'Site A',
+              ringkasan: r.jenisKegiatan || `Status: ${r.status} | Panen: ${r.yield || 0}`,
+              severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
+              rank: r.rank || (normK ? 1 : 2),
+              category: r.category || 'ROUTINE',
+              reviewStatus: normalizeReviewStatus(r.reviewStatus),
+              photoUrl: r.photoUrl || '',
+              photoUrl2: '',
+              photoUrl3: '',
+              photos: [r.photoUrl].filter(Boolean),
+              jumlahPanen: parseFloat(r.jumlahPanen || r.yield || 0) || 0,
+              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || r.sales || 0) || 0,
+              kendala: normK,
+              upaya: normU,
+              fields: r.fields || [],
+              isSensitive: false
+            });
+          });
+        }
 
         lastFetchedTimestamp = Date.now();
         updateFreshnessTag();
@@ -567,6 +625,78 @@
         showToast('Gagal memuat data dari server', 'error');
       } finally {
         isFetchingQueue = false;
+      }
+    }
+
+    function renderRetentionWarnings(expiringTabs, photoStatus) {
+      const container = document.getElementById('retentionWarningContainer');
+      if (!container) return;
+
+      const tabCards = (expiringTabs || []).map(tab => `
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink: 0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.36a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style="font-size: 0.875rem; color: #92400e; font-weight: 500;">
+              Pemberitahuan Retensi Sheet: Tab <strong>${tab.tabName}</strong> (${tab.rowCount} laporan) akan dihapus permanen dalam <strong>${tab.daysRemaining} hari</strong>.
+            </span>
+          </div>
+          <button type="button" class="btn btn-secondary table-btn-sm" onclick="downloadTabCsv('${tab.tabName}')" style="background: #fff; border-color: #fde68a; color: #b45309; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.775rem;">
+            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Unduh CSV Backup</span>
+          </button>
+        </div>
+      `);
+
+      const photoCards = (photoStatus && photoStatus.expiringFolders ? photoStatus.expiringFolders : []).map(folder => `
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size: 0.875rem; color: #1e40af; font-weight: 500;">
+              Pemberitahuan Retensi Foto: Folder tanggal <strong>${folder.name}</strong> akan dibersihkan otomatis ke Trash dalam <strong>${folder.daysRemaining} hari</strong>.
+            </span>
+          </div>
+          <a href="${folder.url}" target="_blank" class="btn btn-secondary table-btn-sm" style="background: #fff; border-color: #bfdbfe; color: #1d4ed8; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.775rem; text-decoration: none;">
+            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span>Buka Folder Drive</span>
+          </a>
+        </div>
+      `);
+
+      const allCards = [...tabCards, ...photoCards];
+      if (allCards.length === 0) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = allCards.join('');
+      container.style.display = 'block';
+    }
+
+    async function downloadTabCsv(tabName) {
+      if (!tabName) return;
+      try {
+        showToast(`Menyiapkan data CSV untuk ${tabName}...`, 'info');
+        let csvContent = '';
+        if (isLiveServer()) {
+          csvContent = await runServer('getDailyTabCsvData', tabName);
+        } else {
+          csvContent = 'Report_ID,Kode_Kegiatan,Timestamp,Emp_ID\n1,TEST,2026-08-26,Local';
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Backup_${tabName}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast(`✅ Berhasil mengunduh Backup_${tabName}.csv`, 'success');
+      } catch (err) {
+        console.error('Error downloading daily tab CSV:', err);
+        showToast('Gagal mengunduh CSV tab: ' + (err.message || err.toString()), 'error');
       }
     }
 
@@ -781,7 +911,7 @@
           </td>
           <td data-label="Tingkat Keparahan" class="cell-center">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${item.severity === 'urgent' ? 'Mendesak' : 'Normal'}
+              ${item.severity === 'urgent' ? 'Kendala' : 'Normal'}
             </span>
           </td>
           <td data-label="Status Verifikasi" class="cell-center">
@@ -969,7 +1099,7 @@
         headerMetaEl.innerHTML = `
           <div class="inspector-controls-left">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${isUrgent ? 'Mendesak' : 'Normal'}
+              ${isUrgent ? 'Kendala' : 'Normal'}
             </span>
             <select class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" onchange="toggleModalVerification('${item.reportId}', this.value)" aria-label="Status Verifikasi">
               <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
@@ -1003,6 +1133,10 @@
             <div class="inspector-data-item">
               <span class="inspector-data-label">Divisi / Bidang</span>
               <span class="inspector-data-value">${item.divisi || '-'}</span>
+            </div>
+            <div class="inspector-data-item">
+              <span class="inspector-data-label">Nomor Telepon</span>
+              <span class="inspector-data-value">${item.nomorTelepon || (raw && raw.length > 6 ? raw[6] : '') || '-'}</span>
             </div>
             <div class="inspector-data-item">
               <span class="inspector-data-label">Lokasi Kegiatan</span>
@@ -1101,21 +1235,32 @@
         `;
       }
 
-      // Section 6: Bukti Foto Lampiran
+      // Section 6: Bukti Foto Lampiran (Multi-Photo Gallery)
+      const photosToRender = (Array.isArray(item.photos) && item.photos.length > 0)
+        ? item.photos.filter(p => p && String(p).startsWith('http'))
+        : [item.photoUrl, item.photoUrl2, item.photoUrl3].filter(p => p && String(p).startsWith('http'));
+
       html += `
         <div class="inspector-section">
-          <div class="inspector-section-heading">Foto Bukti Lapangan</div>
+          <div class="inspector-section-heading">Foto Bukti Lapangan (${photosToRender.length} Foto)</div>
       `;
 
-      if (item.photoUrl && item.photoUrl.startsWith('http')) {
+      if (photosToRender.length > 0) {
         html += `
-          <div class="inspector-photo-card">
-            <a href="${item.photoUrl}" target="_blank" title="Buka di Google Drive">
-              <img src="${getDriveThumbnail(item.photoUrl)}" class="inspector-photo-preview" alt="Foto Bukti Lapangan" onerror="this.src='${item.photoUrl}'; this.onerror=null;" />
-            </a>
-            <a href="${item.photoUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.775rem;">
-              <span>Buka Foto Resolusi Penuh di Google Drive</span>
-            </a>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; margin-top: 0.5rem;">
+            ${photosToRender.map((pUrl, pIdx) => `
+              <div class="inspector-photo-card" style="border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem; background: #f8fafc; text-align: center;">
+                <div style="font-weight: 700; font-size: 0.775rem; color: #475569; margin-bottom: 0.35rem;">Foto #${pIdx + 1}</div>
+                <a href="${pUrl}" target="_blank" title="Buka di Google Drive" style="display: block;">
+                  <img src="${getDriveThumbnail(pUrl)}" class="inspector-photo-preview" alt="Foto #${pIdx + 1}" style="max-height: 160px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" onerror="this.src='${pUrl}'; this.onerror=null;" />
+                </a>
+                <div style="margin-top: 0.45rem;">
+                  <a href="${pUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.725rem; padding: 3px 8px;">
+                    <span>Lihat di Drive</span>
+                  </a>
+                </div>
+              </div>
+            `).join('')}
           </div>
         `;
       } else {
@@ -1259,6 +1404,57 @@
 
       downloadCSV(`Admin_Queue_Export_${Date.now()}.csv`, headers, rows);
       showToast(`Ekspor CSV berhasil (${currentFilteredData.length} laporan)`, 'success');
+    }
+
+    async function triggerCleanupTabs() {
+      try {
+        showToast('Membersihkan tab usang & duplikat di spreadsheet...', 'info');
+        let res;
+        if (isLiveServer()) {
+          res = await runServer('cleanupIrrelevantSpreadsheetTabs');
+        } else {
+          res = { success: true, deletedTabs: ['Laporan_Operasional_Raw', 'Admin_Queue', 'Sensitive'], keptTabs: ['Laporan_2026-08-26'] };
+        }
+        if (res && res.success) {
+          if (res.deletedTabs && res.deletedTabs.length > 0) {
+            showToast(`✅ Berhasil menghapus ${res.deletedTabs.length} tab usang: ${res.deletedTabs.join(', ')}`, 'success');
+          } else {
+            showToast('✅ Semua tab di spreadsheet sudah bersih dan rapi.', 'success');
+          }
+          fetchAndRenderQueue(true);
+        } else {
+          showToast(res.message || 'Gagal membersihkan tab.', 'error');
+        }
+      } catch (err) {
+        showToast('Gagal membersihkan tab: ' + (err.message || err.toString()), 'error');
+      }
+    }
+
+    async function triggerPhotoCleanup() {
+      if (!confirm('Apakah Anda yakin ingin memindahkan folder foto harian yang berusia lebih dari 90 hari ke Google Drive Trash?')) {
+        return;
+      }
+      try {
+        showToast('Memeriksa & membersihkan folder foto kadaluarsa di Google Drive...', 'info');
+        let res;
+        if (isLiveServer()) {
+          res = await runServer('triggerPhotoStorageCleanup', 90);
+        } else {
+          res = { success: true, deletedFolderCount: 0, deletedFolders: [] };
+        }
+        if (res && res.success) {
+          if (res.deletedFolderCount > 0) {
+            showToast(`✅ Berhasil membersihkan ${res.deletedFolderCount} folder foto kadaluarsa: ${res.deletedFolders.join(', ')}`, 'success');
+          } else {
+            showToast('✅ Tidak ada folder foto yang berusia lebih dari 90 hari.', 'info');
+          }
+          fetchAndRenderQueue(true);
+        } else {
+          showToast(res.message || 'Gagal membersihkan folder foto.', 'error');
+        }
+      } catch (err) {
+        showToast('Gagal membersihkan foto: ' + (err.message || err.toString()), 'error');
+      }
     }
   </script>
 </body>

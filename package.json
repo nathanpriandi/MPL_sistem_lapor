@@ -4,7 +4,7 @@
   "description": "Zero-budget digital reporting system for integrated agriculture business in Indonesia",
   "main": "src/Setup.gs",
   "scripts": {
-    "push": "clasp push",
+    "push": "clasp push --force",
     "pull": "clasp pull",
     "status": "clasp status",
     "logs": "clasp logs",

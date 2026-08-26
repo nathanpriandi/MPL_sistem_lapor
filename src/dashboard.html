@@ -730,7 +730,7 @@
         const isUrgent = item.severity === 'urgent';
         const cardClass = isUrgent ? 'attention-card attention-urgent' : 'attention-card attention-warning';
         const badgeClass = isUrgent ? 'badge badge-urgent' : 'badge badge-warning';
-        const badgeText = item.badgeLabel || (isUrgent ? 'Mendesak' : 'Perhatian');
+        const badgeText = item.badgeLabel || (isUrgent ? 'Kendala' : 'Perhatian');
 
         let iconSvg = '';
         if (item.type === 'overdue_harvest') {
@@ -1056,7 +1056,16 @@
       }
 
       const distinctSet = new Set();
-      const divActSet = { [DIV_KEYS.AGRO]: new Set(), [DIV_KEYS.TERNAK]: new Set(), [DIV_KEYS.IKAN]: new Set() };
+      const divActSet = {
+        [DIV_KEYS.ALPROF]: new Set(),
+        [DIV_KEYS.SGA]: new Set(),
+        [DIV_KEYS.PEKERJA_HARIAN]: new Set(),
+        [DIV_KEYS.BKO]: new Set(),
+        [DIV_KEYS.MANAJEMEN]: new Set(),
+        [DIV_KEYS.AGRO]: new Set(),
+        [DIV_KEYS.TERNAK]: new Set(),
+        [DIV_KEYS.IKAN]: new Set()
+      };
 
       let verifiedCount = 0;
       let unverifiedCount = 0;
@@ -1072,7 +1081,7 @@
         distinctSet.add(root);
         if (divActSet[r.normDiv]) divActSet[r.normDiv].add(root);
 
-        const dObj = divisiBreakdown[r.normDiv];
+        const dObj = divisiBreakdown[r.normDiv] || divisiBreakdown[DIV_KEYS.AGRO];
         dObj.rawReportCount++;
         dObj.panenVolume += r.panen;
         dObj.nilaiPenjualanRp += r.sales;
@@ -1155,7 +1164,7 @@
       });
 
       Object.keys(divisiBreakdown).forEach(k => {
-        divisiBreakdown[k].activityCount = divActSet[k].size;
+        divisiBreakdown[k].activityCount = (divActSet[k] ? divActSet[k].size : 0);
       });
 
       attentionList.sort((a, b) => {

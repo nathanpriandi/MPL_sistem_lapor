@@ -45,9 +45,13 @@ const FormManagementService = {
 
     // 3. Fallback match for default forms or template names
     if (form.type === 'operasional' || form.isDefault || form.isDefaultMain) {
-      const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || 
-                      sheets.find(s => s.getName().includes('Form Responses 1') || s.getName().includes('Jawaban Formulir 1') || s.getName().startsWith('Laporan Operasional'));
-      if (opSheet) return opSheet;
+      const masterSheet = ss.getSheetByName('Master_Laporan');
+      if (masterSheet) return masterSheet;
+      const todayStr = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
+      const todaySheet = ss.getSheetByName('Laporan_' + todayStr);
+      if (todaySheet) return todaySheet;
+      const dailySheets = sheets.filter(s => /^Laporan_\d{4}-\d{2}-\d{2}$/.test(s.getName()));
+      if (dailySheets.length > 0) return dailySheets[dailySheets.length - 1];
     }
 
     return sheets[0];
@@ -73,9 +77,19 @@ const FormManagementService = {
       if (mainSsId) {
         try {
           const ss = SpreadsheetApp.openById(mainSsId);
-          const opSheet = ss.getSheetByName('Laporan_Operasional_Raw') || 
-                          ss.getSheets().find(s => s.getName().startsWith('Laporan Operasional'));
-          if (opSheet) tabGid = opSheet.getSheetId();
+          const masterSheet = ss.getSheetByName('Master_Laporan');
+          if (masterSheet) {
+            tabGid = masterSheet.getSheetId();
+          } else {
+            const todayStr = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
+            const todaySheet = ss.getSheetByName('Laporan_' + todayStr);
+            if (todaySheet) {
+              tabGid = todaySheet.getSheetId();
+            } else {
+              const dailySheets = ss.getSheets().filter(s => /^Laporan_\d{4}-\d{2}-\d{2}$/.test(s.getName()));
+              if (dailySheets.length > 0) tabGid = dailySheets[dailySheets.length - 1].getSheetId();
+            }
+          }
         } catch (e) {}
       }
       return [{
@@ -234,45 +248,55 @@ const FormManagementService = {
     const cleanTitle = (title || 'Form Laporan').trim();
     const shortId = String(formId || Date.now()).substring(0, 8);
 
-    // Determine unique tab name
+    // If this is the default operational form, map directly to Master_Laporan
+    if (formId === 'DEFAULT_MAIN_FORM' || cleanTitle.toLowerCase() === 'laporan operasional' || cleanTitle.toLowerCase() === 'master_laporan') {
+      let masterSheet = ss.getSheetByName('Master_Laporan');
+      const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
+      if (!masterSheet) {
+        masterSheet = ss.insertSheet('Master_Laporan', 0);
+        if (typeof SpreadsheetRepository !== 'undefined' && SpreadsheetRepository.applyHeaderStyle) {
+          SpreadsheetRepository.applyHeaderStyle(masterSheet, opHeaders);
+        } else {
+          masterSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+          masterSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setFontColor('#0f172a').setBackground('#e2e8f0');
+          masterSheet.setFrozenRows(1);
+        }
+      }
+      return { sheetId: mainSsId, tabGid: masterSheet.getSheetId() };
+    }
+
+    // Determine unique tab name for custom forms
     let tabName = cleanTitle;
     const existingSheet = ss.getSheetByName(tabName);
     if (existingSheet) {
-      // Check if existing sheet is a generic template sheet or exact match
       const existingGid = existingSheet.getSheetId();
       return { sheetId: mainSsId, tabGid: existingGid };
     }
 
-    // Insert new sheet tab for this form
+    // Insert new sheet tab for this custom form
     const rawSheet = ss.insertSheet(tabName);
     const tabGid = rawSheet.getSheetId();
 
-    // Ensure single shared Sensitive tab exists in integrated spreadsheet
-    let sensitiveSheet = ss.getSheetByName('Sensitive');
-    if (!sensitiveSheet) {
-      sensitiveSheet = ss.insertSheet('Sensitive');
-      sensitiveSheet.getRange('A1:J1').setValues([[
-        'Report_ID', 'Timestamp', 'Emp_ID', 'Site', 'Date', 'Details', 
-        'Sensitive_Flag', 'Foto_Lampiran', 'Severity', 'Reviewed'
-      ]]);
-      sensitiveSheet.getRange('A1:J1').setFontWeight('bold').setBackground('#fef2f2');
-      sensitiveSheet.setFrozenRows(1);
-    }
-
-    // Set standard headers for operational form tab derived from single source of truth (29 columns)
+    // Set standard headers for custom form tab derived from single source of truth
     const opHeaders = (typeof OPERATIONAL_REPORT_FIELDS !== 'undefined') 
       ? OPERATIONAL_REPORT_FIELDS.map(f => f.header) 
       : [
-          'Report_ID', 'Kode_Kegiatan', 'Kode_Kegiatan_Ref', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-          'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Status_Pengelolaan', 
-          'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 'Estimasi_Panen_HST', 
-          'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 'Jumlah_Penjualan_Unit', 
-          'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 'Tujuan_Penggunaan', 
-          'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Severity', 'Reviewed'
+          'Report_ID', 'ID_Karyawan', 'Kode_Kegiatan', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
+          'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Administrasi', 
+          'Status_Pengelolaan', 'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 
+          'Estimasi_Panen_HST', 'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 
+          'Jumlah_Penjualan_Unit', 'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 
+          'Tujuan_Penggunaan', 'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Foto_URL_2', 'Foto_URL_3', 
+          'Severity', 'Reviewed'
         ];
-    rawSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
-    rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setBackground('#f8fafc');
-    rawSheet.setFrozenRows(1);
+
+    if (typeof SpreadsheetRepository !== 'undefined' && SpreadsheetRepository.applyHeaderStyle) {
+      SpreadsheetRepository.applyHeaderStyle(rawSheet, opHeaders);
+    } else {
+      rawSheet.getRange(1, 1, 1, opHeaders.length).setValues([opHeaders]);
+      rawSheet.getRange(1, 1, 1, opHeaders.length).setFontWeight('bold').setFontColor('#0f172a').setBackground('#e2e8f0');
+      rawSheet.setFrozenRows(1);
+    }
 
     return {
       sheetId: mainSsId,
@@ -290,7 +314,7 @@ const FormManagementService = {
     try {
       if (typeof DriveApp === 'undefined') return null;
 
-      const parentFolderName = 'Reporting System Photos';
+      const parentFolderName = 'MPL_Dokumentasi_Foto';
       let parentFolder = null;
       try {
         const folderIter = DriveApp.getFoldersByName(parentFolderName);

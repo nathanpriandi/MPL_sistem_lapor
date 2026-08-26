@@ -68,6 +68,16 @@ function navigateToPage(pageName, anchorEl) {
 }
 
 /**
+ * Global sidebar toggle handler for internal console layouts.
+ */
+function toggleSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('sidebar-open');
+  }
+}
+
+/**
  * Evaluates client-side triage flag solely based on Kendala text content.
  * @param {string} kendalaText 
  * @returns {{ severity: string, rank: number }}
@@ -86,12 +96,14 @@ function runServer(fnName, ...args) {
   return new Promise((resolve, reject) => {
     if (typeof google !== 'undefined' && google && google.script && google.script.run) {
       let isSettled = false;
+      // High-volume operations like multi-photo uploads get extended 90s timeout
+      const timeoutMs = (fnName === 'submitOperationalReport' || fnName === 'submitDynamicFormResponse' || fnName === 'uploadReportAttachment') ? 90000 : 45000;
       const timeoutTimer = setTimeout(() => {
         if (!isSettled) {
           isSettled = true;
-          reject(new Error(`Server RPC '${fnName}' timed out after 25s`));
+          reject(new Error(`Server RPC '${fnName}' timed out after ${timeoutMs / 1000}s`));
         }
-      }, 25000);
+      }, timeoutMs);
 
       google.script.run
         .withSuccessHandler((res) => {
@@ -313,11 +325,16 @@ async function loadQuickLinks() {
   if (!container) return;
 
   let publicUrl = '';
+  let spreadsheetUrl = '';
+  let photoFolderUrl = '';
+
   if (isLiveServer()) {
     try {
       const links = await runServer('getAdminQuickLinks');
-      if (links && links.publicWebAppUrl && links.publicWebAppUrl.includes('script.google.com')) {
-        publicUrl = links.publicWebAppUrl;
+      if (links) {
+        if (links.publicWebAppUrl) publicUrl = links.publicWebAppUrl;
+        if (links.spreadsheetUrl) spreadsheetUrl = links.spreadsheetUrl;
+        if (links.photoFolderUrl) photoFolderUrl = links.photoFolderUrl;
       }
     } catch (e) {
       console.error('Failed to load quick links:', e);
@@ -335,7 +352,13 @@ async function loadQuickLinks() {
 
   let linksHtml = '';
   if (publicUrl) {
-    linksHtml += `<a href="${publicUrl}" target="_blank" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Publik</span></a>`;
+    linksHtml += `<a href="${publicUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Pelaporan</span></a>`;
+  }
+  if (spreadsheetUrl) {
+    linksHtml += `<a href="${spreadsheetUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Google Spreadsheet Master Laporan"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Master Sheet</span></a>`;
+  }
+  if (photoFolderUrl) {
+    linksHtml += `<a href="${photoFolderUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Folder Foto Google Drive (MPL_Dokumentasi_Foto)"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Folder Foto Drive</span></a>`;
   }
   linksHtml += `<a href="javascript:void(0)" onclick="openAdminManualModal()" class="sidebar-link-item" title="Panduan Operasional Administrator &amp; Manajer"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Panduan Singkat</span></a>`;
   
@@ -359,8 +382,8 @@ function openAdminManualModal() {
             <strong style="color: #0f172a; font-size: 0.875rem; display: block; margin-bottom: 0.35rem;">1. Tingkat Keparahan (Triage)</strong>
             <div style="display: flex; flex-direction: column; gap: 0.4rem;">
               <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-                <span class="badge-severity-urgent" style="flex-shrink: 0;">Mendesak</span>
-                <span>Insiden kritis, kecelakaan, kebakaran, atau wabah penyakit dengan notifikasi instan otomatis.</span>
+                <span class="badge-severity-urgent" style="flex-shrink: 0;">Kendala</span>
+                <span>Laporan yang memuat kendala operasional lapangan dengan notifikasi instan otomatis.</span>
               </div>
               <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
                 <span class="badge-severity-normal" style="flex-shrink: 0;">Normal</span>
