@@ -203,6 +203,15 @@ function getAnalyticsDashboardData(params) {
 }
 
 /**
+ * Returns commodity analysis (trend or breakdown) with card-local independent scoping.
+ * @param {Object} [params]
+ * @returns {Object}
+ */
+function getCommodityAnalysis(params) {
+  return AnalyticsService.getCommodityAnalysis(params);
+}
+
+/**
  * Backward compatibility alias for getAnalyticsDashboardData.
  * @param {Object} [options]
  * @returns {Object}
