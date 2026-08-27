@@ -276,7 +276,7 @@ function setupOperationalForm(ssId) {
     .setHelpText('Nomor telepon aktif PIC pelapor')
     .setRequired(true);
 
-  form.addCheckboxItem()
+  form.addMultipleChoiceItem()
     .setTitle('Lokasi Kegiatan')
     .setChoiceValues(['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'])
     .setRequired(true);
@@ -298,10 +298,11 @@ function setupOperationalForm(ssId) {
     .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
     .setRequired(true);
 
-  form.addTextItem().setTitle('Luas Lahan (m²)');
-  form.addTextItem().setTitle('Jumlah Benih yang Digunakan');
-  form.addDateItem().setTitle('Tanggal Tanam / Tebar');
-  form.addTextItem().setTitle('Estimasi Panen (Hari Setelah Tanam / HST)');
+  form.addTextItem().setTitle('Lokasi / Blok').setHelpText('Contoh: Blok A1').setRequired(true);
+  form.addTextItem().setTitle('Luas Lahan (m²)').setRequired(true);
+  form.addTextItem().setTitle('Jumlah Benih yang Digunakan').setRequired(true);
+  form.addDateItem().setTitle('Tanggal Tanam / Tebar').setRequired(true);
+  form.addTextItem().setTitle('Estimasi Panen (Hari Setelah Tanam / HST)').setRequired(true);
 
   // Page 3: Kegiatan Panen & Penjualan
   form.addPageBreakItem().setTitle('Kegiatan Panen & Penjualan');
@@ -315,10 +316,11 @@ function setupOperationalForm(ssId) {
     .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
     .setRequired(true);
 
-  form.addTextItem().setTitle('Luas Lahan (m²)');
-  form.addDateItem().setTitle('Tanggal Panen');
-  form.addTextItem().setTitle('Jumlah Panen (kg)');
-  form.addDateItem().setTitle('Tanggal Penjualan');
+  form.addTextItem().setTitle('Lokasi / Blok').setHelpText('Contoh: Blok A1').setRequired(true);
+  form.addTextItem().setTitle('Luas Lahan (m²)').setRequired(true);
+  form.addDateItem().setTitle('Tanggal Panen').setRequired(true);
+  form.addTextItem().setTitle('Jumlah Panen (kg)').setRequired(true);
+  form.addDateItem().setTitle('Tanggal Penjualan').setRequired(true);
   form.addMultipleChoiceItem()
     .setTitle('Tujuan Distribusi')
     .setChoiceValues(['Penjualan eksternal', 'Penjualan internal', 'Penggunaan']);

@@ -103,29 +103,29 @@
           <!-- Dynamic Questions Slot: Setelah 1.1 Identitas PIC -->
           <div id="dynSec_1_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
 
-          <!-- Lokasi Kegiatan (Multiple Select Checkbox Pills) -->
+          <!-- Lokasi Kegiatan (Single Select Radio Pills) -->
           <div class="form-group" id="lokasiGroup">
             <label class="form-label" style="margin-bottom: 0.2rem;">Lokasi Kegiatan <span class="required">*</span></label>
-            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Pilih minimal 1 lokasi penugasan kegiatan (dapat memilih lebih dari satu jika lokasi mencakup beberapa sektor).</span>
+            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Pilih 1 lokasi sektor penugasan kegiatan hari ini.</span>
             <div class="checkbox-pill-grid" id="lokasiCheckboxGrid">
               <label class="checkbox-pill-item">
-                <input type="checkbox" name="lokasiKegiatanCheck" value="Sektor 1 + Ciomas">
+                <input type="radio" name="lokasiKegiatanRadio" value="Sektor 1 + Ciomas">
                 <span>Sektor 1 + Ciomas</span>
               </label>
               <label class="checkbox-pill-item">
-                <input type="checkbox" name="lokasiKegiatanCheck" value="Sektor 2">
+                <input type="radio" name="lokasiKegiatanRadio" value="Sektor 2">
                 <span>Sektor 2</span>
               </label>
               <label class="checkbox-pill-item">
-                <input type="checkbox" name="lokasiKegiatanCheck" value="Sektor 3">
+                <input type="radio" name="lokasiKegiatanRadio" value="Sektor 3">
                 <span>Sektor 3</span>
               </label>
               <label class="checkbox-pill-item">
-                <input type="checkbox" name="lokasiKegiatanCheck" value="Sektor 4">
+                <input type="radio" name="lokasiKegiatanRadio" value="Sektor 4">
                 <span>Sektor 4</span>
               </label>
               <label class="checkbox-pill-item">
-                <input type="checkbox" name="lokasiKegiatanCheck" value="Gunung Batu">
+                <input type="radio" name="lokasiKegiatanRadio" value="Gunung Batu">
                 <span>Gunung Batu</span>
               </label>
             </div>
@@ -260,13 +260,18 @@
 
           <div class="form-row-2col">
             <div class="form-group">
+              <label for="lokasiBlok">Lokasi / Blok <span class="required">*</span></label>
+              <input type="text" id="lokasiBlok" placeholder="Contoh: Blok A1">
+            </div>
+            <div class="form-group">
               <label for="luasLahanM2">Luas Lahan (m²) <span class="required">*</span></label>
               <input type="number" id="luasLahanM2" placeholder="0" min="0.01" step="any">
             </div>
-            <div class="form-group">
-              <label for="jumlahBenih">Jumlah Benih yang Digunakan <span class="required">*</span></label>
-              <input type="number" id="jumlahBenih" placeholder="0" min="1" step="1">
-            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="jumlahBenih">Jumlah Benih yang Digunakan <span class="required">*</span></label>
+            <input type="number" id="jumlahBenih" placeholder="0" min="1" step="1">
           </div>
 
           <!-- Dynamic Questions Slot: Setelah 2.2 Luas & Benih -->
@@ -338,6 +343,17 @@
 
           <!-- Dynamic Questions Slot: Setelah 3.1 Status & Komoditas Panen -->
           <div id="dynSec_3_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+
+          <div class="form-row-2col">
+            <div class="form-group">
+              <label for="lokasiBlokPanen">Lokasi / Blok <span class="required">*</span></label>
+              <input type="text" id="lokasiBlokPanen" placeholder="Contoh: Blok A1">
+            </div>
+            <div class="form-group">
+              <label for="luasLahanPanenM2">Luas Lahan (m²) <span class="required">*</span></label>
+              <input type="number" id="luasLahanPanenM2" placeholder="0" min="0.01" step="any">
+            </div>
+          </div>
 
           <div class="form-row-2col">
             <div class="form-group">
@@ -677,6 +693,10 @@
                 <span class="review-value" id="revKomoditas">-</span>
               </div>
               <div class="review-item">
+                <span class="review-label">Lokasi / Blok</span>
+                <span class="review-value" id="revLokasiBlok">-</span>
+              </div>
+              <div class="review-item">
                 <span class="review-label">Luas Lahan (m²)</span>
                 <span class="review-value" id="revLuasLahanM2">-</span>
               </div>
@@ -709,6 +729,14 @@
               <div class="review-item">
                 <span class="review-label">Komoditas</span>
                 <span class="review-value" id="revKomoditasPanen">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Lokasi / Blok</span>
+                <span class="review-value" id="revLokasiBlokPanen">-</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Luas Lahan Panen (m²)</span>
+                <span class="review-value" id="revLuasLahanPanenM2">-</span>
               </div>
               <div class="review-item">
                 <span class="review-label">Tgl Panen</span>
@@ -983,16 +1011,16 @@
       if (!schema || typeof schema !== 'object') return;
       ACTIVE_FORM_SCHEMA = Object.assign(ACTIVE_FORM_SCHEMA, schema);
 
-      // 1. Hydrate Lokasi Options
+      // 1. Hydrate Lokasi Options (Single Choice Radio)
       if (Array.isArray(schema.lokasiOptions) && schema.lokasiOptions.length > 0) {
         const grid = document.getElementById('lokasiCheckboxGrid');
         if (grid) {
-          const selectedVals = Array.from(document.querySelectorAll('input[name="lokasiKegiatanCheck"]:checked')).map(cb => cb.value);
+          const selectedVal = document.querySelector('input[name="lokasiKegiatanRadio"]:checked')?.value || '';
           grid.innerHTML = schema.lokasiOptions.map(loc => {
-            const isChecked = selectedVals.includes(loc);
+            const isChecked = (selectedVal === loc);
             return `
               <label class="checkbox-pill-item">
-                <input type="checkbox" name="lokasiKegiatanCheck" value="${escapeHtmlAttr(loc)}" ${isChecked ? 'checked' : ''}>
+                <input type="radio" name="lokasiKegiatanRadio" value="${escapeHtmlAttr(loc)}" ${isChecked ? 'checked' : ''}>
                 <span>${escapeHtmlAttr(loc)}</span>
               </label>
             `;
@@ -1666,9 +1694,9 @@
           errors.push({ id: 'nomorTelepon', text: 'Nomor Telepon wajib diisi.' });
         }
 
-        const checkedLokasi = Array.from(document.querySelectorAll('input[name="lokasiKegiatanCheck"]:checked')).map(c => c.value);
-        if (checkedLokasi.length === 0) {
-          errors.push({ id: 'lokasiGroup', text: 'Lokasi Kegiatan wajib dipilih minimal satu.' });
+        const selectedLokasi = document.querySelector('input[name="lokasiKegiatanRadio"]:checked')?.value;
+        if (!selectedLokasi) {
+          errors.push({ id: 'lokasiGroup', text: 'Lokasi Kegiatan wajib dipilih 1 lokasi sektor.' });
         }
 
         if (checkedKegiatan.length === 0) {
@@ -1702,6 +1730,11 @@
 
         const komoditas = document.getElementById('komoditas');
         if (!komoditas.value) errors.push({ id: 'komoditas', text: 'Komoditas (Tanam) wajib dipilih.' });
+
+        const lokasiBlok = document.getElementById('lokasiBlok');
+        if (!lokasiBlok?.value?.trim()) {
+          errors.push({ id: 'lokasiBlok', text: 'Lokasi / Blok (Tanam) wajib diisi.' });
+        }
 
         const luasLahanM2 = document.getElementById('luasLahanM2');
         const luasVal = parseFloat(luasLahanM2?.value);
@@ -1739,6 +1772,19 @@
 
         const komoditasPanen = document.getElementById('komoditasPanen');
         if (!komoditasPanen.value) errors.push({ id: 'komoditasPanen', text: 'Komoditas (Panen) wajib dipilih.' });
+
+        const lokasiBlokPanen = document.getElementById('lokasiBlokPanen');
+        if (!lokasiBlokPanen?.value?.trim()) {
+          errors.push({ id: 'lokasiBlokPanen', text: 'Lokasi / Blok (Panen) wajib diisi.' });
+        }
+
+        const luasLahanPanenM2 = document.getElementById('luasLahanPanenM2');
+        const luasPanenVal = parseFloat(luasLahanPanenM2?.value);
+        if (isNaN(luasPanenVal) || luasPanenVal <= 0) {
+          errors.push({ id: 'luasLahanPanenM2', text: 'Luas Lahan Panen (m²) wajib diisi angka positif lebih dari 0.' });
+        } else if (luasPanenVal > 10000000) {
+          errors.push({ id: 'luasLahanPanenM2', text: 'Luas Lahan Panen (m²) melebihi batas maksimal yang wajar (10.000.000 m²).' });
+        }
 
         const tglPanen = document.getElementById('tglPanen');
         if (!tglPanen.value) {
@@ -1896,7 +1942,7 @@
       const hasPenjualan = distChecks.includes('Penjualan eksternal') || distChecks.includes('Penjualan internal');
       const hasPenggunaan = distChecks.includes('Penggunaan');
 
-      const checkedLokasi = Array.from(document.querySelectorAll('input[name="lokasiKegiatanCheck"]:checked')).map(c => c.value);
+      const selectedLokasi = document.querySelector('input[name="lokasiKegiatanRadio"]:checked')?.value || '-';
 
       const b2 = document.getElementById('revBoxStep2');
       if (b2) b2.style.display = isTanam ? 'block' : 'none';
@@ -1916,7 +1962,7 @@
       document.getElementById('revNamaPic').innerText = document.getElementById('namaPic').value || '-';
       document.getElementById('revBidangDivisi').innerText = document.getElementById('bidangDivisi').value || '-';
       document.getElementById('revNomorTelepon').innerText = document.getElementById('nomorTelepon').value || '-';
-      document.getElementById('revLokasiKegiatan').innerText = checkedLokasi.length > 0 ? checkedLokasi.join(', ') : '-';
+      document.getElementById('revLokasiKegiatan').innerText = selectedLokasi;
       document.getElementById('revJenisKegiatan').innerText = checkedKegiatan.length > 0 ? checkedKegiatan.join(', ') : '-';
 
       const itemPengawasan = document.getElementById('revItemPengawasan');
@@ -1942,6 +1988,7 @@
       if (isTanam) {
         document.getElementById('revStatusPengelolaan').innerText = document.getElementById('statusPengelolaan').value || '-';
         document.getElementById('revKomoditas').innerText = document.getElementById('komoditas').value || '-';
+        document.getElementById('revLokasiBlok').innerText = document.getElementById('lokasiBlok').value || '-';
         document.getElementById('revLuasLahanM2').innerText = document.getElementById('luasLahanM2').value ? `${document.getElementById('luasLahanM2').value} m²` : '-';
         document.getElementById('revJumlahBenih').innerText = document.getElementById('jumlahBenih').value || '-';
         document.getElementById('revTglTanam').innerText = document.getElementById('tglTanam').value || '-';
@@ -1952,6 +1999,8 @@
       if (isPanen) {
         document.getElementById('revStatusPengelolaanPanen').innerText = document.getElementById('statusPengelolaanPanen').value || '-';
         document.getElementById('revKomoditasPanen').innerText = document.getElementById('komoditasPanen').value || '-';
+        document.getElementById('revLokasiBlokPanen').innerText = document.getElementById('lokasiBlokPanen').value || '-';
+        document.getElementById('revLuasLahanPanenM2').innerText = document.getElementById('luasLahanPanenM2').value ? `${document.getElementById('luasLahanPanenM2').value} m²` : '-';
         document.getElementById('revTglPanen').innerText = document.getElementById('tglPanen').value || '-';
         document.getElementById('revJumlahPanen').innerText = document.getElementById('jumlahPanen').value ? `${document.getElementById('jumlahPanen').value} kg` : '-';
         document.getElementById('revTglPenjualan').innerText = document.getElementById('tglPenjualan').value || '-';
@@ -1998,7 +2047,7 @@
 
     function focusField(id) {
       if (id === 'lokasiGroup') {
-        const first = document.querySelector('input[name="lokasiKegiatanCheck"]');
+        const first = document.querySelector('input[name="lokasiKegiatanRadio"]');
         if (first) { first.focus(); first.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         return;
       }
@@ -2043,7 +2092,7 @@
       if (successCard) successCard.style.display = 'none';
 
       document.getElementById('operationalForm').reset();
-      document.querySelectorAll('input[name="lokasiKegiatanCheck"]').forEach(c => c.checked = false);
+      document.querySelectorAll('input[name="lokasiKegiatanRadio"]').forEach(c => c.checked = false);
       document.querySelectorAll('input[name="jenisKegiatanCheck"]').forEach(c => c.checked = false);
       document.querySelectorAll('input[name="tujuanDistribusiCheck"]').forEach(c => c.checked = false);
       document.querySelectorAll('input[name="tujuanPenggunaan"]').forEach(c => c.checked = false);
@@ -2080,7 +2129,7 @@
         submitBtn.innerText = 'Mengirim Laporan...';
       }
 
-      const checkedLokasi = Array.from(document.querySelectorAll('input[name="lokasiKegiatanCheck"]:checked')).map(c => c.value);
+      const selectedLokasi = document.querySelector('input[name="lokasiKegiatanRadio"]:checked')?.value || '';
       const checkedKegiatan = Array.from(document.querySelectorAll('input[name="jenisKegiatanCheck"]:checked')).map(c => c.value);
       const isTanam = checkedKegiatan.includes('Tanam atau tebar');
       const isPanen = checkedKegiatan.includes('Panen atau penjualan');
@@ -2107,7 +2156,7 @@
         namaPic: namaPicVal,
         bidangDivisi: divisiVal,
         nomorTelepon: (document.getElementById('nomorTelepon')?.value || '').trim(),
-        lokasiKegiatan: checkedLokasi.join(', '),
+        lokasiKegiatan: selectedLokasi,
         jenisKegiatan: checkedKegiatan.join(', '),
         pengawasan: isPengawasan ? document.getElementById('pengawasan').value : '',
         detailPengawasan: isPengawasan ? document.getElementById('detailPengawasan').value : '',
@@ -2116,6 +2165,7 @@
 
         statusPengelolaan: isTanam ? document.getElementById('statusPengelolaan').value : '',
         komoditas: isTanam ? document.getElementById('komoditas').value : '',
+        lokasiBlok: isTanam ? (document.getElementById('lokasiBlok')?.value || '').trim() : '',
         luasLahanM2: isTanam ? (parseFloat(document.getElementById('luasLahanM2').value) || 0) : 0,
         jumlahBenih: isTanam ? (parseFloat(document.getElementById('jumlahBenih').value) || 0) : 0,
         tglTanam: isTanam ? document.getElementById('tglTanam').value : '',
@@ -2123,6 +2173,8 @@
 
         statusPengelolaanPanen: isPanen ? document.getElementById('statusPengelolaanPanen').value : '',
         komoditasPanen: isPanen ? document.getElementById('komoditasPanen').value : '',
+        lokasiBlokPanen: isPanen ? (document.getElementById('lokasiBlokPanen')?.value || '').trim() : '',
+        luasLahanPanenM2: isPanen ? (parseFloat(document.getElementById('luasLahanPanenM2').value) || 0) : 0,
         tglPanen: isPanen ? document.getElementById('tglPanen').value : '',
         jumlahPanen: isPanen ? (parseFloat(document.getElementById('jumlahPanen').value) || 0) : 0,
         tglPenjualan: isPanen ? document.getElementById('tglPenjualan').value : '',

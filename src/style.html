@@ -3423,17 +3423,165 @@
   }
 
   /* Manager Dashboard Refactor Styles */
-  .period-badge {
+  .dash-header-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .dash-main-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+
+  .dash-subtitle {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0.35rem 0 1rem 0;
+    line-height: 1.45;
+  }
+
+  .dash-toolbar-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.4rem 0.65rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+
+  .dash-segmented-group {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: var(--primary-tint);
-    border: 1px solid var(--primary-border);
-    color: var(--primary);
-    font-size: 0.85rem;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 2px;
+    gap: 1px;
+    height: 28px;
+    box-sizing: border-box;
+  }
+
+  .dash-seg-btn {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 0.775rem;
+    font-weight: 500;
+    padding: 0 10px;
+    height: 22px;
+    line-height: 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dash-seg-btn:hover {
+    color: #1e293b;
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .dash-seg-btn.active {
+    background: var(--primary);
+    color: #ffffff;
     font-weight: 600;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+
+  .dash-custom-date-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    padding: 0 6px;
+    border-radius: 6px;
+    height: 28px;
+    box-sizing: border-box;
+  }
+
+  .dash-custom-date-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+    white-space: nowrap;
+  }
+
+  .dash-date-input {
+    border: none;
+    border-radius: 0;
+    padding: 0 2px;
+    font-size: 0.75rem;
+    font-family: inherit;
+    color: #1e293b;
+    background: transparent;
+    height: 22px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .dash-actions-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .dash-sync-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding-right: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .dash-sync-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+  }
+
+  .dash-action-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 0 9px !important;
+    font-size: 0.775rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease-in-out !important;
+  }
+
+  .dash-action-btn:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
   }
 
   .metric-sublabel {

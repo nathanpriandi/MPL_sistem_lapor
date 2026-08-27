@@ -33,7 +33,7 @@ const AdminService = {
    * @returns {Object|null}
    */
   getDashboardStats: function(options) {
-    return SpreadsheetRepository.getDashboardStatsData(options || {});
+    return AnalyticsService.getAnalyticsDashboardData(options || {});
   },
 
   /**

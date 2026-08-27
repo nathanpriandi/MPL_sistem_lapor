@@ -3,9 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manager Dashboard — Sistem Pelaporan Digital</title>
+  <title>Executive Manager Dashboard — Sistem Pelaporan Digital</title>
   <?!= include('style'); ?>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Executive Dashboard Typography & Interactive Controls */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-primary, #1e293b);
+    }
+    .kpi-interactive-card {
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-interactive-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    .kpi-interactive-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .kpi-interactive-card:hover::after {
+      opacity: 1;
+    }
+    .badge-ready {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+    .badge-growing {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .badge-overdue {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .harvest-table th, .harvest-table td {
+      padding: 0.65rem 0.75rem;
+      font-size: 0.8125rem;
+      vertical-align: middle;
+    }
+    .harvest-table tbody tr:hover {
+      background-color: var(--bg-surface-hover, #f8fafc);
+    }
+    .rank-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-weight: 600;
+      font-size: 0.75rem;
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .rank-top1 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .rank-top2 { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
+    .rank-top3 { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+    .nav-tabs-clean {
+      display: flex;
+      gap: 0.35rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.35rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .nav-tab-btn {
+      background: transparent;
+      border: none;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-tab-btn:hover {
+      color: var(--text-primary);
+      background: #f1f5f9;
+    }
+    .nav-tab-btn.active {
+      color: var(--primary);
+      background: #ecfdf5;
+      font-weight: 600;
+    }
+    .modal-backdrop-clean {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      z-index: 1050;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-dialog-clean {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 880px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
@@ -44,304 +172,383 @@
       </header>
 
       <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
-        <!-- Header & Interactive Period Control Row -->
-        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-              <h1 class="card-title" style="margin-bottom: 0; line-height: 1.25;">Dashboard Eksekutif Manajer</h1>
-              <span class="period-badge" id="dashPeriodBadge">
-                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span>Periode: <strong id="dashPeriodLabel">Memuat...</strong></span>
-              </span>
-            </div>
-            <p class="card-subtitle" style="margin-bottom: 0;">Visualisasi tata kelola operasional agribisnis: perbandingan divisi, peringatan panen, kendala lapangan, dan tren pendapatan.</p>
-          </div>
-          
-          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
-            <div class="button-group-flex" style="align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-              <!-- Interactive Period Selector -->
-              <div class="segmented-control" role="tablist" aria-label="Filter Periode Manajer" id="dashPeriodControl">
-                <button class="segmented-item" onclick="setDashboardPeriod('this_week', this)" id="dashPeriodBtn-this_week">Minggu Ini</button>
-                <button class="segmented-item" onclick="setDashboardPeriod('last_week', this)" id="dashPeriodBtn-last_week">Minggu Lalu</button>
-                <button class="segmented-item active" onclick="setDashboardPeriod('this_month', this)" id="dashPeriodBtn-this_month">Bulan Ini</button>
-                <button class="segmented-item" onclick="setDashboardPeriod('custom', this)" id="dashPeriodBtn-custom">Kustom</button>
-              </div>
+        
+        <!-- ==========================================
+             DASHBOARD HEADER & CONTROL TOOLBAR
+        ========================================== -->
+        <div class="dash-header-section">
+          <h1 class="dash-main-title">Dashboard Eksekutif Manajer &amp; Analitik Bisnis</h1>
+          <p class="dash-subtitle">Sistem analitik terpadu: aktivitas pelaporan staf, tren komoditas tanam vs panen, prediksi jadwal panen HST, dan kinerja penjualan.</p>
 
-              <span id="dashLastUpdatedTag" style="font-size: 0.775rem; color: var(--text-muted); margin-right: 0.35rem;"></span>
-              <button class="btn btn-secondary" onclick="exportDashboardCSV()" title="Unduh ringkasan data statistik dalam format CSV">
-                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <!-- Bottom Row: Unified Control Toolbar -->
+          <div class="dash-toolbar-card">
+            <!-- Left: Segmented Period Control Group -->
+            <div class="dash-segmented-group" role="tablist" aria-label="Filter Periode Analitik" id="dashPeriodControl">
+              <button class="dash-seg-btn" onclick="setDashboardPeriod('this_week', this)" id="dashPeriodBtn-this_week">Minggu Ini</button>
+              <button class="dash-seg-btn" onclick="setDashboardPeriod('last_week', this)" id="dashPeriodBtn-last_week">Minggu Lalu</button>
+              <button class="dash-seg-btn active" onclick="setDashboardPeriod('this_month', this)" id="dashPeriodBtn-this_month">Bulan Ini</button>
+              <button class="dash-seg-btn" onclick="setDashboardPeriod('this_quarter', this)" id="dashPeriodBtn-this_quarter">Kuartal</button>
+              <button class="dash-seg-btn" onclick="setDashboardPeriod('this_year', this)" id="dashPeriodBtn-this_year">Tahun Ini</button>
+              <button class="dash-seg-btn" onclick="setDashboardPeriod('custom', this)" id="dashPeriodBtn-custom">Kustom</button>
+            </div>
+
+            <!-- Custom Date Range Picker (shown when 'Kustom' is clicked) -->
+            <div id="dashCustomDateBar" class="dash-custom-date-container" style="display: none;">
+              <span class="dash-custom-date-label">Dari:</span>
+              <input type="date" id="dashCustomStartDate" class="dash-date-input" onchange="loadAnalyticsDashboardData(false)">
+              <span class="dash-custom-date-label">s/d:</span>
+              <input type="date" id="dashCustomEndDate" class="dash-date-input" onchange="loadAnalyticsDashboardData(false)">
+            </div>
+
+            <!-- Right: Sync Tag & Action Buttons Group -->
+            <div class="dash-actions-group">
+              <div class="dash-sync-indicator" id="dashLastUpdatedTag">
+                <span class="dash-sync-dot"></span>
+                <span id="dashLastUpdatedText">Diperbarui baru saja</span>
+              </div>
+              <button class="btn btn-secondary dash-action-btn" onclick="exportAnalyticsCSV()" title="Unduh data statistik lengkap dalam format CSV">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
                 <span>Ekspor CSV</span>
               </button>
-              <button class="btn btn-secondary" onclick="renderDashboard(true)" title="Muat ulang data statistik terbaru dari server">
-                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <button class="btn btn-secondary dash-action-btn" onclick="loadAnalyticsDashboardData(true)" title="Muat ulang analitik terbaru dari server">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
                 <span>Perbarui</span>
               </button>
             </div>
-
-            <!-- Custom Date Range Picker (hidden by default) -->
-            <div id="dashCustomDateBar" style="display: none; align-items: center; gap: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.4rem 0.75rem; border-radius: var(--radius-sm);">
-              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Dari:</span>
-              <input type="date" id="dashCustomStartDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="renderDashboard(false)">
-              <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">s/d:</span>
-              <input type="date" id="dashCustomEndDate" class="filter-input" style="min-height: 32px; padding: 0.2rem 0.5rem;" onchange="renderDashboard(false)">
-            </div>
           </div>
+
         </div>
 
-        <!-- 3.2 Key Metrics Cards (KPI Strip) -->
-        <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-          <!-- 1. Total Aktivitas (Distinct Activities) -->
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('all')" title="Klik untuk melihat semua aktivitas laporan di Antrean Admin">
-            <span class="metric-label">Total Aktivitas (Distinct)</span>
-            <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="metric-value" id="kpiDistinctActivities"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
+        <!-- ==========================================
+             SECTION 1: KEY METRIC CARDS STRIP
+        ========================================== -->
+        <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 1.5rem;">
+          
+          <!-- 1. Total Laporan (Clickable -> Opens Employee Detail Modal) -->
+          <div class="metric-card kpi-interactive-card" onclick="openEmployeeLeaderboardModal()" title="Klik untuk membuka Detail Pelaporan Karyawan">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="metric-label">Total Laporan Masuk</span>
+              <span class="badge badge-primary" style="font-size: 0.7rem; padding: 2px 6px;">Lihat Detail ➔</span>
             </div>
-            <span class="metric-sublabel" id="kpiRawReports"><span class="skeleton-box" style="width: 110px; height: 12px; vertical-align: middle;"></span></span>
-            <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-              <span>Siklus Kegiatan</span>
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+              <span class="metric-value" id="kpiTotalReports"><span class="skeleton-box" style="width: 50px; height: 28px; vertical-align: middle;"></span></span>
+            </div>
+            <span class="metric-sublabel">Klik untuk rincian frekuensi karyawan</span>
+            <span class="metric-trend metric-trend-positive" style="margin-top: 0.5rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Aktivitas Pelaporan Karyawan</span>
             </span>
           </div>
 
           <!-- 2. Total Nilai Penjualan (Rp) -->
           <div class="metric-card">
-            <span class="metric-label">Total Nilai Penjualan (Rp)</span>
-            <span class="metric-value" id="kpiTotalPenjualan" style="font-size: 1.45rem; word-break: break-all;"><span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span></span>
-            <span class="metric-sublabel" id="kpiPriorMonthSub"><span class="skeleton-box" style="width: 80px; height: 12px; vertical-align: middle;"></span></span>
-            <span class="metric-trend metric-trend-neutral" id="trendSales" style="margin-top: 0.5rem;">
+            <span class="metric-label">Total Pendapatan Penjualan</span>
+            <span class="metric-value" id="kpiTotalSales" style="font-size: 1.35rem; word-break: break-all;"><span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span></span>
+            <span class="metric-sublabel" id="kpiSalesCountSub">Akumulasi transaksi penjualan</span>
+            <span class="metric-trend metric-trend-positive" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              <span id="kpiSalesTrendText">Pendapatan Penjualan</span>
+              <span>Arus Kas Komersial</span>
             </span>
           </div>
 
-          <!-- 3. Hasil Panen per Divisi (Separated Figures, No Unit Mixing) -->
+          <!-- 3. Total Panen Terkumpul (Kg) -->
           <div class="metric-card">
-            <span class="metric-label">Hasil Panen per Divisi</span>
-            <div class="kpi-division-grid">
-              <div class="kpi-division-item" title="Divisi Agro (Pertanian/Perkebunan)">
-                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
-                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
-                  <span>Agro</span>
-                </span>
-                <span class="kpi-division-val" id="kpiPanenAgro"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
-              </div>
-              <div class="kpi-division-item" title="Divisi Ternak (Peternakan)">
-                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
-                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
-                  <span>Ternak</span>
-                </span>
-                <span class="kpi-division-val" id="kpiPanenTernak"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
-              </div>
-              <div class="kpi-division-item" title="Divisi Ikan (Perikanan)">
-                <span class="kpi-division-name" style="display: flex; align-items: center; gap: 4px;">
-                  <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
-                  <span>Ikan</span>
-                </span>
-                <span class="kpi-division-val" id="kpiPanenIkan"><span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span></span>
-              </div>
+            <span class="metric-label">Volume Panen Terkumpul</span>
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+              <span class="metric-value" id="kpiTotalPanen"><span class="skeleton-box" style="width: 70px; height: 28px; vertical-align: middle;"></span></span>
+              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Kg</span>
             </div>
+            <span class="metric-sublabel">Total output panen seluruh komoditas</span>
+            <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+              <span>Hasil Panen Agribisnis</span>
+            </span>
+          </div>
+
+          <!-- 4. Jadwal Panen Aktif (HST Engine) -->
+          <div class="metric-card kpi-interactive-card" onclick="scrollToHarvestSchedule()" title="Klik untuk menuju tabel Jadwal Panen HST">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="metric-label">Penanaman Aktif (HST)</span>
+              <span class="badge badge-normal" id="badgeReadyCount" style="font-size: 0.7rem; padding: 2px 6px;">0 Siap Panen</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem;">
+              <span class="metric-value" id="kpiActivePlantings"><span class="skeleton-box" style="width: 45px; height: 28px; vertical-align: middle;"></span></span>
+              <span style="font-size: 0.825rem; font-weight: 600; color: var(--text-secondary);">Plot Ditanam</span>
+            </div>
+            <span class="metric-sublabel" id="kpiOverdueSub">Prediksi panen otomatis dari HST</span>
             <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
               <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>Volume Independen</span>
+              <span>Lihat Jadwal Panen &darr;</span>
             </span>
           </div>
 
-          <!-- 4. Kegiatan Menunggu Panen -->
-          <div class="metric-card">
-            <span class="metric-label">Menunggu Panen</span>
-            <span class="metric-value" id="kpiActiveKegiatan"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
-            <span class="metric-sublabel">Aktivitas belum panen</span>
-            <span class="metric-trend metric-trend-neutral" style="margin-top: 0.5rem;">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span>Masa Tumbuh / Pelihara</span>
-            </span>
-          </div>
-
-          <!-- 5. Kendala Lapangan Terbuka -->
-          <div class="metric-card metric-card-interactive" onclick="navigateToQueue('urgent')" title="Klik untuk meninjau kendala & insiden di Antrean Admin">
-            <span class="metric-label">Kendala Terbuka</span>
-            <span class="metric-value" id="kpiOpenObstacles"><span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span></span>
-            <span class="metric-sublabel" id="kpiUnansweredSub"><span class="skeleton-box" style="width: 100px; height: 12px; vertical-align: middle;"></span></span>
-            <span class="metric-trend metric-trend-neutral" id="trendObstacles" style="margin-top: 0.5rem;">
-              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <span id="kpiObstaclesTrendText">Kendala Terlaporkan</span>
-            </span>
-          </div>
         </div>
 
-        <!-- 3.3 Two-Column Section: Perbandingan Divisi (Left) vs Perlu Perhatian (Right) -->
-        <div class="dashboard-two-col" style="margin-top: 1.5rem;">
-          <!-- Left: Divisional Comparison -->
-          <div class="card card-no-margin" style="display: flex; flex-direction: column;">
-            <div class="flex-between-wrap" style="margin-bottom: 1rem; align-items: center;">
-              <div>
-                <h3 class="card-title card-title-sm" style="margin-bottom: 0.15rem;">Perbandingan Kinerja Antar Divisi</h3>
-                <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Perbandingan aktivitas, panen, dan nilai penjualan.</p>
-              </div>
-              <div class="button-group-flex">
-                <button class="btn btn-secondary btn-sm active" id="btnMetricSales" onclick="switchDivisiChartMetric('sales')">Penjualan (Rp)</button>
-                <button class="btn btn-secondary btn-sm" id="btnMetricActivities" onclick="switchDivisiChartMetric('activities')">Aktivitas</button>
-              </div>
-            </div>
-
-            <!-- Grouped Bar Chart -->
-            <div class="chart-container" style="position: relative; height: 230px; max-height: 230px; width: 100%; overflow: hidden; margin-bottom: 1.25rem;">
-              <div id="divisiChartSkeleton" class="skeleton-chart-box">
-                <div class="skeleton-chart-bar" style="height: 65%;"></div>
-                <div class="skeleton-chart-bar" style="height: 40%;"></div>
-                <div class="skeleton-chart-bar" style="height: 85%;"></div>
-              </div>
-              <canvas id="divisiComparisonChart" height="230" style="max-height: 230px; height: 230px; width: 100%; display: block;"></canvas>
-            </div>
-
-            <!-- Compact Data Table -->
-            <div class="table-responsive" style="margin-top: auto;">
-              <table class="division-table">
-                <thead>
-                  <tr>
-                    <th>Bidang / Divisi</th>
-                    <th style="text-align: center;">Aktivitas</th>
-                    <th style="text-align: right;">Total Panen</th>
-                    <th style="text-align: right;">Nilai Penjualan (Rp)</th>
-                  </tr>
-                </thead>
-                <tbody id="divisiTableBody">
-                  <tr>
-                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
-                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
-                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
-                  </tr>
-                  <tr>
-                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
-                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
-                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
-                  </tr>
-                  <tr>
-                    <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-                    <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
-                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
-                    <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Right: Attention List (Perlu Perhatian) -->
-          <div class="card card-no-margin" style="display: flex; flex-direction: column;">
-            <div class="flex-between-wrap" style="margin-bottom: 1rem; align-items: center;">
-              <div>
-                <h3 class="card-title card-title-sm" style="margin-bottom: 0.15rem;">Perlu Perhatian &amp; Tindak Lanjut</h3>
-                <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Panen terlambat, kendala tanpa respon, &amp; lokasi pasif.</p>
-              </div>
-              <span class="badge badge-urgent" id="attentionCountBadge">0 Item</span>
-            </div>
-
-            <div id="attentionListContainer" class="attention-container">
-              <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
-                <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
-                <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
-                <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
-              </div>
-              <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
-                <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
-                <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
-                <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3.4 Trend Chart: Full-Width Line Chart Over Current Month Weeks -->
-        <div class="card card-no-margin" style="margin-top: 1.5rem;">
-          <div class="flex-between-wrap" style="margin-bottom: 1rem; align-items: center;">
+        <!-- ==========================================
+             SECTION 2: COMMODITY ANALYTICS (TANAM VS PANEN)
+        ========================================== -->
+        <div class="card card-no-margin" style="margin-bottom: 1.5rem;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
             <div>
-              <h3 class="card-title card-title-sm" style="margin-bottom: 0.15rem;">Dinamika Tren Mingguan per Divisi</h3>
-              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Pergerakan capaian nilai penjualan mingguan sepanjang bulan berjalan.</p>
+              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>Dinamika Tren Komoditas (Tanam vs Panen)</span>
+              </h2>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Pemisahan komponen benih (Tanam) dan output volume panen (Panen) per komoditas secara independen.</p>
             </div>
-            <div class="button-group-flex">
-              <span class="badge badge-neutral" style="font-size: 0.75rem;">1 Line per Divisi</span>
+
+            <!-- Commodity Dropdown Selector -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <label for="cropSelectFilter" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Komoditas:</label>
+              <select id="cropSelectFilter" class="form-input" style="height: 34px; padding: 0 0.75rem; font-size: 0.8125rem; min-width: 170px;" onchange="handleCropChange(this.value)">
+                <!-- Hydrated dynamically with pure crop names -->
+              </select>
             </div>
           </div>
 
-          <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%; overflow: hidden;">
-            <div id="weeklyTrendSkeleton" class="skeleton-chart-box">
-              <div class="skeleton-chart-bar" style="height: 35%;"></div>
-              <div class="skeleton-chart-bar" style="height: 55%;"></div>
-              <div class="skeleton-chart-bar" style="height: 75%;"></div>
-              <div class="skeleton-chart-bar" style="height: 90%;"></div>
-            </div>
-            <canvas id="weeklyTrendChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
-          </div>
-        </div>
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;" class="dashboard-commodity-grid">
+            
+            <!-- Left: Dual Timeseries Chart (Tanam Benih vs Panen Kg) -->
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; background: var(--bg-surface);">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.75rem;">
+                <span style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary);" id="commodityChartTitle">Tren Benih Tanam &amp; Hasil Panen</span>
+                <div class="button-group-flex">
+                  <button class="btn btn-secondary btn-sm active" id="btnViewBoth" onclick="switchCropChartView('both')">Semua</button>
+                  <button class="btn btn-secondary btn-sm" id="btnViewTanam" onclick="switchCropChartView('tanam')">Tanam (Benih)</button>
+                  <button class="btn btn-secondary btn-sm" id="btnViewPanen" onclick="switchCropChartView('panen')">Panen (Kg)</button>
+                </div>
+              </div>
 
-        <!-- Location Coverage & Staleness Analysis Card -->
-        <div class="card" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
-          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.75rem;">
-            <div>
-              <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <span>Status Cakupan &amp; Keaktifan Lokasi</span>
-              </h3>
-              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">
-                Kecocokan keaktifan lokasi melapor dalam periode terpilih.
+              <div class="chart-container" style="position: relative; height: 260px; max-height: 260px; width: 100%;">
+                <canvas id="commodityTrendChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
+              </div>
+            </div>
+
+            <!-- Right: Employee Participation by Commodity -->
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; background: var(--bg-surface); display: flex; flex-direction: column;">
+              <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">
+                Partisipasi Staf per Komoditas
+              </div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.75rem 0;">
+                Jumlah karyawan unik yang membudidayakan tiap komoditas:
               </p>
-            </div>
-            <span class="period-badge" id="coverageFractionBadge">
-              <span>Cakupan: <strong id="dashCoverageFraction">0 dari 0</strong></span>
-            </span>
-          </div>
 
-          <div id="dashCoverageBreakdownBox">
-            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;" id="dashCoverageHeadline">
-              Memuat data cakupan lokasi...
+              <div id="cropParticipationList" style="display: flex; flex-direction: column; gap: 0.45rem; overflow-y: auto; max-height: 250px;">
+                <!-- Populated dynamically -->
+              </div>
             </div>
-            <div id="dashMissingLocationsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <!-- Rendered dynamically -->
-            </div>
+
           </div>
         </div>
 
-        <!-- 3.5 Footer Link: Drilldown to Admin Queue -->
+        <!-- ==========================================
+             SECTION 3: SMART HARVEST SCHEDULE (HST ENGINE)
+        ========================================== -->
+        <div class="card card-no-margin" id="harvestScheduleSection" style="margin-bottom: 1.5rem;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
+            <div>
+              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="15" r="2"/></svg>
+                <span>Jadwal Panen Cerdas (Prediksi HST)</span>
+              </h2>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Kalkulasi cerdas tanggal panen otomatis dari <strong>Tanggal Tanam + HST</strong>. Memudahkan pemantauan masa panen mendatang.</p>
+            </div>
+
+            <!-- Schedule Filter Tabs -->
+            <div class="button-group-flex">
+              <button class="btn btn-secondary btn-sm active" id="btnSchedAll" onclick="filterHarvestScheduleTable('all')">Semua Plot</button>
+              <button class="btn btn-secondary btn-sm" id="btnSchedReady" onclick="filterHarvestScheduleTable('ready')">🟢 Siap Panen (≤ 7 Hari)</button>
+              <button class="btn btn-secondary btn-sm" id="btnSchedGrowing" onclick="filterHarvestScheduleTable('growing')">🔵 Masa Tumbuh</button>
+              <button class="btn btn-secondary btn-sm" id="btnSchedOverdue" onclick="filterHarvestScheduleTable('overdue')">🔴 Lewat HST</button>
+            </div>
+          </div>
+
+          <!-- Schedule Table -->
+          <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+            <table class="division-table harvest-table">
+              <thead>
+                <tr>
+                  <th>Komoditas &amp; Lahan</th>
+                  <th>Lokasi Sektor</th>
+                  <th>PIC Pelapor</th>
+                  <th style="text-align: center;">Tgl Tanam</th>
+                  <th style="text-align: center;">Estimasi HST</th>
+                  <th style="text-align: center;">Prediksi Tanggal Panen</th>
+                  <th style="text-align: center;">Status / Sisa Waktu</th>
+                </tr>
+              </thead>
+              <tbody id="harvestScheduleTableBody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    Memuat jadwal panen aktif...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 4: SALES ANALYTICS & BUSINESS BREAKDOWNS
+        ========================================== -->
+        <div class="card card-no-margin" style="margin-bottom: 1.5rem;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
+            <div>
+              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <span>Analisis Penjualan &amp; Inisiatif Bisnis</span>
+              </h2>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Dinamika pendapatan operasional dan pemetaan penyerapan hasil panen untuk mendukung inisiatif komersial.</p>
+            </div>
+
+            <div class="button-group-flex">
+              <span class="period-badge" id="salesSummaryBadge">Total: Rp 0</span>
+            </div>
+          </div>
+
+          <!-- Dimensional Breakdown Selector Tabs -->
+          <div class="nav-tabs-clean">
+            <button class="nav-tab-btn active" id="tabSalesCommodity" onclick="switchSalesBreakdown('commodity')">📦 Berdasarkan Komoditas</button>
+            <button class="nav-tab-btn" id="tabSalesDivision" onclick="switchSalesBreakdown('division')">🏢 Berdasarkan Divisi</button>
+            <button class="nav-tab-btn" id="tabSalesDistribution" onclick="switchSalesBreakdown('distribution')">🚚 Berdasarkan Saluran Distribusi</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.25rem;" class="dashboard-sales-grid">
+            
+            <!-- Left: Sales Chart (Line over time OR Bar Breakdown) -->
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; background: var(--bg-surface);">
+              <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;" id="salesChartTitle">
+                Distribusi Pendapatan Penjualan (Rp)
+              </div>
+              <div class="chart-container" style="position: relative; height: 250px; max-height: 250px; width: 100%;">
+                <canvas id="salesBreakdownChart" height="250" style="max-height: 250px; height: 250px; width: 100%; display: block;"></canvas>
+              </div>
+            </div>
+
+            <!-- Right: Breakdown Table with Nominal Rp & Percentage -->
+            <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; background: var(--bg-surface); display: flex; flex-direction: column;">
+              <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                Rincian Nominal &amp; Pangsa
+              </div>
+              <div class="table-responsive" style="overflow-y: auto; max-height: 240px;">
+                <table class="division-table" style="font-size: 0.8125rem;">
+                  <thead>
+                    <tr>
+                      <th id="salesTableColHeader">Kategori</th>
+                      <th style="text-align: right;">Nilai (Rp)</th>
+                      <th style="text-align: right;">Pangsa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="salesBreakdownTableBody">
+                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Memuat data penjualan...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer Drilldown Banner to Admin Queue -->
         <div class="drilldown-banner">
           <div class="drilldown-banner-text">
             <h4>Butuh Rincian Laporan Lapangan Per Dokumen?</h4>
             <p>Buka Antrean Admin untuk memeriksa dokumen laporan individual, status peninjauan, foto bukti lapangan, dan audit trail.</p>
           </div>
-          <button class="btn" onclick="navigateToQueue('all')">
+          <button class="btn btn-primary btn-sm" onclick="navigateToQueue('all')">
             <span>Buka Antrean Admin &rarr;</span>
           </button>
         </div>
+
       </main>
     </div>
   </div>
 
+  <!-- ==========================================
+       MODAL: EMPLOYEE REPORTING LEADERBOARD
+  ========================================== -->
+  <div class="modal-backdrop-clean" id="employeeLeaderboardModal">
+    <div class="modal-dialog-clean">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+            Detail Pelaporan Karyawan
+          </h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">
+            Rincian frekuensi dan kontribusi pelaporan operasional setiap karyawan.
+          </p>
+        </div>
+        <button type="button" class="btn-sidebar-toggle" onclick="closeEmployeeLeaderboardModal()" style="font-size: 1.25rem; line-height: 1;">&times;</button>
+      </div>
+
+      <!-- Search & Division Filter Controls -->
+      <div style="padding: 0.75rem 1.5rem; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <input type="text" id="leaderboardSearchInput" class="form-input" placeholder="🔍 Cari nama atau ID karyawan..." style="flex: 2; min-width: 180px; height: 34px; font-size: 0.8125rem;" oninput="renderLeaderboardTable()">
+        <select id="leaderboardDivFilter" class="form-input" style="flex: 1; min-width: 140px; height: 34px; font-size: 0.8125rem;" onchange="renderLeaderboardTable()">
+          <option value="all">Semua Divisi</option>
+          <option value="Manajemen">Manajemen</option>
+          <option value="BKO 28">BKO 28</option>
+          <option value="Pekerja Harian">Pekerja Harian</option>
+          <option value="Alprof">Alprof</option>
+          <option value="SGA">SGA</option>
+        </select>
+      </div>
+
+      <!-- Table Body -->
+      <div style="padding: 0.75rem 1.5rem; overflow-y: auto; max-height: 55vh;">
+        <table class="division-table" style="font-size: 0.8125rem;">
+          <thead>
+            <tr>
+              <th style="width: 45px; text-align: center;">Rank</th>
+              <th>Nama Karyawan</th>
+              <th>ID Karyawan</th>
+              <th>Divisi</th>
+              <th style="text-align: center;">Total Laporan</th>
+              <th style="text-align: center;">Kontribusi</th>
+              <th style="text-align: right;">Terakhir Lapor</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTableBody">
+            <!-- Populated dynamically with standardized font weights -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 0.75rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+        <span style="font-size: 0.775rem; color: var(--text-muted);" id="leaderboardCountText">Menampilkan 0 karyawan</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeEmployeeLeaderboardModal()">Tutup</button>
+      </div>
+
+    </div>
+  </div>
+
   <?!= includeApp(webAppUrl); ?>
+
   <script>
-    let divisiComparisonChartInstance = null;
-    let weeklyTrendChartInstance = null;
-    let cachedStats = null;
-    let activeDivisiMetric = 'sales'; // 'sales' | 'activities'
-    let lastFetchedTimestamp = null;
+    // Global State
+    let activeAnalyticsData = null;
+    let currentPeriodCode = 'this_month';
+    let currentCropChartView = 'both'; // 'both' | 'tanam' | 'panen'
+    let currentSalesBreakdownKey = 'commodity'; // 'commodity' | 'division' | 'distribution'
+    let currentScheduleFilter = 'all'; // 'all' | 'ready' | 'growing' | 'overdue'
+
+    // Chart.js Instances
+    let commodityTrendChartInstance = null;
+    let salesBreakdownChartInstance = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       loadQuickLinks();
-      loadDiagnostics();
-
-      window.requestAnimationFrame(() => {
-        setTimeout(() => {
-          renderDashboard();
-        }, 50);
-      });
-
+      loadAnalyticsDashboardData();
       setInterval(updateFreshnessTag, 30000);
-    });
-
-    window.addEventListener('load', () => {
-      if (divisiComparisonChartInstance) divisiComparisonChartInstance.resize();
-      if (weeklyTrendChartInstance) weeklyTrendChartInstance.resize();
     });
 
     function toggleSidebar() {
@@ -349,890 +556,611 @@
       if (sidebar) sidebar.classList.toggle('sidebar-open');
     }
 
+    function formatRupiah(num) {
+      if (!num || isNaN(num)) return 'Rp 0';
+      return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+    }
+
+    function formatNumber(num) {
+      if (!num || isNaN(num)) return '0';
+      return Math.round(num).toLocaleString('id-ID');
+    }
+
+    let lastFetchedTime = null;
     function updateFreshnessTag() {
-      const tag = document.getElementById('dashLastUpdatedTag');
-      if (!tag || !lastFetchedTimestamp) return;
-      const elapsedSec = Math.floor((Date.now() - lastFetchedTimestamp) / 1000);
+      const textEl = document.getElementById('dashLastUpdatedText') || document.getElementById('dashLastUpdatedTag');
+      if (!textEl || !lastFetchedTime) return;
+      const elapsedSec = Math.floor((Date.now() - lastFetchedTime) / 1000);
       const elapsedMin = Math.floor(elapsedSec / 60);
-      if (elapsedMin < 1) tag.innerText = 'Diperbarui baru saja';
-      else tag.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
+      if (elapsedMin < 1) textEl.innerText = 'Diperbarui baru saja';
+      else textEl.innerText = `Diperbarui ${elapsedMin} mnt lalu`;
+    }
+
+    function setDashboardPeriod(periodCode, btnElement) {
+      currentPeriodCode = periodCode;
+      document.querySelectorAll('#dashPeriodControl .dash-seg-btn, #dashPeriodControl .segmented-item').forEach(el => el.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
+
+      const customBar = document.getElementById('dashCustomDateBar');
+      if (periodCode === 'custom') {
+        if (customBar) customBar.style.display = 'inline-flex';
+      } else {
+        if (customBar) customBar.style.display = 'none';
+        loadAnalyticsDashboardData(false);
+      }
     }
 
     function navigateToQueue(filter) {
       let baseUrl = (window.SERVER_WEB_APP_URL || '').trim();
-      if (!baseUrl && typeof document !== 'undefined' && document.referrer && document.referrer.includes('script.google.com')) {
-        baseUrl = document.referrer.split('?')[0];
-      }
       if (!baseUrl) {
-        try { baseUrl = (window.top || window).location.href.split('?')[0]; } catch(e) {}
+        try { baseUrl = window.location.href.split('?')[0]; } catch(e) {}
       }
-      if (!baseUrl) baseUrl = window.location.href.split('?')[0];
-
-      const targetUrl = `${baseUrl}?page=admin&filter=${filter || 'all'}`;
-      window.location.href = targetUrl;
+      window.location.href = `${baseUrl}?page=admin&filter=${filter || 'all'}`;
     }
 
-    function switchDivisiChartMetric(metric) {
-      activeDivisiMetric = metric;
-      const btnSales = document.getElementById('btnMetricSales');
-      const btnAct = document.getElementById('btnMetricActivities');
-      if (btnSales && btnAct) {
-        if (metric === 'sales') {
-          btnSales.classList.add('active');
-          btnAct.classList.remove('active');
-        } else {
-          btnAct.classList.add('active');
-          btnSales.classList.remove('active');
-        }
-      }
-      updateDivisiChart();
+    function scrollToHarvestSchedule() {
+      const sec = document.getElementById('harvestScheduleSection');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function renderDashboardSkeletons() {
-      const periodLabel = document.getElementById('dashPeriodLabel');
-      if (periodLabel) periodLabel.innerText = 'Memuat...';
-
-      const kpiDistinct = document.getElementById('kpiDistinctActivities');
-      if (kpiDistinct) kpiDistinct.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
-
-      const kpiRaw = document.getElementById('kpiRawReports');
-      if (kpiRaw) kpiRaw.innerHTML = '<span class="skeleton-box" style="width: 110px; height: 12px; vertical-align: middle;"></span>';
-
-      const kpiSales = document.getElementById('kpiTotalPenjualan');
-      if (kpiSales) kpiSales.innerHTML = '<span class="skeleton-box" style="width: 120px; height: 28px; vertical-align: middle;"></span>';
-
-      const priorMonthSub = document.getElementById('kpiPriorMonthSub');
-      if (priorMonthSub) priorMonthSub.innerHTML = '<span class="skeleton-box" style="width: 80px; height: 12px; vertical-align: middle;"></span>';
-
-      const panenAgro = document.getElementById('kpiPanenAgro');
-      if (panenAgro) panenAgro.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
-
-      const panenTernak = document.getElementById('kpiPanenTernak');
-      if (panenTernak) panenTernak.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
-
-      const panenIkan = document.getElementById('kpiPanenIkan');
-      if (panenIkan) panenIkan.innerHTML = '<span class="skeleton-box" style="width: 38px; height: 13px; vertical-align: middle;"></span>';
-
-      const kpiActive = document.getElementById('kpiActiveKegiatan');
-      if (kpiActive) kpiActive.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
-
-      const kpiObstacles = document.getElementById('kpiOpenObstacles');
-      if (kpiObstacles) kpiObstacles.innerHTML = '<span class="skeleton-box" style="width: 42px; height: 28px; vertical-align: middle;"></span>';
-
-      const kpiUnanswered = document.getElementById('kpiUnansweredSub');
-      if (kpiUnanswered) kpiUnanswered.innerHTML = '<span class="skeleton-box" style="width: 100px; height: 12px; vertical-align: middle;"></span>';
-
-      const divisiSkel = document.getElementById('divisiChartSkeleton');
-      if (divisiSkel) divisiSkel.style.display = 'flex';
-
-      const trendSkel = document.getElementById('weeklyTrendSkeleton');
-      if (trendSkel) trendSkel.style.display = 'flex';
-
-      const divisiBody = document.getElementById('divisiTableBody');
-      if (divisiBody) {
-        divisiBody.innerHTML = `
-          <tr>
-            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
-            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
-            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
-          </tr>
-          <tr>
-            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
-            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
-            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
-          </tr>
-          <tr>
-            <td><div class="skeleton-table-cell" style="width: 120px;"></div></td>
-            <td style="text-align: center;"><div class="skeleton-table-cell" style="width: 40px; margin: 0 auto;"></div></td>
-            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 60px; margin-left: auto;"></div></td>
-            <td style="text-align: right;"><div class="skeleton-table-cell" style="width: 80px; margin-left: auto;"></div></td>
-          </tr>
-        `;
+    // ==========================================
+    // DATA FETCHING & ORCHESTRATION
+    // ==========================================
+    async function loadAnalyticsDashboardData(isManual = false) {
+      if (isManual) {
+        const periodLabel = document.getElementById('dashPeriodLabel');
+        if (periodLabel) periodLabel.innerText = 'Memperbarui data...';
       }
 
-      const attContainer = document.getElementById('attentionListContainer');
-      if (attContainer) {
-        attContainer.innerHTML = `
-          <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
-            <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
-            <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
-            <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
-          </div>
-          <div class="attention-card skeleton-card" style="padding: 0.85rem 1rem;">
-            <div style="display: flex; justify-content: space-between;"><div class="skeleton-table-cell" style="width: 70px;"></div><div class="skeleton-table-cell" style="width: 50px;"></div></div>
-            <div class="skeleton-table-cell" style="width: 140px; height: 16px; margin: 0.35rem 0;"></div>
-            <div class="skeleton-table-cell" style="width: 90%; height: 12px;"></div>
-          </div>
-        `;
-      }
-    }
-
-    let currentDashPeriod = 'this_month';
-
-    function setDashboardPeriod(period, btnElement) {
-      currentDashPeriod = period;
-      document.querySelectorAll('#dashPeriodControl .segmented-item').forEach(el => el.classList.remove('active'));
-      if (btnElement) {
-        btnElement.classList.add('active');
-      } else {
-        const activeBtn = document.getElementById(`dashPeriodBtn-${period}`);
-        if (activeBtn) activeBtn.classList.add('active');
-      }
-
-      const customBar = document.getElementById('dashCustomDateBar');
-      if (period === 'custom') {
-        if (customBar) customBar.style.display = 'flex';
-      } else {
-        if (customBar) customBar.style.display = 'none';
-        renderDashboard(false);
-      }
-    }
-
-    async function renderDashboard(isManualRefresh = false) {
-      if (isManualRefresh) {
-        renderDashboardSkeletons();
-      }
-
-      let stats = null;
-
-      const options = {
-        period: currentDashPeriod,
-        startDate: document.getElementById('dashCustomStartDate') ? document.getElementById('dashCustomStartDate').value : '',
-        endDate: document.getElementById('dashCustomEndDate') ? document.getElementById('dashCustomEndDate').value : ''
+      const params = {
+        period: currentPeriodCode,
+        startDate: document.getElementById('dashCustomStartDate')?.value || '',
+        endDate: document.getElementById('dashCustomEndDate')?.value || '',
+        cropFilter: document.getElementById('cropSelectFilter')?.value || ''
       };
 
-      if (isLiveServer()) {
-        try {
-          stats = await runServer('getDashboardStats', options);
-        } catch (err) {
-          console.error('Server error fetching dashboard stats:', err);
-          showToast('Gagal memuat statistik dari server: ' + err.message, 'error');
-        }
-      }
-
-      // Fallback calculation for local preview mode
-      if (!stats) {
-        stats = computeLocalDashboardStats();
-      }
-
-      cachedStats = stats;
-      lastFetchedTimestamp = Date.now();
-      updateFreshnessTag();
-
-      // 1. Period Label
-      const periodLabelEl = document.getElementById('dashPeriodLabel');
-      if (periodLabelEl) {
-        periodLabelEl.innerText = stats.currentPeriodLabel || 'Bulan Berjalan';
-      }
-
-      // 2. KPI Cards
-      // 2.1 Total Aktivitas (Distinct) & Raw Reports
-      const kpiDistinctEl = document.getElementById('kpiDistinctActivities');
-      if (kpiDistinctEl) kpiDistinctEl.innerText = (stats.distinctActivityCount || 0).toLocaleString('id-ID');
-      const kpiRawEl = document.getElementById('kpiRawReports');
-      if (kpiRawEl) {
-        const total = (stats.totalReports || 0);
-        const verified = (stats.verifiedCount || 0);
-        kpiRawEl.innerText = `${total} Laporan (${verified} Terverifikasi)`;
-      }
-
-      // 2.2 Total Nilai Penjualan & Trend
-      const kpiSalesEl = document.getElementById('kpiTotalPenjualan');
-      if (kpiSalesEl) kpiSalesEl.innerText = 'Rp ' + (stats.totalNilaiPenjualanRp || 0).toLocaleString('id-ID');
-      
-      const salesTrendTag = document.getElementById('trendSales');
-      const salesTrendText = document.getElementById('kpiSalesTrendText');
-      const priorMonthSub = document.getElementById('kpiPriorMonthSub');
-      if (salesTrendTag && salesTrendText) {
-        if (stats.salesTrendPercent !== null && stats.salesTrendPercent !== undefined) {
-          const isPositive = stats.salesTrendPercent >= 0;
-          salesTrendTag.className = `metric-trend ${isPositive ? 'metric-trend-up' : 'metric-trend-down'}`;
-          salesTrendText.innerText = `${isPositive ? '+' : ''}${stats.salesTrendPercent}% vs bulan lalu`;
-          if (priorMonthSub) priorMonthSub.innerText = `Bulan lalu: Rp ${(stats.priorMonthNilaiPenjualanRp || 0).toLocaleString('id-ID')}`;
+      try {
+        let res = null;
+        if (isLiveServer()) {
+          res = await runServer('getAnalyticsDashboardData', params);
         } else {
-          salesTrendTag.className = 'metric-trend metric-trend-neutral';
-          salesTrendText.innerText = 'Bulan berjalan';
-          if (priorMonthSub) priorMonthSub.innerText = 'Periode kalender aktif';
-        }
-      }
-
-      // 2.3 Panen per Divisi (Agro Kg, Ternak Unit, Ikan Kg)
-      const divAgro = (stats.divisiBreakdown && stats.divisiBreakdown['Agro (Pertanian/Perkebunan)']) || { panenVolume: 0 };
-      const divTernak = (stats.divisiBreakdown && stats.divisiBreakdown['Ternak (Peternakan)']) || { panenVolume: 0 };
-      const divIkan = (stats.divisiBreakdown && stats.divisiBreakdown['Ikan (Perikanan)']) || { panenVolume: 0 };
-
-      const panenAgroEl = document.getElementById('kpiPanenAgro');
-      if (panenAgroEl) panenAgroEl.innerText = `${(divAgro.panenVolume || 0).toLocaleString('id-ID')} Kg`;
-      const panenTernakEl = document.getElementById('kpiPanenTernak');
-      if (panenTernakEl) panenTernakEl.innerText = `${(divTernak.panenVolume || 0).toLocaleString('id-ID')} Unit`;
-      const panenIkanEl = document.getElementById('kpiPanenIkan');
-      if (panenIkanEl) panenIkanEl.innerText = `${(divIkan.panenVolume || 0).toLocaleString('id-ID')} Kg`;
-
-      // 2.4 Kegiatan Menunggu Panen
-      const kpiActiveEl = document.getElementById('kpiActiveKegiatan');
-      if (kpiActiveEl) kpiActiveEl.innerText = (stats.totalActiveKegiatan || 0).toLocaleString('id-ID');
-
-      // 2.5 Kendala Lapangan Terbuka
-      const kpiObstaclesEl = document.getElementById('kpiOpenObstacles');
-      if (kpiObstaclesEl) kpiObstaclesEl.innerText = (stats.openObstaclesCount || 0).toLocaleString('id-ID');
-      const kpiUnansweredSubEl = document.getElementById('kpiUnansweredSub');
-      if (kpiUnansweredSubEl) {
-        const unanswered = stats.unansweredObstaclesCount || 0;
-        kpiUnansweredSubEl.innerText = `${unanswered} tanpa respon | ${stats.unverifiedCount || 0} belum verifikasi`;
-      }
-      const trendObstaclesEl = document.getElementById('trendObstacles');
-      const kpiObstaclesTrendText = document.getElementById('kpiObstaclesTrendText');
-      if (trendObstaclesEl && kpiObstaclesTrendText) {
-        const openObs = stats.openObstaclesCount || 0;
-        if (openObs > 0) {
-          trendObstaclesEl.className = 'metric-trend metric-trend-down';
-          kpiObstaclesTrendText.innerText = `${openObs} Kendala Terbuka`;
-        } else {
-          trendObstaclesEl.className = 'metric-trend metric-trend-up';
-          kpiObstaclesTrendText.innerText = 'Semua Kendala Terverifikasi';
-        }
-      }
-
-      // 3. Render Division Table & Charts
-      renderDivisionTable(stats);
-      updateDivisiChart();
-      updateWeeklyTrendChart();
-
-      // 4. Render Attention List
-      renderAttentionList(stats.attentionList || []);
-
-      // 5. Render Location Coverage Breakdown
-      if (stats.locationCoverage) {
-        const fractionEl = document.getElementById('dashCoverageFraction');
-        const headlineEl = document.getElementById('dashCoverageHeadline');
-        const containerEl = document.getElementById('dashMissingLocationsContainer');
-
-        if (fractionEl) fractionEl.innerText = stats.locationCoverage.fraction || '0 dari 0';
-        
-        const missing = stats.locationCoverage.missing || [];
-        if (headlineEl) {
-          if (missing.length === 0) {
-            headlineEl.innerHTML = '<span style="color: var(--primary);">✅ 100% Lokasi Aktif Melapor dalam Periode Ini</span>';
-          } else {
-            headlineEl.innerHTML = `<span style="color: var(--warning);">⚠️ ${missing.length} Lokasi Belum / Tidak Melapor dalam Periode Ini</span>`;
-          }
+          // Local development simulator
+          res = generateMockAnalyticsData(params);
         }
 
-        if (containerEl) {
-          if (missing.length === 0) {
-            containerEl.innerHTML = `
-              <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-app); padding: 0.6rem; border-radius: var(--radius-sm);">
-                Seluruh lokasi operasional telah mengirimkan laporan pada periode ini.
-              </div>
-            `;
-          } else {
-            containerEl.innerHTML = missing.map(m => `
-              <div style="font-size: 0.825rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                  <strong style="color: var(--text-primary);">${m.lokasi}</strong>
-                  <span style="color: var(--text-secondary); margin-left: 0.35rem;">(${m.divisi} — ${m.pic})</span>
-                </div>
-                <span class="badge badge-warning" style="font-size: 0.75rem;">Terakhir: ${m.lastDateStr} (${m.daysInactive} hari pasif)</span>
-              </div>
-            `).join('');
-          }
-        }
-      }
+        activeAnalyticsData = res;
+        lastFetchedTime = Date.now();
+        updateFreshnessTag();
 
-      if (isManualRefresh) {
-        showToast('Dashboard statistik berhasil diperbarui', 'info');
+        renderAllDashboardSections(res);
+      } catch (err) {
+        console.error('Failed to load analytics dashboard data:', err);
+        showToast('Gagal memuat analitik: ' + (err.message || err.toString()), 'error');
       }
     }
 
-    function renderDivisionTable(stats) {
-      const tbody = document.getElementById('divisiTableBody');
+    function renderAllDashboardSections(data) {
+      if (!data) return;
+
+      // 1. Period Badge
+      const periodLabel = document.getElementById('dashPeriodLabel');
+      if (periodLabel) periodLabel.innerText = data.period.label || 'Periode Terpilih';
+
+      // 2. Executive KPIs
+      document.getElementById('kpiTotalReports').innerText = formatNumber(data.kpis.totalReports);
+      document.getElementById('kpiTotalSales').innerText = formatRupiah(data.kpis.totalSalesRp);
+      document.getElementById('kpiTotalPanen').innerText = formatNumber(data.kpis.totalPanenKg);
+      document.getElementById('kpiActivePlantings').innerText = formatNumber(data.kpis.activePlantingsCount);
+      document.getElementById('badgeReadyCount').innerText = `${data.kpis.readyHarvestsCount} Siap Panen`;
+      
+      const overdueSub = document.getElementById('kpiOverdueSub');
+      if (overdueSub) {
+        if (data.kpis.overdueHarvestsCount > 0) {
+          overdueSub.innerHTML = `<span style="color: #b91c1c; font-weight: 600;">⚠️ ${data.kpis.overdueHarvestsCount} plot lewat HST</span>`;
+        } else {
+          overdueSub.innerText = 'Semua jadwal panen tepat waktu';
+        }
+      }
+
+      // 3. Commodity Dropdown & Analysis (Requirement 2)
+      renderCommoditySection(data.commodityAnalysis);
+
+      // 4. Smart Harvest Schedule via HST (Requirement 3)
+      renderHarvestScheduleTable(data.harvestSchedule.activeList);
+
+      // 5. Sales Analytics & Commercial Breakdowns (Requirement 4)
+      renderSalesSection(data.salesAnalytics);
+    }
+
+    // ==========================================
+    // SECTION 2: COMMODITY ANALYTICS LOGIC
+    // ==========================================
+    function renderCommoditySection(comData) {
+      if (!comData) return;
+
+      // Populate crop dropdown selector if changed
+      const sel = document.getElementById('cropSelectFilter');
+      if (sel) {
+        const crops = comData.cropList || [];
+        const currentSelVal = sel.value;
+        let opts = '';
+        crops.forEach(c => {
+          opts += `<option value="${escapeHtml(c)}" ${c === (comData.selectedCrop || currentSelVal) ? 'selected' : ''}>🌱 ${escapeHtml(c)}</option>`;
+        });
+        sel.innerHTML = opts;
+      }
+
+      const chartTitle = document.getElementById('commodityChartTitle');
+      if (chartTitle) chartTitle.innerText = `Tren Komoditas: ${comData.selectedCrop || 'Tanaman'}`;
+
+      // Render Chart
+      renderCommodityChart(comData.tanamTrend, comData.panenTrend);
+
+      // Render Participation List (Pure clean crops)
+      const partContainer = document.getElementById('cropParticipationList');
+      if (partContainer) {
+        const parts = comData.participation || [];
+        if (parts.length === 0) {
+          partContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem;">Belum ada data partisipasi staf.</div>';
+        } else {
+          partContainer.innerHTML = parts.map(p => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+              <span style="font-weight: 500; font-size: 0.8125rem; color: #1e293b;">${escapeHtml(p.label)}</span>
+              <span class="badge badge-normal" style="font-size: 0.75rem; font-weight: 600;">${p.value} Staf</span>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    function handleCropChange(cropName) {
+      loadAnalyticsDashboardData(false);
+    }
+
+    function switchCropChartView(viewType) {
+      currentCropChartView = viewType;
+      ['btnViewBoth', 'btnViewTanam', 'btnViewPanen'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      if (viewType === 'both') document.getElementById('btnViewBoth')?.classList.add('active');
+      if (viewType === 'tanam') document.getElementById('btnViewTanam')?.classList.add('active');
+      if (viewType === 'panen') document.getElementById('btnViewPanen')?.classList.add('active');
+
+      if (activeAnalyticsData && activeAnalyticsData.commodityAnalysis) {
+        renderCommodityChart(activeAnalyticsData.commodityAnalysis.tanamTrend, activeAnalyticsData.commodityAnalysis.panenTrend);
+      }
+    }
+
+    function renderCommodityChart(tanamTrend, panenTrend) {
+      const ctx = document.getElementById('commodityTrendChart');
+      if (!ctx) return;
+
+      if (commodityTrendChartInstance) {
+        commodityTrendChartInstance.destroy();
+      }
+
+      // Merge labels from tanam and panen trends
+      const labelSet = new Set([...(tanamTrend?.labels || []), ...(panenTrend?.labels || [])]);
+      const labels = Array.from(labelSet).sort();
+
+      const tanamMap = {};
+      (tanamTrend?.labels || []).forEach((l, i) => { tanamMap[l] = tanamTrend.values[i]; });
+
+      const panenMap = {};
+      (panenTrend?.labels || []).forEach((l, i) => { panenMap[l] = panenTrend.values[i]; });
+
+      const datasets = [];
+
+      if (currentCropChartView === 'both' || currentCropChartView === 'tanam') {
+        datasets.push({
+          label: 'Populasi Benih Ditanam',
+          data: labels.map(l => tanamMap[l] || 0),
+          borderColor: '#15803D',
+          backgroundColor: 'rgba(21, 128, 61, 0.12)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+          yAxisID: 'y'
+        });
+      }
+
+      if (currentCropChartView === 'both' || currentCropChartView === 'panen') {
+        datasets.push({
+          label: 'Hasil Panen (Kg)',
+          data: labels.map(l => panenMap[l] || 0),
+          borderColor: '#D97706',
+          backgroundColor: 'rgba(217, 119, 6, 0.12)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+          yAxisID: currentCropChartView === 'both' ? 'y1' : 'y'
+        });
+      }
+
+      const scalesConfig = {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          beginAtZero: true,
+          ticks: { font: { size: 11 } },
+          title: { display: true, text: currentCropChartView === 'panen' ? 'Kg' : 'Jumlah Benih', font: { size: 11, weight: 'bold' } }
+        }
+      };
+
+      if (currentCropChartView === 'both') {
+        scalesConfig.y1 = {
+          beginAtZero: true,
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 } },
+          title: { display: true, text: 'Hasil Panen (Kg)', font: { size: 11, weight: 'bold' } }
+        };
+      }
+
+      commodityTrendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: labels.length ? labels : ['Tidak Ada Data'], datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+          scales: scalesConfig
+        }
+      });
+    }
+
+    // ==========================================
+    // SECTION 3: SMART HARVEST SCHEDULE VIA HST
+    // ==========================================
+    function renderHarvestScheduleTable(scheduleList) {
+      const tbody = document.getElementById('harvestScheduleTableBody');
       if (!tbody) return;
 
-      const breakdown = stats.divisiBreakdown || {};
-      const agro = breakdown['Agro (Pertanian/Perkebunan)'] || { activityCount: 0, panenVolume: 0, nilaiPenjualanRp: 0 };
-      const ternak = breakdown['Ternak (Peternakan)'] || { activityCount: 0, panenVolume: 0, nilaiPenjualanRp: 0 };
-      const ikan = breakdown['Ikan (Perikanan)'] || { activityCount: 0, panenVolume: 0, nilaiPenjualanRp: 0 };
-
-      const totalActivities = (agro.activityCount || 0) + (ternak.activityCount || 0) + (ikan.activityCount || 0);
-      const totalSales = (agro.nilaiPenjualanRp || 0) + (ternak.nilaiPenjualanRp || 0) + (ikan.nilaiPenjualanRp || 0);
-
-      tbody.innerHTML = `
-        <tr>
-          <td>
-            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
-              <strong style="color: #15803D;">Agro</strong>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">(Pertanian)</span>
-            </div>
-          </td>
-          <td style="text-align: center; font-weight: 600;">${agro.activityCount || 0}</td>
-          <td style="text-align: right; font-weight: 600;">${(agro.panenVolume || 0).toLocaleString('id-ID')} Kg</td>
-          <td style="text-align: right; font-weight: 600;">Rp ${(agro.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
-        </tr>
-        <tr>
-          <td>
-            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M4 5l3 3h10l3-3M7 8v7a5 5 0 0 0 10 0V8M9 13h.01M15 13h.01M10 17h4"/></svg>
-              <strong style="color: #D97706;">Ternak</strong>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">(Peternakan)</span>
-            </div>
-          </td>
-          <td style="text-align: center; font-weight: 600;">${ternak.activityCount || 0}</td>
-          <td style="text-align: right; font-weight: 600;">${(ternak.panenVolume || 0).toLocaleString('id-ID')} Unit</td>
-          <td style="text-align: right; font-weight: 600;">Rp ${(ternak.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
-        </tr>
-        <tr>
-          <td>
-            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
-              <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M2 16s4-8 13-8c3 0 7 4 7 4s-4 4-7 4c-9 0-13-8-13-8z"/><circle cx="16" cy="12" r="1" fill="#2563EB"/><path d="M2 12l-1-3 3 3-3 3 1-3z"/></svg>
-              <strong style="color: #2563EB;">Ikan</strong>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">(Perikanan)</span>
-            </div>
-          </td>
-          <td style="text-align: center; font-weight: 600;">${ikan.activityCount || 0}</td>
-          <td style="text-align: right; font-weight: 600;">${(ikan.panenVolume || 0).toLocaleString('id-ID')} Kg</td>
-          <td style="text-align: right; font-weight: 600;">Rp ${(ikan.nilaiPenjualanRp || 0).toLocaleString('id-ID')}</td>
-        </tr>
-        <tr style="background: var(--bg-app); font-weight: 700; border-top: 2px solid var(--border-color);">
-          <td>Total Rekapitulasi</td>
-          <td style="text-align: center;">${totalActivities}</td>
-          <td style="text-align: right; font-size: 0.75rem; color: var(--text-muted);">Tergantung Satuan</td>
-          <td style="text-align: right; color: var(--primary);">Rp ${totalSales.toLocaleString('id-ID')}</td>
-        </tr>
-      `;
-    }
-
-    function renderAttentionList(items) {
-      const container = document.getElementById('attentionListContainer');
-      const badge = document.getElementById('attentionCountBadge');
-      if (!container) return;
-
-      if (badge) {
-        badge.innerText = `${items.length} Item`;
-        badge.className = items.length > 0 ? (items.some(i => i.severity === 'urgent') ? 'badge badge-urgent' : 'badge badge-warning') : 'badge badge-normal';
+      let filtered = scheduleList || [];
+      if (currentScheduleFilter === 'ready') {
+        filtered = filtered.filter(s => s.status === 'ready');
+      } else if (currentScheduleFilter === 'growing') {
+        filtered = filtered.filter(s => s.status === 'growing');
+      } else if (currentScheduleFilter === 'overdue') {
+        filtered = filtered.filter(s => s.status === 'overdue');
       }
 
-      if (!items || items.length === 0) {
-        container.innerHTML = `
-          <div class="attention-empty">
-            <svg class="svg-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2" style="margin-bottom: 0.5rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <p style="margin: 0; font-size: 0.875rem; font-weight: 600; color: #15803D;">Kondisi Operasional Lancar</p>
-            <span style="font-size: 0.775rem; color: var(--text-muted);">Tidak ada panen terlambat, kendala tanpa respon, atau lokasi pasif.</span>
-          </div>
-        `;
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada jadwal penanaman aktif pada kategori filter ini.</td></tr>';
         return;
       }
 
-      let html = '';
-      items.forEach(item => {
-        const isUrgent = item.severity === 'urgent';
-        const cardClass = isUrgent ? 'attention-card attention-urgent' : 'attention-card attention-warning';
-        const badgeClass = isUrgent ? 'badge badge-urgent' : 'badge badge-warning';
-        const badgeText = item.badgeLabel || (isUrgent ? 'Kendala' : 'Perhatian');
-
-        let iconSvg = '';
-        if (item.type === 'overdue_harvest') {
-          iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-        } else if (item.type === 'open_obstacle') {
-          iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86l-8.18 14A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      tbody.innerHTML = filtered.map(item => {
+        let statusBadge = '';
+        if (item.status === 'overdue') {
+          statusBadge = `<span class="badge badge-overdue">🔴 Lewat HST (${Math.abs(item.daysRemaining)} hr)</span>`;
+        } else if (item.status === 'ready') {
+          statusBadge = `<span class="badge badge-ready">🟢 Siap Panen (H${item.daysRemaining === 0 ? '-0 Hari Ini' : '-' + item.daysRemaining})</span>`;
         } else {
-          iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+          statusBadge = `<span class="badge badge-growing">${item.daysRemaining} hari lagi</span>`;
         }
 
-        html += `
-          <div class="${cardClass}">
-            <div class="attention-header">
-              <span class="${badgeClass}" style="display: inline-flex; align-items: center; gap: 4px;">
-                ${iconSvg}
-                <span>${badgeText}</span>
-              </span>
-              <span style="font-size: 0.725rem; color: var(--text-muted);">${item.timestamp || '-'}</span>
-            </div>
-            <div class="attention-title">${item.title || item.kodeKegiatan || 'Item Perhatian'}</div>
-            <div class="attention-details">${item.details || '-'}</div>
-            <div class="attention-meta">
-              <span class="attention-meta-item">
-                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <span>${item.lokasi || '-'}</span>
-              </span>
-              <span>&bull;</span>
-              <span class="attention-meta-item">
-                <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span>${item.pic || '-'}</span>
-              </span>
-              <span>&bull;</span>
-              <span class="badge badge-neutral" style="font-size: 0.7rem; padding: 1px 6px;">${item.divisi || '-'}</span>
-            </div>
-          </div>
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 600; color: #1e293b;">${escapeHtml(item.komoditas)}</div>
+              <div style="font-size: 0.75rem; color: #64748b;">${formatNumber(item.jumlahBenih)} benih &bull; ${formatNumber(item.luasLahanM2)} m²</div>
+            </td>
+            <td>
+              <span class="badge badge-neutral">${escapeHtml(item.lokasiKegiatan || '-')}</span>
+              ${item.lokasiBlok ? `<div style="font-size: 0.725rem; color: #475569; font-weight: 600; margin-top: 3px;">📍 ${escapeHtml(item.lokasiBlok)}</div>` : ''}
+            </td>
+            <td>
+              <div style="font-weight: 500;">${escapeHtml(item.namaPic || item.idKaryawan || '-')}</div>
+              <div style="font-size: 0.725rem; color: #64748b;">ID: ${escapeHtml(item.idKaryawan || '-')}</div>
+            </td>
+            <td style="text-align: center; font-family: monospace; font-size: 0.8rem;">${escapeHtml(item.tglTanam || '-')}</td>
+            <td style="text-align: center;"><span style="font-weight: 600; color: #475569;">${item.estimasiPanenHst} HST</span></td>
+            <td style="text-align: center; font-weight: 600; color: #0f172a; font-family: monospace; font-size: 0.8125rem;">
+              ${escapeHtml(item.tglEstimasiPanen || '-')}
+            </td>
+            <td style="text-align: center;">${statusBadge}</td>
+          </tr>
         `;
-      });
-
-      container.innerHTML = html;
+      }).join('');
     }
 
-    function updateDivisiChart() {
-      if (typeof Chart === 'undefined' || !cachedStats) return;
-      const ctx = document.getElementById('divisiComparisonChart');
+    function filterHarvestScheduleTable(filterKey) {
+      currentScheduleFilter = filterKey;
+      ['btnSchedAll', 'btnSchedReady', 'btnSchedGrowing', 'btnSchedOverdue'].forEach(id => {
+        document.getElementById(id)?.classList.remove('active');
+      });
+      if (filterKey === 'all') document.getElementById('btnSchedAll')?.classList.add('active');
+      if (filterKey === 'ready') document.getElementById('btnSchedReady')?.classList.add('active');
+      if (filterKey === 'growing') document.getElementById('btnSchedGrowing')?.classList.add('active');
+      if (filterKey === 'overdue') document.getElementById('btnSchedOverdue')?.classList.add('active');
+
+      if (activeAnalyticsData && activeAnalyticsData.harvestSchedule) {
+        renderHarvestScheduleTable(activeAnalyticsData.harvestSchedule.activeList);
+      }
+    }
+
+    // ==========================================
+    // SECTION 4: SALES ANALYTICS & BREAKDOWNS
+    // ==========================================
+    function renderSalesSection(salesData) {
+      if (!salesData) return;
+
+      const badge = document.getElementById('salesSummaryBadge');
+      if (badge) badge.innerText = `Total: ${formatRupiah(salesData.grandTotalRp)} (${formatNumber(salesData.salesCount)} Transaksi)`;
+
+      let breakdownList = [];
+      let colTitle = 'Kategori';
+      let chartLabel = 'Penjualan (Rp)';
+
+      if (currentSalesBreakdownKey === 'commodity') {
+        breakdownList = salesData.byCommodity || [];
+        colTitle = 'Komoditas Panen';
+        chartLabel = 'Pendapatan per Komoditas (Rp)';
+      } else if (currentSalesBreakdownKey === 'division') {
+        breakdownList = salesData.byDivision || [];
+        colTitle = 'Bidang / Divisi';
+        chartLabel = 'Pendapatan per Divisi (Rp)';
+      } else if (currentSalesBreakdownKey === 'distribution') {
+        breakdownList = salesData.byDistribution || [];
+        colTitle = 'Tujuan Distribusi';
+        chartLabel = 'Pendapatan per Saluran (Rp)';
+      }
+
+      const colHead = document.getElementById('salesTableColHeader');
+      if (colHead) colHead.innerText = colTitle;
+
+      const chartTitle = document.getElementById('salesChartTitle');
+      if (chartTitle) chartTitle.innerText = chartLabel;
+
+      // Render Sales Breakdown Table
+      const tbody = document.getElementById('salesBreakdownTableBody');
+      if (tbody) {
+        if (breakdownList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Belum ada data penjualan pada kategori ini.</td></tr>';
+        } else {
+          tbody.innerHTML = breakdownList.map(item => `
+            <tr>
+              <td style="font-weight: 500; color: #1e293b;">${escapeHtml(item.label)}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace;">${formatRupiah(item.value)}</td>
+              <td style="text-align: right;"><span class="badge badge-normal">${item.percentage}%</span></td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // Render Sales Chart (Bar Breakdown)
+      renderSalesChart(breakdownList);
+    }
+
+    function switchSalesBreakdown(key) {
+      currentSalesBreakdownKey = key;
+      ['tabSalesCommodity', 'tabSalesDivision', 'tabSalesDistribution'].forEach(id => {
+        document.getElementById(id)?.classList.remove('active');
+      });
+      if (key === 'commodity') document.getElementById('tabSalesCommodity')?.classList.add('active');
+      if (key === 'division') document.getElementById('tabSalesDivision')?.classList.add('active');
+      if (key === 'distribution') document.getElementById('tabSalesDistribution')?.classList.add('active');
+
+      if (activeAnalyticsData && activeAnalyticsData.salesAnalytics) {
+        renderSalesSection(activeAnalyticsData.salesAnalytics);
+      }
+    }
+
+    function renderSalesChart(breakdownList) {
+      const ctx = document.getElementById('salesBreakdownChart');
       if (!ctx) return;
 
-      const breakdown = cachedStats.divisiBreakdown || {};
-      const agro = breakdown['Agro (Pertanian/Perkebunan)'] || { activityCount: 0, nilaiPenjualanRp: 0 };
-      const ternak = breakdown['Ternak (Peternakan)'] || { activityCount: 0, nilaiPenjualanRp: 0 };
-      const ikan = breakdown['Ikan (Perikanan)'] || { activityCount: 0, nilaiPenjualanRp: 0 };
+      if (salesBreakdownChartInstance) {
+        salesBreakdownChartInstance.destroy();
+      }
 
-      const isSales = (activeDivisiMetric === 'sales');
-      const chartData = isSales 
-        ? [agro.nilaiPenjualanRp || 0, ternak.nilaiPenjualanRp || 0, ikan.nilaiPenjualanRp || 0]
-        : [agro.activityCount || 0, ternak.activityCount || 0, ikan.activityCount || 0];
+      const labels = (breakdownList || []).map(b => b.label);
+      const values = (breakdownList || []).map(b => b.value);
 
-      const chartLabel = isSales ? 'Nilai Penjualan (Rp)' : 'Jumlah Aktivitas';
+      const backgroundColors = [
+        '#2563eb', '#15803d', '#d97706', '#7c3aed',
+        '#0891b2', '#e11d48', '#4b5563', '#059669'
+      ];
 
-      try {
-        const skel = document.getElementById('divisiChartSkeleton');
-        if (skel) skel.style.display = 'none';
-
-        if (divisiComparisonChartInstance) divisiComparisonChartInstance.destroy();
-        divisiComparisonChartInstance = new Chart(ctx.getContext('2d'), {
-          type: 'bar',
-          data: {
-            labels: ['Agro (Pertanian)', 'Ternak (Peternakan)', 'Ikan (Perikanan)'],
-            datasets: [{
-              label: chartLabel,
-              data: chartData,
-              backgroundColor: ['#16a34a', '#d97706', '#2563eb'],
-              borderRadius: 6,
-              maxBarThickness: 48
-            }]
+      salesBreakdownChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels.length ? labels : ['Tidak Ada Data'],
+          datasets: [{
+            label: 'Total Penjualan (Rp)',
+            data: values.length ? values : [0],
+            backgroundColor: backgroundColors.slice(0, Math.max(1, labels.length)),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ' Total: ' + formatRupiah(context.raw);
+                }
+              }
+            }
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: function(val) {
-                    if (isSales) {
-                      if (val >= 1000000) return (val / 1000000) + ' Jt';
-                      if (val >= 1000) return (val / 1000) + ' Rb';
-                      return val;
-                    }
-                    return val;
-                  }
-                }
-              }
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: function(ctx) {
-                    const raw = ctx.raw || 0;
-                    return isSales ? `Rp ${raw.toLocaleString('id-ID')}` : `${raw} Aktivitas`;
-                  }
+          scales: {
+            x: { ticks: { font: { size: 11 } } },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: { size: 11 },
+                callback: function(val) {
+                  if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'M';
+                  if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'k';
+                  return 'Rp ' + val;
                 }
               }
             }
           }
-        });
-      } catch (e) {
-        console.error('Error rendering division comparison chart:', e);
+        }
+      });
+    }
+
+    // ==========================================
+    // EMPLOYEE LEADERBOARD MODAL (REQUIREMENT 1)
+    // ==========================================
+    function openEmployeeLeaderboardModal() {
+      const modal = document.getElementById('employeeLeaderboardModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        renderLeaderboardTable();
       }
     }
 
-    function updateWeeklyTrendChart() {
-      if (typeof Chart === 'undefined' || !cachedStats) return;
-      const ctx = document.getElementById('weeklyTrendChart');
-      if (!ctx) return;
-
-      const weeklyTrend = cachedStats.weeklyTrend || [
-        { weekLabel: 'M1 (1-7)', agroSales: 0, ternakSales: 0, ikanSales: 0 },
-        { weekLabel: 'M2 (8-14)', agroSales: 0, ternakSales: 0, ikanSales: 0 },
-        { weekLabel: 'M3 (15-21)', agroSales: 0, ternakSales: 0, ikanSales: 0 },
-        { weekLabel: 'M4 (22-31)', agroSales: 0, ternakSales: 0, ikanSales: 0 }
-      ];
-
-      const labels = weeklyTrend.map(w => w.weekLabel);
-      const agroData = weeklyTrend.map(w => w.agroSales || 0);
-      const ternakData = weeklyTrend.map(w => w.ternakSales || 0);
-      const ikanData = weeklyTrend.map(w => w.ikanSales || 0);
-
-      try {
-        const skel = document.getElementById('weeklyTrendSkeleton');
-        if (skel) skel.style.display = 'none';
-
-        if (weeklyTrendChartInstance) weeklyTrendChartInstance.destroy();
-        weeklyTrendChartInstance = new Chart(ctx.getContext('2d'), {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: 'Agro (Pertanian)',
-                data: agroData,
-                borderColor: '#16a34a',
-                backgroundColor: 'rgba(22, 163, 74, 0.1)',
-                fill: false,
-                tension: 0.3,
-                borderWidth: 2.5,
-                pointRadius: 4,
-                pointBackgroundColor: '#16a34a'
-              },
-              {
-                label: 'Ternak (Peternakan)',
-                data: ternakData,
-                borderColor: '#d97706',
-                backgroundColor: 'rgba(217, 119, 6, 0.1)',
-                fill: false,
-                tension: 0.3,
-                borderWidth: 2.5,
-                pointRadius: 4,
-                pointBackgroundColor: '#d97706'
-              },
-              {
-                label: 'Ikan (Perikanan)',
-                data: ikanData,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                fill: false,
-                tension: 0.3,
-                borderWidth: 2.5,
-                pointRadius: 4,
-                pointBackgroundColor: '#2563eb'
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: function(val) {
-                    if (val >= 1000000) return 'Rp ' + (val / 1000000) + ' Jt';
-                    if (val >= 1000) return 'Rp ' + (val / 1000) + ' Rb';
-                    return 'Rp ' + val;
-                  }
-                }
-              }
-            },
-            plugins: {
-              legend: {
-                position: 'top',
-                labels: { boxWidth: 12, usePointStyle: true }
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(ctx) {
-                    const raw = ctx.raw || 0;
-                    return `${ctx.dataset.label}: Rp ${raw.toLocaleString('id-ID')}`;
-                  }
-                }
-              }
-            }
-          }
-        });
-      } catch (e) {
-        console.error('Error rendering weekly trend chart:', e);
-      }
+    function closeEmployeeLeaderboardModal() {
+      const modal = document.getElementById('employeeLeaderboardModal');
+      if (modal) modal.style.display = 'none';
     }
 
-    function computeLocalDashboardStats() {
-      const db = getDB();
-      const reports = db.operationalReports || [];
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
+    function renderLeaderboardTable() {
+      const tbody = document.getElementById('leaderboardTableBody');
+      const countTag = document.getElementById('leaderboardCountText');
+      if (!tbody || !activeAnalyticsData) return;
 
-      const INDO_MONTHS = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-      ];
-      const currentPeriodLabel = `${INDO_MONTHS[currentMonth]} ${currentYear}`;
+      const rawList = activeAnalyticsData.employeeLeaderboard || [];
+      const searchQ = (document.getElementById('leaderboardSearchInput')?.value || '').toLowerCase().trim();
+      const divFilter = document.getElementById('leaderboardDivFilter')?.value || 'all';
 
-      const curMonthStart = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
-      const curMonthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
-      const priorMonthStart = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0, 0);
-      const priorMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
-
-      const DIV_KEYS = {
-        MANAJEMEN: 'Manajemen',
-        BKO: 'BKO 28',
-        PEKERJA_HARIAN: 'Pekerja Harian',
-        ALPROF: 'Alprof',
-        SGA: 'SGA',
-        AGRO: 'Agro (Pertanian/Perkebunan)',
-        TERNAK: 'Ternak (Peternakan)',
-        IKAN: 'Ikan (Perikanan)'
-      };
-
-      function normDiv(d) {
-        const s = String(d || '').toLowerCase();
-        if (s.includes('manajemen') || s === 'mnj') return DIV_KEYS.MANAJEMEN;
-        if (s.includes('bko')) return DIV_KEYS.BKO;
-        if (s.includes('pekerja') || s.includes('harian') || s === 'pkh') return DIV_KEYS.PEKERJA_HARIAN;
-        if (s.includes('alprof') || s === 'alp') return DIV_KEYS.ALPROF;
-        if (s.includes('sga')) return DIV_KEYS.SGA;
-        if (s.includes('agro') || s.includes('tani') || s.includes('kebun') || s.includes('pertanian')) return DIV_KEYS.AGRO;
-        if (s.includes('ternak') || s.includes('kandang') || s.includes('peternakan')) return DIV_KEYS.TERNAK;
-        if (s.includes('ikan') || s.includes('kolam') || s.includes('perikanan')) return DIV_KEYS.IKAN;
-        return d || DIV_KEYS.ALPROF;
-      }
-
-      let totalReports = 0;
-      let totalActiveKegiatan = 0;
-      let totalNilaiPenjualanRp = 0;
-      let priorMonthNilaiPenjualanRp = 0;
-      let urgentOverdueCount = 0;
-      let warningOverdueCount = 0;
-      let openObstaclesCount = 0;
-      let unansweredObstaclesCount = 0;
-
-      const divisiBreakdown = {
-        [DIV_KEYS.ALPROF]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
-        [DIV_KEYS.SGA]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
-        [DIV_KEYS.PEKERJA_HARIAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
-        [DIV_KEYS.BKO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
-        [DIV_KEYS.MANAJEMEN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
-        [DIV_KEYS.AGRO]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' },
-        [DIV_KEYS.TERNAK]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Ekor / Unit' },
-        [DIV_KEYS.IKAN]: { activityCount: 0, rawReportCount: 0, panenVolume: 0, nilaiPenjualanRp: 0, unit: 'Kg' }
-      };
-
-      const attentionList = [];
-      const coverageMap = new Map();
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-      const monthShort = INDO_MONTHS[currentMonth].substring(0, 3);
-      const weeklyTrend = [
-        { weekLabel: `M1 (1-7 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
-        { weekLabel: `M2 (8-14 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
-        { weekLabel: `M3 (15-21 ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 },
-        { weekLabel: `M4 (22-${daysInMonth} ${monthShort})`, agroSales: 0, ternakSales: 0, ikanSales: 0, agroPanen: 0, ternakPanen: 0, ikanPanen: 0, totalSales: 0 }
-      ];
-
-      const allCodes = new Set();
-      const parentMap = new Map();
-      const curMonthReports = [];
-
-      reports.forEach(r => {
-        const rowDate = r.timestamp ? new Date(r.timestamp) : new Date();
-        const sales = parseFloat(r.nilaiPenjualanRp) || 0;
-        const panen = parseFloat(r.jumlahPanen || r.yield) || 0;
-        const nd = normDiv(r.divisi || r.bidangDivisi);
-
-        if (rowDate >= priorMonthStart && rowDate <= priorMonthEnd) {
-          priorMonthNilaiPenjualanRp += sales;
+      const filtered = rawList.filter(emp => {
+        if (divFilter !== 'all' && (emp.bidangDivisi || '').toLowerCase() !== divFilter.toLowerCase()) {
+          return false;
         }
-
-        if (rowDate >= curMonthStart && rowDate <= curMonthEnd) {
-          const code = String(r.kodeKegiatan || '').trim();
-          if (code) allCodes.add(code);
-          curMonthReports.push({ ...r, parsedDate: rowDate, normDiv: nd, sales: sales, panen: panen });
+        if (searchQ) {
+          const matchName = (emp.namaPic || '').toLowerCase().includes(searchQ);
+          const matchId = (emp.idKaryawan || '').toLowerCase().includes(searchQ);
+          if (!matchName && !matchId) return false;
         }
+        return true;
       });
 
-      allCodes.forEach(c => parentMap.set(c, c));
-      curMonthReports.forEach(r => {
-        const code = String(r.kodeKegiatan || '').trim();
-        const ref = String(r.kodeKegiatanRef || '').trim();
-        if (code && ref && allCodes.has(ref)) {
-          parentMap.set(code, ref);
-        }
-      });
+      if (countTag) countTag.innerText = `Menampilkan ${filtered.length} dari ${rawList.length} karyawan terdaftar`;
 
-      function getRoot(c) {
-        let curr = c;
-        const v = new Set();
-        while (parentMap.has(curr) && parentMap.get(curr) !== curr && !v.has(curr)) {
-          v.add(curr);
-          curr = parentMap.get(curr);
-        }
-        return curr;
-      }
-
-      const distinctSet = new Set();
-      const divActSet = {
-        [DIV_KEYS.ALPROF]: new Set(),
-        [DIV_KEYS.SGA]: new Set(),
-        [DIV_KEYS.PEKERJA_HARIAN]: new Set(),
-        [DIV_KEYS.BKO]: new Set(),
-        [DIV_KEYS.MANAJEMEN]: new Set(),
-        [DIV_KEYS.AGRO]: new Set(),
-        [DIV_KEYS.TERNAK]: new Set(),
-        [DIV_KEYS.IKAN]: new Set()
-      };
-
-      let verifiedCount = 0;
-      let unverifiedCount = 0;
-
-      curMonthReports.forEach(r => {
-        totalReports++;
-        const isVerified = (String(r.reviewStatus || '').toLowerCase() === 'terverifikasi' || String(r.reviewStatus || '').toLowerCase() === 'closed' || String(r.reviewStatus || '').toLowerCase() === 'verified');
-        if (isVerified) verifiedCount++;
-        else unverifiedCount++;
-
-        const code = String(r.kodeKegiatan || '').trim();
-        const root = code ? getRoot(code) : `_anon_${r.id || Math.random()}`;
-        distinctSet.add(root);
-        if (divActSet[r.normDiv]) divActSet[r.normDiv].add(root);
-
-        const dObj = divisiBreakdown[r.normDiv] || divisiBreakdown[DIV_KEYS.AGRO];
-        dObj.rawReportCount++;
-        dObj.panenVolume += r.panen;
-        dObj.nilaiPenjualanRp += r.sales;
-        totalNilaiPenjualanRp += r.sales;
-
-        if (r.panen === 0 && (!r.tglPanen || String(r.tglPanen).trim() === '')) {
-          totalActiveKegiatan++;
-        }
-
-        // Overdue Harvest
-        if (!r.tglPanen && r.tglPerkiraanPanen) {
-          const pDate = new Date(r.tglPerkiraanPanen);
-          if (!isNaN(pDate.getTime()) && pDate.getTime() < now.getTime()) {
-            const daysLate = Math.floor((now.getTime() - pDate.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysLate >= 8 && !isVerified) {
-              const isUrgent = daysLate >= 15;
-              if (isUrgent) urgentOverdueCount++;
-              else warningOverdueCount++;
-              attentionList.push({
-                id: r.id || r.kodeKegiatan,
-                type: 'overdue_harvest',
-                severity: isUrgent ? 'urgent' : 'warning',
-                rank: isUrgent ? 1 : 2,
-                badgeLabel: isUrgent ? 'Panen Sangat Terlambat' : 'Panen Terlambat',
-                kodeKegiatan: r.kodeKegiatan || '-',
-                lokasi: r.lokasiKegiatan || r.lokasi || '-',
-                pic: r.namaPic || '-',
-                divisi: r.normDiv,
-                details: `Perkiraan panen ${r.tglPerkiraanPanen} (${daysLate} hari lewat). Belum terealisasi.`,
-                daysLate: daysLate,
-                timestamp: r.tglPerkiraanPanen
-              });
-            }
-          }
-        }
-
-        // Kendala (only real obstacles)
-        const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(r.kendala) : (r.kendala && r.kendala !== '-');
-        if (isKendalaReal) {
-          if (!isVerified) {
-            openObstaclesCount++;
-            const hasNoUpaya = !r.upaya || r.upaya === '-';
-            if (hasNoUpaya) unansweredObstaclesCount++;
-            attentionList.push({
-              id: r.id || r.kodeKegiatan,
-              type: 'open_obstacle',
-              severity: hasNoUpaya ? 'urgent' : 'warning',
-              rank: hasNoUpaya ? 1 : 2,
-              badgeLabel: hasNoUpaya ? 'Kendala Tanpa Upaya' : 'Kendala Lapangan',
-              kodeKegiatan: r.kodeKegiatan || '-',
-              lokasi: r.lokasiKegiatan || r.lokasi || '-',
-              pic: r.namaPic || '-',
-              divisi: r.normDiv,
-              details: `Kendala: "${r.kendala}"${!hasNoUpaya ? ' | Upaya: "' + r.upaya + '"' : ' | ⚠️ Belum ada upaya penanganan tercatat'}`,
-              hasNoUpaya: hasNoUpaya,
-              timestamp: r.timestamp
-            });
-          }
-        }
-
-        // Weekly bucketing
-        const day = r.parsedDate.getDate();
-        let bIdx = 0;
-        if (day >= 22) bIdx = 3;
-        else if (day >= 15) bIdx = 2;
-        else if (day >= 8) bIdx = 1;
-        else bIdx = 0;
-
-        if (r.normDiv === DIV_KEYS.AGRO) {
-          weeklyTrend[bIdx].agroSales += r.sales;
-          weeklyTrend[bIdx].agroPanen += r.panen;
-        } else if (r.normDiv === DIV_KEYS.TERNAK) {
-          weeklyTrend[bIdx].ternakSales += r.sales;
-          weeklyTrend[bIdx].ternakPanen += r.panen;
-        } else if (r.normDiv === DIV_KEYS.IKAN) {
-          weeklyTrend[bIdx].ikanSales += r.sales;
-          weeklyTrend[bIdx].ikanPanen += r.panen;
-        }
-        weeklyTrend[bIdx].totalSales += r.sales;
-      });
-
-      Object.keys(divisiBreakdown).forEach(k => {
-        divisiBreakdown[k].activityCount = (divActSet[k] ? divActSet[k].size : 0);
-      });
-
-      attentionList.sort((a, b) => {
-        if (a.rank !== b.rank) return a.rank - b.rank;
-        if (a.hasNoUpaya && !b.hasNoUpaya) return -1;
-        if (!a.hasNoUpaya && b.hasNoUpaya) return 1;
-        if (a.daysLate !== undefined && b.daysLate !== undefined) return b.daysLate - a.daysLate;
-        return 0;
-      });
-
-      const salesTrendPercent = priorMonthNilaiPenjualanRp > 0 
-        ? Math.round(((totalNilaiPenjualanRp - priorMonthNilaiPenjualanRp) / priorMonthNilaiPenjualanRp) * 100)
-        : null;
-
-      return {
-        currentPeriodLabel: currentPeriodLabel,
-        totalReports: totalReports,
-        verifiedCount: verifiedCount,
-        unverifiedCount: unverifiedCount,
-        verificationRate: totalReports > 0 ? Math.round((verifiedCount / totalReports) * 100) : 0,
-        distinctActivityCount: distinctSet.size,
-        totalActiveKegiatan: totalActiveKegiatan,
-        totalNilaiPenjualanRp: totalNilaiPenjualanRp,
-        priorMonthNilaiPenjualanRp: priorMonthNilaiPenjualanRp,
-        salesTrendPercent: salesTrendPercent,
-        divisiBreakdown: divisiBreakdown,
-        overdueCounts: { urgent: urgentOverdueCount, warning: warningOverdueCount, total: urgentOverdueCount + warningOverdueCount },
-        openObstaclesCount: openObstaclesCount,
-        unansweredObstaclesCount: unansweredObstaclesCount,
-        attentionList: attentionList,
-        weeklyTrend: weeklyTrend
-      };
-    }
-
-    function exportDashboardCSV() {
-      if (!cachedStats) {
-        showToast('Data statistik belum siap diekspor', 'warning');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada data karyawan yang cocok dengan filter.</td></tr>';
         return;
       }
 
-      const headers = ['Metrik / Kategori', 'Divisi / Detail', 'Nilai / Satuan'];
-      const breakdown = cachedStats.divisiBreakdown || {};
-      const agro = breakdown['Agro (Pertanian/Perkebunan)'] || {};
-      const ternak = breakdown['Ternak (Peternakan)'] || {};
-      const ikan = breakdown['Ikan (Perikanan)'] || {};
+      tbody.innerHTML = filtered.map((emp, index) => {
+        let rankClass = 'rank-circle';
+        if (emp.rank === 1) rankClass += ' rank-top1';
+        else if (emp.rank === 2) rankClass += ' rank-top2';
+        else if (emp.rank === 3) rankClass += ' rank-top3';
 
-      const rows = [
-        ['Periode Data', 'Bulan Kalender', cachedStats.currentPeriodLabel || '-'],
-        ['Total Aktivitas (Distinct)', 'Semua Divisi', cachedStats.distinctActivityCount || 0],
-        ['Total Laporan Masuk (Raw)', 'Semua Divisi', cachedStats.totalReports || 0],
-        ['Total Nilai Penjualan (Rp)', 'Semua Divisi', cachedStats.totalNilaiPenjualanRp || 0],
-        ['Tren Penjualan (%)', 'vs Bulan Lalu', (cachedStats.salesTrendPercent !== null ? cachedStats.salesTrendPercent + '%' : 'N/A')],
-        ['Kegiatan Menunggu Panen', 'Semua Divisi', cachedStats.totalActiveKegiatan || 0],
-        ['Kendala Terbuka', 'Total Terlapor', cachedStats.openObstaclesCount || 0],
-        ['Kendala Tanpa Upaya', 'Perlu Respon Segera', cachedStats.unansweredObstaclesCount || 0],
-        ['Panen Agro', 'Pertanian/Perkebunan', `${agro.panenVolume || 0} Kg`],
-        ['Penjualan Agro (Rp)', 'Pertanian/Perkebunan', agro.nilaiPenjualanRp || 0],
-        ['Aktivitas Agro', 'Pertanian/Perkebunan', agro.activityCount || 0],
-        ['Panen Ternak', 'Peternakan', `${ternak.panenVolume || 0} Unit`],
-        ['Penjualan Ternak (Rp)', 'Peternakan', ternak.nilaiPenjualanRp || 0],
-        ['Aktivitas Ternak', 'Peternakan', ternak.activityCount || 0],
-        ['Panen Ikan', 'Perikanan', `${ikan.panenVolume || 0} Kg`],
-        ['Penjualan Ikan (Rp)', 'Perikanan', ikan.nilaiPenjualanRp || 0],
-        ['Aktivitas Ikan', 'Perikanan', ikan.activityCount || 0]
-      ];
+        return `
+          <tr>
+            <td style="text-align: center;"><span class="${rankClass}">${emp.rank}</span></td>
+            <td><span style="font-weight: 600; color: #0f172a;">${escapeHtml(emp.namaPic)}</span></td>
+            <td><span style="font-family: monospace; font-weight: 600; color: var(--primary); font-size: 0.8rem;">${escapeHtml(emp.idKaryawan)}</span></td>
+            <td><span class="badge badge-neutral">${escapeHtml(emp.bidangDivisi)}</span></td>
+            <td style="text-align: center; font-weight: 600; font-size: 0.85rem; color: #1e293b;">${emp.totalLaporan}</td>
+            <td style="text-align: center;"><span class="badge badge-normal">${emp.percentage}%</span></td>
+            <td style="text-align: right; color: #64748b; font-family: monospace; font-size: 0.8rem;">${escapeHtml(emp.terakhirMelapor)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-      downloadCSV(`Manager_Dashboard_Summary_${Date.now()}.csv`, headers, rows);
-      showToast('Ekspor CSV Ringkasan Dashboard berhasil', 'success');
+    // ==========================================
+    // CSV EXPORT HELPER
+    // ==========================================
+    function exportAnalyticsCSV() {
+      if (!activeAnalyticsData) return;
+      const lb = activeAnalyticsData.employeeLeaderboard || [];
+      let csv = 'Peringkat,ID_Karyawan,Nama_Karyawan,Divisi,Total_Laporan,Persentase,Konsistensi,Terakhir_Melapor\r\n';
+      lb.forEach(e => {
+        csv += `${e.rank},"${e.idKaryawan}","${e.namaPic}","${e.bidangDivisi}",${e.totalLaporan},${e.percentage}%,"${e.konsistensi}","${e.terakhirMelapor}"\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MPL_Analitik_Konsistensi_Staf_${activeAnalyticsData.period.code}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('File CSV berhasil diunduh.', 'success');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Mock Data Generator for local testing
+    function generateMockAnalyticsData(params) {
+      return {
+        period: { code: params.period || 'this_month', label: 'Bulan Ini (Simulasi)', interval: 'day' },
+        kpis: {
+          totalReports: 42,
+          totalSalesRp: 18500000,
+          totalPanenKg: 4250,
+          totalBenih: 12500,
+          activePlantingsCount: 8,
+          readyHarvestsCount: 2,
+          overdueHarvestsCount: 0
+        },
+        employeeLeaderboard: [
+          { rank: 1, idKaryawan: 'ALP-01', namaPic: 'Pasrep N', bidangDivisi: 'Alprof', totalLaporan: 14, percentage: 33.3, konsistensi: 'Sangat Aktif', badgeClass: 'badge-primary', terakhirMelapor: '2026-08-26' },
+          { rank: 2, idKaryawan: 'SGA-05', namaPic: 'Roby Sandi', bidangDivisi: 'SGA', totalLaporan: 11, percentage: 26.2, konsistensi: 'Sangat Aktif', badgeClass: 'badge-primary', terakhirMelapor: '2026-08-26' },
+          { rank: 3, idKaryawan: 'PKH-03', namaPic: 'Heru', bidangDivisi: 'Pekerja Harian', totalLaporan: 8, percentage: 19.0, konsistensi: 'Konsisten', badgeClass: 'badge-normal', terakhirMelapor: '2026-08-25' },
+          { rank: 4, idKaryawan: 'BKO-01', namaPic: 'Didi', bidangDivisi: 'BKO 28', totalLaporan: 6, percentage: 14.3, konsistensi: 'Konsisten', badgeClass: 'badge-normal', terakhirMelapor: '2026-08-24' },
+          { rank: 5, idKaryawan: 'MNJ-02', namaPic: 'Ariyana', bidangDivisi: 'Manajemen', totalLaporan: 3, percentage: 7.1, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-20' }
+        ],
+        commodityAnalysis: {
+          cropList: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Pembibitan Kopi', 'Pembibitan Pala', 'Edamame'],
+          selectedCrop: params.cropFilter || 'Pisang',
+          tanamTrend: { labels: ['01/08', '08/08', '15/08', '22/08'], values: [1500, 2000, 3200, 2800], total: 9500 },
+          panenTrend: { labels: ['01/08', '08/08', '15/08', '22/08'], values: [600, 950, 1400, 1300], total: 4250 },
+          participation: [
+            { key: 'Pisang', label: 'Pisang', value: 8 },
+            { key: 'Jagung Manis', label: 'Jagung Manis', value: 6 },
+            { key: 'Cabe', label: 'Cabe', value: 5 },
+            { key: 'Pembibitan Kopi', label: 'Pembibitan Kopi', value: 4 },
+            { key: 'Terong', label: 'Terong', value: 3 },
+            { key: 'Edamame', label: 'Edamame', value: 2 }
+          ]
+        },
+        harvestSchedule: {
+          activeList: [
+            { komoditas: 'Pisang', lokasiKegiatan: 'Sektor 1 + Ciomas', namaPic: 'Pasrep N', idKaryawan: 'ALP-01', jumlahBenih: 500, luasLahanM2: 2500, tglTanam: '2026-05-28', estimasiPanenHst: 90, tglEstimasiPanen: '2026-08-26', daysRemaining: 0, status: 'ready' },
+            { komoditas: 'Jagung Manis', lokasiKegiatan: 'Sektor 2', namaPic: 'Roby Sandi', idKaryawan: 'SGA-05', jumlahBenih: 1200, luasLahanM2: 1800, tglTanam: '2026-06-05', estimasiPanenHst: 85, tglEstimasiPanen: '2026-08-29', daysRemaining: 3, status: 'ready' },
+            { komoditas: 'Pembibitan Kopi', lokasiKegiatan: 'Gunung Batu', namaPic: 'Heru', idKaryawan: 'PKH-03', jumlahBenih: 3000, luasLahanM2: 4000, tglTanam: '2026-07-10', estimasiPanenHst: 120, tglEstimasiPanen: '2026-11-07', daysRemaining: 73, status: 'growing' }
+          ],
+          readyCount: 2,
+          overdueCount: 0
+        },
+        salesAnalytics: {
+          grandTotalRp: 18500000,
+          salesCount: 14,
+          byCommodity: [
+            { label: 'Pisang', value: 9200000, percentage: 49.7 },
+            { label: 'Jagung Manis', value: 5100000, percentage: 27.6 },
+            { label: 'Cabe', value: 2400000, percentage: 13.0 },
+            { label: 'Terong', value: 1800000, percentage: 9.7 }
+          ],
+          byDivision: [
+            { label: 'Alprof', value: 9500000, percentage: 51.4 },
+            { label: 'SGA', value: 5800000, percentage: 31.4 },
+            { label: 'Pekerja Harian', value: 3200000, percentage: 17.2 }
+          ],
+          byDistribution: [
+            { label: 'Penjualan eksternal', value: 14200000, percentage: 76.8 },
+            { label: 'Penjualan internal', value: 3100000, percentage: 16.8 },
+            { label: 'Penggunaan', value: 1200000, percentage: 6.4 }
+          ]
+        }
+      };
     }
   </script>
 </body>

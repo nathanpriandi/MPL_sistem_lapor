@@ -332,6 +332,11 @@
       return new Intl.NumberFormat('id-ID').format(num);
     }
 
+    function formatNumber(num) {
+      if (num === null || num === undefined || isNaN(num)) return '0';
+      return new Intl.NumberFormat('id-ID').format(num);
+    }
+
     function escapeHtml(str) {
       if (!str) return '';
       return String(str)
@@ -1118,112 +1123,319 @@
       if (btnPrev) btnPrev.disabled = (globalIndex <= 0);
       if (btnNext) btnNext.disabled = (globalIndex >= currentFilteredData.length - 1);
 
-      const raw = item.raw || [];
       const fields = item.fields || [];
+      const consumedKeys = new Set();
 
-      let html = `
-        <!-- Section 1: Ringkasan Utama -->
+      // Helper to fetch and consume field value
+      function getFieldValue(patterns, fallbackVal) {
+        if (!Array.isArray(patterns)) patterns = [patterns];
+        for (let i = 0; i < fields.length; i++) {
+          const f = fields[i];
+          const normLabel = String(f.label || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          for (let p = 0; p < patterns.length; p++) {
+            const pat = String(patterns[p]).toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (normLabel === pat || normLabel.includes(pat)) {
+              consumedKeys.add(f.label);
+              return f.value;
+            }
+          }
+        }
+        return fallbackVal !== undefined ? fallbackVal : '';
+      }
+
+      // 1. Identitas & Informasi Umum
+      const namaPic = getFieldValue(['namapic', 'nama_pic', 'nama'], item.empId || item.namaPic);
+      const divisi = getFieldValue(['bidangdivisi', 'divisi', 'bidang_divisi'], item.divisi);
+      const noTelp = getFieldValue(['nomortelepon', 'notelepon', 'telepon'], item.nomorTelepon);
+      const lokasi = getFieldValue(['lokasikegiatan', 'lokasi'], item.lokasi);
+      const jenisKegiatan = getFieldValue(['jeniskegiatan', 'jenis_kegiatan'], item.ringkasan);
+
+      // 2. Budidaya & Penanaman (Langkah 2)
+      const statusPengelolaanTanam = getFieldValue(['statuspengelolaan', 'status_pengelolaan']);
+      const rawKomoditas = getFieldValue(['komoditas', 'komoditastanam']);
+      const rawKomoditasPanen = getFieldValue(['komoditaspanen']);
+      
+      // Parse composite commodity strings if present
+      let komoditasTanam = rawKomoditas;
+      let komoditasPanen = rawKomoditasPanen;
+      if (rawKomoditas && typeof resolveSeparatedCommodities === 'function') {
+        const sep = resolveSeparatedCommodities(rawKomoditas, rawKomoditasPanen, jenisKegiatan);
+        komoditasTanam = sep.komoditasTanam || rawKomoditas;
+        komoditasPanen = sep.komoditasPanen || rawKomoditasPanen;
+      } else if (rawKomoditas && rawKomoditas.includes('(Tanam)')) {
+        const m = rawKomoditas.match(/([^(,]+?)\s*\(Tanam\)/i);
+        if (m) komoditasTanam = m[1].trim();
+        const mP = rawKomoditas.match(/([^(,]+?)\s*\(Panen\)/i);
+        if (mP) komoditasPanen = mP[1].trim();
+      }
+
+      const lokasiBlok = getFieldValue(['lokasibloktanam', 'lokasiblok', 'bloktanam', 'blok']);
+      const luasLahanM2 = getFieldValue(['luaslahanm2', 'luaslahan', 'luasarea']);
+      const jumlahBenih = getFieldValue(['jumlahbenih', 'benih', 'bibit']);
+      const tglTanam = getFieldValue(['tgltanam', 'tanggaltanam']);
+      const estimasiPanenHst = getFieldValue(['estimasipanenhst', 'estimasipanen', 'hst', 'tglperkiraanpanen']);
+
+      const isTanamActive = String(jenisKegiatan).toLowerCase().includes('tanam') || 
+                            Boolean(tglTanam || (jumlahBenih && jumlahBenih != '0') || (luasLahanM2 && luasLahanM2 != '0') || (komoditasTanam && komoditasTanam !== '-' && komoditasTanam !== ''));
+
+      // 3. Panen & Penjualan (Langkah 3)
+      const statusPengelolaanPanen = getFieldValue(['statuspengelolaanpanen']);
+      const lokasiBlokPanen = getFieldValue(['lokasiblokpanen', 'blokpanen']);
+      const luasLahanPanenM2 = getFieldValue(['luaslahanpanenm2', 'luaslahanpanen', 'luaspanen']);
+      const tglPanen = getFieldValue(['tglpanen', 'tanggalpanen']);
+      const jumlahPanenKg = getFieldValue(['jumlahpanenkg', 'jumlahpanen']);
+      const tglPenjualan = getFieldValue(['tglpenjualan', 'tanggalpenjualan']);
+      const tujuanDistribusi = getFieldValue(['tujuandistribusi']);
+      const jumlahPenjualanUnit = getFieldValue(['jumlahpenjualanunit']);
+      const hargaSatuanRp = getFieldValue(['hargasatuanrp', 'hargasatuan']);
+      const totalHargaRp = getFieldValue(['totalhargarp', 'totalharga', 'nilaipenjualanrp']);
+      const jumlahUnitPenggunaan = getFieldValue(['jumlahunitpenggunaan']);
+      const tujuanPenggunaan = getFieldValue(['tujuanpenggunaan']);
+
+      const isPanenActive = String(jenisKegiatan).toLowerCase().includes('panen') || 
+                            Boolean(tglPanen || (jumlahPanenKg && jumlahPanenKg != '0') || (totalHargaRp && totalHargaRp != '0') || (komoditasPanen && komoditasPanen !== '-' && komoditasPanen !== ''));
+
+      // 4. Tindakan Pengawasan & Administrasi (Langkah 4 & 5)
+      const pengawasan = getFieldValue(['pengawasan']);
+      const detailPengawasan = getFieldValue(['detailpengawasan']);
+      const administrasi = getFieldValue(['administrasi']);
+      const detailAdministrasi = getFieldValue(['detailadministrasi']);
+
+      const isPengawasanActive = String(jenisKegiatan).toLowerCase().includes('pengawasan') || Boolean(pengawasan || detailPengawasan);
+      const isAdministrasiActive = String(jenisKegiatan).toLowerCase().includes('administrasi') || Boolean(administrasi || detailAdministrasi);
+
+      // 5. Evaluasi, Kendala & Capaian (Langkah 6)
+      const capaianKegiatan = getFieldValue(['capaiankegiatan', 'capaian']);
+      const kendala = getFieldValue(['kendala'], item.kendala);
+      const upaya = getFieldValue(['upaya'], item.upaya);
+      const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(kendala) : (kendala && kendala !== '-' && String(kendala).trim() !== '');
+
+      // Mark internal technical keys as consumed
+      const internalKeys = [
+        'report_id', 'reportid', 'kode_kegiatan', 'kodekegiatan', 'timestamp', 'waktu_submit',
+        'severity', 'reviewed', 'status_verifikasi', 'status verifikasi', 'status_peninjauan',
+        'foto_url', 'foto_url_2', 'foto_url_3', 'foto_lampiran', 'photourl', 'photos',
+        'id_karyawan', 'idkaryawan', 'emp_id', 'empid'
+      ];
+      internalKeys.forEach(k => {
+        fields.forEach(f => {
+          if (String(f.label).toLowerCase().replace(/[^a-z0-9]/g, '') === k.replace(/[^a-z0-9]/g, '')) {
+            consumedKeys.add(f.label);
+          }
+        });
+      });
+
+      // Find unconsumed custom questions added dynamically by admin
+      const unconsumedCustomFields = fields.filter(f => !consumedKeys.has(f.label) && f.value !== undefined && f.value !== null && String(f.value).trim() !== '' && String(f.value).trim() !== '-');
+
+      let html = '';
+
+      // ==========================================
+      // SECTION 1: IDENTITAS & PENUGASAN (LANGKAH 1)
+      // ==========================================
+      html += `
         <div class="inspector-section">
-          <div class="inspector-section-heading">Informasi Umum</div>
+          <div class="inspector-section-heading">📋 Informasi Umum &amp; Lokasi Penugasan</div>
           <div class="inspector-data-grid">
             <div class="inspector-data-item">
-              <span class="inspector-data-label">Nama Karyawan</span>
-              <span class="inspector-data-value highlight-value">${item.empId || item.namaPic || '-'}</span>
+              <span class="inspector-data-label">Nama PIC / ID</span>
+              <span class="inspector-data-value highlight-value">${escapeHtml(namaPic || '-')}</span>
             </div>
             <div class="inspector-data-item">
               <span class="inspector-data-label">Divisi / Bidang</span>
-              <span class="inspector-data-value">${item.divisi || '-'}</span>
+              <span class="inspector-data-value">${escapeHtml(divisi || '-')}</span>
             </div>
             <div class="inspector-data-item">
               <span class="inspector-data-label">Nomor Telepon</span>
-              <span class="inspector-data-value">${item.nomorTelepon || (raw && raw.length > 6 ? raw[6] : '') || '-'}</span>
+              <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(noTelp || '-')}</span>
             </div>
             <div class="inspector-data-item">
-              <span class="inspector-data-label">Lokasi Kegiatan</span>
-              <span class="inspector-data-value">${item.lokasi || '-'}</span>
+              <span class="inspector-data-label">Lokasi Penugasan</span>
+              <span class="inspector-data-value">${escapeHtml(lokasi || '-')}</span>
+            </div>
+            <div class="inspector-data-item" style="grid-column: 1 / -1;">
+              <span class="inspector-data-label">Agenda Kegiatan Hari Ini</span>
+              <span class="inspector-data-value" style="font-weight: 600; color: var(--primary);">${escapeHtml(jenisKegiatan || '-')}</span>
             </div>
           </div>
         </div>
       `;
 
-      // Section 2: Kendala & Tindak Lanjut (only if actual obstacle exists)
-      const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-' && item.kendala !== '');
-      if (isKendalaReal) {
-        const hasUpaya = item.upaya && item.upaya !== '-' && item.upaya !== '';
+      // ==========================================
+      // SECTION 2: BUDIDAYA & PENANAMAN (LANGKAH 2)
+      // ==========================================
+      if (isTanamActive) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading" style="color: #be123c; border-color: #fecdd3;">Kendala &amp; Tindak Lanjut</div>
-            <div class="inspector-data-grid" style="grid-template-columns: 1fr;">
-              <div class="inspector-data-item">
-                <span class="inspector-data-label" style="color: #be123c;">Deskripsi Kendala</span>
-                <span class="inspector-data-value warning-value">${item.kendala}</span>
-              </div>
-              <div class="inspector-data-item" style="margin-top: 4px;">
-                <span class="inspector-data-label">Upaya Penanganan</span>
-                <span class="inspector-data-value">${hasUpaya ? item.upaya : 'Belum ada catatan upaya penanganan'}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      // Section 3: Panen & Penjualan (if any)
-      if (item.jumlahPanen > 0 || item.nilaiPenjualanRp > 0 || (raw && raw.length >= 19 && (raw[16] || raw[18]))) {
-        html += `
-          <div class="inspector-section">
-            <div class="inspector-section-heading">Hasil Panen &amp; Penjualan</div>
+            <div class="inspector-section-heading" style="color: #15803d; border-color: #bbf7d0;">🌱 Rincian Kegiatan Tanam / Tebar</div>
             <div class="inspector-data-grid">
               <div class="inspector-data-item">
-                <span class="inspector-data-label">Volume Panen</span>
-                <span class="inspector-data-value highlight-value">${item.jumlahPanen ? item.jumlahPanen + ' Kg' : (raw[17] ? raw[17] + ' Kg' : '-')}</span>
-                ${raw[16] ? `<span style="font-size: 0.725rem; color: #64748b; margin-top: 1px;">Tanggal Panen: ${formatFieldValue(raw[16], 'tgl_panen')}</span>` : ''}
+                <span class="inspector-data-label">Status Pengelolaan</span>
+                <span class="inspector-data-value">${escapeHtml(statusPengelolaanTanam || '-')}</span>
               </div>
               <div class="inspector-data-item">
-                <span class="inspector-data-label">Total Nilai Penjualan</span>
-                <span class="inspector-data-value money-value">
-                  ${item.nilaiPenjualanRp ? 'Rp ' + Number(item.nilaiPenjualanRp).toLocaleString('id-ID') : (raw[22] ? 'Rp ' + Number(raw[22]).toLocaleString('id-ID') : '-')}
-                </span>
-                ${raw[18] ? `<span style="font-size: 0.725rem; color: #64748b; margin-top: 1px;">Tanggal Penjualan: ${formatFieldValue(raw[18], 'tgl_penjualan')}</span>` : ''}
+                <span class="inspector-data-label">Komoditas Tanam</span>
+                <span class="inspector-data-value" style="font-weight: 700; color: #15803d;">${escapeHtml(komoditasTanam || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Lokasi / Blok</span>
+                <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(lokasiBlok || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Luas Lahan</span>
+                <span class="inspector-data-value">${luasLahanM2 ? formatNumber(luasLahanM2) + ' m²' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Populasi Benih / Bibit</span>
+                <span class="inspector-data-value">${jumlahBenih ? formatNumber(jumlahBenih) + ' benih' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Tanggal Tanam</span>
+                <span class="inspector-data-value" style="font-family: monospace;">${formatFieldValue(tglTanam, 'tgl_tanam')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Estimasi Panen (HST)</span>
+                <span class="inspector-data-value" style="font-weight: 700; color: #b45309;">${estimasiPanenHst ? estimasiPanenHst + ' HST' : '-'}</span>
               </div>
             </div>
           </div>
         `;
       }
 
-      // Section 4: Ringkasan Catatan Kegiatan (if any)
-      if (item.ringkasan && item.ringkasan !== '-' && item.ringkasan.trim() !== '') {
+      // ==========================================
+      // SECTION 3: PANEN & PENJUALAN (LANGKAH 3)
+      // ==========================================
+      if (isPanenActive) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading">Ringkasan Kegiatan</div>
-            <div style="font-size: 0.875rem; color: #1e293b; line-height: 1.5; padding: 0.25rem 0;">
-              ${item.ringkasan}
+            <div class="inspector-section-heading" style="color: #2563eb; border-color: #bfdbfe;">🌾 Rincian Panen &amp; Penjualan</div>
+            <div class="inspector-data-grid">
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Status Pengelolaan Panen</span>
+                <span class="inspector-data-value">${escapeHtml(statusPengelolaanPanen || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Komoditas Panen</span>
+                <span class="inspector-data-value" style="font-weight: 700; color: #2563eb;">${escapeHtml(komoditasPanen || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Lokasi / Blok</span>
+                <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(lokasiBlokPanen || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Luas Lahan Panen</span>
+                <span class="inspector-data-value">${luasLahanPanenM2 ? formatNumber(luasLahanPanenM2) + ' m²' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Tanggal Panen</span>
+                <span class="inspector-data-value" style="font-family: monospace;">${formatFieldValue(tglPanen, 'tgl_panen')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Volume Hasil Panen</span>
+                <span class="inspector-data-value highlight-value">${jumlahPanenKg ? formatNumber(jumlahPanenKg) + ' Kg' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Tanggal Penjualan</span>
+                <span class="inspector-data-value" style="font-family: monospace;">${formatFieldValue(tglPenjualan, 'tgl_penjualan')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Tujuan Distribusi</span>
+                <span class="inspector-data-value">${escapeHtml(tujuanDistribusi || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Jumlah Unit Terjual</span>
+                <span class="inspector-data-value">${jumlahPenjualanUnit ? formatNumber(jumlahPenjualanUnit) + ' Unit' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Harga Satuan</span>
+                <span class="inspector-data-value">${hargaSatuanRp ? 'Rp ' + formatRupiah(hargaSatuanRp) : '-'}</span>
+              </div>
+              <div class="inspector-data-item" style="grid-column: 1 / -1; background: #eff6ff; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #bfdbfe;">
+                <span class="inspector-data-label" style="color: #1d4ed8;">Total Nilai Penjualan</span>
+                <span class="inspector-data-value money-value" style="font-size: 1.1rem; color: #1e40af;">${totalHargaRp ? 'Rp ' + formatRupiah(totalHargaRp) : 'Rp 0'}</span>
+              </div>
+              ${(jumlahUnitPenggunaan || tujuanPenggunaan) ? `
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Unit Penggunaan Internal</span>
+                  <span class="inspector-data-value">${jumlahUnitPenggunaan ? formatNumber(jumlahUnitPenggunaan) + ' Unit' : '-'}</span>
+                </div>
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Tujuan Penggunaan</span>
+                  <span class="inspector-data-value">${escapeHtml(tujuanPenggunaan || '-')}</span>
+                </div>
+              ` : ''}
             </div>
           </div>
         `;
       }
 
-      // Section 5: Rincian Isian Formulir Lengkap (Clean Human-Readable KV Table)
-      const ignoredKeys = new Set([
-        'report_id', 'reportid', 'kode_kegiatan', 'kodekegiatan', 'kode_kegiatan_ref',
-        'nama_pic', 'namapic', 'bidang_divisi', 'divisi', 'lokasi_kegiatan', 'lokasi',
-        'timestamp', 'waktu_submit', 'foto_url', 'photourl', 'foto_lampiran', 'kendala', 'upaya',
-        'ringkasan', 'ringkasan_kegiatan'
-      ]);
-
-      const meaningfulFields = (fields || []).filter(f => {
-        const rawLabel = String(f.label || '').trim().toLowerCase();
-        if (!rawLabel || ignoredKeys.has(rawLabel) || rawLabel.startsWith('foto')) return false;
-        const val = f.value !== undefined && f.value !== null ? String(f.value).trim() : '';
-        return val !== '' && val !== '-';
-      });
-
-      if (meaningfulFields.length > 0) {
+      // ==========================================
+      // SECTION 4: PENGAWASAN & ADMINISTRASI (LANGKAH 4 & 5)
+      // ==========================================
+      if (isPengawasanActive || isAdministrasiActive) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading">Rincian Isian Formulir</div>
+            <div class="inspector-section-heading" style="color: #7c3aed; border-color: #ddd6fe;">🔍 Tindakan Pengawasan &amp; Administrasi</div>
+            <div class="inspector-data-grid">
+              ${isPengawasanActive ? `
+                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+                  <span class="inspector-data-label">Tindakan Pengawasan</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(pengawasan || '-')}</span>
+                  ${detailPengawasan ? `<span style="font-size: 0.8rem; color: #475569; margin-top: 2px;">Rincian: ${escapeHtml(detailPengawasan)}</span>` : ''}
+                </div>
+              ` : ''}
+              ${isAdministrasiActive ? `
+                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+                  <span class="inspector-data-label">Tugas Administrasi</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(administrasi || detailAdministrasi || '-')}</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // ==========================================
+      // SECTION 5: EVALUASI, CAPAIAN & KENDALA (LANGKAH 6)
+      // ==========================================
+      html += `
+        <div class="inspector-section">
+          <div class="inspector-section-heading" style="${isKendalaReal ? 'color: #be123c; border-color: #fecdd3;' : ''}">
+            ${isKendalaReal ? '⚠️ Kendala &amp; Tindak Lanjut' : '📝 Capaian &amp; Evaluasi Lapangan'}
+          </div>
+          <div class="inspector-data-grid" style="grid-template-columns: 1fr;">
+            ${capaianKegiatan && capaianKegiatan !== '-' ? `
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Capaian Kegiatan</span>
+                <span class="inspector-data-value">${escapeHtml(capaianKegiatan)}</span>
+              </div>
+            ` : ''}
+            <div class="inspector-data-item" style="${isKendalaReal ? 'background: #fff1f2; padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid #fecdd3;' : ''}">
+              <span class="inspector-data-label" style="${isKendalaReal ? 'color: #be123c;' : ''}">Kendala Lapangan</span>
+              <span class="inspector-data-value ${isKendalaReal ? 'warning-value' : ''}">
+                ${isKendalaReal ? escapeHtml(kendala) : '✅ Tidak ada kendala lapangan (Operasional Berjalan Lancar)'}
+              </span>
+            </div>
+            ${isKendalaReal ? `
+              <div class="inspector-data-item" style="margin-top: 4px;">
+                <span class="inspector-data-label">Upaya Penanganan</span>
+                <span class="inspector-data-value">${escapeHtml(upaya || 'Belum ada catatan upaya penanganan')}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      // ==========================================
+      // SECTION 6: PERTANYAAN TAMBAHAN (KUSTOM)
+      // ==========================================
+      if (unconsumedCustomFields.length > 0) {
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading">🧩 Pertanyaan Tambahan Formulir</div>
             <table class="inspector-kv-table">
               <tbody>
-                ${meaningfulFields.map(f => `
+                ${unconsumedCustomFields.map(f => `
                   <tr>
                     <td class="kv-key">${formatFieldLabel(f.label)}</td>
                     <td class="kv-val">${formatFieldValue(f.value, f.label)}</td>
@@ -1235,26 +1447,28 @@
         `;
       }
 
-      // Section 6: Bukti Foto Lampiran (Multi-Photo Gallery)
+      // ==========================================
+      // SECTION 7: FOTO BUKTI LAPANGAN (LANGKAH 7)
+      // ==========================================
       const photosToRender = (Array.isArray(item.photos) && item.photos.length > 0)
         ? item.photos.filter(p => p && String(p).startsWith('http'))
         : [item.photoUrl, item.photoUrl2, item.photoUrl3].filter(p => p && String(p).startsWith('http'));
 
       html += `
         <div class="inspector-section">
-          <div class="inspector-section-heading">Foto Bukti Lapangan (${photosToRender.length} Foto)</div>
+          <div class="inspector-section-heading">📸 Foto Bukti Lapangan (${photosToRender.length} Foto)</div>
       `;
 
       if (photosToRender.length > 0) {
         html += `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; margin-top: 0.5rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 0.5rem;">
             ${photosToRender.map((pUrl, pIdx) => `
-              <div class="inspector-photo-card" style="border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem; background: #f8fafc; text-align: center;">
-                <div style="font-weight: 700; font-size: 0.775rem; color: #475569; margin-bottom: 0.35rem;">Foto #${pIdx + 1}</div>
+              <div class="inspector-photo-card" style="border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; background: #f8fafc; text-align: center;">
+                <div style="font-weight: 600; font-size: 0.75rem; color: #475569; margin-bottom: 0.35rem;">Foto #${pIdx + 1}</div>
                 <a href="${pUrl}" target="_blank" title="Buka di Google Drive" style="display: block;">
-                  <img src="${getDriveThumbnail(pUrl)}" class="inspector-photo-preview" alt="Foto #${pIdx + 1}" style="max-height: 160px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" onerror="this.src='${pUrl}'; this.onerror=null;" />
+                  <img src="${getDriveThumbnail(pUrl)}" class="inspector-photo-preview" alt="Foto #${pIdx + 1}" style="max-height: 150px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" onerror="this.src='${pUrl}'; this.onerror=null;" />
                 </a>
-                <div style="margin-top: 0.45rem;">
+                <div style="margin-top: 0.4rem;">
                   <a href="${pUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.725rem; padding: 3px 8px;">
                     <span>Lihat di Drive</span>
                   </a>
@@ -1276,7 +1490,7 @@
       html += `
         <div class="inspector-tech-footer">
           <span>Report ID: ${item.reportId || '-'}</span>
-          <span>Sumber: ${item.source || 'Laporan Operasional'}</span>
+          <span>Sumber Tab: ${item.source || 'Laporan Operasional'}</span>
         </div>
       `;
 

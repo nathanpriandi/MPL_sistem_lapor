@@ -194,11 +194,51 @@ function updateReviewStatus(reportId, newStatus) {
 }
 
 /**
- * Returns aggregated stats for Executive Manager Dashboard.
- * @returns {Object|null} JSON stats object for dashboard rendering.
+ * Returns aggregated stats and smart analytics for Executive Manager Dashboard.
+ * @param {Object} [params]
+ * @returns {Object} JSON dataset for manager dashboard rendering.
+ */
+function getAnalyticsDashboardData(params) {
+  return AnalyticsService.getAnalyticsDashboardData(params);
+}
+
+/**
+ * Backward compatibility alias for getAnalyticsDashboardData.
+ * @param {Object} [options]
+ * @returns {Object}
  */
 function getDashboardStats(options) {
-  return AdminService.getDashboardStats(options);
+  return AnalyticsService.getAnalyticsDashboardData(options);
+}
+
+/**
+ * Returns employee reporting consistency leaderboard.
+ * @param {Object} [params]
+ * @returns {Array<Object>}
+ */
+function getEmployeeLeaderboard(params) {
+  const allRows = SpreadsheetRepository.getAllOperationalRows();
+  return AnalyticsService.getEmployeeReportingLeaderboard(allRows);
+}
+
+/**
+ * Returns smart HST-calculated harvest schedule.
+ * @param {Object} [params]
+ * @returns {Array<Object>}
+ */
+function getHarvestScheduleData(params) {
+  const allRows = SpreadsheetRepository.getAllOperationalRows();
+  return AnalyticsService.getHarvestSchedule(allRows);
+}
+
+/**
+ * Returns sales analytics and business initiative breakdowns.
+ * @param {Object} [params]
+ * @returns {Object}
+ */
+function getSalesAnalyticsData(params) {
+  const allRows = SpreadsheetRepository.getAllOperationalRows();
+  return AnalyticsService.getSalesAnalytics(allRows, (params && params.interval) || 'day');
 }
 
 /**
