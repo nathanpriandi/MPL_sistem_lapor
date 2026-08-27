@@ -369,7 +369,7 @@
               </div>
               <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
                 <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🔍 Pengawasan</div>
-                <div style="font-size: 0.75rem; color: #64748b;">Membuka isian Kategori Pengawasan</div>
+                <div style="font-size: 0.75rem; color: #64748b;">Membuka isian Tindakan Pengawasan</div>
               </div>
               <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
                 <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">📋 Administrasi</div>
@@ -378,15 +378,15 @@
             </div>
           </div>
 
-          <!-- Section 1.4: Kategori Pengawasan Chips -->
+          <!-- Section 1.4: Tindakan Pengawasan Chips -->
           <div style="margin-bottom: 1.25rem;">
-            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.4 Kategori Pengawasan Lapangan</label>
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.4 Tindakan Pengawasan Lapangan</label>
             <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Opsi dropdown saat staf mencentang kegiatan "Pengawasan":</p>
             <div class="chip-container" id="pengawasanChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newPengawasanInput" class="form-input" placeholder="Kategori baru (contoh: Lahan Plasma, Pupuk...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPengawasanOption();}" style="height: 34px; font-size: 0.825rem;">
+              <input type="text" id="newPengawasanInput" class="form-input" placeholder="Tindakan baru (contoh: Pengecekan Hama & Penyakit, Audit Bibit...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPengawasanOption();}" style="height: 34px; font-size: 0.825rem;">
               <button type="button" class="btn btn-secondary" onclick="addPengawasanOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Kategori</span>
+                <span>+ Tambah Tindakan</span>
               </button>
             </div>
           </div>
@@ -717,7 +717,7 @@
       </div>
       <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Reset ke Setelan Awal Pabrik?</h3>
       <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
-        Tindakan ini akan mengembalikan seluruh skema formulir ke konfigurasi standar awal (5 Sektor Lapangan, 8 Master Komoditas, 3 Kategori Pengawasan, dan menghapus seluruh pertanyaan tambahan).
+        Tindakan ini akan mengembalikan seluruh skema formulir ke konfigurasi standar awal (5 Sektor Lapangan, 9 Master Komoditas, 3 Tindakan Pengawasan, dan menghapus seluruh pertanyaan tambahan).
       </p>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
@@ -772,7 +772,7 @@
       title: 'Formulir Laporan Operasional',
       subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
       lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
-      komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'],
+      komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
       pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
       statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
       tujuanPenggunaanOptions: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
@@ -1327,7 +1327,7 @@
             title: 'Formulir Laporan Operasional',
             subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
             lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
-            komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'],
+            komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
             pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
             statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
             tujuanPenggunaanOptions: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],

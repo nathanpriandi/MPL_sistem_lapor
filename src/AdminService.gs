@@ -494,6 +494,20 @@ const AdminService = {
   },
 
   /**
+   * Synchronizes active Google Form (if any) with the latest question schema.
+   * @returns {{ success: boolean, message: string }}
+   */
+  syncGoogleFormWithLatestDesign: function() {
+    try {
+      const res = syncLiveGoogleFormItems();
+      return res;
+    } catch (e) {
+      Logger.log('AdminService: syncGoogleFormWithLatestDesign error: ' + e.toString());
+      return { success: false, message: e.message || e.toString() };
+    }
+  },
+
+  /**
    * Resets reporting form configuration schema back to baseline default.
    * @returns {{ success: boolean, message: string, schema: Object }}
    */

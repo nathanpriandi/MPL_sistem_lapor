@@ -295,7 +295,7 @@ function setupOperationalForm(ssId) {
 
   form.addMultipleChoiceItem()
     .setTitle('Komoditas')
-    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'])
+    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
     .setRequired(true);
 
   form.addTextItem().setTitle('Luas Lahan (m²)');
@@ -312,7 +312,7 @@ function setupOperationalForm(ssId) {
 
   form.addMultipleChoiceItem()
     .setTitle('Komoditas')
-    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Penyemaian'])
+    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
     .setRequired(true);
 
   form.addTextItem().setTitle('Luas Lahan (m²)');
@@ -339,7 +339,7 @@ function setupOperationalForm(ssId) {
   // Page 6: Kegiatan Pengawasan
   form.addPageBreakItem().setTitle('Kegiatan Pengawasan');
   form.addMultipleChoiceItem()
-    .setTitle('Pengawasan')
+    .setTitle('Tindakan Pengawasan')
     .setChoiceValues(['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'])
     .setRequired(true);
   form.addParagraphTextItem()
@@ -352,13 +352,62 @@ function setupOperationalForm(ssId) {
   form.addParagraphTextItem().setTitle('Kendala Kegiatan (jika ada)');
   form.addParagraphTextItem().setTitle('Upaya Yang Dilakukan (jika ada)');
 
-  form.addSectionHeaderItem()
-    .setTitle('Catatan Bukti Foto')
-    .setHelpText('Untuk melampirkan foto bukti kegiatan snapshot kamera langsung, gunakan Formulir Web App.');
-
   form.setDestination(FormApp.DestinationType.SPREADSHEET, ssId);
   Logger.log('Operational Form Published URL: ' + form.getPublishedUrl());
   return form.getId();
+}
+
+/**
+ * Updates an already-existing Google Form to the latest design/questions without losing responses.
+ * Run this function from Apps Script Editor or Admin Workspace.
+ */
+function syncLiveGoogleFormItems() {
+  const formId = ConfigRepository.getMainFormId();
+  if (!formId) {
+    Logger.log('No MAIN_FORM_ID configured in Script Properties.');
+    return { success: false, message: 'MAIN_FORM_ID belum terdaftar di Script Properties.' };
+  }
+  
+  const form = FormApp.openById(formId);
+  Logger.log('Syncing Google Form: ' + form.getTitle() + ' (' + formId + ')');
+
+  // Loop through items and update titles/options
+  const items = form.getItems();
+  items.forEach(item => {
+    const title = item.getTitle();
+    // 1. Update Komoditas items
+    if (title === 'Komoditas') {
+      try {
+        const mc = item.asMultipleChoiceItem();
+        mc.setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala']);
+      } catch (e) {}
+    }
+    // 2. Update Pengawasan title
+    if (title === 'Pengawasan' || title === 'Kategori Pengawasan') {
+      item.setTitle('Tindakan Pengawasan');
+    }
+    // 3. Update Nomor Telepon title
+    if (title === 'Nomor Telepon / WhatsApp') {
+      item.setTitle('Nomor Telepon');
+      try { item.setHelpText('Nomor telepon aktif PIC pelapor'); } catch (e) {}
+    }
+  });
+
+  // Check if 'Nomor Telepon' item exists, if not insert it right after ID Karyawan
+  const hasPhone = items.some(it => it.getTitle() === 'Nomor Telepon');
+  if (!hasPhone) {
+    let idIndex = items.findIndex(it => it.getTitle() === 'ID Karyawan');
+    const phoneItem = form.addTextItem();
+    phoneItem.setTitle('Nomor Telepon')
+      .setHelpText('Nomor telepon aktif PIC pelapor')
+      .setRequired(true);
+    if (idIndex >= 0) {
+      try { form.moveItem(phoneItem.getIndex(), idIndex + 1); } catch (e) {}
+    }
+  }
+
+  Logger.log('Google Form synced successfully: ' + form.getPublishedUrl());
+  return { success: true, url: form.getPublishedUrl() };
 }
 
 /**

@@ -188,7 +188,8 @@ const ConfigRepository = {
         'Jagung Tebon',
         'Jagung Hibrida',
         'Edamame',
-        'Penyemaian'
+        'Pembibitan Kopi',
+        'Pembibitan Pala'
       ],
       tujuanPenggunaanOptions: [
         'MPL Jonggol',
@@ -210,7 +211,15 @@ const ConfigRepository = {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
-          return Object.assign(this.getDefaultReportingFormSchema(), parsed);
+          const merged = Object.assign(this.getDefaultReportingFormSchema(), parsed);
+          // Auto-migrate legacy 'Penyemaian' to 'Pembibitan Kopi' & 'Pembibitan Pala'
+          if (Array.isArray(merged.komoditasOptions) && merged.komoditasOptions.includes('Penyemaian')) {
+            merged.komoditasOptions = merged.komoditasOptions
+              .filter(k => k !== 'Penyemaian')
+              .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
+            merged.komoditasOptions = Array.from(new Set(merged.komoditasOptions));
+          }
+          return merged;
         }
       }
     } catch (e) {

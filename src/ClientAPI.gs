@@ -85,6 +85,14 @@ function syncFormSchemaWithSpreadsheet() {
 }
 
 /**
+ * Synchronizes active Google Form with latest schema.
+ * @returns {{ success: boolean, message: string }}
+ */
+function syncGoogleFormWithLatestDesign() {
+  return AdminService.syncGoogleFormWithLatestDesign();
+}
+
+/**
  * Searches employee by ID or Name.
  * @param {string} query 
  * @returns {{ id: string, name: string, division: string }|null}
