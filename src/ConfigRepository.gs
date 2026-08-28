@@ -266,6 +266,7 @@ const ConfigRepository = {
         'Kemitraan'
       ],
       komoditasOptions: [
+        'Alpukat',
         'Pisang',
         'Jagung Manis',
         'Terong',
@@ -298,10 +299,15 @@ const ConfigRepository = {
         if (parsed && typeof parsed === 'object') {
           const merged = Object.assign(this.getDefaultReportingFormSchema(), parsed);
           // Auto-migrate legacy 'Penyemaian' to 'Pembibitan Kopi' & 'Pembibitan Pala'
-          if (Array.isArray(merged.komoditasOptions) && merged.komoditasOptions.includes('Penyemaian')) {
-            merged.komoditasOptions = merged.komoditasOptions
-              .filter(k => k !== 'Penyemaian')
-              .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
+          if (Array.isArray(merged.komoditasOptions)) {
+            if (merged.komoditasOptions.includes('Penyemaian')) {
+              merged.komoditasOptions = merged.komoditasOptions
+                .filter(k => k !== 'Penyemaian')
+                .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
+            }
+            if (!merged.komoditasOptions.includes('Alpukat')) {
+              merged.komoditasOptions.unshift('Alpukat');
+            }
             merged.komoditasOptions = Array.from(new Set(merged.komoditasOptions));
           }
           // Auto-migrate legacy Sektor locations to 'Jonggol', 'Cikalong', 'Quilling', 'Jakarta'

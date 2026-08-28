@@ -27,7 +27,7 @@
 
         <!-- Standard Required Fields -->
         <div class="form-group">
-          <label class="form-label" for="empId">ID Karyawan / Employee ID <span class="text-danger">*</span></label>
+          <label class="form-label" for="empId">ID Karyawan <span class="text-danger">*</span></label>
           <div class="emp-id-input-group">
             <div class="emp-id-input-wrapper">
               <input type="text" id="empId" name="empId" class="form-input" placeholder="Masukkan ID Anda" oninput="handleDynEmpIdInput(this.value)" required>
@@ -52,10 +52,9 @@
                 <span class="emp-field-label">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <span>Nama Karyawan</span>
-                  <span class="emp-field-readonly-tag">(View Only)</span>
                 </span>
                 <div class="emp-field-value" id="dynDisplayNama">
-                  <span style="color: #94a3b8; font-weight: normal; font-style: italic;">Otomatis dari ID</span>
+                  <span style="color: #94a3b8; font-weight: normal;">Otomatis dari ID</span>
                 </div>
                 <input type="hidden" id="dynNamaPic" name="namaPic">
               </div>
@@ -64,10 +63,9 @@
                 <span class="emp-field-label">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                   <span>Divisi</span>
-                  <span class="emp-field-readonly-tag">(View Only)</span>
                 </span>
                 <div class="emp-field-value" id="dynDisplayDivisi">
-                  <span style="color: #94a3b8; font-weight: normal; font-style: italic;">Otomatis dari ID</span>
+                  <span style="color: #94a3b8; font-weight: normal;">Otomatis dari ID</span>
                 </div>
                 <input type="hidden" id="dynDivisi" name="divisi">
               </div>
@@ -78,7 +76,7 @@
         <div class="form-group">
           <label class="form-label" for="site">Lokasi Kegiatan <span class="text-danger">*</span></label>
           <select id="site" name="site" class="form-input" required>
-            <option value="" disabled selected>-- Pilih Lokasi Kegiatan --</option>
+            <option value="" disabled selected>Pilih lokasi kegiatan</option>
             <option value="Jonggol">Jonggol</option>
             <option value="Cikalong">Cikalong</option>
             <option value="Quilling">Quilling</option>
@@ -87,7 +85,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="date">Tanggal Pelaporan / Date <span class="text-danger">*</span></label>
+          <label class="form-label" for="date">Tanggal Pelaporan <span class="text-danger">*</span></label>
           <input type="date" id="date" name="date" class="form-input" required>
         </div>
       </div>
@@ -405,10 +403,10 @@
         html += '<label class="form-label" for="' + fieldId + '">' + label + reqMark + '</label>';
 
         if (f.type === 'textarea') {
-          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" placeholder="Tuliskan rincian..." ' + reqAttr + '></textarea>';
+          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" ' + reqAttr + '></textarea>';
         } else if (f.type === 'select') {
           html += '<select id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
-          html += '<option value="" disabled selected>-- Pilih Opsi --</option>';
+          html += '<option value="" disabled selected>Pilih opsi</option>';
           (f.options || []).forEach(function(opt) {
             html += '<option value="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</option>';
           });
@@ -424,12 +422,12 @@
         } else if (f.type === 'date') {
           html += '<input type="date" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
         } else if (f.type === 'photo') {
-          html += '<div class="photo-upload-zone" onclick="document.getElementById(\'' + fieldId + '\').click()">' +
+          html += '<label for="' + fieldId + '" class="photo-upload-zone" tabindex="0" role="button" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();document.getElementById(\'' + fieldId + '\').click();}">' +
             '<svg class="svg-icon photo-upload-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>' +
-            '<div class="photo-upload-title">Ketuk untuk mengambil / memilih foto</div>' +
-            '<div class="photo-upload-hint">Format JPEG/PNG, maksimal 5MB</div>' +
+            '<div class="photo-upload-title">Pilih / Ambil Foto</div>' +
+            '<div class="photo-upload-hint">Format JPEG atau PNG, maksimal 5MB</div>' +
             '<input type="file" id="' + fieldId + '" data-photofield="' + f.key + '" class="form-input" accept="image/*" style="display: none;" ' + reqAttr + ' onchange="handlePhotoSelect(this, \'' + fieldId + '\')">' +
-          '</div>' +
+          '</label>' +
           '<div id="' + fieldId + '_preview" class="photo-preview-container" style="display: none;">' +
             '<img id="' + fieldId + '_img" class="photo-thumbnail" src="" alt="Pratinjau Foto">' +
             '<div class="photo-preview-details">' +
@@ -441,7 +439,7 @@
             '</div>' +
           '</div>';
         } else {
-          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" placeholder="Masukkan jawaban..." ' + reqAttr + '>';
+          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
         }
 
         html += '</div>';

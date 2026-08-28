@@ -50,7 +50,7 @@
               <label for="idKaryawan" class="form-label">ID Karyawan <span class="required" aria-hidden="true">*</span></label>
               <div class="emp-id-input-group">
                 <div class="emp-id-input-wrapper">
-                  <input type="text" id="idKaryawan" class="form-input" placeholder="Contoh: MNJ-01, ALP-02" autocomplete="off" oninput="handleEmployeeIdInput(this.value)" required>
+                  <input type="text" id="idKaryawan" class="form-input" placeholder="Contoh: MNJ-01" autocomplete="off" oninput="handleEmployeeIdInput(this.value)" required>
                   <div class="emp-id-status-icon" id="empIdStatusIcon">
                     <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                   </div>
@@ -196,7 +196,7 @@
           <fieldset class="form-group" id="rincianAgroGroup" style="border: none; padding: 0;">
             <legend class="form-label">Rincian Kegiatan Agro <span class="required" aria-hidden="true">*</span></legend>
             <span class="form-help">Centang rincian kegiatan agro yang dilaksanakan hari ini (dapat memilih lebih dari satu):</span>
-            <div class="checkbox-pill-grid">
+            <div class="checkbox-pill-grid-3col">
               <label class="checkbox-pill-item">
                 <input type="checkbox" name="rincianAgroCheck" value="Tanam/Tebar" onchange="toggleAgroSubSection('Tanam')">
                 <span>Tanam / Tebar</span>
@@ -222,7 +222,7 @@
               <div class="form-group">
                 <label for="statusPengelolaan">Status Pengelolaan <span class="required">*</span></label>
                 <select id="statusPengelolaan">
-                  <option value="">-- Pilih Status --</option>
+                  <option value="" disabled selected>Pilih status pengelolaan</option>
                   <option value="Swakelola">Swakelola</option>
                   <option value="Petani binaan">Petani binaan</option>
                   <option value="Kemitraan">Kemitraan</option>
@@ -232,7 +232,8 @@
               <div class="form-group">
                 <label for="komoditas">Komoditas <span class="required">*</span></label>
                 <select id="komoditas">
-                  <option value="">-- Pilih Komoditas --</option>
+                  <option value="" disabled selected>Pilih komoditas</option>
+                  <option value="Alpukat">Alpukat</option>
                   <option value="Pisang">Pisang</option>
                   <option value="Jagung Manis">Jagung Manis</option>
                   <option value="Terong">Terong</option>
@@ -249,7 +250,7 @@
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="lokasiBlok">Lokasi / Blok <span class="required">*</span></label>
-                <input type="text" id="lokasiBlok" placeholder="Contoh: Blok A1">
+                <input type="text" id="lokasiBlok" placeholder="Contoh: Blok A-2, Petak 3">
               </div>
               <div class="form-group">
                 <label for="luasLahanM2">Luas Lahan (m²) <span class="required">*</span></label>
@@ -268,7 +269,7 @@
                 <input type="date" id="tglTanam">
               </div>
               <div class="form-group">
-                <label for="estimasiPanenHst">Estimasi Panen (HST - Hari Setelah Tanam) <span class="required">*</span></label>
+                <label for="estimasiPanenHst">Estimasi Panen (HST) <span class="required">*</span></label>
                 <input type="number" id="estimasiPanenHst" placeholder="Contoh: 90" min="1">
               </div>
             </div>
@@ -287,7 +288,7 @@
               <div class="form-group">
                 <label for="statusPengelolaanRawat">Status Pengelolaan <span class="required">*</span></label>
                 <select id="statusPengelolaanRawat">
-                  <option value="">-- Pilih Status --</option>
+                  <option value="" disabled selected>Pilih status pengelolaan</option>
                   <option value="Swakelola">Swakelola</option>
                   <option value="Petani binaan">Petani binaan</option>
                   <option value="Kemitraan">Kemitraan</option>
@@ -297,7 +298,8 @@
               <div class="form-group">
                 <label for="komoditasRawat">Komoditas <span class="required">*</span></label>
                 <select id="komoditasRawat">
-                  <option value="">-- Pilih Komoditas --</option>
+                  <option value="" disabled selected>Pilih komoditas</option>
+                  <option value="Alpukat">Alpukat</option>
                   <option value="Pisang">Pisang</option>
                   <option value="Jagung Manis">Jagung Manis</option>
                   <option value="Terong">Terong</option>
@@ -323,8 +325,8 @@
             </div>
 
             <div class="form-group">
-              <label for="populasiAgro">Populasi Tanaman (Jumlah Pohon / Batang) <span class="required">*</span></label>
-              <input type="number" id="populasiAgro" placeholder="0" min="1">
+              <label for="populasiAgro">Populasi Tanaman <span class="required">*</span></label>
+              <input type="number" id="populasiAgro" placeholder="Jumlah pohon / batang" min="1">
             </div>
 
             <div class="form-group">
@@ -346,7 +348,7 @@
               <div class="form-group">
                 <label for="statusPengelolaanPanen">Status Pengelolaan <span class="required">*</span></label>
                 <select id="statusPengelolaanPanen">
-                  <option value="">-- Pilih Status --</option>
+                  <option value="" disabled selected>Pilih status pengelolaan</option>
                   <option value="Swakelola">Swakelola</option>
                   <option value="Petani binaan">Petani binaan</option>
                   <option value="Kemitraan">Kemitraan</option>
@@ -356,7 +358,8 @@
               <div class="form-group">
                 <label for="komoditasPanen">Komoditas <span class="required">*</span></label>
                 <select id="komoditasPanen">
-                  <option value="">-- Pilih Komoditas --</option>
+                  <option value="" disabled selected>Pilih komoditas</option>
+                  <option value="Alpukat">Alpukat</option>
                   <option value="Pisang">Pisang</option>
                   <option value="Jagung Manis">Jagung Manis</option>
                   <option value="Terong">Terong</option>
@@ -373,7 +376,7 @@
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="lokasiBlokPanen">Lokasi / Blok <span class="required">*</span></label>
-                <input type="text" id="lokasiBlokPanen" placeholder="Contoh: Blok C1">
+                <input type="text" id="lokasiBlokPanen" placeholder="Contoh: Blok C-1, Lahan 3">
               </div>
               <div class="form-group">
                 <label for="luasLahanPanenM2">Luas Lahan Panen (m²) <span class="required">*</span></label>
@@ -384,7 +387,7 @@
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="tglPanen">Tanggal Panen <span class="required">*</span></label>
-                <input type="date" id="tglPanen">
+                <input type="date" id="tglPanen" onchange="handleTglPanenChange()">
               </div>
               <div class="form-group">
                 <label for="jumlahPanen">Jumlah Panen (Kg) <span class="required">*</span></label>
@@ -392,17 +395,24 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="tujuanDistribusi">Tujuan Distribusi <span class="required">*</span></label>
-              <select id="tujuanDistribusi" onchange="handleTujuanDistribusiChange('Agro')">
-                <option value="">-- Pilih Tujuan Distribusi --</option>
-                <option value="Penjualan">Penjualan</option>
-                <option value="Penggunaan Internal">Penggunaan Internal</option>
-              </select>
-            </div>
+            <fieldset class="form-group" id="tujuanDistribusiGroup" style="border: none; padding: 0;">
+              <legend class="form-label">Tujuan Distribusi <span class="required" aria-hidden="true">*</span></legend>
+              <span class="form-help">Centang tujuan distribusi hasil panen (dapat memilih salah satu atau keduanya jika terjadi dalam satu panen):</span>
+              <div class="checkbox-pill-grid-3col" style="grid-template-columns: repeat(2, 1fr);">
+                <label class="checkbox-pill-item">
+                  <input type="checkbox" name="tujuanDistribusiCheck" value="Penjualan" onchange="handleTujuanDistribusiAgroCheckChange()">
+                  <span>Penjualan</span>
+                </label>
+                <label class="checkbox-pill-item">
+                  <input type="checkbox" name="tujuanDistribusiCheck" value="Penggunaan Internal" onchange="handleTujuanDistribusiAgroCheckChange()">
+                  <span>Penggunaan Internal</span>
+                </label>
+              </div>
+            </fieldset>
 
             <!-- Conditional 1: Form Penjualan Agro -->
-            <div id="agroPenjualanContainer" style="display: none;">
+            <div id="agroPenjualanContainer" style="display: none; margin-top: 1rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #15803d; margin-bottom: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Penjualan Hasil Panen</div>
               <div class="form-group">
                 <label for="tglPenjualan">Tanggal Penjualan <span class="required">*</span></label>
                 <input type="date" id="tglPenjualan">
@@ -410,7 +420,7 @@
 
               <div class="form-row-2col">
                 <div class="form-group">
-                  <label for="jumlahPenjualanUnit">Jumlah Penjualan (Unit / Kg) <span class="required">*</span></label>
+                  <label for="jumlahPenjualanUnit">Jumlah Penjualan (Kg) <span class="required">*</span></label>
                   <input type="number" id="jumlahPenjualanUnit" placeholder="0" min="0.01" step="any" oninput="calculateTotalHarga('Agro')">
                 </div>
                 <div class="form-group">
@@ -421,7 +431,8 @@
 
               <div class="form-group">
                 <label for="totalHargaRp">Total Harga (Rp) <span class="required">*</span></label>
-                <input type="number" id="totalHargaRp" placeholder="0" readonly style="background: #f1f5f9; font-weight: 700; color: #15803d;">
+                <input type="number" id="totalHargaRp" class="form-field--calculated" placeholder="0" readonly>
+                <span class="form-help">Dihitung otomatis (Jumlah × Harga Satuan).</span>
               </div>
 
               <div class="buyer-info-box">
@@ -445,22 +456,23 @@
             </div>
 
             <!-- Conditional 2: Penggunaan Internal Agro -->
-            <div id="agroPenggunaanContainer" style="display: none;">
+            <div id="agroPenggunaanContainer" style="display: none; margin-top: 1rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #0369a1; margin-bottom: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Penggunaan Internal Agro</div>
               <fieldset class="form-group" id="tujuanPenggunaanAgroGroup" style="border: none; padding: 0;">
                 <legend class="form-label">Tujuan Penggunaan Internal <span class="required" aria-hidden="true">*</span></legend>
                 <span class="form-help">Pilih minimal 1 tujuan penggunaan internal:</span>
                 <div class="checkbox-pill-grid" id="tujuanPenggunaanAgroGrid">
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Jonggol">
-                    <span>Jonggol</span>
+                    <input type="checkbox" name="tujuanPenggunaanCheck" value="MPL Jonggol">
+                    <span>MPL Jonggol</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Cikalong">
-                    <span>Cikalong</span>
+                    <input type="checkbox" name="tujuanPenggunaanCheck" value="MPL Cikalong">
+                    <span>MPL Cikalong</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Quilling">
-                    <span>Quilling</span>
+                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Villa Quiling">
+                    <span>Villa Quiling</span>
                   </label>
                   <label class="checkbox-pill-item">
                     <input type="checkbox" name="tujuanPenggunaanCheck" value="Pasir Putih">
@@ -504,7 +516,7 @@
           <fieldset class="form-group" id="rincianTernakGroup" style="border: none; padding: 0;">
             <legend class="form-label">Rincian Kegiatan Ternak <span class="required" aria-hidden="true">*</span></legend>
             <span class="form-help">Centang rincian kegiatan peternakan yang dilaksanakan hari ini (dapat memilih lebih dari satu):</span>
-            <div class="checkbox-pill-grid">
+            <div class="checkbox-pill-grid-3col" style="grid-template-columns: repeat(2, 1fr);">
               <label class="checkbox-pill-item">
                 <input type="checkbox" name="rincianTernakCheck" value="Perawatan" onchange="toggleTernakSubSection('Rawat')">
                 <span>Perawatan</span>
@@ -525,51 +537,51 @@
             <div class="form-group">
               <label for="jenisTernak">Jenis Ternak <span class="required">*</span></label>
               <select id="jenisTernak">
-                <option value="">-- Pilih Jenis Ternak --</option>
+                <option value="" disabled selected>Pilih jenis ternak</option>
                 <option value="Sapi">Sapi</option>
-                <option value="Domba">Domba</option>
                 <option value="Kambing">Kambing</option>
-                <option value="Ayam Petelur">Ayam Petelur</option>
+                <option value="Domba">Domba</option>
                 <option value="Ayam Broiler">Ayam Broiler</option>
-                <option value="Bebek">Bebek</option>
-                <option value="Ikan Nila">Ikan Nila</option>
-                <option value="Ikan Lele">Ikan Lele</option>
+                <option value="Ayam KUB">Ayam KUB</option>
+                <option value="Ayam KUB Petelur">Ayam KUB Petelur</option>
               </select>
             </div>
 
-            <!-- Row: Ternak Masuk & Keluar -->
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="ternakMasukJenis">Ternak Masuk <span class="required">*</span></label>
-                <select id="ternakMasukJenis" onchange="handleTernakMasukChange()">
-                  <option value="">-- Pilih --</option>
-                  <option value="Tidak Ada">Tidak Ada</option>
-                  <option value="Beli">Beli</option>
-                  <option value="Lahir">Lahir</option>
-                </select>
+            <!-- Ternak Masuk Card -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md, 8px); padding: 0.9rem 1rem; margin-bottom: 1rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #15803d; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                <span>Ternak Masuk</span>
               </div>
-
-              <div class="form-group" id="groupTernakMasukQty" style="display: none;">
-                <label for="ternakMasukQty" id="labelTernakMasukQty">Jumlah Masuk (Ekor) <span class="required">*</span></label>
-                <input type="number" id="ternakMasukQty" placeholder="0" min="1">
+              <p style="font-size: 0.75rem; color: #64748b; margin: 0 0 0.75rem 0;">Kosongkan atau biarkan 0 jika tidak ada penambahan ternak hari ini.</p>
+              <div class="form-row-2col">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="ternakMasukKelahiranQty">Kelahiran (Ekor)</label>
+                  <input type="number" id="ternakMasukKelahiranQty" placeholder="0" min="0" value="0">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="ternakMasukPembelianQty">Pembelian (Ekor)</label>
+                  <input type="number" id="ternakMasukPembelianQty" placeholder="0" min="0" value="0">
+                </div>
               </div>
             </div>
 
-            <div class="form-row-2col">
-              <div class="form-group">
-                <label for="ternakKeluarJenis">Ternak Keluar <span class="required">*</span></label>
-                <select id="ternakKeluarJenis" onchange="handleTernakKeluarChange()">
-                  <option value="">-- Pilih --</option>
-                  <option value="Tidak Ada">Tidak Ada</option>
-                  <option value="Mati">Mati</option>
-                  <option value="Afkir">Afkir</option>
-                  <option value="Hilang">Hilang</option>
-                </select>
+            <!-- Ternak Keluar Card -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md, 8px); padding: 0.9rem 1rem; margin-bottom: 1rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #b91c1c; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                <span>Ternak Keluar</span>
               </div>
-
-              <div class="form-group" id="groupTernakKeluarQty" style="display: none;">
-                <label for="ternakKeluarQty" id="labelTernakKeluarQty">Jumlah Keluar (Ekor) <span class="required">*</span></label>
-                <input type="number" id="ternakKeluarQty" placeholder="0" min="1">
+              <p style="font-size: 0.75rem; color: #64748b; margin: 0 0 0.75rem 0;">Kosongkan atau biarkan 0 jika tidak ada pengurangan ternak hari ini.</p>
+              <div class="form-row-2col">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="ternakKeluarKematianQty">Kematian (Ekor)</label>
+                  <input type="number" id="ternakKeluarKematianQty" placeholder="0" min="0" value="0">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="ternakKeluarPenjualanQty">Penjualan (Ekor)</label>
+                  <input type="number" id="ternakKeluarPenjualanQty" placeholder="0" min="0" value="0">
+                </div>
               </div>
             </div>
 
@@ -601,34 +613,42 @@
 
             <div class="form-group">
               <label for="jenisKomoditasTernak">Jenis Komoditas Ternak <span class="required">*</span></label>
-              <select id="jenisKomoditasTernak">
-                <option value="">-- Pilih Komoditas --</option>
-                <option value="Sapi Hidup">Sapi Hidup</option>
-                <option value="Domba / Kambing Hidup">Domba / Kambing Hidup</option>
-                <option value="Ayam Hidup">Ayam Hidup</option>
-                <option value="Telur Ayam">Telur Ayam</option>
-                <option value="Susu Segar">Susu Segar</option>
-                <option value="Daging Olahan">Daging Olahan</option>
-                <option value="Ikan Segar">Ikan Segar</option>
-                <option value="Pupuk Kandang / Kohe">Pupuk Kandang / Kohe</option>
+              <select id="jenisKomoditasTernak" onchange="handleJenisKomoditasTernakChange()">
+                <option value="" disabled selected>Pilih komoditas ternak</option>
+                <option value="Hewan Hidup">Hewan Hidup</option>
+                <option value="Telur">Telur</option>
+                <option value="Daging">Daging</option>
+                <option value="Lainnya">Lainnya</option>
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="tujuanDistribusiTernak">Tujuan Distribusi <span class="required">*</span></label>
-              <select id="tujuanDistribusiTernak" onchange="handleTujuanDistribusiChange('Ternak')">
-                <option value="">-- Pilih Tujuan Distribusi --</option>
-                <option value="Penjualan">Penjualan</option>
-                <option value="Penggunaan Internal">Penggunaan Internal</option>
-              </select>
+            <div class="form-group" id="groupKomoditasTernakLainnya" style="display: none;">
+              <label for="jenisKomoditasTernakLainnya">Sebutkan Komoditas Lainnya <span class="required">*</span></label>
+              <input type="text" id="jenisKomoditasTernakLainnya" placeholder="Contoh: Susu Kambing, Madu Ternak, dsb.">
             </div>
+
+            <fieldset class="form-group" id="tujuanDistribusiTernakGroup" style="border: none; padding: 0;">
+              <legend class="form-label">Tujuan Distribusi <span class="required" aria-hidden="true">*</span></legend>
+              <span class="form-help">Centang tujuan distribusi produk ternak (dapat memilih salah satu atau keduanya):</span>
+              <div class="checkbox-pill-grid-3col" style="grid-template-columns: repeat(2, 1fr);">
+                <label class="checkbox-pill-item">
+                  <input type="checkbox" name="tujuanDistribusiTernakCheck" value="Penjualan" onchange="handleTujuanDistribusiTernakCheckChange()">
+                  <span>Penjualan</span>
+                </label>
+                <label class="checkbox-pill-item">
+                  <input type="checkbox" name="tujuanDistribusiTernakCheck" value="Penggunaan Internal" onchange="handleTujuanDistribusiTernakCheckChange()">
+                  <span>Penggunaan Internal</span>
+                </label>
+              </div>
+            </fieldset>
 
             <!-- Conditional 1: Penjualan Ternak -->
-            <div id="ternakPenjualanContainer" style="display: none;">
+            <div id="ternakPenjualanContainer" style="display: none; margin-top: 1rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #15803d; margin-bottom: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Penjualan Produk Ternak</div>
               <div class="form-row-2col">
                 <div class="form-group">
-                  <label for="jumlahPenjualanTernak">Jumlah Penjualan (Ekor / Kg / Liter / Butir) <span class="required">*</span></label>
-                  <input type="number" id="jumlahPenjualanTernak" placeholder="0" min="0.01" step="any" oninput="calculateTotalHarga('Ternak')">
+                  <label for="jumlahPenjualanTernak">Jumlah Penjualan <span class="required">*</span></label>
+                  <input type="number" id="jumlahPenjualanTernak" placeholder="Jumlah unit / ekor / kg" min="0.01" step="any" oninput="calculateTotalHarga('Ternak')">
                 </div>
                 <div class="form-group">
                   <label for="hargaSatuanTernakRp">Harga Satuan (Rp) <span class="required">*</span></label>
@@ -638,7 +658,8 @@
 
               <div class="form-group">
                 <label for="totalHargaTernakRp">Total Harga (Rp) <span class="required">*</span></label>
-                <input type="number" id="totalHargaTernakRp" placeholder="0" readonly style="background: #f1f5f9; font-weight: 700; color: #15803d;">
+                <input type="number" id="totalHargaTernakRp" class="form-field--calculated" placeholder="0" readonly>
+                <span class="form-help">Dihitung otomatis (Jumlah × Harga Satuan).</span>
               </div>
 
               <div class="buyer-info-box">
@@ -662,22 +683,23 @@
             </div>
 
             <!-- Conditional 2: Penggunaan Internal Ternak -->
-            <div id="ternakPenggunaanContainer" style="display: none;">
+            <div id="ternakPenggunaanContainer" style="display: none; margin-top: 1rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #0369a1; margin-bottom: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Rincian Penggunaan Internal Ternak</div>
               <fieldset class="form-group" id="tujuanPenggunaanTernakGroup" style="border: none; padding: 0;">
                 <legend class="form-label">Tujuan Penggunaan Internal <span class="required" aria-hidden="true">*</span></legend>
                 <span class="form-help">Pilih minimal 1 lokasi tujuan:</span>
                 <div class="checkbox-pill-grid" id="tujuanPenggunaanTernakGrid">
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Jonggol">
-                    <span>Jonggol</span>
+                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="MPL Jonggol">
+                    <span>MPL Jonggol</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Cikalong">
-                    <span>Cikalong</span>
+                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="MPL Cikalong">
+                    <span>MPL Cikalong</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Quilling">
-                    <span>Quilling</span>
+                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Villa Quiling">
+                    <span>Villa Quiling</span>
                   </label>
                   <label class="checkbox-pill-item">
                     <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Pasir Putih">
@@ -721,7 +743,7 @@
           <div class="form-group">
             <label for="officeJenis">Jenis Kegiatan Office <span class="required">*</span></label>
             <select id="officeJenis">
-              <option value="">-- Pilih Jenis Kegiatan --</option>
+              <option value="" disabled selected>Pilih jenis kegiatan</option>
               <option value="Keuangan">Keuangan</option>
               <option value="Administrasi">Administrasi</option>
             </select>
@@ -729,7 +751,7 @@
 
           <div class="form-group">
             <label for="officeRincian">Rincian Kegiatan <span class="required">*</span></label>
-            <textarea id="officeRincian" rows="3" placeholder="Tuliskan rincian kegiatan operasional kantor yang dikerjakan hari ini..."></textarea>
+            <textarea id="officeRincian" rows="3" placeholder="Rincian kegiatan operasional kantor hari ini..."></textarea>
           </div>
 
           <!-- Dynamic Custom Questions Container (Step 4 Office End / Default) -->
@@ -781,25 +803,28 @@
               <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>.
             </p>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
+            <div class="photo-slots-grid-3col">
               <!-- Slot 1 -->
-              <div class="photo-slot-card" id="slotCardPengawasan_0">
+              <div class="photo-slot-card" id="slotCardPengawasan_0" onclick="if(!capturedPhotos[0]) triggerFileUpload(0)">
                 <div class="photo-slot-title">Foto 1: Utama <span class="required">*</span></div>
                 
-                <div id="slotEmptyPengawasan_0">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(0)">
-                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div id="slotEmptyPengawasan_0" class="photo-slot-empty">
+                  <div class="photo-slot-icon-circle">
+                    <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerFileUpload(0)">
                     <span>Pilih Foto 1</span>
                   </button>
+                  <span class="photo-slot-hint">Format JPG/PNG, maks 5MB</span>
                 </div>
 
-                <div id="slotPreviewPengawasan_0" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImgPengawasan_0" src="" alt="Pratinjau Foto 1" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
-                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(0)">
+                <div id="slotPreviewPengawasan_0" class="photo-slot-preview" style="display: none;">
+                  <img id="slotImgPengawasan_0" src="" alt="Pratinjau Foto 1">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerFileUpload(0)">
                       <span>Ganti</span>
                     </button>
-                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(0)">
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(0)">
                       <span>Hapus</span>
                     </button>
                   </div>
@@ -807,23 +832,26 @@
               </div>
 
               <!-- Slot 2 -->
-              <div class="photo-slot-card" id="slotCardPengawasan_1">
+              <div class="photo-slot-card" id="slotCardPengawasan_1" onclick="if(!capturedPhotos[1]) triggerFileUpload(1)">
                 <div class="photo-slot-title">Foto 2: Detail Aktivitas <span class="required">*</span></div>
                 
-                <div id="slotEmptyPengawasan_1">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(1)">
-                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div id="slotEmptyPengawasan_1" class="photo-slot-empty">
+                  <div class="photo-slot-icon-circle">
+                    <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerFileUpload(1)">
                     <span>Pilih Foto 2</span>
                   </button>
+                  <span class="photo-slot-hint">Format JPG/PNG, maks 5MB</span>
                 </div>
 
-                <div id="slotPreviewPengawasan_1" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImgPengawasan_1" src="" alt="Pratinjau Foto 2" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
-                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(1)">
+                <div id="slotPreviewPengawasan_1" class="photo-slot-preview" style="display: none;">
+                  <img id="slotImgPengawasan_1" src="" alt="Pratinjau Foto 2">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerFileUpload(1)">
                       <span>Ganti</span>
                     </button>
-                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(1)">
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(1)">
                       <span>Hapus</span>
                     </button>
                   </div>
@@ -831,23 +859,26 @@
               </div>
 
               <!-- Slot 3 -->
-              <div class="photo-slot-card" id="slotCardPengawasan_2">
+              <div class="photo-slot-card" id="slotCardPengawasan_2" onclick="if(!capturedPhotos[2]) triggerFileUpload(2)">
                 <div class="photo-slot-title">Foto 3: Hasil / Area <span class="required">*</span></div>
                 
-                <div id="slotEmptyPengawasan_2">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(2)">
-                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div id="slotEmptyPengawasan_2" class="photo-slot-empty">
+                  <div class="photo-slot-icon-circle">
+                    <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerFileUpload(2)">
                     <span>Pilih Foto 3</span>
                   </button>
+                  <span class="photo-slot-hint">Format JPG/PNG, maks 5MB</span>
                 </div>
 
-                <div id="slotPreviewPengawasan_2" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImgPengawasan_2" src="" alt="Pratinjau Foto 3" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
-                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(2)">
+                <div id="slotPreviewPengawasan_2" class="photo-slot-preview" style="display: none;">
+                  <img id="slotImgPengawasan_2" src="" alt="Pratinjau Foto 3">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerFileUpload(2)">
                       <span>Ganti</span>
                     </button>
-                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(2)">
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(2)">
                       <span>Hapus</span>
                     </button>
                   </div>
@@ -905,25 +936,28 @@
               <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>.
             </p>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
+            <div class="photo-slots-grid-3col">
               <!-- Slot 1 -->
-              <div class="photo-slot-card" id="photoSlotCard_0">
+              <div class="photo-slot-card" id="photoSlotCard_0" onclick="if(!capturedPhotos[0]) triggerCameraCapture(0)">
                 <div class="photo-slot-title">Foto 1: Utama <span class="required">*</span></div>
                 
-                <div id="slotEmpty_0">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(0)">
-                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <div id="slotEmpty_0" class="photo-slot-empty">
+                  <div class="photo-slot-icon-circle">
+                    <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(0)">
                     <span>Ambil Foto 1</span>
                   </button>
+                  <span class="photo-slot-hint">Kamera atau Galeri</span>
                 </div>
 
-                <div id="slotPreview_0" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImg_0" src="" alt="Pratinjau Foto 1" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
-                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(0)">
+                <div id="slotPreview_0" class="photo-slot-preview" style="display: none;">
+                  <img id="slotImg_0" src="" alt="Pratinjau Foto 1">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(0)">
                       <span>Foto Ulang</span>
                     </button>
-                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(0)">
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(0)">
                       <span>Hapus</span>
                     </button>
                   </div>
@@ -931,23 +965,26 @@
               </div>
 
               <!-- Slot 2 -->
-              <div class="photo-slot-card" id="photoSlotCard_1">
+              <div class="photo-slot-card" id="photoSlotCard_1" onclick="if(!capturedPhotos[1]) triggerCameraCapture(1)">
                 <div class="photo-slot-title">Foto 2: Detail Aktivitas <span class="required">*</span></div>
                 
-                <div id="slotEmpty_1">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(1)">
-                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <div id="slotEmpty_1" class="photo-slot-empty">
+                  <div class="photo-slot-icon-circle">
+                    <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(1)">
                     <span>Ambil Foto 2</span>
                   </button>
+                  <span class="photo-slot-hint">Kamera atau Galeri</span>
                 </div>
 
-                <div id="slotPreview_1" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImg_1" src="" alt="Pratinjau Foto 2" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
-                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(1)">
+                <div id="slotPreview_1" class="photo-slot-preview" style="display: none;">
+                  <img id="slotImg_1" src="" alt="Pratinjau Foto 2">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(1)">
                       <span>Foto Ulang</span>
                     </button>
-                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(1)">
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(1)">
                       <span>Hapus</span>
                     </button>
                   </div>
@@ -955,23 +992,26 @@
               </div>
 
               <!-- Slot 3 -->
-              <div class="photo-slot-card" id="photoSlotCard_2">
+              <div class="photo-slot-card" id="photoSlotCard_2" onclick="if(!capturedPhotos[2]) triggerCameraCapture(2)">
                 <div class="photo-slot-title">Foto 3: Hasil / Area <span class="required">*</span></div>
                 
-                <div id="slotEmpty_2">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(2)">
-                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <div id="slotEmpty_2" class="photo-slot-empty">
+                  <div class="photo-slot-icon-circle">
+                    <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(2)">
                     <span>Ambil Foto 3</span>
                   </button>
+                  <span class="photo-slot-hint">Kamera atau Galeri</span>
                 </div>
 
-                <div id="slotPreview_2" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImg_2" src="" alt="Pratinjau Foto 3" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
-                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(2)">
+                <div id="slotPreview_2" class="photo-slot-preview" style="display: none;">
+                  <img id="slotImg_2" src="" alt="Pratinjau Foto 3">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(2)">
                       <span>Foto Ulang</span>
                     </button>
-                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(2)">
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(2)">
                       <span>Hapus</span>
                     </button>
                   </div>
@@ -1196,6 +1236,33 @@
     </div>
   </div>
 
+  <!-- In-Page Desktop Camera Modal -->
+  <div class="modal-overlay" id="cameraModal" style="display: none;">
+    <div class="modal-card" style="max-width: 520px; padding: 1.5rem; text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a;" id="cameraModalTitle">Ambil Foto Bukti</h3>
+        <button type="button" class="modal-close-btn" onclick="closeInPageCameraModal()" aria-label="Tutup Kamera">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #0f172a; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+        <video id="cameraModalVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <div id="cameraModalLoading" style="position: absolute; color: #94a3b8; font-size: 0.875rem;">Menghubungkan ke kamera...</div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeInPageCameraModal()">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnSnapModal" onclick="snapInPageCameraPhoto()">
+          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Ambil Foto</span>
+        </button>
+        <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeInPageCameraModal(); triggerFileUpload(currentCameraSlot);">Unggah File</button>
+      </div>
+      <canvas id="cameraModalCanvas" style="display: none;"></canvas>
+    </div>
+  </div>
+
   <?!= includeApp(webAppUrl); ?>
   <script>
     // Master Employee Registry (38 Karyawan, 5 Divisi)
@@ -1259,7 +1326,7 @@
 
     let ACTIVE_FORM_SCHEMA = {
       lokasiOptions: ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'],
-      komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
+      komoditasOptions: ['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
       pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
       statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
       tujuanPenggunaanOptions: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
@@ -1296,16 +1363,20 @@
         }
       }
 
-      // 2. Hydrate Komoditas (Tanam & Panen)
+      // 2. Hydrate Komoditas (Tanam, Rawat & Panen)
       if (Array.isArray(schema.komoditasOptions) && schema.komoditasOptions.length > 0) {
         let comList = schema.komoditasOptions;
         if (comList.includes('Penyemaian')) {
           comList = comList.filter(k => k !== 'Penyemaian').concat(['Pembibitan Kopi', 'Pembibitan Pala']);
           comList = Array.from(new Set(comList));
         }
+        if (!comList.includes('Alpukat')) {
+          comList.unshift('Alpukat');
+        }
         const selTanam = document.getElementById('komoditas');
+        const selRawat = document.getElementById('komoditasRawat');
         const selPanen = document.getElementById('komoditasPanen');
-        let comHtml = '<option value="">-- Pilih Komoditas --</option>';
+        let comHtml = '<option value="" disabled selected>Pilih komoditas</option>';
         comList.forEach(com => {
           comHtml += `<option value="${escapeHtmlAttr(com)}">${escapeHtmlAttr(com)}</option>`;
         });
@@ -1313,6 +1384,11 @@
           const prevVal = selTanam.value;
           selTanam.innerHTML = comHtml;
           if (prevVal && prevVal !== 'Penyemaian') selTanam.value = prevVal;
+        }
+        if (selRawat) {
+          const prevVal = selRawat.value;
+          selRawat.innerHTML = comHtml;
+          if (prevVal && prevVal !== 'Penyemaian') selRawat.value = prevVal;
         }
         if (selPanen) {
           const prevVal = selPanen.value;
@@ -1326,7 +1402,7 @@
         const sel = document.getElementById('pengawasan');
         if (sel) {
           const curVal = sel.value;
-          let optsHtml = '<option value="">-- Pilih Tindakan Pengawasan --</option>';
+          let optsHtml = '<option value="" disabled selected>Pilih tindakan pengawasan</option>';
           schema.pengawasanCategories.forEach(cat => {
             optsHtml += `<option value="${escapeHtmlAttr(cat)}" ${curVal === cat ? 'selected' : ''}>${escapeHtmlAttr(cat)}</option>`;
           });
@@ -1338,7 +1414,7 @@
       if (Array.isArray(schema.statusPengelolaanOptions) && schema.statusPengelolaanOptions.length > 0) {
         const selStatus = document.getElementById('statusPengelolaan');
         const selStatusPanen = document.getElementById('statusPengelolaanPanen');
-        let statusHtml = '<option value="">-- Pilih Status --</option>';
+        let statusHtml = '<option value="" disabled selected>Pilih status pengelolaan</option>';
         schema.statusPengelolaanOptions.forEach(st => {
           statusHtml += `<option value="${escapeHtmlAttr(st)}">${escapeHtmlAttr(st)}</option>`;
         });
@@ -1432,7 +1508,7 @@
             <div class="form-group">
               <label for="cf_${f.id}">${escapeHtmlAttr(f.label)} ${reqBadge}</label>
               <select id="cf_${f.id}" name="cf_${f.id}" ${reqAttr}>
-                <option value="">-- Pilih ${escapeHtmlAttr(f.label)} --</option>
+                <option value="" disabled selected>Pilih ${escapeHtmlAttr(f.label)}</option>
                 ${opts.map(o => `<option value="${escapeHtmlAttr(o)}">${escapeHtmlAttr(o)}</option>`).join('')}
               </select>
               ${help}
@@ -1699,12 +1775,12 @@
       if (isSgaJunior(emp.id)) {
         sec.style.display = 'block';
         sec.innerHTML = `
-          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.85rem 1rem;">
-            <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-              <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: var(--radius-md, 10px); padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: #92400e; margin-bottom: 0.25rem;">Pengisian Form Didelegasikan ke PIC SGA</div>
-                <div style="font-size: 0.8rem; color: #b45309; line-height: 1.4;">
+                <div style="font-weight: 700; font-size: 0.875rem; color: #92400e; margin-bottom: 0.35rem;">Pengisian Form Didelegasikan ke PIC SGA</div>
+                <div style="font-size: 0.825rem; color: #b45309; line-height: 1.45;">
                   Untuk Divisi SGA, laporan kegiatan harian wajib diisi oleh PIC resmi: <strong>Ketut (SGA-01)</strong> atau <strong>Amas S (SGA-02)</strong>. Mohon sampaikan catatan aktivitas Anda kepada PIC SGA.
                 </div>
               </div>
@@ -1718,12 +1794,12 @@
       if (isBkoSubordinate(emp.id)) {
         sec.style.display = 'block';
         sec.innerHTML = `
-          <div style="background: #eef2ff; border: 1px solid #e0e7ff; border-left: 4px solid #4f46e5; border-radius: 8px; padding: 0.85rem 1rem;">
-            <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-              <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div style="background: #eef2ff; border: 1px solid #e0e7ff; border-left: 4px solid #4f46e5; border-radius: var(--radius-md, 10px); padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: #3730a3; margin-bottom: 0.25rem;">Pengisian Form Didelegasikan ke Tim Alprof</div>
-                <div style="font-size: 0.8rem; color: #4338ca; line-height: 1.4;">
+                <div style="font-weight: 700; font-size: 0.875rem; color: #3730a3; margin-bottom: 0.35rem;">Pengisian Form Didelegasikan ke Tim Alprof</div>
+                <div style="font-size: 0.825rem; color: #4338ca; line-height: 1.45;">
                   Pelaporan kegiatan harian untuk <strong>BKO 28</strong> dilaporkan melalui tim <strong>Alprof</strong>. Mohon sampaikan catatan aktivitas Anda kepada rekan Alprof.
                 </div>
               </div>
@@ -1737,12 +1813,12 @@
       if (isPkhSubordinate(emp.id)) {
         sec.style.display = 'block';
         sec.innerHTML = `
-          <div style="background: #f0f9ff; border: 1px solid #e0f2fe; border-left: 4px solid #0284c7; border-radius: 8px; padding: 0.85rem 1rem;">
-            <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-              <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div style="background: #f0f9ff; border: 1px solid #e0f2fe; border-left: 4px solid #0284c7; border-radius: var(--radius-md, 10px); padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+              <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <div>
-                <div style="font-weight: 700; font-size: 0.85rem; color: #0369a1; margin-bottom: 0.25rem;">Pelaporan Melalui Tim Manajemen</div>
-                <div style="font-size: 0.8rem; color: #0284c7; line-height: 1.4;">
+                <div style="font-weight: 700; font-size: 0.875rem; color: #0369a1; margin-bottom: 0.35rem;">Pelaporan Melalui Tim Manajemen</div>
+                <div style="font-size: 0.825rem; color: #0284c7; line-height: 1.45;">
                   Pelaporan kegiatan harian untuk <strong>Pekerja Harian</strong> dilaporkan langsung oleh tim <strong>Manajemen</strong>. Mohon sampaikan rincian aktivitas dan penugasan Anda kepada PIC Manajemen.
                 </div>
               </div>
@@ -1757,31 +1833,31 @@
         const sgaJuniors = CLIENT_EMPLOYEE_REGISTRY.filter(e => isSgaJunior(e.id));
         sec.style.display = 'block';
         sec.innerHTML = `
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 0.85rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; flex-wrap: wrap; gap: 0.35rem;">
-              <span style="font-size: 0.875rem; font-weight: 700; color: #166534;">Laporan Aktivitas Seluruh Anggota Tim SGA</span>
-              <span style="font-size: 0.725rem; color: #15803d; font-weight: 600;">10 Anggota Tim</span>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md, 10px); padding: 1.15rem 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="font-size: 0.95rem; font-weight: 700; color: #166534;">Laporan Aktivitas Seluruh Anggota Tim SGA</span>
+              <span style="font-size: 0.775rem; color: #15803d; font-weight: 600;">10 Anggota Tim</span>
             </div>
-            <p style="font-size: 0.75rem; color: #15803d; margin: 0 0 0.55rem 0;">Pilih status kehadiran dan catat tugas untuk 10 anggota tim SGA:</p>
-            <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+            <p style="font-size: 0.8rem; color: #15803d; margin: 0 0 0.85rem 0;">Pilih status kehadiran dan catat tugas untuk 10 anggota tim SGA:</p>
+            <div style="display: flex; flex-direction: column; gap: 0.65rem;">
               ${sgaJuniors.map((j, idx) => `
-                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.45rem 0.65rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.35rem;">
-                    <span style="font-size: 0.825rem; font-weight: 600; color: #1e293b;">
-                      ${idx + 1}. ${j.name} <span style="font-size: 0.725rem; color: #64748b; font-weight: 500;">(${j.id})</span>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: var(--radius-sm, 6px); padding: 0.65rem 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <span style="font-size: 0.875rem; font-weight: 600; color: #1e293b;">
+                      ${idx + 1}. ${j.name} <span style="font-size: 0.775rem; color: #64748b; font-weight: 500;">(${j.id})</span>
                     </span>
-                    <div style="display: inline-flex; align-items: center; background: #f1f5f9; border-radius: 5px; padding: 2px; gap: 2px; border: 1px solid #e2e8f0;">
-                      <label id="lblHadir_${j.id}" style="cursor: pointer; display: inline-flex; align-items: center; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: #16a34a; color: #ffffff; user-select: none; transition: all 0.15s ease;">
+                    <div style="display: inline-flex; align-items: center; background: #f1f5f9; border-radius: 6px; padding: 2px; gap: 3px; border: 1px solid #e2e8f0;">
+                      <label id="lblHadir_${j.id}" style="cursor: pointer; display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 4px; background: #16a34a; color: #ffffff; user-select: none; transition: all 0.15s ease;">
                         <input type="radio" name="sgaAtt_${j.id}" value="Hadir" checked onchange="onSgaAttendanceChange('${j.id}')" style="display: none;">
                         <span>Hadir</span>
                       </label>
-                      <label id="lblAbsen_${j.id}" style="cursor: pointer; display: inline-flex; align-items: center; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: transparent; color: #64748b; user-select: none; transition: all 0.15s ease;">
+                      <label id="lblAbsen_${j.id}" style="cursor: pointer; display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 4px; background: transparent; color: #64748b; user-select: none; transition: all 0.15s ease;">
                         <input type="radio" name="sgaAtt_${j.id}" value="Tidak Hadir" onchange="onSgaAttendanceChange('${j.id}')" style="display: none;">
                         <span>Tidak Hadir</span>
                       </label>
                     </div>
                   </div>
-                  <input type="text" class="form-input sga-junior-desc" id="sgaJuniorDesc_${j.id}" data-empid="${j.id}" data-empname="${j.name}" placeholder="Tuliskan tugas/aktivitas ${j.name} hari ini..." style="width: 100%; font-size: 0.8rem; padding: 0.35rem 0.55rem; border-radius: 5px; border: 1px solid #cbd5e1; background: #fff;">
+                  <input type="text" class="form-input sga-junior-desc" id="sgaJuniorDesc_${j.id}" data-empid="${j.id}" data-empname="${j.name}" placeholder="Tuliskan tugas/aktivitas ${j.name} hari ini..." style="width: 100%; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
                 </div>
               `).join('')}
             </div>
@@ -1797,38 +1873,38 @@
 
         sec.style.display = 'block';
         sec.innerHTML = `
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md, 10px); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); margin-bottom: 1.5rem;">
             <!-- Clickable Accordion Header -->
-            <div onclick="toggleOptTeamAccordion()" style="padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; transition: background 0.15s ease;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <span style="background: #475569; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px;">OPSIONAL</span>
-                <span style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Lapor Mewakili / Bersama Staf &amp; Anggota Lainnya</span>
-                <span id="optTeamCountBadge" style="display: none; background: #2563eb; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px;">0 Terpilih</span>
+            <div class="opt-team-accordion-header" onclick="toggleOptTeamAccordion()">
+              <div class="opt-team-header-left">
+                <span class="opt-team-badge-tag">OPSIONAL</span>
+                <span class="opt-team-header-title">Laporkan Karyawan Lain</span>
+                <span id="optTeamCountBadge" style="display: none; background: #2563eb; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 9999px; flex-shrink: 0;">0 Terpilih</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 0.35rem; color: #475569; font-size: 0.775rem; font-weight: 600;">
+              <div class="opt-team-header-toggle">
                 <span id="optTeamAccordionLabel">Buka Daftar</span>
-                <svg id="optTeamAccordionIcon" class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg id="optTeamAccordionIcon" class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
             </div>
 
             <!-- Collapsible Body -->
-            <div id="optTeamAccordionBody" style="display: none; padding: 0.9rem 1rem;">
-              <p style="font-size: 0.775rem; color: #64748b; margin: 0 0 0.75rem 0;">
+            <div id="optTeamAccordionBody" style="display: none; padding: 1.15rem 1.25rem;">
+              <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.95rem 0;">
                 Centang nama rekan manajemen atau Pekerja Harian di bawah ini untuk melaporkan penugasan mereka:
               </p>
 
               <!-- Group 1: Rekan Manajemen -->
-              <div style="margin-bottom: 0.75rem;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">1. Rekan Tim Manajemen</div>
-                <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+              <div style="margin-bottom: 1.15rem;">
+                <div style="font-size: 0.775rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">1. Rekan Tim Manajemen</div>
+                <div style="display: flex; flex-direction: column; gap: 0.55rem;">
                   ${mnjPeers.map(c => renderOptEmployeeRow(c)).join('')}
                 </div>
               </div>
 
               <!-- Group 2: Pekerja Harian -->
               <div>
-                <div style="font-size: 0.75rem; font-weight: 700; color: #0f766e; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">2. Pekerja Harian (8 Orang)</div>
-                <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                <div style="font-size: 0.775rem; font-weight: 700; color: #0f766e; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">2. Pekerja Harian (8 Orang)</div>
+                <div style="display: flex; flex-direction: column; gap: 0.55rem;">
                   ${pkhStaff.map(c => renderOptEmployeeRow(c)).join('')}
                 </div>
               </div>
@@ -1845,38 +1921,38 @@
 
         sec.style.display = 'block';
         sec.innerHTML = `
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md, 10px); overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); margin-bottom: 1.5rem;">
             <!-- Clickable Accordion Header -->
-            <div onclick="toggleOptTeamAccordion()" style="padding: 0.75rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; transition: background 0.15s ease;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <span style="background: #64748b; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px;">OPSIONAL</span>
-                <span style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Lapor Mewakili / Bersama Staf &amp; Anggota Lainnya</span>
-                <span id="optTeamCountBadge" style="display: none; background: #2563eb; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px;">0 Terpilih</span>
+            <div class="opt-team-accordion-header" onclick="toggleOptTeamAccordion()">
+              <div class="opt-team-header-left">
+                <span class="opt-team-badge-tag">OPSIONAL</span>
+                <span class="opt-team-header-title">Laporkan Karyawan Lain</span>
+                <span id="optTeamCountBadge" style="display: none; background: #2563eb; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 9999px; flex-shrink: 0;">0 Terpilih</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 0.35rem; color: #475569; font-size: 0.775rem; font-weight: 600;">
+              <div class="opt-team-header-toggle">
                 <span id="optTeamAccordionLabel">Buka Daftar</span>
-                <svg id="optTeamAccordionIcon" class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg id="optTeamAccordionIcon" class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
             </div>
 
             <!-- Collapsible Body -->
-            <div id="optTeamAccordionBody" style="display: none; padding: 0.9rem 1rem;">
-              <p style="font-size: 0.775rem; color: #64748b; margin: 0 0 0.75rem 0;">
+            <div id="optTeamAccordionBody" style="display: none; padding: 1.15rem 1.25rem;">
+              <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.95rem 0;">
                 Centang nama rekan Alprof atau staf BKO 28 di bawah ini jika Anda juga melaporkan tugas mereka:
               </p>
 
               <!-- Group 1: Rekan Alprof -->
-              <div style="margin-bottom: 0.75rem;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">1. Rekan Tim Alprof</div>
-                <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+              <div style="margin-bottom: 1.15rem;">
+                <div style="font-size: 0.775rem; font-weight: 700; color: #475569; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">1. Rekan Tim Alprof</div>
+                <div style="display: flex; flex-direction: column; gap: 0.55rem;">
                   ${alpPeers.map(c => renderOptEmployeeRow(c)).join('')}
                 </div>
               </div>
 
               <!-- Group 2: BKO 28 -->
               <div>
-                <div style="font-size: 0.75rem; font-weight: 700; color: #1e40af; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">2. Anggota BKO 28 (2 Orang)</div>
-                <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                <div style="font-size: 0.775rem; font-weight: 700; color: #1e40af; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">2. Anggota BKO 28 (2 Orang)</div>
+                <div style="display: flex; flex-direction: column; gap: 0.55rem;">
                   ${bkoStaff.map(c => renderOptEmployeeRow(c)).join('')}
                 </div>
               </div>
@@ -1922,13 +1998,13 @@
 
     function renderOptEmployeeRow(c) {
       return `
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem;">
-          <label style="display: flex; align-items: center; gap: 0.55rem; cursor: pointer; margin: 0; font-size: 0.825rem; font-weight: 600; color: #334155; user-select: none;">
-            <input type="checkbox" class="opt-emp-checkbox" data-empid="${c.id}" data-empname="${c.name}" data-division="${c.division}" onchange="toggleOptEmpDesc(this)" style="cursor: pointer; width: 16px; height: 16px; accent-color: #2563eb;">
-            <span>${c.name} <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">(${c.id} • ${c.division})</span></span>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: var(--radius-sm, 6px); padding: 0.7rem 0.95rem;">
+          <label style="display: flex; align-items: center; gap: 0.65rem; cursor: pointer; margin: 0; font-size: 0.875rem; font-weight: 600; color: #334155; user-select: none;">
+            <input type="checkbox" class="opt-emp-checkbox" data-empid="${c.id}" data-empname="${c.name}" data-division="${c.division}" onchange="toggleOptEmpDesc(this)" style="cursor: pointer; width: 17px; height: 17px; accent-color: #2563eb;">
+            <span>${c.name} <span style="font-size: 0.775rem; color: #64748b; font-weight: normal;">(${c.id} • ${c.division})</span></span>
           </label>
-          <div class="opt-emp-desc-wrapper" id="optDescWrapper_${c.id}" style="display: none; margin-top: 0.45rem; padding-left: 1.55rem;">
-            <input type="text" class="form-input opt-emp-desc" id="optDescInput_${c.id}" placeholder="Tuliskan catatan aktivitas / penugasan ${c.name}..." style="width: 100%; font-size: 0.825rem; padding: 0.4rem 0.65rem; border-radius: 5px; border: 1px solid #cbd5e1; background: #fafafa;">
+          <div class="opt-emp-desc-wrapper" id="optDescWrapper_${c.id}" style="display: none; margin-top: 0.6rem; padding-left: 1.75rem;">
+            <input type="text" class="form-input opt-emp-desc" id="optDescInput_${c.id}" placeholder="Tuliskan catatan aktivitas / penugasan ${c.name}..." style="width: 100%; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fafafa;">
           </div>
         </div>
       `;
@@ -2062,54 +2138,165 @@
     }
 
     /**
-     * Handle Ternak mutation changes (Ternak Masuk & Ternak Keluar)
+     * Helper to compute Ternak Masuk breakdown & totals
      */
-    function handleTernakMutationChange() {
-      const masukJenis = document.getElementById('ternakMasukJenis')?.value;
-      const masukQtyInp = document.getElementById('ternakMasukQty');
-      if (masukQtyInp) {
-        if (masukJenis === 'Tidak Ada') {
-          masukQtyInp.value = '0';
-          masukQtyInp.disabled = true;
-        } else {
-          masukQtyInp.disabled = false;
-          if (masukQtyInp.value === '0') masukQtyInp.value = '';
-        }
+    function getTernakMasukSummary() {
+      const lahir = Math.max(0, parseInt(document.getElementById('ternakMasukKelahiranQty')?.value, 10) || 0);
+      const beli = Math.max(0, parseInt(document.getElementById('ternakMasukPembelianQty')?.value, 10) || 0);
+      const total = lahir + beli;
+      const parts = [];
+      const typeParts = [];
+      if (lahir > 0) {
+        parts.push(`Kelahiran (${lahir} Ekor)`);
+        typeParts.push('Kelahiran');
       }
-
-      const keluarJenis = document.getElementById('ternakKeluarJenis')?.value;
-      const keluarQtyInp = document.getElementById('ternakKeluarQty');
-      if (keluarQtyInp) {
-        if (keluarJenis === 'Tidak Ada') {
-          keluarQtyInp.value = '0';
-          keluarQtyInp.disabled = true;
-        } else {
-          keluarQtyInp.disabled = false;
-          if (keluarQtyInp.value === '0') keluarQtyInp.value = '';
-        }
+      if (beli > 0) {
+        parts.push(`Pembelian (${beli} Ekor)`);
+        typeParts.push('Pembelian');
       }
+      return {
+        lahir,
+        beli,
+        total,
+        typesText: typeParts.length > 0 ? typeParts.join(', ') : 'Tidak Ada',
+        displayText: parts.length > 0 ? parts.join(', ') : 'Tidak Ada (0 Ekor)'
+      };
     }
 
     /**
-     * Handle Agro Tujuan Distribusi change (Penjualan vs Penggunaan Internal)
+     * Helper to compute Ternak Keluar breakdown & totals
      */
-    function handleTujuanDistribusiAgroChange() {
-      const val = document.getElementById('tujuanDistribusi')?.value || '';
+    function getTernakKeluarSummary() {
+      const mati = Math.max(0, parseInt(document.getElementById('ternakKeluarKematianQty')?.value, 10) || 0);
+      const jual = Math.max(0, parseInt(document.getElementById('ternakKeluarPenjualanQty')?.value, 10) || 0);
+      const total = mati + jual;
+      const parts = [];
+      const typeParts = [];
+      if (mati > 0) {
+        parts.push(`Kematian (${mati} Ekor)`);
+        typeParts.push('Kematian');
+      }
+      if (jual > 0) {
+        parts.push(`Penjualan (${jual} Ekor)`);
+        typeParts.push('Penjualan');
+      }
+      return {
+        mati,
+        jual,
+        total,
+        typesText: typeParts.length > 0 ? typeParts.join(', ') : 'Tidak Ada',
+        displayText: parts.length > 0 ? parts.join(', ') : 'Tidak Ada (0 Ekor)'
+      };
+    }
+
+    function handleTernakMutationChange() {
+      // Retained for backward compatibility
+    }
+
+    function handleTernakMasukChange() {
+      // Retained for backward compatibility
+    }
+
+    function handleTernakKeluarChange() {
+      // Retained for backward compatibility
+    }
+
+    /**
+     * Handle Agro Tujuan Distribusi change (Checkboxes: Penjualan & Penggunaan Internal)
+     */
+    function handleTujuanDistribusiAgroCheckChange() {
+      const checked = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
       const penjEl = document.getElementById('agroPenjualanContainer');
       const pengEl = document.getElementById('agroPenggunaanContainer');
-      if (penjEl) penjEl.style.display = (val === 'Penjualan') ? 'block' : 'none';
-      if (pengEl) pengEl.style.display = (val === 'Penggunaan Internal') ? 'block' : 'none';
+      if (penjEl) penjEl.style.display = checked.includes('Penjualan') ? 'block' : 'none';
+      if (pengEl) pengEl.style.display = checked.includes('Penggunaan Internal') ? 'block' : 'none';
+
+      if (!checked.includes('Penjualan')) {
+        const tglJual = document.getElementById('tglPenjualan');
+        if (tglJual) tglJual.value = '';
+        const jmlJual = document.getElementById('jumlahPenjualanUnit');
+        if (jmlJual) jmlJual.value = '';
+        const harga = document.getElementById('hargaSatuanRp');
+        if (harga) harga.value = '';
+        const total = document.getElementById('totalHargaRp');
+        if (total) total.value = '';
+        const pNama = document.getElementById('pembeliNama');
+        if (pNama) pNama.value = '';
+        const pAlamat = document.getElementById('pembeliAlamat');
+        if (pAlamat) pAlamat.value = '';
+        const pTelp = document.getElementById('pembeliTelp');
+        if (pTelp) pTelp.value = '';
+      }
+      if (!checked.includes('Penggunaan Internal')) {
+        document.querySelectorAll('input[name="tujuanPenggunaanCheck"]').forEach(c => c.checked = false);
+        const jmlGuna = document.getElementById('jumlahUnitPenggunaan');
+        if (jmlGuna) jmlGuna.value = '';
+      }
+    }
+
+    function handleTujuanDistribusiAgroChange() {
+      handleTujuanDistribusiAgroCheckChange();
     }
 
     /**
-     * Handle Ternak Tujuan Distribusi change (Penjualan vs Penggunaan Internal)
+     * Handle Ternak Tujuan Distribusi change (Checkboxes: Penjualan & Penggunaan Internal)
      */
-    function handleTujuanDistribusiTernakChange() {
-      const val = document.getElementById('tujuanDistribusiTernak')?.value || '';
+    function handleTujuanDistribusiTernakCheckChange() {
+      const checked = Array.from(document.querySelectorAll('input[name="tujuanDistribusiTernakCheck"]:checked')).map(c => c.value);
       const penjEl = document.getElementById('ternakPenjualanContainer');
       const pengEl = document.getElementById('ternakPenggunaanContainer');
-      if (penjEl) penjEl.style.display = (val === 'Penjualan') ? 'block' : 'none';
-      if (pengEl) pengEl.style.display = (val === 'Penggunaan Internal') ? 'block' : 'none';
+      if (penjEl) penjEl.style.display = checked.includes('Penjualan') ? 'block' : 'none';
+      if (pengEl) pengEl.style.display = checked.includes('Penggunaan Internal') ? 'block' : 'none';
+
+      if (!checked.includes('Penjualan')) {
+        const jmlJual = document.getElementById('jumlahPenjualanTernak');
+        if (jmlJual) jmlJual.value = '';
+        const harga = document.getElementById('hargaSatuanTernakRp');
+        if (harga) harga.value = '';
+        const total = document.getElementById('totalHargaTernakRp');
+        if (total) total.value = '';
+        const pNama = document.getElementById('pembeliTernakNama');
+        if (pNama) pNama.value = '';
+        const pAlamat = document.getElementById('pembeliTernakAlamat');
+        if (pAlamat) pAlamat.value = '';
+        const pTelp = document.getElementById('pembeliTernakTelp');
+        if (pTelp) pTelp.value = '';
+      }
+      if (!checked.includes('Penggunaan Internal')) {
+        document.querySelectorAll('input[name="tujuanPenggunaanTernakCheck"]').forEach(c => c.checked = false);
+        const jmlGuna = document.getElementById('jumlahUnitPenggunaanTernak');
+        if (jmlGuna) jmlGuna.value = '';
+      }
+    }
+
+    function handleTujuanDistribusiTernakChange() {
+      handleTujuanDistribusiTernakCheckChange();
+    }
+
+    /**
+     * Handle Ternak Komoditas Lainnya text input toggle
+     */
+    function handleJenisKomoditasTernakChange() {
+      const sel = document.getElementById('jenisKomoditasTernak');
+      const group = document.getElementById('groupKomoditasTernakLainnya');
+      const input = document.getElementById('jenisKomoditasTernakLainnya');
+      if (sel && group) {
+        if (sel.value === 'Lainnya') {
+          group.style.display = 'block';
+          if (input) input.focus();
+        } else {
+          group.style.display = 'none';
+          if (input) input.value = '';
+        }
+      }
+    }
+
+    function handleTujuanDistribusiChange(modul) {
+      if (modul === 'Ternak') {
+        handleTujuanDistribusiTernakChange();
+      } else {
+        handleTujuanDistribusiAgroChange();
+      }
     }
 
     /**
@@ -2309,18 +2496,18 @@
         if (card) {
           if (capturedPhotos[i]) {
             if (empty) empty.style.display = 'none';
-            if (preview) preview.style.display = 'block';
+            if (preview) preview.style.display = 'flex';
             if (img) img.src = capturedPhotos[i];
             card.classList.add('has-photo');
-            card.style.borderColor = '#10b981';
+            card.style.borderColor = '#86efac';
             card.style.background = '#f0fdf4';
           } else {
-            if (empty) empty.style.display = 'block';
+            if (empty) empty.style.display = 'flex';
             if (preview) preview.style.display = 'none';
             if (img) img.src = '';
             card.classList.remove('has-photo');
             card.style.borderColor = '#cbd5e1';
-            card.style.background = '#ffffff';
+            card.style.background = '#f8fafc';
           }
         }
 
@@ -2332,18 +2519,18 @@
         if (pCard) {
           if (capturedPhotos[i]) {
             if (pEmpty) pEmpty.style.display = 'none';
-            if (pPreview) pPreview.style.display = 'block';
+            if (pPreview) pPreview.style.display = 'flex';
             if (pImg) pImg.src = capturedPhotos[i];
             pCard.classList.add('has-photo');
-            pCard.style.borderColor = '#10b981';
+            pCard.style.borderColor = '#86efac';
             pCard.style.background = '#f0fdf4';
           } else {
-            if (pEmpty) pEmpty.style.display = 'block';
+            if (pEmpty) pEmpty.style.display = 'flex';
             if (pPreview) pPreview.style.display = 'none';
             if (pImg) pImg.src = '';
             pCard.classList.remove('has-photo');
             pCard.style.borderColor = '#cbd5e1';
-            pCard.style.background = '#ffffff';
+            pCard.style.background = '#f8fafc';
           }
         }
       }
@@ -2397,90 +2584,94 @@
       }
     });
 
+    let cameraStreamRef = null;
+
+    function isMobileDevice() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+             (window.matchMedia && window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
+    }
+
     function triggerCameraCapture(slotIndex) {
       currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
-      const win = window.open('', 'CameraSnapshotWindow', 'width=580,height=680,resizable=yes');
-      if (!win) {
-        showToast('Pop-up terblokir. Izinkan pop-up peramban untuk menggunakan kamera.', 'warning');
+
+      // On mobile devices, always launch the native smartphone camera directly (zero popup issues)
+      if (isMobileDevice()) {
         const hiddenInp = document.getElementById('photoInput');
-        if (hiddenInp) hiddenInp.click();
+        if (hiddenInp) {
+          hiddenInp.value = '';
+          hiddenInp.click();
+        }
         return;
       }
 
-      const cameraHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Snapshot Kamera (Foto ${currentCameraSlot + 1}) - Laporan Operasional</title>
-  <style>
-    body { margin: 0; background: #0f172a; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-    #videoContainer { position: relative; width: 100%; max-width: 480px; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    video { width: 100%; height: 100%; object-fit: cover; }
-    .controls { display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center; }
-    button { padding: 0.75rem 1.5rem; border-radius: 9999px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
-    .btn-capture { background: #10b981; color: #fff; }
-    .btn-capture:hover { background: #059669; }
-    .btn-cancel { background: #334155; color: #cbd5e1; }
-    .btn-cancel:hover { background: #475569; }
-  </style>
-</head>
-<body>
-  <div style="margin-bottom: 0.75rem; font-weight: 700; font-size: 1.1rem; color: #f8fafc;">
-    Ambil Foto Bukti #${currentCameraSlot + 1}
-  </div>
-  <div id="videoContainer">
-    <video id="webcamVideo" autoplay playsinline muted></video>
-  </div>
-  <div class="controls">
-    <button class="btn-cancel" onclick="window.close()">Batal</button>
-    <button class="btn-capture" id="btnSnap" onclick="takeSnapshot()">
-      <span>Ambil Foto ${currentCameraSlot + 1}</span>
-    </button>
-  </div>
-  <canvas id="snapCanvas" style="display: none;"></canvas>
+      // On desktop / laptop, open in-page camera modal
+      openInPageCameraModal(slotIndex);
+    }
 
-  <script>
-    let streamRef = null;
-    const video = document.getElementById('webcamVideo');
+    function openInPageCameraModal(slotIndex) {
+      currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
+      const modal = document.getElementById('cameraModal');
+      const title = document.getElementById('cameraModalTitle');
+      const video = document.getElementById('cameraModalVideo');
+      const loading = document.getElementById('cameraModalLoading');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } })
-      .then(stream => {
-        streamRef = stream;
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        alert('Tidak dapat mengakses kamera: ' + err.message);
-        window.close();
-      });
+      if (title) title.innerText = `Ambil Foto Bukti #${currentCameraSlot + 1}`;
+      if (loading) {
+        loading.style.display = 'block';
+        loading.innerText = 'Menghubungkan ke kamera...';
+      }
+      if (modal) modal.style.display = 'flex';
 
-    function takeSnapshot() {
-      const canvas = document.getElementById('snapCanvas');
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        }).then(stream => {
+          cameraStreamRef = stream;
+          if (video) {
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+              if (loading) loading.style.display = 'none';
+            };
+          }
+        }).catch(err => {
+          console.warn('Webcam error:', err);
+          if (loading) loading.innerText = 'Kamera tidak dapat diakses (' + (err.message || 'Izin ditolak') + ').';
+          showToast('Kamera tidak tersedia. Mengalihkan ke pilihan file...', 'warning');
+          setTimeout(() => {
+            closeInPageCameraModal();
+            triggerFileUpload(currentCameraSlot);
+          }, 1200);
+        });
+      } else {
+        closeInPageCameraModal();
+        triggerFileUpload(currentCameraSlot);
+      }
+    }
+
+    function closeInPageCameraModal() {
+      const modal = document.getElementById('cameraModal');
+      if (modal) modal.style.display = 'none';
+      if (cameraStreamRef) {
+        cameraStreamRef.getTracks().forEach(t => t.stop());
+        cameraStreamRef = null;
+      }
+      const video = document.getElementById('cameraModalVideo');
+      if (video) video.srcObject = null;
+    }
+
+    function snapInPageCameraPhoto() {
+      const video = document.getElementById('cameraModalVideo');
+      const canvas = document.getElementById('cameraModalCanvas');
+      if (!video || !canvas) return;
+
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const base64 = canvas.toDataURL('image/jpeg', 0.85);
 
-      if (window.opener) {
-        if (typeof window.opener.onCameraCaptured === 'function') {
-          window.opener.onCameraCaptured(base64);
-        } else {
-          window.opener.postMessage({ type: 'CAMERA_CAPTURED', base64: base64 }, '*');
-        }
-      }
-      if (streamRef) {
-        streamRef.getTracks().forEach(t => t.stop());
-      }
-      window.close();
-    }
-  <\/script>
-</body>
-</html>`;
-
-      win.document.open();
-      win.document.write(cameraHtml);
-      win.document.close();
+      handleCapturedPhoto(base64);
+      closeInPageCameraModal();
     }
 
     /**
@@ -2549,17 +2740,6 @@
       if (input.files && input.files[0]) {
         const file = input.files[0];
         photoMimeTypeData = 'image/jpeg';
-
-        const lastMod = file.lastModified;
-        if (lastMod) {
-          const ageSeconds = (Date.now() - lastMod) / 1000;
-          if (ageSeconds > 300) {
-            showToast('Foto harus diambil langsung dari kamera saat ini. Foto lama dari galeri tidak diperbolehkan.', 'error');
-            input.value = '';
-            return;
-          }
-        }
-
         photoIsSuspiciousTimestamp = false;
 
         const reader = new FileReader();
@@ -2569,7 +2749,7 @@
             photoBase64Data = capturedPhotos[0];
             photoMimeTypeData = 'image/jpeg';
             updatePhotoSlotsUI();
-            showToast(`Foto ${currentCameraSlot + 1} berhasil dipilih.`, 'success');
+            showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan.`, 'success');
           });
         };
         reader.readAsDataURL(file);
@@ -2686,21 +2866,29 @@
           const jmlPanen = parseFloat(document.getElementById('jumlahPanen')?.value);
           if (isNaN(jmlPanen) || jmlPanen <= 0) errors.push({ id: 'jumlahPanen', text: '[Panen/Penjualan] Jumlah Panen (Kg) wajib diisi angka positif.' });
           
-          const tujDist = document.getElementById('tujuanDistribusi')?.value;
-          if (!tujDist) {
-            errors.push({ id: 'tujuanDistribusi', text: '[Panen/Penjualan] Tujuan Distribusi wajib dipilih (Penjualan / Penggunaan Internal).' });
-          } else if (tujDist === 'Penjualan') {
-            if (!document.getElementById('tglPenjualan')?.value) errors.push({ id: 'tglPenjualan', text: '[Panen/Penjualan] Tanggal Penjualan wajib diisi.' });
+          const checkedDist = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
+          if (checkedDist.length === 0) {
+            errors.push({ id: 'tujuanDistribusiGroup', text: '[Panen/Penjualan] Tujuan Distribusi wajib dicentang minimal satu (Penjualan atau Penggunaan Internal).' });
+          }
+          if (checkedDist.includes('Penjualan')) {
+            const tglPanenVal = document.getElementById('tglPanen')?.value;
+            const tglJualVal = document.getElementById('tglPenjualan')?.value;
+            if (!tglJualVal) {
+              errors.push({ id: 'tglPenjualan', text: '[Panen/Penjualan] Tanggal Penjualan wajib diisi.' });
+            } else if (tglPanenVal && tglJualVal < tglPanenVal) {
+              errors.push({ id: 'tglPenjualan', text: '[Panen/Penjualan] Tanggal Penjualan tidak boleh lebih awal dari Tanggal Panen.' });
+            }
             const jmlJual = parseFloat(document.getElementById('jumlahPenjualanUnit')?.value);
             if (isNaN(jmlJual) || jmlJual <= 0) errors.push({ id: 'jumlahPenjualanUnit', text: '[Panen/Penjualan] Jumlah Penjualan wajib diisi angka positif.' });
             const harga = parseFloat(document.getElementById('hargaSatuanRp')?.value);
-            if (isNaN(harga) || harga <= 0) errors.push({ id: 'hargaSatuanRp', text: '[Panen/Penjualan] Harga Satuan (Rp) wajib diisi.' });
+            if (isNaN(harga) || harga <= 0) errors.push({ id: 'hargaSatuanRp', text: '[Panen/Penjualan] Harga Satuan (Rp) wajib diisi nominal positif.' });
             const total = parseFloat(document.getElementById('totalHargaRp')?.value);
             if (isNaN(total) || total <= 0) errors.push({ id: 'totalHargaRp', text: '[Panen/Penjualan] Total Harga (Rp) wajib terisi.' });
             if (!document.getElementById('pembeliNama')?.value?.trim()) errors.push({ id: 'pembeliNama', text: '[Panen/Penjualan] Nama Pembeli wajib diisi.' });
             if (!document.getElementById('pembeliAlamat')?.value?.trim()) errors.push({ id: 'pembeliAlamat', text: '[Panen/Penjualan] Alamat Pembeli wajib diisi.' });
             if (!document.getElementById('pembeliTelp')?.value?.trim()) errors.push({ id: 'pembeliTelp', text: '[Panen/Penjualan] Nomor Telepon Pembeli wajib diisi.' });
-          } else if (tujDist === 'Penggunaan Internal') {
+          }
+          if (checkedDist.includes('Penggunaan Internal')) {
             const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaanCheck"]:checked')).map(c => c.value);
             if (checkedPenggunaan.length === 0) {
               errors.push({ id: 'tujuanPenggunaanAgroGroup', text: '[Panen/Penjualan] Tujuan Penggunaan Internal wajib dicentang minimal satu lokasi.' });
@@ -2718,21 +2906,18 @@
 
         if (checkedTernak.includes('Perawatan')) {
           if (!document.getElementById('jenisTernak')?.value) errors.push({ id: 'jenisTernak', text: '[Ternak Perawatan] Jenis Ternak wajib dipilih.' });
-          const tMasukJenis = document.getElementById('ternakMasukJenis')?.value;
-          if (!tMasukJenis) {
-            errors.push({ id: 'ternakMasukJenis', text: '[Ternak Perawatan] Ternak Masuk wajib dipilih.' });
-          } else if (tMasukJenis !== 'Tidak Ada') {
-            const qty = parseInt(document.getElementById('ternakMasukQty')?.value, 10);
-            if (isNaN(qty) || qty <= 0) errors.push({ id: 'ternakMasukQty', text: `[Ternak Perawatan] Jumlah Ternak Masuk (${tMasukJenis}) wajib diisi angka lebih dari 0 ekor.` });
-          }
 
-          const tKeluarJenis = document.getElementById('ternakKeluarJenis')?.value;
-          if (!tKeluarJenis) {
-            errors.push({ id: 'ternakKeluarJenis', text: '[Ternak Perawatan] Ternak Keluar wajib dipilih.' });
-          } else if (tKeluarJenis !== 'Tidak Ada') {
-            const qty = parseInt(document.getElementById('ternakKeluarQty')?.value, 10);
-            if (isNaN(qty) || qty <= 0) errors.push({ id: 'ternakKeluarQty', text: `[Ternak Perawatan] Jumlah Ternak Keluar (${tKeluarJenis}) wajib diisi angka lebih dari 0 ekor.` });
-          }
+          const lahir = parseInt(document.getElementById('ternakMasukKelahiranQty')?.value, 10);
+          if (isNaN(lahir) || lahir < 0) errors.push({ id: 'ternakMasukKelahiranQty', text: '[Ternak Perawatan] Jumlah Kelahiran wajib diisi angka minimal 0.' });
+
+          const beli = parseInt(document.getElementById('ternakMasukPembelianQty')?.value, 10);
+          if (isNaN(beli) || beli < 0) errors.push({ id: 'ternakMasukPembelianQty', text: '[Ternak Perawatan] Jumlah Pembelian wajib diisi angka minimal 0.' });
+
+          const mati = parseInt(document.getElementById('ternakKeluarKematianQty')?.value, 10);
+          if (isNaN(mati) || mati < 0) errors.push({ id: 'ternakKeluarKematianQty', text: '[Ternak Perawatan] Jumlah Kematian wajib diisi angka minimal 0.' });
+
+          const jual = parseInt(document.getElementById('ternakKeluarPenjualanQty')?.value, 10);
+          if (isNaN(jual) || jual < 0) errors.push({ id: 'ternakKeluarPenjualanQty', text: '[Ternak Perawatan] Jumlah Penjualan wajib diisi angka minimal 0.' });
 
           const popTernak = parseInt(document.getElementById('populasiTernak')?.value, 10);
           if (isNaN(popTernak) || popTernak <= 0) errors.push({ id: 'populasiTernak', text: '[Ternak Perawatan] Populasi Ternak wajib diisi total ekor saat ini (>0).' });
@@ -2745,12 +2930,21 @@
         }
 
         if (checkedTernak.includes('Panen/Penjualan')) {
-          if (!document.getElementById('jenisKomoditasTernak')?.value) errors.push({ id: 'jenisKomoditasTernak', text: '[Ternak Penjualan] Jenis Komoditas Ternak wajib dipilih.' });
+          const komoditasVal = document.getElementById('jenisKomoditasTernak')?.value;
+          if (!komoditasVal) {
+            errors.push({ id: 'jenisKomoditasTernak', text: '[Ternak Penjualan] Jenis Komoditas Ternak wajib dipilih.' });
+          } else if (komoditasVal === 'Lainnya') {
+            const lainnyaVal = document.getElementById('jenisKomoditasTernakLainnya')?.value?.trim();
+            if (!lainnyaVal) {
+              errors.push({ id: 'jenisKomoditasTernakLainnya', text: '[Ternak Penjualan] Sebutkan Komoditas Lainnya wajib diisi.' });
+            }
+          }
           
-          const tujDistTernak = document.getElementById('tujuanDistribusiTernak')?.value;
-          if (!tujDistTernak) {
-            errors.push({ id: 'tujuanDistribusiTernak', text: '[Ternak Penjualan] Tujuan Distribusi wajib dipilih (Penjualan / Penggunaan Internal).' });
-          } else if (tujDistTernak === 'Penjualan') {
+          const checkedDistTernak = Array.from(document.querySelectorAll('input[name="tujuanDistribusiTernakCheck"]:checked')).map(c => c.value);
+          if (checkedDistTernak.length === 0) {
+            errors.push({ id: 'tujuanDistribusiTernakGroup', text: '[Ternak Penjualan] Tujuan Distribusi wajib dicentang minimal satu (Penjualan atau Penggunaan Internal).' });
+          }
+          if (checkedDistTernak.includes('Penjualan')) {
             const qtyJual = parseFloat(document.getElementById('jumlahPenjualanTernak')?.value);
             if (isNaN(qtyJual) || qtyJual <= 0) errors.push({ id: 'jumlahPenjualanTernak', text: '[Ternak Penjualan] Jumlah Penjualan wajib diisi angka positif.' });
             const hargaSat = parseFloat(document.getElementById('hargaSatuanTernakRp')?.value);
@@ -2760,7 +2954,8 @@
             if (!document.getElementById('pembeliTernakNama')?.value?.trim()) errors.push({ id: 'pembeliTernakNama', text: '[Ternak Penjualan] Nama Pembeli wajib diisi.' });
             if (!document.getElementById('pembeliTernakAlamat')?.value?.trim()) errors.push({ id: 'pembeliTernakAlamat', text: '[Ternak Penjualan] Alamat Pembeli wajib diisi.' });
             if (!document.getElementById('pembeliTernakTelp')?.value?.trim()) errors.push({ id: 'pembeliTernakTelp', text: '[Ternak Penjualan] Nomor Telepon Pembeli wajib diisi.' });
-          } else if (tujDistTernak === 'Penggunaan Internal') {
+          }
+          if (checkedDistTernak.includes('Penggunaan Internal')) {
             const checkedPenggunaanTernak = Array.from(document.querySelectorAll('input[name="tujuanPenggunaanTernakCheck"]:checked')).map(c => c.value);
             if (checkedPenggunaanTernak.length === 0) {
               errors.push({ id: 'tujuanPenggunaanTernakGroup', text: '[Ternak Penjualan] Tujuan Penggunaan Internal wajib dicentang minimal satu lokasi.' });
@@ -2959,7 +3154,7 @@
         }
 
         if (checkedAgro.includes('Panen/Penjualan')) {
-          const tujDist = document.getElementById('tujuanDistribusi')?.value || '-';
+          const checkedDist = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
           const totRp = document.getElementById('totalHargaRp').value;
           html += `
             <div class="review-item" style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); border-top: 1px solid #e2e8f0; padding-top: 0.5rem; margin-top: 0.25rem;">[Panen & Distribusi Agro]</div>
@@ -2969,21 +3164,22 @@
             <div class="review-item"><span class="review-label">Luas Lahan</span><span class="review-value">${document.getElementById('luasLahanPanenM2').value ? document.getElementById('luasLahanPanenM2').value + ' m²' : '-'}</span></div>
             <div class="review-item"><span class="review-label">Tgl Panen</span><span class="review-value">${document.getElementById('tglPanen').value || '-'}</span></div>
             <div class="review-item"><span class="review-label">Jml Panen</span><span class="review-value">${document.getElementById('jumlahPanen').value ? document.getElementById('jumlahPanen').value + ' kg' : '-'}</span></div>
-            <div class="review-item"><span class="review-label">Tujuan Distribusi</span><span class="review-value" style="font-weight: 700;">${tujDist}</span></div>
+            <div class="review-item"><span class="review-label">Tujuan Distribusi</span><span class="review-value" style="font-weight: 700;">${checkedDist.join(', ') || '-'}</span></div>
           `;
-          if (tujDist === 'Penjualan') {
+          if (checkedDist.includes('Penjualan')) {
             html += `
               <div class="review-item"><span class="review-label">Tgl Penjualan</span><span class="review-value">${document.getElementById('tglPenjualan').value || '-'}</span></div>
-              <div class="review-item"><span class="review-label">Jml Penjualan</span><span class="review-value">${document.getElementById('jumlahPenjualanUnit').value ? document.getElementById('jumlahPenjualanUnit').value + ' unit' : '-'}</span></div>
+              <div class="review-item"><span class="review-label">Jml Penjualan</span><span class="review-value">${document.getElementById('jumlahPenjualanUnit').value ? document.getElementById('jumlahPenjualanUnit').value + ' kg' : '-'}</span></div>
               <div class="review-item"><span class="review-label">Harga Satuan</span><span class="review-value">${document.getElementById('hargaSatuanRp').value ? 'Rp ' + parseInt(document.getElementById('hargaSatuanRp').value, 10).toLocaleString('id-ID') : '-'}</span></div>
               <div class="review-item"><span class="review-label">Total Penjualan</span><span class="review-value" style="font-weight: 700; color: #15803d;">${totRp ? 'Rp ' + parseInt(totRp, 10).toLocaleString('id-ID') : '-'}</span></div>
               <div class="review-item" style="grid-column: 1 / -1;"><span class="review-label">Pembeli</span><span class="review-value">${document.getElementById('pembeliNama').value || '-'} (${document.getElementById('pembeliTelp').value || '-'}), ${document.getElementById('pembeliAlamat').value || '-'}</span></div>
             `;
-          } else if (tujDist === 'Penggunaan Internal') {
+          }
+          if (checkedDist.includes('Penggunaan Internal')) {
             const checkedPenggunaan = Array.from(document.querySelectorAll('input[name="tujuanPenggunaanCheck"]:checked')).map(c => c.value);
             html += `
               <div class="review-item" style="grid-column: 1 / -1;"><span class="review-label">Lokasi Penggunaan Internal</span><span class="review-value">${checkedPenggunaan.join(', ') || '-'}</span></div>
-              <div class="review-item"><span class="review-label">Jumlah Unit Penggunaan</span><span class="review-value">${document.getElementById('jumlahUnitPenggunaan').value || '-'}</span></div>
+              <div class="review-item"><span class="review-label">Jumlah Unit Penggunaan</span><span class="review-value">${document.getElementById('jumlahUnitPenggunaan').value ? document.getElementById('jumlahUnitPenggunaan').value + ' kg' : '-'}</span></div>
             `;
           }
         }
@@ -2997,38 +3193,39 @@
         let html = `<div class="review-item" style="grid-column: 1 / -1;"><span class="review-label">Rincian Modul Ternak</span><span class="review-value">${checkedTernak.join(', ') || '-'}</span></div>`;
 
         if (checkedTernak.includes('Perawatan')) {
-          const tMasukJ = document.getElementById('ternakMasukJenis').value;
-          const tMasukQ = document.getElementById('ternakMasukQty').value;
-          const tKeluarJ = document.getElementById('ternakKeluarJenis').value;
-          const tKeluarQ = document.getElementById('ternakKeluarQty').value;
+          const mSummary = getTernakMasukSummary();
+          const kSummary = getTernakKeluarSummary();
 
           html += `
             <div class="review-item" style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); border-top: 1px solid #e2e8f0; padding-top: 0.5rem; margin-top: 0.25rem;">[Perawatan Ternak]</div>
             <div class="review-item"><span class="review-label">Jenis Ternak</span><span class="review-value">${document.getElementById('jenisTernak').value || '-'}</span></div>
             <div class="review-item"><span class="review-label">Populasi Saat Ini</span><span class="review-value" style="font-weight: 700;">${document.getElementById('populasiTernak').value ? document.getElementById('populasiTernak').value + ' Ekor' : '-'}</span></div>
-            <div class="review-item"><span class="review-label">Ternak Masuk</span><span class="review-value">${tMasukJ} ${tMasukJ !== 'Tidak Ada' ? `(${tMasukQ} Ekor)` : ''}</span></div>
-            <div class="review-item"><span class="review-label">Ternak Keluar</span><span class="review-value">${tKeluarJ} ${tKeluarJ !== 'Tidak Ada' ? `(${tKeluarQ} Ekor)` : ''}</span></div>
+            <div class="review-item"><span class="review-label">Ternak Masuk</span><span class="review-value">${mSummary.displayText}</span></div>
+            <div class="review-item"><span class="review-label">Ternak Keluar</span><span class="review-value">${kSummary.displayText}</span></div>
             <div class="review-item"><span class="review-label">Pakan Masuk</span><span class="review-value">${document.getElementById('pakanMasukKg').value ? document.getElementById('pakanMasukKg').value + ' kg' : '-'}</span></div>
             <div class="review-item"><span class="review-label">Pakan Keluar / Konsumsi</span><span class="review-value">${document.getElementById('pakanKeluarKg').value ? document.getElementById('pakanKeluarKg').value + ' kg' : '-'}</span></div>
           `;
         }
 
         if (checkedTernak.includes('Panen/Penjualan')) {
-          const tujDistTernak = document.getElementById('tujuanDistribusiTernak')?.value || '-';
+          const checkedDistTernak = Array.from(document.querySelectorAll('input[name="tujuanDistribusiTernakCheck"]:checked')).map(c => c.value);
           const totRp = document.getElementById('totalHargaTernakRp').value;
+          const komTernakVal = document.getElementById('jenisKomoditasTernak').value;
+          const komTernakDisplay = komTernakVal === 'Lainnya' ? `Lainnya (${document.getElementById('jenisKomoditasTernakLainnya')?.value || '-'})` : (komTernakVal || '-');
           html += `
             <div class="review-item" style="grid-column: 1 / -1; font-weight: 700; color: var(--primary); border-top: 1px solid #e2e8f0; padding-top: 0.5rem; margin-top: 0.25rem;">[Panen & Distribusi Ternak]</div>
-            <div class="review-item"><span class="review-label">Jenis Komoditas</span><span class="review-value">${document.getElementById('jenisKomoditasTernak').value || '-'}</span></div>
-            <div class="review-item"><span class="review-label">Tujuan Distribusi</span><span class="review-value" style="font-weight: 700;">${tujDistTernak}</span></div>
+            <div class="review-item"><span class="review-label">Jenis Komoditas</span><span class="review-value">${komTernakDisplay}</span></div>
+            <div class="review-item"><span class="review-label">Tujuan Distribusi</span><span class="review-value" style="font-weight: 700;">${checkedDistTernak.join(', ') || '-'}</span></div>
           `;
-          if (tujDistTernak === 'Penjualan') {
+          if (checkedDistTernak.includes('Penjualan')) {
             html += `
               <div class="review-item"><span class="review-label">Jumlah Penjualan</span><span class="review-value">${document.getElementById('jumlahPenjualanTernak').value || '-'}</span></div>
               <div class="review-item"><span class="review-label">Harga Satuan</span><span class="review-value">${document.getElementById('hargaSatuanTernakRp').value ? 'Rp ' + parseInt(document.getElementById('hargaSatuanTernakRp').value, 10).toLocaleString('id-ID') : '-'}</span></div>
               <div class="review-item"><span class="review-label">Total Harga</span><span class="review-value" style="font-weight: 700; color: #15803d;">${totRp ? 'Rp ' + parseInt(totRp, 10).toLocaleString('id-ID') : '-'}</span></div>
               <div class="review-item" style="grid-column: 1 / -1;"><span class="review-label">Pembeli</span><span class="review-value">${document.getElementById('pembeliTernakNama').value || '-'} (${document.getElementById('pembeliTernakTelp').value || '-'}), ${document.getElementById('pembeliTernakAlamat').value || '-'}</span></div>
             `;
-          } else if (tujDistTernak === 'Penggunaan Internal') {
+          }
+          if (checkedDistTernak.includes('Penggunaan Internal')) {
             const checkedPenggunaanTernak = Array.from(document.querySelectorAll('input[name="tujuanPenggunaanTernakCheck"]:checked')).map(c => c.value);
             html += `
               <div class="review-item" style="grid-column: 1 / -1;"><span class="review-label">Lokasi Penggunaan Internal</span><span class="review-value">${checkedPenggunaanTernak.join(', ') || '-'}</span></div>
@@ -3246,6 +3443,10 @@
       const anggotaTerlaporList = collectAnggotaTerlapor();
       const anggotaTerlaporText = collectAnggotaTerlaporText();
 
+      const agroDistVals = Array.from(document.querySelectorAll('input[name="tujuanDistribusiCheck"]:checked')).map(c => c.value);
+      const ternakDistVals = Array.from(document.querySelectorAll('input[name="tujuanDistribusiTernakCheck"]:checked')).map(c => c.value);
+      const tujuanDistribusiVal = hasAgroPanen ? agroDistVals.join(', ') : (hasTernakPanen ? ternakDistVals.join(', ') : '');
+
       const agroPenggunaanVals = Array.from(document.querySelectorAll('input[name="tujuanPenggunaanCheck"]:checked')).map(c => c.value);
       const ternakPenggunaanVals = Array.from(document.querySelectorAll('input[name="tujuanPenggunaanTernakCheck"]:checked')).map(c => c.value);
       const tujuanPenggunaanVal = hasAgroPanen ? agroPenggunaanVals.join(', ') : (hasTernakPanen ? ternakPenggunaanVals.join(', ') : '');
@@ -3281,7 +3482,7 @@
         luasLahanPanenM2: hasAgroPanen ? (parseFloat(document.getElementById('luasLahanPanenM2').value) || 0) : 0,
         tglPanen: hasAgroPanen ? document.getElementById('tglPanen').value : '',
         jumlahPanen: hasAgroPanen ? (parseFloat(document.getElementById('jumlahPanen').value) || 0) : 0,
-        tujuanDistribusi: hasAgroPanen ? (document.getElementById('tujuanDistribusi')?.value || '') : (hasTernakPanen ? (document.getElementById('tujuanDistribusiTernak')?.value || '') : ''),
+        tujuanDistribusi: tujuanDistribusiVal,
         tglPenjualan: hasAgroPanen ? document.getElementById('tglPenjualan').value : '',
         jumlahPenjualanUnit: hasAgroPanen ? (parseFloat(document.getElementById('jumlahPenjualanUnit').value) || 0) : 0,
         hargaSatuanRp: hasAgroPanen ? (parseFloat(document.getElementById('hargaSatuanRp').value) || 0) : 0,
@@ -3294,14 +3495,20 @@
 
         // Ternak Module
         jenisTernak: hasTernakRawat ? document.getElementById('jenisTernak').value : '',
-        ternakMasukJenis: hasTernakRawat ? document.getElementById('ternakMasukJenis').value : 'Tidak Ada',
-        ternakMasukQty: hasTernakRawat ? (parseInt(document.getElementById('ternakMasukQty').value, 10) || 0) : 0,
-        ternakKeluarJenis: hasTernakRawat ? document.getElementById('ternakKeluarJenis').value : 'Tidak Ada',
-        ternakKeluarQty: hasTernakRawat ? (parseInt(document.getElementById('ternakKeluarQty').value, 10) || 0) : 0,
+        ternakMasukJenis: hasTernakRawat ? getTernakMasukSummary().typesText : 'Tidak Ada',
+        ternakMasukQty: hasTernakRawat ? getTernakMasukSummary().total : 0,
+        ternakMasuk: hasTernakRawat ? getTernakMasukSummary().displayText : '',
+        ternakKeluarJenis: hasTernakRawat ? getTernakKeluarSummary().typesText : 'Tidak Ada',
+        ternakKeluarQty: hasTernakRawat ? getTernakKeluarSummary().total : 0,
+        ternakKeluar: hasTernakRawat ? getTernakKeluarSummary().displayText : '',
+        ternakMasukKelahiranQty: hasTernakRawat ? (parseInt(document.getElementById('ternakMasukKelahiranQty')?.value, 10) || 0) : 0,
+        ternakMasukPembelianQty: hasTernakRawat ? (parseInt(document.getElementById('ternakMasukPembelianQty')?.value, 10) || 0) : 0,
+        ternakKeluarKematianQty: hasTernakRawat ? (parseInt(document.getElementById('ternakKeluarKematianQty')?.value, 10) || 0) : 0,
+        ternakKeluarPenjualanQty: hasTernakRawat ? (parseInt(document.getElementById('ternakKeluarPenjualanQty')?.value, 10) || 0) : 0,
         populasiTernak: hasTernakRawat ? (parseInt(document.getElementById('populasiTernak').value, 10) || 0) : 0,
         pakanMasukKg: hasTernakRawat ? (parseFloat(document.getElementById('pakanMasukKg').value) || 0) : 0,
         pakanKeluarKg: hasTernakRawat ? (parseFloat(document.getElementById('pakanKeluarKg').value) || 0) : 0,
-        jenisKomoditasTernak: hasTernakPanen ? document.getElementById('jenisKomoditasTernak').value : '',
+        jenisKomoditasTernak: hasTernakPanen ? (document.getElementById('jenisKomoditasTernak').value === 'Lainnya' ? `Lainnya: ${(document.getElementById('jenisKomoditasTernakLainnya')?.value || '').trim()}` : document.getElementById('jenisKomoditasTernak').value) : '',
         jumlahPenjualanTernak: hasTernakPanen ? (parseFloat(document.getElementById('jumlahPenjualanTernak').value) || 0) : 0,
         hargaSatuanTernakRp: hasTernakPanen ? (parseFloat(document.getElementById('hargaSatuanTernakRp').value) || 0) : 0,
         totalHargaTernakRp: hasTernakPanen ? (parseFloat(document.getElementById('totalHargaTernakRp').value) || 0) : 0,
@@ -3373,13 +3580,27 @@
     window.toggleAgroSubSection = toggleAgroSubSection;
     window.toggleTernakSubSection = toggleTernakSubSection;
     window.handleTernakMutationChange = handleTernakMutationChange;
+    window.handleTernakMasukChange = handleTernakMasukChange;
+    window.handleTernakKeluarChange = handleTernakKeluarChange;
+    window.getTernakMasukSummary = getTernakMasukSummary;
+    window.getTernakKeluarSummary = getTernakKeluarSummary;
+    window.handleJenisKomoditasTernakChange = handleJenisKomoditasTernakChange;
+    window.handleTujuanDistribusiAgroCheckChange = handleTujuanDistribusiAgroCheckChange;
+    window.handleTujuanDistribusiTernakCheckChange = handleTujuanDistribusiTernakCheckChange;
     window.handleTujuanDistribusiAgroChange = handleTujuanDistribusiAgroChange;
     window.handleTujuanDistribusiTernakChange = handleTujuanDistribusiTernakChange;
+    window.handleTujuanDistribusiChange = handleTujuanDistribusiChange;
+    window.handleTglPanenChange = handleTglPanenChange;
     window.calculateTotalHarga = calculateTotalHarga;
     window.calculateTotalHargaTernak = calculateTotalHargaTernak;
+    window.removePhoto = removePhoto;
     window.triggerCameraCapture = triggerCameraCapture;
+    window.openInPageCameraModal = openInPageCameraModal;
+    window.closeInPageCameraModal = closeInPageCameraModal;
+    window.snapInPageCameraPhoto = snapInPageCameraPhoto;
     window.triggerFileUpload = triggerFileUpload;
     window.handleDirectPhotoUpload = handleDirectPhotoUpload;
+    window.handlePhotoSelect = handlePhotoSelect;
     window.onSgaAttendanceChange = onSgaAttendanceChange;
     window.toggleOptTeamAccordion = toggleOptTeamAccordion;
     window.resetFormForNewSubmission = resetFormForNewSubmission;
