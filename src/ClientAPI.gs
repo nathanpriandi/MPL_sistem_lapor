@@ -85,6 +85,14 @@ function syncFormSchemaWithSpreadsheet() {
 }
 
 /**
+ * Synchronizes active Google Form with latest schema.
+ * @returns {{ success: boolean, message: string }}
+ */
+function syncGoogleFormWithLatestDesign() {
+  return AdminService.syncGoogleFormWithLatestDesign();
+}
+
+/**
  * Searches employee by ID or Name.
  * @param {string} query 
  * @returns {{ id: string, name: string, division: string }|null}
@@ -186,11 +194,60 @@ function updateReviewStatus(reportId, newStatus) {
 }
 
 /**
- * Returns aggregated stats for Executive Manager Dashboard.
- * @returns {Object|null} JSON stats object for dashboard rendering.
+ * Returns aggregated stats and smart analytics for Executive Manager Dashboard.
+ * @param {Object} [params]
+ * @returns {Object} JSON dataset for manager dashboard rendering.
+ */
+function getAnalyticsDashboardData(params) {
+  return AnalyticsService.getAnalyticsDashboardData(params);
+}
+
+/**
+ * Returns commodity analysis (trend or breakdown) with card-local independent scoping.
+ * @param {Object} [params]
+ * @returns {Object}
+ */
+function getCommodityAnalysis(params) {
+  return AnalyticsService.getCommodityAnalysis(params);
+}
+
+/**
+ * Backward compatibility alias for getAnalyticsDashboardData.
+ * @param {Object} [options]
+ * @returns {Object}
  */
 function getDashboardStats(options) {
-  return AdminService.getDashboardStats(options);
+  return AnalyticsService.getAnalyticsDashboardData(options);
+}
+
+/**
+ * Returns employee reporting consistency leaderboard.
+ * @param {Object} [params]
+ * @returns {Array<Object>}
+ */
+function getEmployeeLeaderboard(params) {
+  const allRows = SpreadsheetRepository.getAllOperationalRows();
+  return AnalyticsService.getEmployeeReportingLeaderboard(allRows);
+}
+
+/**
+ * Returns smart HST-calculated harvest schedule.
+ * @param {Object} [params]
+ * @returns {Array<Object>}
+ */
+function getHarvestScheduleData(params) {
+  const allRows = SpreadsheetRepository.getAllOperationalRows();
+  return AnalyticsService.getHarvestSchedule(allRows);
+}
+
+/**
+ * Returns sales analytics and business initiative breakdowns.
+ * @param {Object} [params]
+ * @returns {Object}
+ */
+function getSalesAnalyticsData(params) {
+  const allRows = SpreadsheetRepository.getAllOperationalRows();
+  return AnalyticsService.getSalesAnalytics(allRows, (params && params.interval) || 'day');
 }
 
 /**
@@ -315,3 +372,43 @@ function purgeLegacyPhotoFolders() {
   const res = AdminService.purgeLegacyPhotoFolders();
   return JSON.parse(JSON.stringify(res || {}));
 }
+
+/**
+ * Returns list of registered Google accounts with roles.
+ * @returns {Array<Object>}
+ */
+function getUserRolesList() {
+  const res = AdminService.getUserRolesList();
+  return JSON.parse(JSON.stringify(res || []));
+}
+
+/**
+ * Saves or updates a Google account role.
+ * @param {Object} accountData
+ * @returns {Object}
+ */
+function saveUserRoleAccount(accountData) {
+  const res = AdminService.saveUserRoleAccount(accountData);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Deletes a Google account role.
+ * @param {string} email
+ * @returns {Object}
+ */
+function deleteUserRoleAccount(email) {
+  const res = AdminService.deleteUserRoleAccount(email);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Records user logout timestamp.
+ * @param {string} [email]
+ * @returns {Object}
+ */
+function recordUserLogout(email) {
+  const res = AuthService.recordUserLogout(email);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+

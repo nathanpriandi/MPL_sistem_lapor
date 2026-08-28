@@ -33,7 +33,7 @@ const AdminService = {
    * @returns {Object|null}
    */
   getDashboardStats: function(options) {
-    return SpreadsheetRepository.getDashboardStatsData(options || {});
+    return AnalyticsService.getAnalyticsDashboardData(options || {});
   },
 
   /**
@@ -494,6 +494,20 @@ const AdminService = {
   },
 
   /**
+   * Synchronizes active Google Form (if any) with the latest question schema.
+   * @returns {{ success: boolean, message: string }}
+   */
+  syncGoogleFormWithLatestDesign: function() {
+    try {
+      const res = syncLiveGoogleFormItems();
+      return res;
+    } catch (e) {
+      Logger.log('AdminService: syncGoogleFormWithLatestDesign error: ' + e.toString());
+      return { success: false, message: e.message || e.toString() };
+    }
+  },
+
+  /**
    * Resets reporting form configuration schema back to baseline default.
    * @returns {{ success: boolean, message: string, schema: Object }}
    */
@@ -512,6 +526,72 @@ const AdminService = {
       success: true,
       message: 'Konfigurasi formulir berhasil di-reset ke pengaturan bawaan awal.',
       schema: defaultSchema
+    };
+  },
+
+  /**
+   * Returns list of registered Google accounts with access roles.
+   * @returns {Array<Object>} List of UserRoleItem objects.
+   */
+  getUserRolesList: function() {
+    return ConfigRepository.getUserRolesRegistry();
+  },
+
+  /**
+   * Saves or updates a Google account role in Spreadsheet and cache.
+   * @param {Object} accountData - { email, nama, role, status }
+   * @returns {{ success: boolean, message: string, list: Array<Object> }}
+   */
+  saveUserRoleAccount: function(accountData) {
+    if (!accountData || !accountData.email || !accountData.email.includes('@')) {
+      throw new Error('Alamat email Google yang valid wajib diisi.');
+    }
+
+    const callerRole = AuthService.getUserRole();
+    if (callerRole !== 'both') {
+      throw new Error('Akses Ditolak: Hanya Superadmin yang berhak mengelola hak akses akun Google.');
+    }
+
+    let activeUserEmail = 'Superadmin';
+    try {
+      activeUserEmail = Session.getActiveUser().getEmail() || 'Superadmin';
+    } catch (e) {}
+
+    accountData.addedBy = activeUserEmail;
+    SpreadsheetRepository.saveUserRoleToSheet(accountData);
+
+    const updatedList = SpreadsheetRepository.getUserRolesFromSheet();
+    ConfigRepository.setUserRolesRegistry(updatedList);
+
+    return {
+      success: true,
+      message: `Akun Google ${accountData.email} berhasil disimpan sebagai ${String(accountData.role || 'Admin').toUpperCase()}.`,
+      list: updatedList
+    };
+  },
+
+  /**
+   * Deletes a Google account role from Spreadsheet and cache.
+   * @param {string} email 
+   * @returns {{ success: boolean, message: string, list: Array<Object> }}
+   */
+  deleteUserRoleAccount: function(email) {
+    if (!email) throw new Error('Email akun wajib disertakan.');
+
+    const callerRole = AuthService.getUserRole();
+    if (callerRole !== 'both') {
+      throw new Error('Akses Ditolak: Hanya Superadmin yang berhak mencabut hak akses akun Google.');
+    }
+
+    SpreadsheetRepository.deleteUserRoleFromSheet(email);
+
+    const updatedList = SpreadsheetRepository.getUserRolesFromSheet();
+    ConfigRepository.setUserRolesRegistry(updatedList);
+
+    return {
+      success: true,
+      message: `Akses untuk akun ${email} berhasil dicabut.`,
+      list: updatedList
     };
   }
 };

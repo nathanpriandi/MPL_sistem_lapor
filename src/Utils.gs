@@ -13,10 +13,17 @@
  */
 function formatDate(date) {
   if (!date) return '';
+  if (typeof date === 'string') {
+    const trimmed = date.trim();
+    if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '-') return '';
+    // If it's already a formatted string like 'YYYY-MM-DD HH:mm', check validity
+  }
   try {
-    return Utilities.formatDate(new Date(date), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
+    const d = new Date(date);
+    if (isNaN(d.getTime()) || d.getTime() <= 86400000) return '';
+    return Utilities.formatDate(d, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm');
   } catch (e) {
-    return String(date);
+    return '';
   }
 }
 

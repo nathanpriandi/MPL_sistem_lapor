@@ -93,17 +93,103 @@ const ConfigRepository = {
   },
 
   /**
-   * Evaluates configured emails and returns effective non-placeholder email strings.
-   * @returns {{ effectiveAdmin: string|null, effectiveManager: string|null }}
+   * Evaluates configured emails and returns effective multi-user sets.
+   * @returns {{ effectiveAdmin: string|null, effectiveManager: string|null, adminEmails: Array<string>, managerEmails: Array<string>, superadminEmails: Array<string> }}
    */
   getEffectiveRoleEmails: function() {
-    const adminEmail = (this.getProperty('ADMIN_EMAIL') || '').toLowerCase();
-    const managerEmail = (this.getProperty('MANAGER_EMAIL') || '').toLowerCase();
+    const adminEmails = new Set();
+    const managerEmails = new Set();
+    const superadminEmails = new Set();
 
-    const effectiveAdmin = (adminEmail && adminEmail !== this.PLACEHOLDER_ADMIN) ? adminEmail : null;
-    const effectiveManager = (managerEmail && managerEmail !== this.PLACEHOLDER_MANAGER) ? managerEmail : null;
+    // 1. Load from dynamic User Roles Registry
+    const rolesList = this.getUserRolesRegistry();
+    rolesList.forEach(item => {
+      const email = String(item.email || '').trim().toLowerCase();
+      if (!email) return;
 
-    return { effectiveAdmin, effectiveManager };
+      const r = (item.role || '').toLowerCase();
+      if (r === 'admin') adminEmails.add(email);
+      else if (r === 'manager') managerEmails.add(email);
+      else if (r === 'both' || r === 'superadmin') {
+        superadminEmails.add(email);
+        adminEmails.add(email);
+        managerEmails.add(email);
+      }
+    });
+
+    // 2. Backward compatibility fallback with legacy single properties
+    const legacyAdmin = (this.getProperty('ADMIN_EMAIL') || '').toLowerCase();
+    const legacyManager = (this.getProperty('MANAGER_EMAIL') || '').toLowerCase();
+    if (legacyAdmin) legacyAdmin.split(',').forEach(e => { const clean = e.trim(); if (clean) adminEmails.add(clean); });
+    if (legacyManager) legacyManager.split(',').forEach(e => { const clean = e.trim(); if (clean) managerEmails.add(clean); });
+
+    // Always ensure primary developer / default admin account is included
+    adminEmails.add(this.PLACEHOLDER_ADMIN.toLowerCase());
+    superadminEmails.add(this.PLACEHOLDER_ADMIN.toLowerCase());
+
+    const effectiveAdmin = adminEmails.size > 0 ? Array.from(adminEmails)[0] : null;
+    const effectiveManager = managerEmails.size > 0 ? Array.from(managerEmails)[0] : null;
+
+    return {
+      effectiveAdmin,
+      effectiveManager,
+      adminEmails: Array.from(adminEmails),
+      managerEmails: Array.from(managerEmails),
+      superadminEmails: Array.from(superadminEmails)
+    };
+  },
+
+  /**
+   * Retrieves active User Roles registry from Spreadsheet, falling back to Script Properties.
+   * @returns {Array<Object>} List of UserRoleItem objects.
+   */
+  getUserRolesRegistry: function() {
+    // Try reading live from Spreadsheet first
+    try {
+      if (typeof SpreadsheetRepository !== 'undefined' && SpreadsheetRepository.getUserRolesFromSheet) {
+        const sheetRoles = SpreadsheetRepository.getUserRolesFromSheet();
+        if (Array.isArray(sheetRoles) && sheetRoles.length > 0) {
+          // Cache in script properties for lightning fast subsequent reads
+          try {
+            this.setProperty('USER_ROLES_REGISTRY_JSON', JSON.stringify(sheetRoles));
+          } catch (eCache) {}
+          return sheetRoles;
+        }
+      }
+    } catch (eSheet) {
+      Logger.log('ConfigRepository: Error loading roles from sheet: ' + eSheet.toString());
+    }
+
+    // Fallback to Script Properties Cache
+    try {
+      const raw = this.getProperty('USER_ROLES_REGISTRY_JSON');
+      if (raw) {
+        let parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          parsed = parsed.filter(item => {
+            const em = String(item.email || '').toLowerCase();
+            return em && !em.includes('@agri.co.id') && !em.includes('staf.operasional') && !em.includes('local.dev');
+          });
+          if (parsed.length > 0) return parsed;
+        }
+      }
+    } catch (eProp) {
+      Logger.log('ConfigRepository: Error parsing USER_ROLES_REGISTRY_JSON: ' + eProp.toString());
+    }
+
+    // Default Baseline List (Single superadmin placeholder)
+    return [
+      { email: this.PLACEHOLDER_ADMIN, role: 'both', addedBy: 'System', addedAt: '2026-08-28' }
+    ];
+  },
+
+  /**
+   * Saves User Roles registry to Script Properties and syncs to Spreadsheet.
+   * @param {Array<Object>} rolesArray 
+   */
+  setUserRolesRegistry: function(rolesArray) {
+    if (!Array.isArray(rolesArray)) return;
+    this.setProperty('USER_ROLES_REGISTRY_JSON', JSON.stringify(rolesArray));
   },
 
   /**
@@ -188,7 +274,8 @@ const ConfigRepository = {
         'Jagung Tebon',
         'Jagung Hibrida',
         'Edamame',
-        'Penyemaian'
+        'Pembibitan Kopi',
+        'Pembibitan Pala'
       ],
       tujuanPenggunaanOptions: [
         'MPL Jonggol',
@@ -210,7 +297,15 @@ const ConfigRepository = {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
-          return Object.assign(this.getDefaultReportingFormSchema(), parsed);
+          const merged = Object.assign(this.getDefaultReportingFormSchema(), parsed);
+          // Auto-migrate legacy 'Penyemaian' to 'Pembibitan Kopi' & 'Pembibitan Pala'
+          if (Array.isArray(merged.komoditasOptions) && merged.komoditasOptions.includes('Penyemaian')) {
+            merged.komoditasOptions = merged.komoditasOptions
+              .filter(k => k !== 'Penyemaian')
+              .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
+            merged.komoditasOptions = Array.from(new Set(merged.komoditasOptions));
+          }
+          return merged;
         }
       }
     } catch (e) {

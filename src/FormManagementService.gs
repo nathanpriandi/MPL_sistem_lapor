@@ -282,9 +282,9 @@ const FormManagementService = {
       ? OPERATIONAL_REPORT_FIELDS.map(f => f.header) 
       : [
           'Report_ID', 'ID_Karyawan', 'Kode_Kegiatan', 'Timestamp', 'Nama_PIC', 'Bidang_Divisi', 
-          'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Administrasi', 
-          'Status_Pengelolaan', 'Komoditas', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 
-          'Estimasi_Panen_HST', 'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 
+          'Nomor_Telepon', 'Lokasi_Kegiatan', 'Jenis_Kegiatan', 'Kegiatan_Tambahan', 'Pengawasan', 'Administrasi', 
+          'Status_Pengelolaan', 'Komoditas', 'Lokasi_Blok_Tanam', 'Luas_Lahan_M2', 'Jumlah_Benih', 'Tgl_Tanam', 
+          'Estimasi_Panen_HST', 'Lokasi_Blok_Panen', 'Luas_Lahan_Panen_M2', 'Tgl_Panen', 'Jumlah_Panen_Kg', 'Tgl_Penjualan', 'Tujuan_Distribusi', 
           'Jumlah_Penjualan_Unit', 'Harga_Satuan_Rp', 'Total_Harga_Rp', 'Jumlah_Unit_Penggunaan', 
           'Tujuan_Penggunaan', 'Capaian_Kegiatan', 'Kendala', 'Upaya', 'Foto_URL', 'Foto_URL_2', 'Foto_URL_3', 
           'Severity', 'Reviewed'

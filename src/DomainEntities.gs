@@ -272,44 +272,98 @@ function lookupEmployee(query) {
 }
 
 /**
+ * Resolves composite or raw commodity strings into separated pure Tanam and Panen commodity names.
+ * Handles strings like "Pisang (Tanam), Edamame (Panen)" -> { komoditasTanam: "Pisang", komoditasPanen: "Edamame" }
+ * @param {string|any} rawKomoditas 
+ * @param {string|any} [rawKomoditasPanen] 
+ * @param {string|any} [jenisKegiatan] 
+ * @returns {{ komoditasTanam: string, komoditasPanen: string }}
+ */
+function resolveSeparatedCommodities(rawKomoditas, rawKomoditasPanen, jenisKegiatan) {
+  let tanam = '';
+  let panen = '';
+
+  const str = String(rawKomoditas || '').trim();
+  const panenStr = String(rawKomoditasPanen || '').trim();
+  const jk = String(jenisKegiatan || '').toLowerCase();
+
+  // 1. Check for explicit (Tanam) and (Panen) markers in string
+  const matchTanam = str.match(/([^(,]+?)\s*\(Tanam\)/i);
+  const matchPanen = str.match(/([^(,]+?)\s*\(Panen\)/i);
+
+  if (matchTanam) tanam = matchTanam[1].trim();
+  if (matchPanen) panen = matchPanen[1].trim();
+
+  // 2. If separate panenStr was provided
+  if (panenStr && !panen) {
+    panen = panenStr.replace(/\s*\(Panen\)/i, '').trim();
+  }
+
+  // 3. If str is a single plain crop name without markers
+  if (!tanam && !panen && str) {
+    if (jk.includes('tanam') && !jk.includes('panen')) {
+      tanam = str;
+    } else if (jk.includes('panen') && !jk.includes('tanam')) {
+      panen = str;
+    } else {
+      // If both activities or unmarked, assign to both
+      tanam = str;
+      panen = panenStr || str;
+    }
+  } else if (!tanam && str && jk.includes('tanam')) {
+    tanam = str.replace(/\s*\(Tanam\)/i, '').replace(/\s*\(Panen\)/i, '').trim();
+  } else if (!panen && str && jk.includes('panen')) {
+    panen = str.replace(/\s*\(Tanam\)/i, '').replace(/\s*\(Panen\)/i, '').trim();
+  }
+
+  return {
+    komoditasTanam: tanam,
+    komoditasPanen: panen
+  };
+}
+
+/**
  * Domain Entity: Unified Operational Report (Kegiatan, Panen & Penjualan)
  */
 const OPERATIONAL_REPORT_FIELDS = Object.freeze([
-  { key: 'reportId', header: 'Report_ID', getValue: (r) => r.reportId || '' },
-  { key: 'idKaryawan', header: 'ID_Karyawan', getValue: (r) => r.idKaryawan || r.empId || '' },
-  { key: 'kodeKegiatan', header: 'Kode_Kegiatan', getValue: (r) => r.kodeKegiatan || '' },
-  { key: 'timestamp', header: 'Timestamp', getValue: (r) => r.timestamp || '' },
-  { key: 'namaPic', header: 'Nama_PIC', getValue: (r) => r.namaPic || '' },
-  { key: 'bidangDivisi', header: 'Bidang_Divisi', getValue: (r) => r.bidangDivisi || '' },
-  { key: 'nomorTelepon', header: 'Nomor_Telepon', getValue: (r) => r.nomorTelepon || r.noTelepon || r.telepon || '' },
-  { key: 'lokasiKegiatan', header: 'Lokasi_Kegiatan', getValue: (r) => r.lokasiKegiatan || '' },
-  { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', getValue: (r) => r.jenisKegiatan || '' },
-  { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', getValue: (r) => r.kegiatanTambahan || '' },
-  { key: 'pengawasan', header: 'Pengawasan', getValue: (r) => r.pengawasan ? (r.pengawasan + (r.detailPengawasan ? ` — ${r.detailPengawasan}` : '')) : '' },
-  { key: 'administrasi', header: 'Administrasi', getValue: (r) => r.detailAdministrasi || r.administrasi || '' },
-  { key: 'statusPengelolaan', header: 'Status_Pengelolaan', getValue: (r) => r.statusPengelolaan || '' },
-  { key: 'komoditas', header: 'Komoditas', getValue: (r) => r.komoditas || '' },
-  { key: 'luasLahanM2', header: 'Luas_Lahan_M2', getValue: (r) => r.luasLahanM2 || r.luasAreaHa || '' },
-  { key: 'jumlahBenih', header: 'Jumlah_Benih', getValue: (r) => r.jumlahBenih || '' },
-  { key: 'tglTanam', header: 'Tgl_Tanam', getValue: (r) => r.tglTanam || '' },
-  { key: 'estimasiPanenHst', header: 'Estimasi_Panen_HST', getValue: (r) => r.estimasiPanenHst || r.tglPerkiraanPanen || '' },
-  { key: 'tglPanen', header: 'Tgl_Panen', getValue: (r) => r.tglPanen || '' },
-  { key: 'jumlahPanen', header: 'Jumlah_Panen_Kg', getValue: (r) => r.jumlahPanen || '' },
-  { key: 'tglPenjualan', header: 'Tgl_Penjualan', getValue: (r) => r.tglPenjualan || '' },
-  { key: 'tujuanDistribusi', header: 'Tujuan_Distribusi', getValue: (r) => r.tujuanDistribusi || '' },
-  { key: 'jumlahPenjualanUnit', header: 'Jumlah_Penjualan_Unit', getValue: (r) => r.jumlahPenjualanUnit || '' },
-  { key: 'hargaSatuanRp', header: 'Harga_Satuan_Rp', getValue: (r) => r.hargaSatuanRp || r.hargaJual || '' },
-  { key: 'totalHargaRp', header: 'Total_Harga_Rp', getValue: (r) => r.totalHargaRp || r.nilaiPenjualanRp || '' },
-  { key: 'jumlahUnitPenggunaan', header: 'Jumlah_Unit_Penggunaan', getValue: (r) => r.jumlahUnitPenggunaan || '' },
-  { key: 'tujuanPenggunaan', header: 'Tujuan_Penggunaan', getValue: (r) => r.tujuanPenggunaan || '' },
-  { key: 'capaianKegiatan', header: 'Capaian_Kegiatan', getValue: (r) => r.capaianKegiatan || '' },
-  { key: 'kendala', header: 'Kendala', getValue: (r) => r.kendala || '' },
-  { key: 'upaya', header: 'Upaya', getValue: (r) => r.upaya || '' },
-  { key: 'fotoUrl', header: 'Foto_URL', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl || (Array.isArray(r.photos) && r.photos[0])) },
-  { key: 'fotoUrl2', header: 'Foto_URL_2', getValue: (r) => extractStringUrl(r.fotoUrl2 || r.photoUrl2 || (Array.isArray(r.photos) && r.photos[1])) },
-  { key: 'fotoUrl3', header: 'Foto_URL_3', getValue: (r) => extractStringUrl(r.fotoUrl3 || r.photoUrl3 || (Array.isArray(r.photos) && r.photos[2])) },
-  { key: 'severity', header: 'Severity', getValue: (r, f) => (f && f.severity) ? f.severity : ReportSeverity.NORMAL },
-  { key: 'reviewed', header: 'Reviewed', getValue: () => ReviewStatus.UNREVIEWED }
+  { key: 'reportId', header: 'Report_ID', type: 'text', getValue: (r) => r.reportId || '' },
+  { key: 'idKaryawan', header: 'ID_Karyawan', type: 'select', groupable: true, getValue: (r) => r.idKaryawan || r.empId || '' },
+  { key: 'kodeKegiatan', header: 'Kode_Kegiatan', type: 'text', getValue: (r) => r.kodeKegiatan || '' },
+  { key: 'timestamp', header: 'Timestamp', type: 'date', getValue: (r) => r.timestamp || '' },
+  { key: 'namaPic', header: 'Nama_PIC', type: 'text', getValue: (r) => r.namaPic || '' },
+  { key: 'bidangDivisi', header: 'Bidang_Divisi', type: 'select', groupable: true, getValue: (r) => r.bidangDivisi || '' },
+  { key: 'nomorTelepon', header: 'Nomor_Telepon', type: 'text', getValue: (r) => r.nomorTelepon || r.noTelepon || r.telepon || '' },
+  { key: 'lokasiKegiatan', header: 'Lokasi_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.lokasiKegiatan || '' },
+  { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.jenisKegiatan || '' },
+  { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', type: 'text', getValue: (r) => r.kegiatanTambahan || '' },
+  { key: 'pengawasan', header: 'Pengawasan', type: 'select', groupable: true, getValue: (r) => r.pengawasan ? (r.pengawasan + (r.detailPengawasan ? ` — ${r.detailPengawasan}` : '')) : '' },
+  { key: 'administrasi', header: 'Administrasi', type: 'text', getValue: (r) => r.detailAdministrasi || r.administrasi || '' },
+  { key: 'statusPengelolaan', header: 'Status_Pengelolaan', type: 'select', groupable: true, getValue: (r) => r.statusPengelolaan || '' },
+  { key: 'komoditas', header: 'Komoditas', type: 'select', groupable: true, getValue: (r) => r.komoditas || '' },
+  { key: 'lokasiBlok', header: 'Lokasi_Blok_Tanam', type: 'text', getValue: (r) => r.lokasiBlok || r.lokasiBlokTanam || '' },
+  { key: 'luasLahanM2', header: 'Luas_Lahan_M2', type: 'number', summable: true, getValue: (r) => r.luasLahanM2 || r.luasAreaHa || '' },
+  { key: 'jumlahBenih', header: 'Jumlah_Benih', type: 'number', summable: true, getValue: (r) => r.jumlahBenih || '' },
+  { key: 'tglTanam', header: 'Tgl_Tanam', type: 'date', getValue: (r) => r.tglTanam || '' },
+  { key: 'estimasiPanenHst', header: 'Estimasi_Panen_HST', type: 'number', summable: true, getValue: (r) => r.estimasiPanenHst || r.tglPerkiraanPanen || '' },
+  { key: 'lokasiBlokPanen', header: 'Lokasi_Blok_Panen', type: 'text', getValue: (r) => r.lokasiBlokPanen || '' },
+  { key: 'luasLahanPanenM2', header: 'Luas_Lahan_Panen_M2', type: 'number', summable: true, getValue: (r) => r.luasLahanPanenM2 || r.luasLahanPanen || '' },
+  { key: 'tglPanen', header: 'Tgl_Panen', type: 'date', getValue: (r) => r.tglPanen || '' },
+  { key: 'jumlahPanen', header: 'Jumlah_Panen_Kg', type: 'number', summable: true, getValue: (r) => r.jumlahPanen || '' },
+  { key: 'tglPenjualan', header: 'Tgl_Penjualan', type: 'date', getValue: (r) => r.tglPenjualan || '' },
+  { key: 'tujuanDistribusi', header: 'Tujuan_Distribusi', type: 'select', groupable: true, getValue: (r) => r.tujuanDistribusi || '' },
+  { key: 'jumlahPenjualanUnit', header: 'Jumlah_Penjualan_Unit', type: 'number', summable: true, getValue: (r) => r.jumlahPenjualanUnit || '' },
+  { key: 'hargaSatuanRp', header: 'Harga_Satuan_Rp', type: 'number', summable: true, getValue: (r) => r.hargaSatuanRp || r.hargaJual || '' },
+  { key: 'totalHargaRp', header: 'Total_Harga_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaRp || r.nilaiPenjualanRp || '' },
+  { key: 'jumlahUnitPenggunaan', header: 'Jumlah_Unit_Penggunaan', type: 'number', summable: true, getValue: (r) => r.jumlahUnitPenggunaan || '' },
+  { key: 'tujuanPenggunaan', header: 'Tujuan_Penggunaan', type: 'select', groupable: true, getValue: (r) => r.tujuanPenggunaan || '' },
+  { key: 'capaianKegiatan', header: 'Capaian_Kegiatan', type: 'text', getValue: (r) => r.capaianKegiatan || '' },
+  { key: 'kendala', header: 'Kendala', type: 'text', getValue: (r) => r.kendala || '' },
+  { key: 'upaya', header: 'Upaya', type: 'text', getValue: (r) => r.upaya || '' },
+  { key: 'fotoUrl', header: 'Foto_URL', type: 'url', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl || (Array.isArray(r.photos) && r.photos[0])) },
+  { key: 'fotoUrl2', header: 'Foto_URL_2', type: 'url', getValue: (r) => extractStringUrl(r.fotoUrl2 || r.photoUrl2 || (Array.isArray(r.photos) && r.photos[1])) },
+  { key: 'fotoUrl3', header: 'Foto_URL_3', type: 'url', getValue: (r) => extractStringUrl(r.fotoUrl3 || r.photoUrl3 || (Array.isArray(r.photos) && r.photos[2])) },
+  { key: 'severity', header: 'Severity', type: 'select', groupable: true, getValue: (r, f) => (f && f.severity) ? f.severity : ReportSeverity.NORMAL },
+  { key: 'reviewed', header: 'Reviewed', type: 'select', groupable: true, getValue: () => ReviewStatus.UNREVIEWED }
 ]);
 
 function OperationalReport(data) {
@@ -364,7 +418,10 @@ function OperationalReport(data) {
       return kTanam || kPanen || '';
     })(),
     komoditasPanen: data.komoditasPanen || '',
+    lokasiBlok: data.lokasiBlok || data.lokasiBlokTanam || '',
+    lokasiBlokPanen: data.lokasiBlokPanen || '',
     luasLahanM2: parseFloat(data.luasLahanM2) || 0,
+    luasLahanPanenM2: parseFloat(data.luasLahanPanenM2) || 0,
     jumlahBenih: parseFloat(data.jumlahBenih) || 0,
     tglTanam: data.tglTanam || '',
     estimasiPanenHst: parseFloat(data.estimasiPanenHst) || 0,
@@ -469,5 +526,29 @@ function WeeklyStat(divisiName) {
     totalPenjualanRp: 0,
     urgentCount: 0,
     warningCount: 0
+  };
+}
+
+/**
+ * Domain Entity: User Roles & Access Management
+ */
+const USER_ROLES = Object.freeze({
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  SUPERADMIN: 'both'
+});
+
+function UserRoleItem(data) {
+  const rawRole = String(data.role || USER_ROLES.ADMIN).trim().toLowerCase();
+  let role = USER_ROLES.ADMIN;
+  if (rawRole === 'manager') role = USER_ROLES.MANAGER;
+  else if (rawRole === 'both' || rawRole === 'superadmin' || rawRole === 'admin & manager') role = USER_ROLES.SUPERADMIN;
+
+  return {
+    email: String(data.email || '').trim().toLowerCase(),
+    role: role,
+    terakhirAktif: data.terakhirAktif ? String(data.terakhirAktif).trim() : '',
+    addedBy: String(data.addedBy || 'Admin').trim(),
+    addedAt: data.addedAt ? String(data.addedAt) : (new Date()).toISOString().split('T')[0]
   };
 }

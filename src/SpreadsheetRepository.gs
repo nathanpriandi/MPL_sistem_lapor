@@ -451,7 +451,86 @@ const SpreadsheetRepository = {
   },
 
   /**
-   * Discovers all report sheets (both dynamic daily tabs Laporan_YYYY-MM-DD and canonical form tabs).
+   * Safely finds a field value from a row using fuzzy/synonym matching on headers.
+   * Handles variations like "Estimasi Panen (HST)", "Tgl Tanam", "Estimasi_Panen_HST", etc.
+   * @param {Array} row 
+   * @param {Object.<string, number>} headerMap 
+   * @param {string} fieldKey 
+   * @param {string} primaryHeader 
+   * @returns {*}
+   */
+  findRowValueByField_: function(row, headerMap, fieldKey, primaryHeader) {
+    if (!headerMap || !row) return '';
+
+    // 1. Direct match on primary header
+    if (headerMap.hasOwnProperty(primaryHeader)) {
+      const idx = headerMap[primaryHeader];
+      if (idx !== undefined && idx < row.length) return row[idx];
+    }
+
+    // 2. Direct match with spaces instead of underscores
+    const spaceHeader = primaryHeader.replace(/_/g, ' ');
+    if (headerMap.hasOwnProperty(spaceHeader)) {
+      const idx = headerMap[spaceHeader];
+      if (idx !== undefined && idx < row.length) return row[idx];
+    }
+
+    // 3. Direct match on fieldKey
+    if (headerMap.hasOwnProperty(fieldKey)) {
+      const idx = headerMap[fieldKey];
+      if (idx !== undefined && idx < row.length) return row[idx];
+    }
+
+    // 4. Normalized fuzzy search across headers (lowercase, stripped punctuation)
+    const normKey = fieldKey.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normHeader = primaryHeader.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const headerKeys = Object.keys(headerMap);
+    for (let i = 0; i < headerKeys.length; i++) {
+      const h = headerKeys[i];
+      const normH = h.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const idx = headerMap[h];
+      if (idx === undefined || idx >= row.length) continue;
+
+      if (normH === normKey || normH === normHeader) {
+        return row[idx];
+      }
+
+      // Specific field alias matching
+      if (fieldKey === 'estimasiPanenHst' && (normH.includes('estimasipanen') || normH.includes('hst') || normH.includes('perkiraanpanen') || normH.includes('umurpanen'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'tglTanam' && (normH.includes('tgltanam') || normH.includes('tanggaltanam'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'jumlahBenih' && (normH.includes('jumlahbenih') || normH.includes('benih') || normH.includes('bibit'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'luasLahanM2' && (normH === 'luaslahanm2' || normH === 'luaslahan' || normH.includes('luasarea') || normH.includes('luaslahantanam'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'luasLahanPanenM2' && (normH.includes('luaslahanpanen') || normH.includes('luaspanen'))) {
+        return row[idx];
+      }
+      if ((fieldKey === 'lokasiBlok' || fieldKey === 'lokasiBlokTanam') && (normH.includes('lokasiblok') || normH.includes('bloktanam') || normH === 'blok' || normH === 'petak' || normH.includes('petaklahan'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'lokasiBlokPanen' && (normH.includes('lokasiblokpanen') || normH.includes('blokpanen') || normH.includes('petakpanen'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'komoditas' && (normH === 'komoditas' || normH.includes('komoditastanam') || normH === 'tanaman')) {
+        return row[idx];
+      }
+      if (fieldKey === 'komoditasPanen' && (normH.includes('komoditaspanen') || normH.includes('hasilpanen'))) {
+        return row[idx];
+      }
+    }
+
+    return '';
+  },
+
+  /**
+   * Discovers all report sheets (including Master_Laporan, daily tabs Laporan_YYYY-MM-DD, and canonical form tabs).
    * @param {Spreadsheet} ss 
    * @returns {Array<Sheet>} List of resolved report sheet objects.
    */
@@ -461,12 +540,21 @@ const SpreadsheetRepository = {
     const matched = [];
     const seenIds = new Set();
 
+    // 0. Include Master_Laporan if present
+    const masterSheet = ss.getSheetByName('Master_Laporan');
+    if (masterSheet && !seenIds.has(masterSheet.getSheetId())) {
+      matched.push(masterSheet);
+      seenIds.add(masterSheet.getSheetId());
+    }
+
     // 1. Find all daily tabs matching Laporan_YYYY-MM-DD
     allSheets.forEach(s => {
       const name = s.getName();
       if (/^Laporan_\d{4}-\d{2}-\d{2}$/.test(name)) {
-        matched.push(s);
-        seenIds.add(s.getSheetId());
+        if (!seenIds.has(s.getSheetId())) {
+          matched.push(s);
+          seenIds.add(s.getSheetId());
+        }
       }
     });
 
@@ -1208,7 +1296,7 @@ const SpreadsheetRepository = {
     const protectedTabs = new Set([
       'employee_registry', 'photo_log', 'admin_queue', 'sensitive_restricted',
       'dashboard_config', 'sensitive', 'settings', 'config', 'users', 'roles',
-      'laporan operasional'
+      'laporan operasional', 'master_laporan', 'analytics_history'
     ]);
 
     let deletedCount = 0;
@@ -1229,6 +1317,10 @@ const SpreadsheetRepository = {
 
           if (diffDays >= thresholdDays) {
             try {
+              // 1. Record permanent aggregate rollup before deletion
+              this.recordAnalyticsHistoryRollup(sheet);
+
+              // 2. Delete raw sheet
               if (ss.getSheets().length > 1) {
                 ss.deleteSheet(sheet);
                 deletedCount++;
@@ -1316,5 +1408,446 @@ const SpreadsheetRepository = {
     });
 
     return csvRows.join('\r\n');
+  },
+
+  /**
+   * Reads all operational rows across daily tabs (Laporan_YYYY-MM-DD) and Master_Laporan.
+   * Maps each row to standard field keys, parses dates/numbers, and deduplicates.
+   * @param {string|Date} [dateFrom] Optional start date
+   * @param {string|Date} [dateTo] Optional end date
+   * @returns {Array<Object>}
+   */
+  getAllOperationalRows: function(dateFrom, dateTo) {
+    const mainSsId = ConfigRepository.getSpreadsheetId();
+    if (!mainSsId) return [];
+
+    const ss = SpreadsheetApp.openById(mainSsId);
+    const sheets = this.getAllReportSheets_(ss);
+    const allRows = [];
+    const seenFingerprints = new Set();
+
+    const dFrom = dateFrom ? new Date(dateFrom) : null;
+    const dTo = dateTo ? new Date(dateTo) : null;
+    if (dFrom) dFrom.setHours(0, 0, 0, 0);
+    if (dTo) dTo.setHours(23, 59, 59, 999);
+
+    sheets.forEach(sheet => {
+      if (!sheet || sheet.getLastRow() <= 1) return;
+      try {
+        const headerMap = this.getHeaderMap_(sheet);
+        const rawValues = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+
+        rawValues.forEach((row) => {
+          const hasData = row.some(c => c !== null && c !== undefined && String(c).trim().length > 0);
+          if (!hasData) return;
+
+          // Extract standard fields
+          const item = {};
+          OPERATIONAL_REPORT_FIELDS.forEach(f => {
+            let rawVal = this.findRowValueByField_(row, headerMap, f.key, f.header);
+
+            if (rawVal === null || rawVal === undefined) rawVal = '';
+
+            // Type parsing
+            if (f.type === 'number') {
+              if (typeof rawVal === 'number') {
+                item[f.key] = isNaN(rawVal) ? 0 : rawVal;
+              } else {
+                const cleaned = String(rawVal).replace(/[^0-9.-]/g, '');
+                item[f.key] = cleaned ? parseFloat(cleaned) : 0;
+              }
+            } else if (f.type === 'date') {
+              if (rawVal instanceof Date) {
+                item[f.key] = formatDate(rawVal);
+                item[f.key + '_raw'] = rawVal;
+              } else {
+                const s = String(rawVal).trim();
+                item[f.key] = s;
+                item[f.key + '_raw'] = s ? new Date(s) : null;
+              }
+            } else {
+              item[f.key] = String(rawVal).trim();
+            }
+          });
+
+          // Separate clean Tanam vs Panen commodities using resolveSeparatedCommodities
+          const sep = resolveSeparatedCommodities(item.komoditas, item.komoditasPanen, item.jenisKegiatan);
+          item.komoditasTanam = sep.komoditasTanam;
+          item.komoditasPanen = sep.komoditasPanen;
+          item.komoditas = sep.komoditasTanam || sep.komoditasPanen || item.komoditas || '';
+
+          // Generate unique fingerprint
+          const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;
+          if (seenFingerprints.has(fp)) return;
+          seenFingerprints.add(fp);
+
+          // Date range filter check
+          if (dFrom || dTo) {
+            let rowDate = null;
+            if (item.timestamp_raw instanceof Date && !isNaN(item.timestamp_raw.getTime())) {
+              rowDate = item.timestamp_raw;
+            } else if (item.timestamp) {
+              rowDate = new Date(item.timestamp);
+            } else if (item.tglPanen_raw instanceof Date) {
+              rowDate = item.tglPanen_raw;
+            } else if (item.tglTanam_raw instanceof Date) {
+              rowDate = item.tglTanam_raw;
+            }
+
+            if (rowDate && !isNaN(rowDate.getTime())) {
+              if (dFrom && rowDate < dFrom) return;
+              if (dTo && rowDate > dTo) return;
+            }
+          }
+
+          allRows.push(item);
+        });
+      } catch (err) {
+        Logger.log(`SpreadsheetRepository Error reading rows from ${sheet.getName()}: ${err.toString()}`);
+      }
+    });
+
+    return allRows;
+  },
+
+  /**
+   * Ensures the permanent Analytics_History sheet exists with appropriate headers.
+   * @param {Spreadsheet} ss 
+   * @returns {Sheet}
+   */
+  ensureAnalyticsHistorySheet_: function(ss) {
+    const sheetName = 'Analytics_History';
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      const headers = [
+        'Date',
+        'Komoditas',
+        'Arah',
+        'Jumlah_Laporan',
+        'Jumlah_Benih',
+        'Jumlah_Panen_Kg',
+        'Total_Penjualan_Rp',
+        'Total_Luas_M2'
+      ];
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      this.applyHeaderStyle(sheet, headers.length);
+    }
+    return sheet;
+  },
+
+  /**
+   * Rolls up daily tab records into Analytics_History before tab pruning.
+   * Separates tanam vs panen components into distinct clean rows.
+   * @param {Sheet} dailySheet 
+   * @returns {boolean}
+   */
+  recordAnalyticsHistoryRollup: function(dailySheet) {
+    if (!dailySheet || dailySheet.getLastRow() <= 1) return true;
+    try {
+      const ss = this.getSpreadsheet();
+      const historySheet = this.ensureAnalyticsHistorySheet_(ss);
+      const headerMap = this.getHeaderMap_(dailySheet);
+      const values = dailySheet.getRange(2, 1, dailySheet.getLastRow() - 1, dailySheet.getLastColumn()).getValues();
+
+      const tabName = dailySheet.getName();
+      let tabDate = tabName.replace('Laporan_', '').trim();
+      if (!tabDate || tabDate.length < 8) {
+        tabDate = formatDate(new Date()).split(' ')[0];
+      }
+
+      // Rollup by [komoditas, arah]
+      const map = {};
+
+      const addEntry = (cropName, arah, count, benih, panen, penjualan, luas) => {
+        const cleanCrop = String(cropName || 'Lainnya').trim() || 'Lainnya';
+        const groupKey = `${cleanCrop}|${arah}`;
+        if (!map[groupKey]) {
+          map[groupKey] = {
+            komoditas: cleanCrop,
+            arah: arah,
+            count: 0,
+            benih: 0,
+            panen: 0,
+            penjualan: 0,
+            luas: 0
+          };
+        }
+        map[groupKey].count += count;
+        map[groupKey].benih += benih;
+        map[groupKey].panen += panen;
+        map[groupKey].penjualan += penjualan;
+        map[groupKey].luas += luas;
+      };
+
+      values.forEach(row => {
+        const rawKomoditas = String(this.getCellValue_(row, headerMap, 'Komoditas') || '').trim();
+        const rawKomoditasPanen = String(this.getCellValue_(row, headerMap, 'Komoditas_Panen') || '').trim();
+        const jenisKegiatan = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan') || '').toLowerCase();
+        const jumlahBenih = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Benih') || 0) || 0;
+        const jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || 0) || 0;
+        const totalHarga = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || 0) || 0;
+        const luas = parseFloat(this.getCellValue_(row, headerMap, 'Luas_Lahan_M2') || 0) || 0;
+
+        const sep = resolveSeparatedCommodities(rawKomoditas, rawKomoditasPanen, jenisKegiatan);
+
+        if (jenisKegiatan.includes('tanam') && sep.komoditasTanam) {
+          addEntry(sep.komoditasTanam, 'Tanam', 1, jumlahBenih, 0, 0, luas);
+        }
+        if (jenisKegiatan.includes('panen') && sep.komoditasPanen) {
+          addEntry(sep.komoditasPanen, 'Panen', 1, 0, jumlahPanen, totalHarga, 0);
+        }
+        if (!jenisKegiatan.includes('tanam') && !jenisKegiatan.includes('panen')) {
+          let arah = 'Pengawasan';
+          if (jenisKegiatan.includes('administrasi')) arah = 'Administrasi';
+          addEntry(sep.komoditasTanam || sep.komoditasPanen || 'Umum', arah, 1, 0, 0, 0, 0);
+        }
+      });
+
+      const rollupRows = Object.values(map).map(m => [
+        tabDate,
+        m.komoditas,
+        m.arah,
+        m.count,
+        m.benih,
+        m.panen,
+        m.penjualan,
+        m.luas
+      ]);
+
+      if (rollupRows.length > 0) {
+        historySheet.getRange(historySheet.getLastRow() + 1, 1, rollupRows.length, 8).setValues(rollupRows);
+      }
+      return true;
+    } catch (e) {
+      Logger.log('SpreadsheetRepository Error in recordAnalyticsHistoryRollup: ' + e.toString());
+      return false;
+    }
+  },
+
+  /**
+   * Finds or creates the User_Roles sheet for multi-user RBAC.
+   * @param {Spreadsheet} [ss] 
+   * @returns {Sheet}
+   */
+  getUserRolesSheet_: function(ss) {
+    if (!ss) ss = this.getSpreadsheet();
+    let sheet = ss.getSheetByName('User_Roles');
+    const headers = ['Email', 'Role', 'Terakhir_Aktif', 'Ditambahkan_Oleh', 'Tanggal_Daftar'];
+
+    if (!sheet) {
+      sheet = ss.insertSheet('User_Roles');
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length)
+        .setBackground('#15803D')
+        .setFontColor('#FFFFFF')
+        .setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      
+      // Default Initial Accounts Seed (Single superadmin placeholder)
+      const initialRows = [
+        ['mpl.sisteminformasi@gmail.com', 'both', '', 'System Initializer', formatDate(new Date()).split(' ')[0]]
+      ];
+      sheet.getRange(2, 1, initialRows.length, headers.length).setValues(initialRows);
+      try { sheet.autoResizeColumns(1, headers.length); } catch (e) {}
+    } else {
+      // Ensure header has 5 columns
+      try {
+        const currentHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 5)).getValues()[0];
+        if (currentHeaders.length < 5 || currentHeaders[2] !== 'Terakhir_Aktif') {
+          sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+          sheet.getRange(1, 1, 1, headers.length)
+            .setBackground('#15803D')
+            .setFontColor('#FFFFFF')
+            .setFontWeight('bold');
+        }
+      } catch (eH) {}
+    }
+    return sheet;
+  },
+
+  /**
+   * Reads all registered user roles from User_Roles spreadsheet tab.
+   * Auto-purges any legacy dummy emails on the fly.
+   * @returns {Array<Object>}
+   */
+  getUserRolesFromSheet: function() {
+    try {
+      const sheet = this.getUserRolesSheet_();
+      if (!sheet || sheet.getLastRow() <= 1) return [];
+
+      const lastRow = sheet.getLastRow();
+      const raw = sheet.getRange(2, 1, lastRow - 1, Math.max(sheet.getLastColumn(), 5)).getValues();
+      const list = [];
+      const rowsToDelete = [];
+
+      raw.forEach((row, idx) => {
+        const email = String(row[0] || '').trim().toLowerCase();
+        if (!email || !email.includes('@')) return;
+
+        // Auto-purge any legacy dummy emails from live spreadsheet
+        if (email.includes('@agri.co.id') || email.includes('staf.operasional') || email.includes('local.dev')) {
+          rowsToDelete.push(idx + 2);
+          return;
+        }
+
+        let role = String(row[1] || 'admin').trim().toLowerCase();
+        if (email === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
+          role = 'both';
+        }
+
+        let terakhirAktif = '';
+        let addedBy = 'Admin';
+        let addedAt = '';
+
+        if (row.length >= 5) {
+          terakhirAktif = row[2] ? formatDate(row[2]) : '';
+          addedBy = String(row[3] || 'Admin').trim();
+          addedAt = row[4] ? formatDate(row[4]).split(' ')[0] : '';
+        } else if (row.length === 4) {
+          addedBy = String(row[2] || 'Admin').trim();
+          addedAt = row[3] ? formatDate(row[3]).split(' ')[0] : '';
+        }
+
+        if (terakhirAktif.includes('1970-01-01')) {
+          terakhirAktif = '';
+        }
+
+        list.push(UserRoleItem({
+          email: email,
+          role: role,
+          terakhirAktif: terakhirAktif,
+          addedBy: addedBy,
+          addedAt: addedAt
+        }));
+      });
+
+      // Purge dummy rows from sheet in reverse order so row indices stay stable
+      if (rowsToDelete.length > 0) {
+        for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+          try { sheet.deleteRow(rowsToDelete[i]); } catch (eDel) {}
+        }
+      }
+
+      // If sheet becomes empty after purging, ensure default superadmin row exists
+      if (list.length === 0) {
+        const defaultSuperadmin = UserRoleItem({
+          email: ConfigRepository.PLACEHOLDER_ADMIN,
+          role: 'both',
+          terakhirAktif: '',
+          addedBy: 'System Initializer',
+          addedAt: formatDate(new Date()).split(' ')[0]
+        });
+        this.saveUserRoleToSheet(defaultSuperadmin);
+        list.push(defaultSuperadmin);
+      }
+
+      return list;
+    } catch (err) {
+      Logger.log('SpreadsheetRepository Error in getUserRolesFromSheet: ' + err.toString());
+      return [];
+    }
+  },
+
+  /**
+   * Saves or updates a user role account in User_Roles sheet.
+   * @param {Object} item - { email, role, terakhirAktif, addedBy }
+   * @returns {{ success: boolean, item: Object }}
+   */
+  saveUserRoleToSheet: function(item) {
+    if (!item || !item.email || !item.email.includes('@')) {
+      throw new Error('Alamat email Google yang valid wajib diisi.');
+    }
+
+    const sheet = this.getUserRolesSheet_();
+    const emailToSave = item.email.trim().toLowerCase();
+    const roleItem = UserRoleItem(item);
+    const dateStr = formatDate(new Date()).split(' ')[0];
+
+    const lastRow = sheet.getLastRow();
+    let existingRowIndex = -1;
+    let existingLastActive = '';
+
+    if (lastRow > 1) {
+      const existingData = sheet.getRange(2, 1, lastRow - 1, Math.max(sheet.getLastColumn(), 3)).getValues();
+      for (let i = 0; i < existingData.length; i++) {
+        if (String(existingData[i][0] || '').trim().toLowerCase() === emailToSave) {
+          existingRowIndex = i + 2;
+          existingLastActive = existingData[i][2] ? formatDate(existingData[i][2]) : '';
+          break;
+        }
+      }
+    }
+
+    const rowData = [
+      roleItem.email,
+      roleItem.role,
+      roleItem.terakhirAktif || existingLastActive || '',
+      roleItem.addedBy || 'Admin',
+      roleItem.addedAt || dateStr
+    ];
+
+    if (existingRowIndex > 0) {
+      sheet.getRange(existingRowIndex, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+    }
+
+    return { success: true, item: roleItem };
+  },
+
+  /**
+   * Updates last active / logout timestamp for a user.
+   * @param {string} email 
+   * @param {string} [timestamp] 
+   */
+  updateUserLastActive: function(email, timestamp) {
+    if (!email) return;
+    const cleanEmail = email.trim().toLowerCase();
+    const timeStr = timestamp || formatDate(new Date());
+
+    try {
+      const sheet = this.getUserRolesSheet_();
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        const emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (let i = 0; i < emails.length; i++) {
+          if (String(emails[i][0] || '').trim().toLowerCase() === cleanEmail) {
+            sheet.getRange(i + 2, 3).setValue(timeStr);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      Logger.log('SpreadsheetRepository Error in updateUserLastActive: ' + e.toString());
+    }
+  },
+
+  /**
+   * Deletes a user role account from User_Roles sheet.
+   * @param {string} email 
+   * @returns {{ success: boolean }}
+   */
+  deleteUserRoleFromSheet: function(email) {
+    if (!email) throw new Error('Email wajib disertakan.');
+    const sheet = this.getUserRolesSheet_();
+    const emailToDelete = email.trim().toLowerCase();
+
+    if (emailToDelete === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
+      throw new Error('Akun Superadmin Utama (' + ConfigRepository.PLACEHOLDER_ADMIN + ') tidak dapat dihapus.');
+    }
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return { success: true };
+
+    const emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (let i = 0; i < emails.length; i++) {
+      if (String(emails[i][0] || '').trim().toLowerCase() === emailToDelete) {
+        sheet.deleteRow(i + 2);
+        return { success: true };
+      }
+    }
+
+    return { success: true };
   }
 };

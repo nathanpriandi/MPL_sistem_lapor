@@ -234,13 +234,16 @@ async function renderIdentityStrip() {
         const avatarInitial = info.email ? info.email.charAt(0).toUpperCase() : 'S';
 
         stripEl.innerHTML = `
-          <div class="user-identity-menu">
+          <div class="user-identity-menu" style="display: flex; align-items: center; gap: 0.65rem;">
             <div class="user-avatar">${avatarInitial}</div>
             <div class="user-info">
               <span class="user-email">${info.email}</span>
               ${roleBadge}
             </div>
-            <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Keluar</span>
+            </button>
           </div>
         `;
         
@@ -254,16 +257,42 @@ async function renderIdentityStrip() {
 
   // Fallback for local preview mode
   stripEl.innerHTML = `
-    <div class="user-identity-menu">
+    <div class="user-identity-menu" style="display: flex; align-items: center; gap: 0.65rem;">
       <div class="user-avatar">L</div>
       <div class="user-info">
-        <span class="user-email">local.dev@agri.co.id</span>
+        <span class="user-email">mpl.sisteminformasi@gmail.com</span>
         <span class="badge badge-neutral">Local Preview</span>
       </div>
-      <svg class="svg-icon user-dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+        <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Keluar</span>
+      </button>
     </div>
   `;
   _showInternalNavLinks('both');
+}
+
+/**
+ * Handles user logout: records activity timestamp on server and provides clean exit.
+ */
+async function handleUserLogout() {
+  if (!confirm('Apakah Anda ingin keluar dari sistem? Waktu aktivitas terakhir Anda akan dicatat.')) {
+    return;
+  }
+  try {
+    showToast('Mencatat waktu keluar...', 'info');
+    if (isLiveServer()) {
+      const res = await runServer('recordUserLogout');
+      showToast(`Sesi berakhir. Terakhir aktif dicatat: ${res.timestamp || 'Baru saja'}`, 'success');
+      setTimeout(() => {
+        window.location.href = 'https://accounts.google.com/Logout';
+      }, 1000);
+    } else {
+      showToast('Sesi berakhir (Simulasi)', 'success');
+    }
+  } catch (err) {
+    showToast('Gagal mencatat logout: ' + (err.message || err.toString()), 'error');
+  }
 }
 
 /**
@@ -310,6 +339,12 @@ document.addEventListener('DOMContentLoaded', () => {
     renderIdentityStrip();
   }
 
+  // Auto-populate sidebar quick links (Tautan Sistem)
+  const quickLinksContainer = document.getElementById('sidebarQuickLinks');
+  if (quickLinksContainer) {
+    loadQuickLinks();
+  }
+
   if (!isLiveServer()) {
     const banner = document.createElement('div');
     banner.className = 'alert-banner alert-warning';
@@ -324,45 +359,44 @@ async function loadQuickLinks() {
   const container = document.getElementById('sidebarQuickLinks');
   if (!container) return;
 
-  let publicUrl = '';
-  let spreadsheetUrl = '';
-  let photoFolderUrl = '';
+  const renderLinks = (pubUrl, ssUrl, driveUrl) => {
+    let linksHtml = '';
+    if (pubUrl) {
+      linksHtml += `<a href="${pubUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Pelaporan</span></a>`;
+    }
+    if (ssUrl) {
+      linksHtml += `<a href="${ssUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Google Spreadsheet Master Laporan"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Master Sheet</span></a>`;
+    }
+    if (driveUrl) {
+      linksHtml += `<a href="${driveUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Folder Foto Google Drive"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Folder Foto Drive</span></a>`;
+    }
+    linksHtml += `<a href="javascript:void(0)" onclick="openAdminManualModal()" class="sidebar-link-item" title="Panduan Operasional Administrator &amp; Manajer"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Panduan Singkat</span></a>`;
+    
+    container.innerHTML = linksHtml;
+  };
+
+  // Instant fallback while fetching live server data
+  let fallbackPublic = (window.SERVER_WEB_APP_URL && window.SERVER_WEB_APP_URL.includes('script.google.com'))
+    ? `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index`
+    : 'https://script.google.com/macros/s/AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav/exec?page=index';
+  let fallbackSpreadsheet = 'https://docs.google.com/spreadsheets/d/1kzJI_6Er-DI1Ty7Kc6sEkl6STK0fTih4RcHh8HJf0dI/edit';
+  
+  renderLinks(fallbackPublic, fallbackSpreadsheet, '');
 
   if (isLiveServer()) {
     try {
       const links = await runServer('getAdminQuickLinks');
       if (links) {
-        if (links.publicWebAppUrl) publicUrl = links.publicWebAppUrl;
-        if (links.spreadsheetUrl) spreadsheetUrl = links.spreadsheetUrl;
-        if (links.photoFolderUrl) photoFolderUrl = links.photoFolderUrl;
+        renderLinks(
+          links.publicWebAppUrl || fallbackPublic,
+          links.spreadsheetUrl || fallbackSpreadsheet,
+          links.photoFolderUrl || ''
+        );
       }
     } catch (e) {
-      console.error('Failed to load quick links:', e);
+      console.warn('Quick links fetch fallback used:', e);
     }
   }
-
-  if (!publicUrl || !publicUrl.includes('script.google.com')) {
-    const rawUrl = (window.SERVER_WEB_APP_URL && window.SERVER_WEB_APP_URL.includes('script.google.com'))
-      ? window.SERVER_WEB_APP_URL
-      : (typeof window !== 'undefined' && window.location ? window.location.href : '');
-    if (rawUrl && rawUrl.includes('script.google.com')) {
-      publicUrl = `${rawUrl.split('?')[0]}?page=index`;
-    }
-  }
-
-  let linksHtml = '';
-  if (publicUrl) {
-    linksHtml += `<a href="${publicUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Form Publik Web App"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>Form Pelaporan</span></a>`;
-  }
-  if (spreadsheetUrl) {
-    linksHtml += `<a href="${spreadsheetUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Google Spreadsheet Master Laporan"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Master Sheet</span></a>`;
-  }
-  if (photoFolderUrl) {
-    linksHtml += `<a href="${photoFolderUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link-item" title="Buka Folder Foto Google Drive (MPL_Dokumentasi_Foto)"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Folder Foto Drive</span></a>`;
-  }
-  linksHtml += `<a href="javascript:void(0)" onclick="openAdminManualModal()" class="sidebar-link-item" title="Panduan Operasional Administrator &amp; Manajer"><svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Panduan Singkat</span></a>`;
-  
-  container.innerHTML = linksHtml;
 }
 
 function openAdminManualModal() {
