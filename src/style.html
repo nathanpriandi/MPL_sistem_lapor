@@ -5,10 +5,12 @@
     --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
     /* Neutrals (light theme) */
-    --bg-app: #F7F8FA;
+    --bg-app: #F8FAFC;
     --bg-surface: #FFFFFF;
+    --surface: #FFFFFF;
     --border-color: #E2E8F0;
     --border-strong: #CBD5E1;
+    --border: #E2E8F0;
 
     --text-primary: #0F172A;
     --text-secondary: #475569;
@@ -20,24 +22,36 @@
     /* green-700 — AA contrast on white text */
     --primary-hover: #166534;
     /* green-800 */
+    --primary-active: #14532D;
     --primary-tint: #F0FDF4;
     /* green-50, for light backgrounds/badges */
     --primary-border: #BBF7D0;
     /* green-200 */
+    --primary-ring: rgba(21, 128, 61, 0.2);
 
     --secondary: #475569;
     /* slate-600, for secondary buttons/text */
     --secondary-hover: #334155;
+    --secondary-tint: #F8FAFC;
+    --secondary-border: #CBD5E1;
 
-    /* Semantic status (reused across forms, badges, charts) */
+    /* Semantic status */
     --urgent: #B91C1C;
     /* red-700 — WCAG AA contrast (>5.2:1) on light tint */
+    --urgent-hover: #991B1B;
     --urgent-tint: #FEF2F2;
     --urgent-border: #FECACA;
+    --urgent-ring: rgba(185, 28, 28, 0.2);
 
     --warning: #B45309;
+    --warning-hover: #92400E;
     --warning-tint: #FFFBEB;
     --warning-border: #FDE68A;
+
+    --info: #1D4ED8;
+    --info-hover: #1E40AF;
+    --info-tint: #EFF6FF;
+    --info-border: #BFDBFE;
 
     --normal: #15803D;
     --normal-tint: #F0FDF4;
@@ -50,11 +64,8 @@
     --divisi-alprof: #10B981;
     --divisi-sga: #8B5CF6;
     --divisi-agro: #15803D;
-    /* Green */
     --divisi-ternak: #D97706;
-    /* Amber/Orange */
     --divisi-ikan: #2563EB;
-    /* Blue */
 
     /* Spacing scale (4px base) */
     --space-1: 4px;
@@ -65,9 +76,24 @@
     --space-6: 32px;
     --space-7: 48px;
 
+    /* Layout & Gap Standards */
+    --field-gap: 16px;
+    --section-gap: 24px;
+    --public-form-max-width: 700px;
+    --admin-max-width: 1360px;
+
+    /* Component Heights & Touch Targets */
+    --control-height: 48px;
+    --control-height-sm: 36px;
+    --btn-height: 48px;
+    --btn-height-sm: 36px;
+    --min-touch-target: 44px;
+
     /* Radius */
     --radius-sm: 6px;
-    --radius-md: 10px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 9999px;
 
     /* Shadows — elevation scale */
     --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
@@ -79,6 +105,16 @@
     --focus-ring-color: #15803D;
     --focus-ring-width: 2px;
     --focus-ring-offset: 2px;
+  }
+
+  /* Accessibility & Motion Preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   *:focus-visible {
@@ -98,7 +134,10 @@
     color: var(--text-primary);
     min-height: 100vh;
     line-height: 1.5;
+    font-size: 1rem;
     padding-bottom: var(--space-7);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Header & Nav */
@@ -172,20 +211,24 @@
   }
 
   /* Containers */
-  .container {
-    max-width: 760px;
+  .container,
+  .public-form-container {
+    max-width: var(--public-form-max-width, 700px);
     margin: var(--space-5) auto;
     padding: 0 var(--space-4);
+    width: 100%;
   }
 
   .container-wide {
-    max-width: 1360px;
+    max-width: var(--admin-max-width, 1360px);
     margin: var(--space-5) auto;
     padding: 0 var(--space-4);
+    width: 100%;
   }
 
   /* Cards */
-  .card {
+  .card,
+  .form-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -194,45 +237,57 @@
     margin-bottom: var(--space-5);
   }
 
+  @media (max-width: 600px) {
+    .card,
+    .form-card {
+      padding: var(--space-4);
+    }
+  }
+
   .card-title {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: var(--space-2);
+    line-height: 1.25;
   }
 
   .card-subtitle {
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.925rem;
     margin-bottom: var(--space-4);
+    line-height: 1.45;
   }
 
   /* Form Controls */
   .form-group {
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--field-gap, 16px);
   }
 
   label,
   .form-label {
     display: block;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     margin-bottom: var(--space-1);
     color: var(--text-primary);
+    line-height: 1.35;
   }
 
   label .required,
   .text-danger {
     color: var(--urgent);
-    margin-left: 2px;
-    font-weight: 600;
+    margin-left: 3px;
+    font-weight: 700;
   }
 
   .help-text,
   .form-help {
-    font-size: 0.825rem;
+    font-size: 0.8125rem;
     color: var(--text-muted);
+    margin-top: var(--space-1);
     margin-bottom: var(--space-2);
+    line-height: 1.4;
   }
 
   input[type="text"],
@@ -243,21 +298,22 @@
   textarea,
   .form-input {
     width: 100%;
-    padding: 0.7rem 0.9rem;
+    padding: 0.65rem 0.85rem;
     background: var(--bg-surface);
-    border: 1px solid var(--border-strong);
+    border: 1.5px solid var(--border-strong);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-family: var(--font-base);
-    font-size: 0.95rem;
-    min-height: 44px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    font-size: 1rem;
+    min-height: var(--control-height, 48px);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   }
 
   input::placeholder,
   textarea::placeholder,
   .form-input::placeholder {
-    color: #94a3b8;
+    color: #94A3B8;
     font-size: 0.875rem;
     font-weight: 400;
     opacity: 1;
@@ -269,12 +325,33 @@
   .form-input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-tint);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+  }
+
+  input[aria-invalid="true"],
+  select[aria-invalid="true"],
+  textarea[aria-invalid="true"],
+  .form-input.is-invalid {
+    border-color: var(--urgent);
+    background-color: var(--urgent-tint);
+  }
+
+  input[aria-invalid="true"]:focus,
+  select[aria-invalid="true"]:focus,
+  textarea[aria-invalid="true"]:focus,
+  .form-input.is-invalid:focus {
+    box-shadow: 0 0 0 3px var(--urgent-ring);
   }
 
   select option {
     background: var(--bg-surface);
     color: var(--text-primary);
+  }
+
+  textarea,
+  textarea.form-input {
+    min-height: 84px;
+    resize: vertical;
   }
 
   .checkbox-group {
@@ -286,7 +363,7 @@
 
   .checkbox-card {
     background: var(--bg-app);
-    border: 1px solid var(--border-color);
+    border: 1.5px solid var(--border-color);
     padding: 0.65rem 0.9rem;
     border-radius: var(--radius-sm);
     display: flex;
@@ -294,13 +371,19 @@
     gap: var(--space-2);
     cursor: pointer;
     user-select: none;
-    min-height: 44px;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    min-height: var(--min-touch-target, 44px);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .checkbox-card:hover {
-    border-color: var(--primary-border);
+    border-color: var(--primary);
     background: var(--primary-tint);
+  }
+
+  .checkbox-card:has(input:checked) {
+    border-color: var(--primary);
+    background: var(--primary-tint);
+    box-shadow: 0 0 0 1px var(--primary);
   }
 
   .checkbox-card input[type="checkbox"] {
@@ -315,38 +398,63 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    padding: 0.7rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     border-radius: var(--radius-sm);
     font-family: var(--font-base);
     font-size: 0.95rem;
     font-weight: 600;
-    border: none;
+    border: 1.5px solid transparent;
     cursor: pointer;
-    min-height: 44px;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
-    width: 100%;
+    min-height: var(--btn-height, 48px);
+    min-width: 44px;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn:disabled,
+  .btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
   .btn-primary {
     background: var(--primary);
     color: var(--text-on-primary);
+    border-color: var(--primary);
   }
 
-  .btn-primary:hover,
-  .btn-primary:active {
+  .btn-primary:hover {
     background: var(--primary-hover);
+    border-color: var(--primary-hover);
   }
 
   .btn-secondary {
     background: var(--bg-surface);
     color: var(--secondary);
-    border: 1px solid var(--border-strong);
+    border-color: var(--border-strong);
     width: auto;
   }
 
   .btn-secondary:hover {
     background: var(--bg-app);
     border-color: var(--secondary);
+    color: var(--text-primary);
+  }
+
+  .btn-danger {
+    background: var(--urgent);
+    color: var(--text-on-primary);
+    border-color: var(--urgent);
+  }
+
+  .btn-danger:hover {
+    background: var(--urgent-hover);
+    border-color: var(--urgent-hover);
   }
 
   /* Badges */

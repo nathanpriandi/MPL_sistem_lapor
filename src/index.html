@@ -10,31 +10,32 @@
 
   <?!= includeHeader(userRole, currentPage, webAppUrl); ?>
 
-  <div class="container">
-    <div class="card" id="formCard">
-      <h1 class="card-title">Laporan Harian MPL</h1>
-      <p class="card-subtitle">Formulir harian operasional kegiatan beserta panen dan penjualan.</p>
+  <div class="container public-form-container">
+    <div class="card form-card" id="formCard">
+      <h1 class="card-title">Laporan Operasional Harian</h1>
+      <p class="card-subtitle">Pencatatan kegiatan lapangan, hasil panen, distribusi, dan dokumentasi foto.</p>
 
       <!-- Wizard Step Progress Indicator -->
       <div class="wizard-progress-container">
         <div class="wizard-step-info">
-          <span class="wizard-step-counter" id="stepCounterText">Langkah 1 dari 6</span>
-          <span class="wizard-step-title" id="stepTitleText">Identitas Pelapor</span>
+          <span class="wizard-step-counter" id="stepCounterText">Langkah 1 dari 4</span>
+          <span class="wizard-step-title" id="stepTitleText">Identitas Pelapor &amp; Informasi Kegiatan</span>
         </div>
-        <div class="wizard-progress-bar">
-          <div class="wizard-progress-fill" id="wizardProgressFill" style="width: 16.66%;"></div>
+        <div class="wizard-progress-bar" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1" id="wizardProgressBar">
+          <div class="wizard-progress-fill" id="wizardProgressFill" style="width: 25%;"></div>
         </div>
       </div>
 
       <form id="operationalForm" novalidate>
         <!-- Error Summary Alert Box -->
-        <div id="errorSummary" class="error-summary" style="display: none;">
+        <div id="errorSummary" class="error-summary" style="display: none;" role="alert" aria-live="assertive" tabindex="-1">
           <div class="error-summary-title">
             <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="errorSummaryHeading">Mohon perbaiki isian formulir:</span>
+            <span id="errorSummaryHeading">Mohon periksa dan lengkapi isian formulir:</span>
           </div>
           <ul id="errorSummaryList" class="error-summary-list"></ul>
         </div>
+
         <!-- Step 1: Identitas & Informasi Utama Kegiatan -->
         <div class="wizard-step active" id="step1">
           <div class="form-section-title">
@@ -43,35 +44,35 @@
           </div>
 
           <!-- Row 1: 2-Column Grid (ID Karyawan on Left, Nomor Telepon on Right) -->
-          <div class="form-row-2col" style="grid-template-columns: 1.15fr 1fr; align-items: flex-start; margin-bottom: 0.5rem; gap: 0.75rem;">
+          <div class="form-row-2col">
             <!-- Column 1: ID Karyawan -->
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="idKaryawan">ID Karyawan <span class="required">*</span></label>
+            <div class="form-group">
+              <label for="idKaryawan" class="form-label">ID Karyawan <span class="required" aria-hidden="true">*</span></label>
               <div class="emp-id-input-group">
                 <div class="emp-id-input-wrapper">
-                  <input type="text" id="idKaryawan" placeholder="Masukkan ID Anda" autocomplete="off" oninput="handleEmployeeIdInput(this.value)" required>
+                  <input type="text" id="idKaryawan" class="form-input" placeholder="Contoh: MNJ-01, ALP-02" autocomplete="off" oninput="handleEmployeeIdInput(this.value)" required>
                   <div class="emp-id-status-icon" id="empIdStatusIcon">
                     <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                   </div>
                 </div>
-                <button type="button" class="btn btn-secondary" onclick="openEmployeeDirectoryModal()" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.825rem; white-space: nowrap; padding: 0 0.75rem;" title="Buka Direktori ID Seluruh Karyawan">
+                <button type="button" class="btn btn-secondary table-btn-sm" onclick="openEmployeeDirectoryModal()" title="Buka Direktori ID Seluruh Karyawan">
                   <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  <span>Cari ID Saya</span>
+                  <span>Cari ID</span>
                 </button>
               </div>
             </div>
 
             <!-- Column 2: Nomor Telepon -->
-            <div class="form-group" id="nomorTeleponGroup" style="margin-bottom: 0;">
-              <label class="form-label" for="nomorTelepon" style="margin-bottom: 0.2rem;">Nomor Telepon <span class="required">*</span></label>
-              <input type="tel" id="nomorTelepon" name="nomorTelepon" class="form-input" placeholder="Masukkan nomor telepon aktif anda" inputmode="tel" required>
+            <div class="form-group" id="nomorTeleponGroup">
+              <label class="form-label" for="nomorTelepon">Nomor Telepon <span class="required" aria-hidden="true">*</span></label>
+              <input type="tel" id="nomorTelepon" name="nomorTelepon" class="form-input" placeholder="Contoh: 081234567890" inputmode="tel" required>
             </div>
           </div>
 
           <!-- Auto-filled Verified Employee Card (View Only & Unchangeable) -->
-          <div class="emp-verified-card" id="empVerifiedCard" style="margin-bottom: 0.75rem;">
+          <div class="emp-verified-card" id="empVerifiedCard">
             <div class="emp-verified-header">
-              <span class="emp-verified-title">STATUS DATA KARYAWAN</span>
+              <span class="emp-verified-title">Status Data Karyawan</span>
               <span class="emp-verified-badge emp-badge-unverified" id="empStatusBadge">
                 <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span id="empStatusText">Menunggu Input ID</span>
@@ -103,14 +104,16 @@
           </div>
 
           <!-- Dynamic Team / Sub-Form Container (PIC & Junior Team Reporting) -->
-          <div id="empTeamSection" style="display: none; margin-bottom: 0.85rem;"></div>
+          <div id="empTeamSection" style="display: none; margin-bottom: 1rem;"></div>
 
           <!-- Dynamic Questions Slot: Setelah 1.1 Identitas PIC -->
-          <div id="dynSec_1_1" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>          <!-- Lokasi Kegiatan (Single Select Radio Pills) -->
-          <div class="form-group" id="lokasiGroup">
-            <label class="form-label" style="margin-bottom: 0.2rem;">Lokasi Kegiatan <span class="required">*</span></label>
-            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Pilih 1 lokasi penugasan kegiatan hari ini.</span>
-            <div class="checkbox-pill-grid" id="lokasiCheckboxGrid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+          <div id="dynSec_1_1" class="dyn-slot"></div>
+
+          <!-- Lokasi Kegiatan (Single Select Radio Pills) -->
+          <fieldset class="form-group" id="lokasiGroup" style="border: none; padding: 0;">
+            <legend class="form-label">Lokasi Kegiatan <span class="required" aria-hidden="true">*</span></legend>
+            <span class="form-help">Pilih 1 lokasi penugasan kegiatan hari ini.</span>
+            <div class="checkbox-pill-grid" id="lokasiCheckboxGrid">
               <label class="checkbox-pill-item">
                 <input type="radio" name="lokasiKegiatanRadio" value="Jonggol">
                 <span>Jonggol</span>
@@ -128,15 +131,15 @@
                 <span>Jakarta</span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <!-- Dynamic Questions Slot: Setelah 1.2 Lokasi Sektor -->
-          <div id="dynSec_1_2" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;"></div>
+          <div id="dynSec_1_2" class="dyn-slot"></div>
 
           <!-- Kegiatan yang Dilakukan (Single Select Radio Cards) -->
-          <div class="form-group" id="kegiatanGroup">
-            <label class="form-label" style="margin-bottom: 0.2rem;">Kegiatan yang Dilakukan <span class="required">*</span></label>
-            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Pilih modul kegiatan yang dilaksanakan hari ini untuk diarahkan ke langkah pelaporan yang sesuai.</span>
+          <fieldset class="form-group" id="kegiatanGroup" style="border: none; padding: 0;">
+            <legend class="form-label">Kegiatan yang Dilakukan <span class="required" aria-hidden="true">*</span></legend>
+            <span class="form-help">Pilih modul kegiatan yang dilaksanakan hari ini untuk menentukan alur pelaporan.</span>
             <div class="checkbox-card-grid">
               <label class="checkbox-card-item">
                 <input type="radio" name="jenisKegiatanRadio" value="Agro" onchange="handleJenisKegiatanChange()">
@@ -167,7 +170,7 @@
                 </div>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <!-- Dynamic Questions Slot: Setelah 1.3 Pilihan Kegiatan -->
           <div id="dynSec_1_3" class="dyn-slot"></div>
@@ -190,10 +193,10 @@
             <span>Rincian Kegiatan Agro</span>
           </div>
 
-          <div class="form-group" id="rincianAgroGroup">
-            <label class="form-label" style="margin-bottom: 0.2rem;">Rincian Kegiatan Agro <span class="required">*</span></label>
-            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Centang rincian kegiatan agro yang dilaksanakan hari ini (dapat memilih lebih dari satu):</span>
-            <div class="checkbox-pill-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+          <fieldset class="form-group" id="rincianAgroGroup" style="border: none; padding: 0;">
+            <legend class="form-label">Rincian Kegiatan Agro <span class="required" aria-hidden="true">*</span></legend>
+            <span class="form-help">Centang rincian kegiatan agro yang dilaksanakan hari ini (dapat memilih lebih dari satu):</span>
+            <div class="checkbox-pill-grid">
               <label class="checkbox-pill-item">
                 <input type="checkbox" name="rincianAgroCheck" value="Tanam/Tebar" onchange="toggleAgroSubSection('Tanam')">
                 <span>Tanam / Tebar</span>
@@ -207,7 +210,7 @@
                 <span>Panen / Penjualan</span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <!-- Agro Sub-Section 1: Tanam / Tebar -->
           <div class="sub-section-block" id="subAgroTanam" style="display: none;">
@@ -255,8 +258,8 @@
             </div>
 
             <div class="form-group">
-              <label for="jumlahBenih">Jumlah Benih yang Digunakan <span class="required">*</span></label>
-              <input type="number" id="jumlahBenih" placeholder="0" min="1" step="1">
+              <label for="jumlahBenih">Jumlah Benih <span class="required">*</span></label>
+              <input type="number" id="jumlahBenih" placeholder="0" min="1">
             </div>
 
             <div class="form-row-2col">
@@ -265,11 +268,14 @@
                 <input type="date" id="tglTanam">
               </div>
               <div class="form-group">
-                <label for="estimasiPanenHst">Estimasi Panen (HST) <span class="required">*</span></label>
-                <input type="number" id="estimasiPanenHst" placeholder="Hari Setelah Tanam (contoh: 90)" min="1" max="730" step="1">
+                <label for="estimasiPanenHst">Estimasi Panen (HST - Hari Setelah Tanam) <span class="required">*</span></label>
+                <input type="number" id="estimasiPanenHst" placeholder="Contoh: 90" min="1">
               </div>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 2.1 Agro Tanam -->
+          <div id="dynSec_2_1" class="dyn-slot"></div>
 
           <!-- Agro Sub-Section 2: Perawatan -->
           <div class="sub-section-block" id="subAgroRawat" style="display: none;">
@@ -317,17 +323,20 @@
             </div>
 
             <div class="form-group">
-              <label for="populasiAgro">Populasi (Jumlah Tanaman / Pohon) <span class="required">*</span></label>
-              <input type="number" id="populasiAgro" placeholder="Contoh: 500" min="1" step="1">
+              <label for="populasiAgro">Populasi Tanaman (Jumlah Pohon / Batang) <span class="required">*</span></label>
+              <input type="number" id="populasiAgro" placeholder="0" min="1">
             </div>
 
             <div class="form-group">
               <label for="rincianPerawatanAgro">Rincian Tindakan Perawatan <span class="required">*</span></label>
-              <textarea id="rincianPerawatanAgro" rows="2" placeholder="Tuliskan tindakan perawatan yang dilakukan (pemupukan, penyiraman, penyiangan gulma, pengendalian hama, dll)..."></textarea>
+              <textarea id="rincianPerawatanAgro" rows="2" placeholder="Contoh: Pemupukan NPK 50kg, penyiangan gulma, penyemprotan pestisida hayati..."></textarea>
             </div>
           </div>
 
-          <!-- Agro Sub-Section 3: Panen / Penjualan -->
+          <!-- Dynamic Questions Slot: Setelah 2.2 Agro Rawat -->
+          <div id="dynSec_2_2" class="dyn-slot"></div>
+
+          <!-- Agro Sub-Section 3: Panen & Penjualan -->
           <div class="sub-section-block" id="subAgroPanen" style="display: none;">
             <div class="sub-section-header">
               <span>Detail Panen &amp; Penjualan Agro</span>
@@ -364,7 +373,7 @@
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="lokasiBlokPanen">Lokasi / Blok <span class="required">*</span></label>
-                <input type="text" id="lokasiBlokPanen" placeholder="Contoh: Blok A1">
+                <input type="text" id="lokasiBlokPanen" placeholder="Contoh: Blok C1">
               </div>
               <div class="form-group">
                 <label for="luasLahanPanenM2">Luas Lahan Panen (m²) <span class="required">*</span></label>
@@ -375,93 +384,90 @@
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="tglPanen">Tanggal Panen <span class="required">*</span></label>
-                <input type="date" id="tglPanen" onchange="handleTglPanenChange()">
+                <input type="date" id="tglPanen">
               </div>
               <div class="form-group">
-                <label for="jumlahPanen">Jumlah Panen (kg) <span class="required">*</span></label>
+                <label for="jumlahPanen">Jumlah Panen (Kg) <span class="required">*</span></label>
                 <input type="number" id="jumlahPanen" placeholder="0" min="0.01" step="any">
               </div>
             </div>
 
             <div class="form-group">
               <label for="tujuanDistribusi">Tujuan Distribusi <span class="required">*</span></label>
-              <select id="tujuanDistribusi" onchange="handleTujuanDistribusiAgroChange()">
+              <select id="tujuanDistribusi" onchange="handleTujuanDistribusiChange('Agro')">
                 <option value="">-- Pilih Tujuan Distribusi --</option>
                 <option value="Penjualan">Penjualan</option>
                 <option value="Penggunaan Internal">Penggunaan Internal</option>
               </select>
             </div>
 
-            <!-- Agro Penjualan Sub-Container -->
+            <!-- Conditional 1: Form Penjualan Agro -->
             <div id="agroPenjualanContainer" style="display: none;">
-              <div class="form-row-2col">
-                <div class="form-group">
-                  <label for="tglPenjualan">Tanggal Penjualan <span class="required">*</span></label>
-                  <input type="date" id="tglPenjualan">
-                </div>
-                <div class="form-group">
-                  <label for="jumlahPenjualanUnit">Jumlah Penjualan (Unit/Kg) <span class="required">*</span></label>
-                  <input type="number" id="jumlahPenjualanUnit" placeholder="0" min="1" step="1" oninput="calculateTotalHarga()">
-                </div>
+              <div class="form-group">
+                <label for="tglPenjualan">Tanggal Penjualan <span class="required">*</span></label>
+                <input type="date" id="tglPenjualan">
               </div>
 
               <div class="form-row-2col">
+                <div class="form-group">
+                  <label for="jumlahPenjualanUnit">Jumlah Penjualan (Unit / Kg) <span class="required">*</span></label>
+                  <input type="number" id="jumlahPenjualanUnit" placeholder="0" min="0.01" step="any" oninput="calculateTotalHarga('Agro')">
+                </div>
                 <div class="form-group">
                   <label for="hargaSatuanRp">Harga Satuan (Rp) <span class="required">*</span></label>
-                  <input type="number" id="hargaSatuanRp" placeholder="0" min="1" step="1" oninput="calculateTotalHarga()">
-                </div>
-                <div class="form-group">
-                  <label for="totalHargaRp">Total Harga (Rp) <span class="required">*</span></label>
-                  <input type="number" id="totalHargaRp" placeholder="0" min="1" step="1">
+                  <input type="number" id="hargaSatuanRp" placeholder="0" min="1" oninput="calculateTotalHarga('Agro')">
                 </div>
               </div>
 
-              <!-- Buyer Information Section -->
+              <div class="form-group">
+                <label for="totalHargaRp">Total Harga (Rp) <span class="required">*</span></label>
+                <input type="number" id="totalHargaRp" placeholder="0" readonly style="background: #f1f5f9; font-weight: 700; color: #15803d;">
+              </div>
+
               <div class="buyer-info-box">
                 <div class="buyer-info-title">
+                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <span>Informasi Pembeli</span>
                 </div>
-                <div class="form-group" style="margin-bottom: 0.5rem;">
+                <div class="form-group">
                   <label for="pembeliNama">Nama Pembeli <span class="required">*</span></label>
-                  <input type="text" id="pembeliNama" placeholder="Nama pembeli / perusahaan pembeli">
+                  <input type="text" id="pembeliNama" placeholder="Nama lengkap pembeli">
                 </div>
-                <div class="form-row-2col" style="margin-bottom: 0;">
-                  <div class="form-group" style="margin-bottom: 0;">
-                    <label for="pembeliAlamat">Alamat Pembeli <span class="required">*</span></label>
-                    <input type="text" id="pembeliAlamat" placeholder="Alamat atau lokasi pembeli">
-                  </div>
-                  <div class="form-group" style="margin-bottom: 0;">
-                    <label for="pembeliTelp">Nomor Telepon Pembeli <span class="required">*</span></label>
-                    <input type="tel" id="pembeliTelp" placeholder="Contoh: 081234567890">
-                  </div>
+                <div class="form-group">
+                  <label for="pembeliAlamat">Alamat Pembeli <span class="required">*</span></label>
+                  <input type="text" id="pembeliAlamat" placeholder="Alamat lengkap pembeli">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="pembeliTelp">Nomor Telepon Pembeli <span class="required">*</span></label>
+                  <input type="tel" id="pembeliTelp" placeholder="Contoh: 081234567890">
                 </div>
               </div>
             </div>
 
-            <!-- Agro Penggunaan Internal Sub-Container -->
+            <!-- Conditional 2: Penggunaan Internal Agro -->
             <div id="agroPenggunaanContainer" style="display: none;">
-              <div class="form-group" style="margin-bottom: 0.85rem;" id="tujuanPenggunaanAgroGroup">
-                <label class="form-label" style="margin-bottom: 0.25rem;">Tujuan Penggunaan Internal <span class="required">*</span></label>
-                <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Centang lokasi tujuan penggunaan internal (dapat memilih lebih dari satu):</span>
-                <div class="checkbox-pill-grid" id="tujuanPenggunaanAgroGrid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+              <fieldset class="form-group" id="tujuanPenggunaanAgroGroup" style="border: none; padding: 0;">
+                <legend class="form-label">Tujuan Penggunaan Internal <span class="required" aria-hidden="true">*</span></legend>
+                <span class="form-help">Pilih minimal 1 tujuan penggunaan internal:</span>
+                <div class="checkbox-pill-grid" id="tujuanPenggunaanAgroGrid">
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanCheck" value="MPL Jonggol">
-                    <span>MPL Jonggol</span>
+                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Jonggol">
+                    <span>Jonggol</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanCheck" value="MPL Cikalong">
-                    <span>MPL Cikalong</span>
+                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Cikalong">
+                    <span>Cikalong</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Villa Quiling">
-                    <span>Villa Quiling</span>
+                    <input type="checkbox" name="tujuanPenggunaanCheck" value="Quilling">
+                    <span>Quilling</span>
                   </label>
                   <label class="checkbox-pill-item">
                     <input type="checkbox" name="tujuanPenggunaanCheck" value="Pasir Putih">
                     <span>Pasir Putih</span>
                   </label>
                 </div>
-              </div>
+              </fieldset>
 
               <div class="form-group">
                 <label for="jumlahUnitPenggunaan">Jumlah Unit Penggunaan <span class="required">*</span></label>
@@ -469,6 +475,12 @@
               </div>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 2.3 Agro Panen -->
+          <div id="dynSec_2_3" class="dyn-slot"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 2 End / Default) -->
+          <div id="dynamicFieldsStep2" class="dyn-slot"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep('step2_agro')">
@@ -486,13 +498,13 @@
         <div class="wizard-step" id="step2_ternak">
           <div class="form-section-title">
             <span class="step-badge">2</span>
-            <span>Rincian Kegiatan Peternakan (Ternak)</span>
+            <span>Rincian Kegiatan Peternakan</span>
           </div>
 
-          <div class="form-group" id="rincianTernakGroup">
-            <label class="form-label" style="margin-bottom: 0.2rem;">Rincian Kegiatan Ternak <span class="required">*</span></label>
-            <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Centang rincian kegiatan ternak yang dilaksanakan hari ini (dapat memilih lebih dari satu):</span>
-            <div class="checkbox-pill-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+          <fieldset class="form-group" id="rincianTernakGroup" style="border: none; padding: 0;">
+            <legend class="form-label">Rincian Kegiatan Ternak <span class="required" aria-hidden="true">*</span></legend>
+            <span class="form-help">Centang rincian kegiatan peternakan yang dilaksanakan hari ini (dapat memilih lebih dari satu):</span>
+            <div class="checkbox-pill-grid">
               <label class="checkbox-pill-item">
                 <input type="checkbox" name="rincianTernakCheck" value="Perawatan" onchange="toggleTernakSubSection('Rawat')">
                 <span>Perawatan</span>
@@ -502,9 +514,9 @@
                 <span>Panen / Penjualan</span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
-          <!-- Ternak Sub-Section 1: Perawatan -->
+          <!-- Ternak Sub-Section 1: Perawatan Ternak -->
           <div class="sub-section-block" id="subTernakRawat" style="display: none;">
             <div class="sub-section-header">
               <span>Detail Perawatan Ternak</span>
@@ -515,151 +527,164 @@
               <select id="jenisTernak">
                 <option value="">-- Pilih Jenis Ternak --</option>
                 <option value="Sapi">Sapi</option>
-                <option value="Kambing">Kambing</option>
                 <option value="Domba">Domba</option>
+                <option value="Kambing">Kambing</option>
+                <option value="Ayam Petelur">Ayam Petelur</option>
                 <option value="Ayam Broiler">Ayam Broiler</option>
-                <option value="Ayam KUB">Ayam KUB</option>
-                <option value="Ayam KUB Petelur">Ayam KUB Petelur</option>
+                <option value="Bebek">Bebek</option>
+                <option value="Ikan Nila">Ikan Nila</option>
+                <option value="Ikan Lele">Ikan Lele</option>
               </select>
             </div>
 
+            <!-- Row: Ternak Masuk & Keluar -->
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="ternakMasukJenis">Ternak Masuk <span class="required">*</span></label>
-                <select id="ternakMasukJenis" onchange="handleTernakMutationChange()">
+                <select id="ternakMasukJenis" onchange="handleTernakMasukChange()">
+                  <option value="">-- Pilih --</option>
                   <option value="Tidak Ada">Tidak Ada</option>
-                  <option value="Kelahiran">Kelahiran</option>
-                  <option value="Pembelian">Pembelian</option>
+                  <option value="Beli">Beli</option>
+                  <option value="Lahir">Lahir</option>
                 </select>
               </div>
-              <div class="form-group" id="ternakMasukQtyGroup">
-                <label for="ternakMasukQty">Jumlah Ternak Masuk (Ekor)</label>
-                <input type="number" id="ternakMasukQty" placeholder="0" min="0" step="1" value="0">
+
+              <div class="form-group" id="groupTernakMasukQty" style="display: none;">
+                <label for="ternakMasukQty" id="labelTernakMasukQty">Jumlah Masuk (Ekor) <span class="required">*</span></label>
+                <input type="number" id="ternakMasukQty" placeholder="0" min="1">
               </div>
             </div>
 
             <div class="form-row-2col">
               <div class="form-group">
                 <label for="ternakKeluarJenis">Ternak Keluar <span class="required">*</span></label>
-                <select id="ternakKeluarJenis" onchange="handleTernakMutationChange()">
+                <select id="ternakKeluarJenis" onchange="handleTernakKeluarChange()">
+                  <option value="">-- Pilih --</option>
                   <option value="Tidak Ada">Tidak Ada</option>
-                  <option value="Kematian">Kematian</option>
-                  <option value="Penjualan">Penjualan</option>
+                  <option value="Mati">Mati</option>
+                  <option value="Afkir">Afkir</option>
+                  <option value="Hilang">Hilang</option>
                 </select>
               </div>
-              <div class="form-group" id="ternakKeluarQtyGroup">
-                <label for="ternakKeluarQty">Jumlah Ternak Keluar (Ekor)</label>
-                <input type="number" id="ternakKeluarQty" placeholder="0" min="0" step="1" value="0">
+
+              <div class="form-group" id="groupTernakKeluarQty" style="display: none;">
+                <label for="ternakKeluarQty" id="labelTernakKeluarQty">Jumlah Keluar (Ekor) <span class="required">*</span></label>
+                <input type="number" id="ternakKeluarQty" placeholder="0" min="1">
               </div>
             </div>
 
             <div class="form-group">
-              <label for="populasiTernak">Populasi Ternak (Total Ekor Saat Ini) <span class="required">*</span></label>
-              <input type="number" id="populasiTernak" placeholder="0" min="1" step="1">
+              <label for="populasiTernak">Populasi Ternak (Jumlah Ekor Saat Ini) <span class="required">*</span></label>
+              <input type="number" id="populasiTernak" placeholder="0" min="1">
             </div>
 
             <div class="form-row-2col">
               <div class="form-group">
-                <label for="pakanMasukKg">Pakan Masuk (kg) <span class="required">*</span></label>
+                <label for="pakanMasukKg">Pakan Masuk (Kg) <span class="required">*</span></label>
                 <input type="number" id="pakanMasukKg" placeholder="0" min="0" step="any">
               </div>
               <div class="form-group">
-                <label for="pakanKeluarKg">Pakan Keluar / Konsumsi (kg) <span class="required">*</span></label>
+                <label for="pakanKeluarKg">Pakan Keluar / Konsumsi (Kg) <span class="required">*</span></label>
                 <input type="number" id="pakanKeluarKg" placeholder="0" min="0" step="any">
               </div>
             </div>
           </div>
 
-          <!-- Ternak Sub-Section 2: Panen / Penjualan -->
+          <!-- Dynamic Questions Slot: Setelah 3.1 Ternak Rawat -->
+          <div id="dynSec_3_1" class="dyn-slot"></div>
+
+          <!-- Ternak Sub-Section 2: Panen & Penjualan Ternak -->
           <div class="sub-section-block" id="subTernakPanen" style="display: none;">
             <div class="sub-section-header">
               <span>Detail Panen &amp; Penjualan Ternak</span>
             </div>
 
             <div class="form-group">
-              <label for="jenisKomoditasTernak">Jenis Komoditas <span class="required">*</span></label>
+              <label for="jenisKomoditasTernak">Jenis Komoditas Ternak <span class="required">*</span></label>
               <select id="jenisKomoditasTernak">
-                <option value="">-- Pilih Jenis Komoditas --</option>
-                <option value="Hewan Hidup">Hewan Hidup</option>
-                <option value="Telur">Telur</option>
-                <option value="Daging">Daging</option>
-                <option value="Lainnya">Lainnya</option>
+                <option value="">-- Pilih Komoditas --</option>
+                <option value="Sapi Hidup">Sapi Hidup</option>
+                <option value="Domba / Kambing Hidup">Domba / Kambing Hidup</option>
+                <option value="Ayam Hidup">Ayam Hidup</option>
+                <option value="Telur Ayam">Telur Ayam</option>
+                <option value="Susu Segar">Susu Segar</option>
+                <option value="Daging Olahan">Daging Olahan</option>
+                <option value="Ikan Segar">Ikan Segar</option>
+                <option value="Pupuk Kandang / Kohe">Pupuk Kandang / Kohe</option>
               </select>
             </div>
 
             <div class="form-group">
               <label for="tujuanDistribusiTernak">Tujuan Distribusi <span class="required">*</span></label>
-              <select id="tujuanDistribusiTernak" onchange="handleTujuanDistribusiTernakChange()">
+              <select id="tujuanDistribusiTernak" onchange="handleTujuanDistribusiChange('Ternak')">
                 <option value="">-- Pilih Tujuan Distribusi --</option>
                 <option value="Penjualan">Penjualan</option>
                 <option value="Penggunaan Internal">Penggunaan Internal</option>
               </select>
             </div>
 
-            <!-- Ternak Penjualan Sub-Container -->
+            <!-- Conditional 1: Penjualan Ternak -->
             <div id="ternakPenjualanContainer" style="display: none;">
               <div class="form-row-2col">
                 <div class="form-group">
-                  <label for="jumlahPenjualanTernak">Jumlah Penjualan <span class="required">*</span></label>
-                  <input type="number" id="jumlahPenjualanTernak" placeholder="0" min="1" step="any" oninput="calculateTotalHargaTernak()">
+                  <label for="jumlahPenjualanTernak">Jumlah Penjualan (Ekor / Kg / Liter / Butir) <span class="required">*</span></label>
+                  <input type="number" id="jumlahPenjualanTernak" placeholder="0" min="0.01" step="any" oninput="calculateTotalHarga('Ternak')">
                 </div>
                 <div class="form-group">
                   <label for="hargaSatuanTernakRp">Harga Satuan (Rp) <span class="required">*</span></label>
-                  <input type="number" id="hargaSatuanTernakRp" placeholder="0" min="1" step="1" oninput="calculateTotalHargaTernak()">
+                  <input type="number" id="hargaSatuanTernakRp" placeholder="0" min="1" oninput="calculateTotalHarga('Ternak')">
                 </div>
               </div>
 
               <div class="form-group">
                 <label for="totalHargaTernakRp">Total Harga (Rp) <span class="required">*</span></label>
-                <input type="number" id="totalHargaTernakRp" placeholder="0" min="1" step="1">
+                <input type="number" id="totalHargaTernakRp" placeholder="0" readonly style="background: #f1f5f9; font-weight: 700; color: #15803d;">
               </div>
 
-              <!-- Buyer Information Section for Ternak -->
               <div class="buyer-info-box">
                 <div class="buyer-info-title">
-                  <span>Informasi Pembeli</span>
+                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <span>Informasi Pembeli Produk Ternak</span>
                 </div>
-                <div class="form-group" style="margin-bottom: 0.5rem;">
+                <div class="form-group">
                   <label for="pembeliTernakNama">Nama Pembeli <span class="required">*</span></label>
-                  <input type="text" id="pembeliTernakNama" placeholder="Nama pembeli / perusahaan pembeli">
+                  <input type="text" id="pembeliTernakNama" placeholder="Nama pembeli">
                 </div>
-                <div class="form-row-2col" style="margin-bottom: 0;">
-                  <div class="form-group" style="margin-bottom: 0;">
-                    <label for="pembeliTernakAlamat">Alamat Pembeli <span class="required">*</span></label>
-                    <input type="text" id="pembeliTernakAlamat" placeholder="Alamat atau lokasi pembeli">
-                  </div>
-                  <div class="form-group" style="margin-bottom: 0;">
-                    <label for="pembeliTernakTelp">Nomor Telepon Pembeli <span class="required">*</span></label>
-                    <input type="tel" id="pembeliTernakTelp" placeholder="Contoh: 081234567890">
-                  </div>
+                <div class="form-group">
+                  <label for="pembeliTernakAlamat">Alamat Pembeli <span class="required">*</span></label>
+                  <input type="text" id="pembeliTernakAlamat" placeholder="Alamat pembeli">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="pembeliTernakTelp">Nomor Telepon Pembeli <span class="required">*</span></label>
+                  <input type="tel" id="pembeliTernakTelp" placeholder="Contoh: 081234567890">
                 </div>
               </div>
             </div>
 
-            <!-- Ternak Penggunaan Internal Sub-Container -->
+            <!-- Conditional 2: Penggunaan Internal Ternak -->
             <div id="ternakPenggunaanContainer" style="display: none;">
-              <div class="form-group" style="margin-bottom: 0.85rem;" id="tujuanPenggunaanTernakGroup">
-                <label class="form-label" style="margin-bottom: 0.25rem;">Tujuan Penggunaan Internal <span class="required">*</span></label>
-                <span class="form-help" style="font-size: 0.775rem; color: #64748b; margin-bottom: 0.45rem; display: block;">Centang lokasi tujuan penggunaan internal (dapat memilih lebih dari satu):</span>
-                <div class="checkbox-pill-grid" id="tujuanPenggunaanTernakGrid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+              <fieldset class="form-group" id="tujuanPenggunaanTernakGroup" style="border: none; padding: 0;">
+                <legend class="form-label">Tujuan Penggunaan Internal <span class="required" aria-hidden="true">*</span></legend>
+                <span class="form-help">Pilih minimal 1 lokasi tujuan:</span>
+                <div class="checkbox-pill-grid" id="tujuanPenggunaanTernakGrid">
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="MPL Jonggol">
-                    <span>MPL Jonggol</span>
+                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Jonggol">
+                    <span>Jonggol</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="MPL Cikalong">
-                    <span>MPL Cikalong</span>
+                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Cikalong">
+                    <span>Cikalong</span>
                   </label>
                   <label class="checkbox-pill-item">
-                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Villa Quiling">
-                    <span>Villa Quiling</span>
+                    <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Quilling">
+                    <span>Quilling</span>
                   </label>
                   <label class="checkbox-pill-item">
                     <input type="checkbox" name="tujuanPenggunaanTernakCheck" value="Pasir Putih">
                     <span>Pasir Putih</span>
                   </label>
                 </div>
-              </div>
+              </fieldset>
 
               <div class="form-group">
                 <label for="jumlahUnitPenggunaanTernak">Jumlah Unit Penggunaan <span class="required">*</span></label>
@@ -667,6 +692,12 @@
               </div>
             </div>
           </div>
+
+          <!-- Dynamic Questions Slot: Setelah 3.2 Ternak Panen -->
+          <div id="dynSec_3_2" class="dyn-slot"></div>
+
+          <!-- Dynamic Custom Questions Container (Step 3 Ternak End / Default) -->
+          <div id="dynamicFieldsStep3" class="dyn-slot"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep('step2_ternak')">
@@ -688,7 +719,7 @@
           </div>
 
           <div class="form-group">
-            <label for="officeJenis">Jenis Kegiatan <span class="required">*</span></label>
+            <label for="officeJenis">Jenis Kegiatan Office <span class="required">*</span></label>
             <select id="officeJenis">
               <option value="">-- Pilih Jenis Kegiatan --</option>
               <option value="Keuangan">Keuangan</option>
@@ -698,8 +729,11 @@
 
           <div class="form-group">
             <label for="officeRincian">Rincian Kegiatan <span class="required">*</span></label>
-            <textarea id="officeRincian" rows="4" placeholder="Tuliskan rincian kegiatan kantor, pembukuan, keuangan, surat-menyurat, atau administrasi yang dilaksanakan hari ini..."></textarea>
+            <textarea id="officeRincian" rows="3" placeholder="Tuliskan rincian kegiatan operasional kantor yang dikerjakan hari ini..."></textarea>
           </div>
+
+          <!-- Dynamic Custom Questions Container (Step 4 Office End / Default) -->
+          <div id="dynamicFieldsStep4" class="dyn-slot"></div>
 
           <div class="wizard-actions">
             <button type="button" class="btn btn-secondary" onclick="prevStep('step2_office')">
@@ -742,70 +776,79 @@
               <span id="photoProgressBadgePengawasan" class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px;">0 dari 3 foto telah diunggah</span>
             </div>
             
-            <p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.85rem;">
+            <p class="form-help" style="margin-bottom: 0.85rem;">
               Unggah 3 file foto dokumentasi lapangan:
               <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>.
             </p>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
               <!-- Slot 1 -->
-              <div class="photo-slot-card" id="slotCardPengawasan_0" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 1: Utama <span class="required">*</span></div>
+              <div class="photo-slot-card" id="slotCardPengawasan_0">
+                <div class="photo-slot-title">Foto 1: Utama <span class="required">*</span></div>
                 
                 <div id="slotEmptyPengawasan_0">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(0)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(0)">
                     <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     <span>Pilih Foto 1</span>
                   </button>
                 </div>
 
                 <div id="slotPreviewPengawasan_0" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImgPengawasan_0" src="" alt="Preview Foto 1" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
-                  <div style="margin-top: 0.5rem;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(0)" style="font-size: 0.75rem; padding: 3px 8px;">
-                      <span>Ganti Foto</span>
+                  <img id="slotImgPengawasan_0" src="" alt="Pratinjau Foto 1" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(0)">
+                      <span>Ganti</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(0)">
+                      <span>Hapus</span>
                     </button>
                   </div>
                 </div>
               </div>
 
               <!-- Slot 2 -->
-              <div class="photo-slot-card" id="slotCardPengawasan_1" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 2: Detail Aktivitas <span class="required">*</span></div>
+              <div class="photo-slot-card" id="slotCardPengawasan_1">
+                <div class="photo-slot-title">Foto 2: Detail Aktivitas <span class="required">*</span></div>
                 
                 <div id="slotEmptyPengawasan_1">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(1)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(1)">
                     <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     <span>Pilih Foto 2</span>
                   </button>
                 </div>
 
                 <div id="slotPreviewPengawasan_1" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImgPengawasan_1" src="" alt="Preview Foto 2" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
-                  <div style="margin-top: 0.5rem;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(1)" style="font-size: 0.75rem; padding: 3px 8px;">
-                      <span>Ganti Foto</span>
+                  <img id="slotImgPengawasan_1" src="" alt="Pratinjau Foto 2" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(1)">
+                      <span>Ganti</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(1)">
+                      <span>Hapus</span>
                     </button>
                   </div>
                 </div>
               </div>
 
               <!-- Slot 3 -->
-              <div class="photo-slot-card" id="slotCardPengawasan_2" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 3: Hasil / Area <span class="required">*</span></div>
+              <div class="photo-slot-card" id="slotCardPengawasan_2">
+                <div class="photo-slot-title">Foto 3: Hasil / Area <span class="required">*</span></div>
                 
                 <div id="slotEmptyPengawasan_2">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(2)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerFileUpload(2)">
                     <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     <span>Pilih Foto 3</span>
                   </button>
                 </div>
 
                 <div id="slotPreviewPengawasan_2" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImgPengawasan_2" src="" alt="Preview Foto 3" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
-                  <div style="margin-top: 0.5rem;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(2)" style="font-size: 0.75rem; padding: 3px 8px;">
-                      <span>Ganti Foto</span>
+                  <img id="slotImgPengawasan_2" src="" alt="Pratinjau Foto 3" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUpload(2)">
+                      <span>Ganti</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(2)">
+                      <span>Hapus</span>
                     </button>
                   </div>
                 </div>
@@ -857,70 +900,79 @@
               <span id="photoProgressBadge" class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px;">0 dari 3 foto telah diambil</span>
             </div>
             
-            <p style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.85rem;">
+            <p class="form-help" style="margin-bottom: 0.85rem;">
               Ambil atau unggah 3 foto bukti dokumentasi kegiatan:
               <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>.
             </p>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem;">
               <!-- Slot 1 -->
-              <div class="photo-slot-card" id="photoSlotCard_0" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 1: Utama <span class="required">*</span></div>
+              <div class="photo-slot-card" id="photoSlotCard_0">
+                <div class="photo-slot-title">Foto 1: Utama <span class="required">*</span></div>
                 
                 <div id="slotEmpty_0">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(0)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(0)">
                     <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     <span>Ambil Foto 1</span>
                   </button>
                 </div>
 
                 <div id="slotPreview_0" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImg_0" src="" alt="Preview Foto 1" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
-                  <div style="margin-top: 0.5rem;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(0)" style="font-size: 0.75rem; padding: 3px 8px;">
+                  <img id="slotImg_0" src="" alt="Pratinjau Foto 1" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(0)">
                       <span>Foto Ulang</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(0)">
+                      <span>Hapus</span>
                     </button>
                   </div>
                 </div>
               </div>
 
               <!-- Slot 2 -->
-              <div class="photo-slot-card" id="photoSlotCard_1" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 2: Detail Aktivitas <span class="required">*</span></div>
+              <div class="photo-slot-card" id="photoSlotCard_1">
+                <div class="photo-slot-title">Foto 2: Detail Aktivitas <span class="required">*</span></div>
                 
                 <div id="slotEmpty_1">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(1)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(1)">
                     <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     <span>Ambil Foto 2</span>
                   </button>
                 </div>
 
                 <div id="slotPreview_1" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImg_1" src="" alt="Preview Foto 2" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
-                  <div style="margin-top: 0.5rem;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(1)" style="font-size: 0.75rem; padding: 3px 8px;">
+                  <img id="slotImg_1" src="" alt="Pratinjau Foto 2" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(1)">
                       <span>Foto Ulang</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(1)">
+                      <span>Hapus</span>
                     </button>
                   </div>
                 </div>
               </div>
 
               <!-- Slot 3 -->
-              <div class="photo-slot-card" id="photoSlotCard_2" style="border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; transition: all 0.2s;">
-                <div style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.5rem;">Foto 3: Hasil / Area <span class="required">*</span></div>
+              <div class="photo-slot-card" id="photoSlotCard_2">
+                <div class="photo-slot-title">Foto 3: Hasil / Area <span class="required">*</span></div>
                 
                 <div id="slotEmpty_2">
-                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(2)" style="margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                  <button type="button" class="btn btn-primary table-btn-sm" onclick="triggerCameraCapture(2)">
                     <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     <span>Ambil Foto 3</span>
                   </button>
                 </div>
 
                 <div id="slotPreview_2" style="display: none; width: 100%; text-align: center;">
-                  <img id="slotImg_2" src="" alt="Preview Foto 3" style="max-height: 130px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover;">
-                  <div style="margin-top: 0.5rem;">
-                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(2)" style="font-size: 0.75rem; padding: 3px 8px;">
+                  <img id="slotImg_2" src="" alt="Pratinjau Foto 3" style="max-height: 120px; width: auto; max-width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; object-fit: cover; margin: 0 auto 0.5rem auto;">
+                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                    <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerCameraCapture(2)">
                       <span>Foto Ulang</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="removePhoto(2)">
+                      <span>Hapus</span>
                     </button>
                   </div>
                 </div>
@@ -951,7 +1003,7 @@
           </div>
 
           <div class="review-intro">
-            <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1.25rem;">
+            <p class="form-help" style="margin-bottom: 1.25rem;">
               Periksa kembali seluruh informasi laporan sebelum mengirimkan ke database terpusat.
             </p>
           </div>
@@ -1085,7 +1137,9 @@
           <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>Direktori ID Karyawan</span>
         </h3>
-        <button type="button" class="modal-close-btn" onclick="closeEmployeeDirectoryModal()">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="closeEmployeeDirectoryModal()" aria-label="Tutup Direktori">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <div class="modal-body" style="padding: 1.25rem;">
         <p style="margin: 0 0 0.85rem 0; font-size: 0.825rem; color: var(--text-muted);">
@@ -1111,7 +1165,9 @@
     <div class="modal-card" style="max-width: 580px;">
       <div class="modal-header">
         <h3 class="modal-title">Pemberitahuan Privasi Data (UU PDP)</h3>
-        <button type="button" class="modal-close-btn" onclick="closePrivacyModal()">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="closePrivacyModal()" aria-label="Tutup Pemberitahuan Privasi">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <div class="modal-body" style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; display: flex; flex-direction: column; gap: 0.85rem; max-height: 65vh; overflow-y: auto; padding: 1.25rem;">
         <p style="margin: 0; font-size: 0.825rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
@@ -2127,7 +2183,7 @@
         handleEmployeeIdInput(empId);
       }
       closeEmployeeDirectoryModal();
-      showToast(`✅ ID Karyawan ${empId} terpilih!`, 'success');
+      showToast(`ID Karyawan ${empId} terpilih.`, 'success');
     }
 
     function openPrivacyModal() {
@@ -2185,31 +2241,37 @@
 
         const fill = document.getElementById('wizardProgressFill');
         if (fill) fill.style.width = `${((currentIdx + 1) / steps.length) * 100}%`;
+
+        const progressBar = document.getElementById('wizardProgressBar');
+        if (progressBar) {
+          progressBar.setAttribute('aria-valuenow', (currentIdx + 1).toString());
+          progressBar.setAttribute('aria-valuemax', steps.length.toString());
+        }
+      }
+
+      const revBadge = document.getElementById('revStepBadge');
+      if (revBadge) {
+        revBadge.innerText = steps.length.toString();
       }
     }
 
-    function calculateTotalHarga() {
-      const unitEl = document.getElementById('jumlahPenjualanUnit');
-      const hargaEl = document.getElementById('hargaSatuanRp');
-      const totalEl = document.getElementById('totalHargaRp');
+    function calculateTotalHarga(modul) {
+      const isAgro = (modul === 'Agro' || !modul);
+      const unitEl = document.getElementById(isAgro ? 'jumlahPenjualanUnit' : 'jumlahPenjualanTernak');
+      const hargaEl = document.getElementById(isAgro ? 'hargaSatuanRp' : 'hargaSatuanTernakRp');
+      const totalEl = document.getElementById(isAgro ? 'totalHargaRp' : 'totalHargaTernakRp');
       if (!unitEl || !hargaEl || !totalEl) return;
       const unit = parseFloat(unitEl.value);
       const harga = parseFloat(hargaEl.value);
       if (!isNaN(unit) && unit > 0 && !isNaN(harga) && harga > 0) {
         totalEl.value = Math.round(unit * harga);
+      } else {
+        totalEl.value = '';
       }
     }
 
     function calculateTotalHargaTernak() {
-      const unitEl = document.getElementById('jumlahPenjualanTernak');
-      const hargaEl = document.getElementById('hargaSatuanTernakRp');
-      const totalEl = document.getElementById('totalHargaTernakRp');
-      if (!unitEl || !hargaEl || !totalEl) return;
-      const unit = parseFloat(unitEl.value);
-      const harga = parseFloat(hargaEl.value);
-      if (!isNaN(unit) && unit > 0 && !isNaN(harga) && harga > 0) {
-        totalEl.value = Math.round(unit * harga);
-      }
+      calculateTotalHarga('Ternak');
     }
 
     function handleTglPanenChange() {
@@ -2228,6 +2290,15 @@
       }
     }
 
+    function removePhoto(slotIndex) {
+      if (typeof slotIndex === 'number' && slotIndex >= 0 && slotIndex < 3) {
+        capturedPhotos[slotIndex] = '';
+        if (slotIndex === 0) photoBase64Data = capturedPhotos[1] || capturedPhotos[2] || '';
+        updatePhotoSlotsUI();
+        showToast(`Foto ${slotIndex + 1} berhasil dihapus.`, 'info');
+      }
+    }
+
     function updatePhotoSlotsUI() {
       for (let i = 0; i < 3; i++) {
         // Standard slots (Agro, Ternak, Office)
@@ -2240,14 +2311,16 @@
             if (empty) empty.style.display = 'none';
             if (preview) preview.style.display = 'block';
             if (img) img.src = capturedPhotos[i];
+            card.classList.add('has-photo');
             card.style.borderColor = '#10b981';
             card.style.background = '#f0fdf4';
           } else {
             if (empty) empty.style.display = 'block';
             if (preview) preview.style.display = 'none';
             if (img) img.src = '';
+            card.classList.remove('has-photo');
             card.style.borderColor = '#cbd5e1';
-            card.style.background = 'var(--surface)';
+            card.style.background = '#ffffff';
           }
         }
 
@@ -2261,14 +2334,16 @@
             if (pEmpty) pEmpty.style.display = 'none';
             if (pPreview) pPreview.style.display = 'block';
             if (pImg) pImg.src = capturedPhotos[i];
+            pCard.classList.add('has-photo');
             pCard.style.borderColor = '#10b981';
             pCard.style.background = '#f0fdf4';
           } else {
             if (pEmpty) pEmpty.style.display = 'block';
             if (pPreview) pPreview.style.display = 'none';
             if (pImg) pImg.src = '';
+            pCard.classList.remove('has-photo');
             pCard.style.borderColor = '#cbd5e1';
-            pCard.style.background = 'var(--surface)';
+            pCard.style.background = '#ffffff';
           }
         }
       }
@@ -2310,7 +2385,7 @@
         photoMimeTypeData = 'image/jpeg';
         photoIsSuspiciousTimestamp = false;
         updatePhotoSlotsUI();
-        showToast(`📸 Foto ${currentCameraSlot + 1} berhasil disimpan!`, 'success');
+        showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan.`, 'success');
       });
     }
 
@@ -2326,7 +2401,7 @@
       currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
       const win = window.open('', 'CameraSnapshotWindow', 'width=580,height=680,resizable=yes');
       if (!win) {
-        showToast('⚠️ Pop-up terblokir. Izinkan pop-up peramban untuk menggunakan kamera.', 'warning');
+        showToast('Pop-up terblokir. Izinkan pop-up peramban untuk menggunakan kamera.', 'warning');
         const hiddenInp = document.getElementById('photoInput');
         if (hiddenInp) hiddenInp.click();
         return;
@@ -2430,7 +2505,7 @@
             photoBase64Data = capturedPhotos[0];
             photoMimeTypeData = 'image/jpeg';
             updatePhotoSlotsUI();
-            showToast(`📁 Foto ${currentCameraSlot + 1} berhasil diunggah!`, 'success');
+            showToast(`Foto ${currentCameraSlot + 1} berhasil diunggah.`, 'success');
           });
         };
         reader.readAsDataURL(file);
@@ -2479,7 +2554,7 @@
         if (lastMod) {
           const ageSeconds = (Date.now() - lastMod) / 1000;
           if (ageSeconds > 300) {
-            showToast('❌ Foto harus diambil langsung dari kamera saat ini. Foto lama dari galeri tidak diperbolehkan!', 'error');
+            showToast('Foto harus diambil langsung dari kamera saat ini. Foto lama dari galeri tidak diperbolehkan.', 'error');
             input.value = '';
             return;
           }
@@ -2494,7 +2569,7 @@
             photoBase64Data = capturedPhotos[0];
             photoMimeTypeData = 'image/jpeg';
             updatePhotoSlotsUI();
-            showToast(`📸 Foto ${currentCameraSlot + 1} berhasil dipilih!`, 'success');
+            showToast(`Foto ${currentCameraSlot + 1} berhasil dipilih.`, 'success');
           });
         };
         reader.readAsDataURL(file);
@@ -2510,6 +2585,9 @@
       list.innerHTML = '';
       const errors = [];
 
+      // Clear previous invalid highlights
+      document.querySelectorAll('[aria-invalid="true"]').forEach(el => el.removeAttribute('aria-invalid'));
+
       if (stepId === 'step1') {
         const idKaryawan = document.getElementById('idKaryawan');
         const rawId = (idKaryawan?.value || '').trim();
@@ -2518,7 +2596,7 @@
         if (!rawId) {
           errors.push({ id: 'idKaryawan', text: 'ID Karyawan wajib diisi.' });
         } else if (!emp) {
-          errors.push({ id: 'idKaryawan', text: 'ID Karyawan tidak terdaftar. Gunakan tombol "Cari ID Saya" untuk memilih ID resmi Anda.' });
+          errors.push({ id: 'idKaryawan', text: 'ID Karyawan tidak terdaftar. Gunakan tombol "Cari ID" untuk memilih ID resmi Anda.' });
         } else if (isSgaJunior(emp.id)) {
           errors.push({ id: 'idKaryawan', text: 'Pengisian form untuk Divisi SGA didelegasikan khusus kepada PIC: Ketut (SGA-01) atau Amas S (SGA-02).' });
         } else if (isBkoSubordinate(emp.id)) {
@@ -2533,9 +2611,7 @@
             const isHadir = document.querySelector(`input[name="sgaAtt_${empId}"]:checked`)?.value === 'Hadir';
             if (isHadir && (!inp.value || !inp.value.trim())) {
               missingCount++;
-              inp.style.borderColor = '#ef4444';
-            } else {
-              inp.style.borderColor = '#cbd5e1';
+              inp.setAttribute('aria-invalid', 'true');
             }
           });
           if (missingCount > 0) {
@@ -2548,6 +2624,7 @@
             const empName = chk.getAttribute('data-empname');
             const inp = document.getElementById('optDescInput_' + empId);
             if (inp && !inp.value.trim()) {
+              inp.setAttribute('aria-invalid', 'true');
               errors.push({ id: 'optDescInput_' + empId, text: `Catatan aktivitas untuk ${empName} (${empId}) wajib diisi karena nama telah dicentang.` });
             }
           });
@@ -2607,7 +2684,7 @@
           if (isNaN(luas) || luas <= 0) errors.push({ id: 'luasLahanPanenM2', text: '[Panen/Penjualan] Luas Lahan Panen (m²) wajib diisi angka positif.' });
           if (!document.getElementById('tglPanen')?.value) errors.push({ id: 'tglPanen', text: '[Panen/Penjualan] Tanggal Panen wajib diisi.' });
           const jmlPanen = parseFloat(document.getElementById('jumlahPanen')?.value);
-          if (isNaN(jmlPanen) || jmlPanen <= 0) errors.push({ id: 'jumlahPanen', text: '[Panen/Penjualan] Jumlah Panen (kg) wajib diisi angka positif.' });
+          if (isNaN(jmlPanen) || jmlPanen <= 0) errors.push({ id: 'jumlahPanen', text: '[Panen/Penjualan] Jumlah Panen (Kg) wajib diisi angka positif.' });
           
           const tujDist = document.getElementById('tujuanDistribusi')?.value;
           if (!tujDist) {
@@ -2661,10 +2738,10 @@
           if (isNaN(popTernak) || popTernak <= 0) errors.push({ id: 'populasiTernak', text: '[Ternak Perawatan] Populasi Ternak wajib diisi total ekor saat ini (>0).' });
 
           const pakanIn = parseFloat(document.getElementById('pakanMasukKg')?.value);
-          if (isNaN(pakanIn) || pakanIn < 0) errors.push({ id: 'pakanMasukKg', text: '[Ternak Perawatan] Pakan Masuk (kg) wajib diisi angka (minimal 0).' });
+          if (isNaN(pakanIn) || pakanIn < 0) errors.push({ id: 'pakanMasukKg', text: '[Ternak Perawatan] Pakan Masuk (Kg) wajib diisi angka (minimal 0).' });
 
           const pakanOut = parseFloat(document.getElementById('pakanKeluarKg')?.value);
-          if (isNaN(pakanOut) || pakanOut < 0) errors.push({ id: 'pakanKeluarKg', text: '[Ternak Perawatan] Pakan Keluar (kg) wajib diisi angka (minimal 0).' });
+          if (isNaN(pakanOut) || pakanOut < 0) errors.push({ id: 'pakanKeluarKg', text: '[Ternak Perawatan] Pakan Keluar (Kg) wajib diisi angka (minimal 0).' });
         }
 
         if (checkedTernak.includes('Panen/Penjualan')) {
@@ -2727,6 +2804,11 @@
       }
 
       if (errors.length > 0) {
+        errors.forEach(err => {
+          const targetEl = document.getElementById(err.id);
+          if (targetEl) targetEl.setAttribute('aria-invalid', 'true');
+        });
+
         const steps = getDynamicSteps();
         const currentStepObj = steps.find(s => s.id === stepId);
         const titleText = currentStepObj ? currentStepObj.title : stepId;
@@ -2738,6 +2820,7 @@
         });
         summary.style.display = 'block';
         summary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        focusField(errors[0].id);
         return false;
       }
 
@@ -2754,8 +2837,20 @@
         if (el) {
           if (id === stepId) {
             el.classList.add('active');
+            el.removeAttribute('hidden');
+            setTimeout(() => {
+              const heading = el.querySelector('.form-section-title, h2, h3');
+              if (heading) {
+                heading.setAttribute('tabindex', '-1');
+                heading.focus();
+              } else {
+                const firstInput = el.querySelector('input:not([type="hidden"]), select, textarea, button');
+                if (firstInput) firstInput.focus();
+              }
+            }, 50);
           } else {
             el.classList.remove('active');
+            el.setAttribute('hidden', '');
           }
         }
       });
@@ -3001,7 +3096,7 @@
         photoContainer.innerHTML = `
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
             ${capturedPhotos.map((p, idx) => p ? `
-              <div style="text-align: center; border: 1px solid var(--border); border-radius: 8px; padding: 4px; background: var(--surface);">
+              <div style="text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-surface);">
                 <img src="${p}" alt="Foto ${idx+1}" style="max-height: 80px; width: 100%; object-fit: cover; border-radius: 4px;">
                 <div style="font-size: 0.7rem; font-weight: 600; color: #475569; margin-top: 2px;">Foto ${idx+1}</div>
               </div>

@@ -286,26 +286,26 @@
 
           <div class="forms-actions-area">
             <!-- Reset Button -->
-            <button class="btn btn-secondary table-btn-sm" onclick="openResetSchemaModal()" title="Kembalikan ke Setelan Awal Standar" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <button class="btn btn-secondary table-btn-sm" onclick="openResetSchemaModal()" title="Kembalikan ke Setelan Awal Standar" style="height: 34px; padding: 0 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               <span>Reset Bawaan</span>
             </button>
 
             <!-- Discard Draft Button -->
-            <button class="btn btn-secondary table-btn-sm" id="btnDiscardDraft" onclick="discardDraftChanges()" title="Batalkan seluruh draf perubahan dan muat ulang konfigurasi aktif" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;" disabled>
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            <button class="btn btn-secondary table-btn-sm" id="btnDiscardDraft" onclick="discardDraftChanges()" title="Batalkan seluruh draf perubahan dan muat ulang konfigurasi aktif" style="height: 34px; padding: 0 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;" disabled>
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
               <span>Batalkan Draf</span>
             </button>
 
             <!-- Preview Live Form Button -->
-            <button class="btn btn-secondary table-btn-sm" onclick="openLiveReportingForm()" title="Buka Form Pelaporan Staf Lapangan" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <button class="btn btn-secondary table-btn-sm" onclick="openLiveReportingForm()" title="Buka Form Pelaporan Staf Lapangan" style="height: 34px; padding: 0 0.75rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               <span>Pratinjau Form</span>
             </button>
 
-            <!-- Publish Button -->
-            <button class="btn btn-primary table-btn-sm" id="btnPublishSchema" onclick="saveFormSchemaToServer()" style="height: 32px; padding: 0 0.85rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; font-weight: 600; width: auto;">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <!-- Publish Button (Dominant Primary) -->
+            <button class="btn btn-primary table-btn-sm" id="btnPublishSchema" onclick="saveFormSchemaToServer()" style="height: 34px; padding: 0 1rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap; font-weight: 600; width: auto;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               <span>Publikasikan Perubahan</span>
             </button>
           </div>
@@ -314,7 +314,7 @@
         <!-- DRAFT / SYNC STATUS BANNER -->
         <div id="draftStatusBanner" class="draft-status-banner draft-status-synced">
           <div style="display: flex; align-items: center; gap: 0.5rem;" id="draftStatusText">
-            <span>✅ Seluruh konfigurasi formulir telah tersinkronisasi dan aktif di form publik staf.</span>
+            <span>Seluruh konfigurasi formulir telah tersinkronisasi dan aktif di form publik staf.</span>
           </div>
         </div>
 
@@ -327,7 +327,7 @@
               <span class="step-badge-circle">1</span>
               <div>
                 <div class="step-title-text">Langkah 1 — Identitas Pelapor, Lokasi &amp; Jenis Kegiatan</div>
-                <div style="font-size: 0.78rem; color: #64748b;">Langkah wajib awal untuk verifikasi ID pelapor, lokasi sektor, dan penentuan alur kegiatan.</div>
+                <div style="font-size: 0.78rem; color: #64748b;">Langkah awal verifikasi ID pelapor, lokasi sektor, dan penentuan alur kegiatan.</div>
               </div>
             </div>
             <span class="step-tag-core">Wajib (Seluruh Pelapor)</span>
@@ -337,10 +337,10 @@
           <div style="margin-bottom: 1.25rem;">
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.1 Verifikasi Identitas &amp; Kontak PIC Lapangan</label>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="static-field-pill">🔒 ID Karyawan (Lookup Otomatis)</span>
-              <span class="static-field-pill">🔒 Nama Lengkap PIC</span>
-              <span class="static-field-pill">🔒 Bidang / Divisi Penugasan</span>
-              <span class="static-field-pill">📱 Nomor Telepon</span>
+              <span class="static-field-pill">ID Karyawan (Lookup Otomatis)</span>
+              <span class="static-field-pill">Nama Lengkap PIC</span>
+              <span class="static-field-pill">Bidang / Divisi Penugasan</span>
+              <span class="static-field-pill">Nomor Telepon</span>
             </div>
             <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.35rem; display: block;">Identitas diverifikasi langsung dari database karyawan dan kontak pelapor diisi aktif.</small>
           </div>
@@ -363,19 +363,19 @@
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.3 Pilihan Kegiatan yang Dilakukan (Routing Wizard Alur Form)</label>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.65rem;">
               <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
-                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🌿 Tanam atau tebar</div>
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">Tanam / Tebar</div>
                 <div style="font-size: 0.75rem; color: #64748b;">Membuka Langkah 2 (Tanam/Tebar)</div>
               </div>
               <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
-                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🌾 Panen atau penjualan</div>
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">Panen / Penjualan</div>
                 <div style="font-size: 0.75rem; color: #64748b;">Membuka Langkah 3 &amp; 4 (Panen)</div>
               </div>
               <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
-                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">🔍 Pengawasan</div>
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">Pengawasan</div>
                 <div style="font-size: 0.75rem; color: #64748b;">Membuka isian Tindakan Pengawasan</div>
               </div>
               <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.65rem 0.85rem; background: #f8fafc;">
-                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">📋 Administrasi</div>
+                <div style="font-weight: 700; font-size: 0.825rem; color: #1e293b;">Administrasi (Office)</div>
                 <div style="font-size: 0.75rem; color: #64748b;">Membuka isian Catatan Administrasi</div>
               </div>
             </div>
@@ -450,10 +450,10 @@
           <div style="margin-bottom: 1.25rem;">
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">2.3 Parameter Baku Pengisian Lapangan</label>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="static-field-pill">📐 Luas Lahan (m²)</span>
-              <span class="static-field-pill">🌱 Jumlah Benih / Bibit</span>
-              <span class="static-field-pill">📅 Tanggal Mulai Tanam</span>
-              <span class="static-field-pill">⏱️ Estimasi Umur Panen (HST)</span>
+              <span class="static-field-pill">Luas Lahan (m²)</span>
+              <span class="static-field-pill">Jumlah Benih / Bibit</span>
+              <span class="static-field-pill">Tanggal Mulai Tanam</span>
+              <span class="static-field-pill">Estimasi Umur Panen (HST)</span>
             </div>
           </div>
 
@@ -487,9 +487,9 @@
           <div style="margin-bottom: 1.25rem;">
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Parameter Panen Standar:</label>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="static-field-pill">⚖️ Jumlah Hasil Panen (kg)</span>
-              <span class="static-field-pill">📅 Tanggal Panen / Pemotongan</span>
-              <span class="static-field-pill">🚚 Tujuan Distribusi (Penjualan Eksternal / Internal / Penggunaan)</span>
+              <span class="static-field-pill">Jumlah Hasil Panen (Kg)</span>
+              <span class="static-field-pill">Tanggal Panen</span>
+              <span class="static-field-pill">Tujuan Distribusi (Penjualan / Penggunaan Internal)</span>
             </div>
           </div>
 
@@ -523,9 +523,9 @@
           <div style="margin-bottom: 1.25rem;">
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Parameter Penjualan Standar:</label>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="static-field-pill">📦 Jumlah Unit Terjual</span>
-              <span class="static-field-pill">💰 Harga Satuan (Rp)</span>
-              <span class="static-field-pill">💵 Total Nilai Penjualan (Rp - Dihitung Otomatis)</span>
+              <span class="static-field-pill">Jumlah Unit Terjual</span>
+              <span class="static-field-pill">Harga Satuan (Rp)</span>
+              <span class="static-field-pill">Total Nilai Penjualan (Rp - Dihitung Otomatis)</span>
             </div>
           </div>
 
@@ -598,10 +598,10 @@
           <div style="margin-bottom: 1.25rem;">
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">Parameter Evaluasi &amp; Foto Standar:</label>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <span class="static-field-pill">📝 Catatan Capaian Kegiatan (Wajib)</span>
-              <span class="static-field-pill">⚠️ Kendala di Lapangan (Opsional)</span>
-              <span class="static-field-pill">🛠️ Upaya Solusi yang Dilakukan (Opsional)</span>
-              <span class="static-field-pill">📸 3 Foto Wajib: Slot 1 Utama, Slot 2 Detail, Slot 3 Hasil/Area</span>
+              <span class="static-field-pill">Catatan Capaian Kegiatan (Wajib)</span>
+              <span class="static-field-pill">Kendala di Lapangan (Opsional)</span>
+              <span class="static-field-pill">Upaya Solusi yang Dilakukan (Opsional)</span>
+              <span class="static-field-pill">3 Foto Wajib: Slot 1 Utama, Slot 2 Detail, Slot 3 Hasil/Area</span>
             </div>
           </div>
 
@@ -649,7 +649,9 @@
     <div class="modal-card" style="max-width: 520px;">
       <div class="modal-header">
         <h3 class="modal-title" id="questionModalTitle">Tambah Pertanyaan Lapangan</h3>
-        <button class="modal-close-btn" onclick="closeQuestionModal()">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="closeQuestionModal()" aria-label="Tutup Formulir Pertanyaan">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <form id="questionFormEl" onsubmit="handleQuestionFormSubmit(event)">
         <input type="hidden" id="qModalFieldId" value="">
@@ -812,12 +814,12 @@
         if (isChanged) {
           banner.className = 'draft-status-banner draft-status-modified';
           bannerText.innerHTML = `
-            <span>⚠️ Terdapat perubahan draf yang belum dipublikasikan. Klik <strong>"Publikasikan Perubahan"</strong> di atas untuk menerapkan ke form publik staf.</span>
+            <span>Terdapat perubahan draf yang belum dipublikasikan. Klik <strong>"Publikasikan Perubahan"</strong> di atas untuk menerapkan ke form publik staf.</span>
           `;
         } else {
           banner.className = 'draft-status-banner draft-status-synced';
           bannerText.innerHTML = `
-            <span>✅ Seluruh konfigurasi formulir telah tersinkronisasi dan aktif di form publik staf.</span>
+            <span>Seluruh konfigurasi formulir telah tersinkronisasi dan aktif di form publik staf.</span>
           `;
         }
       }
@@ -1098,7 +1100,7 @@
                 <span style="font-weight: 700; font-size: 0.85rem; color: var(--text-primary);">${escapeHtml(q.label)}</span>
                 <span class="badge-type ${typeClass}">${escapeHtml(q.type)}</span>
                 ${q.required ? '<span style="font-size: 0.68rem; background: #fee2e2; color: #dc2626; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px;">Wajib</span>' : '<span style="font-size: 0.68rem; background: #f1f5f9; color: #64748b; padding: 0.1rem 0.35rem; border-radius: 4px;">Opsional</span>'}
-                <span style="font-size: 0.68rem; background: #ede9fe; color: #6d28d9; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 4px;">📍 ${escapeHtml(sectionBadgeText)}</span>
+                <span style="font-size: 0.68rem; background: #ede9fe; color: #6d28d9; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 4px;">${escapeHtml(sectionBadgeText)}</span>
               </div>
               ${q.helpText ? `<p style="margin: 0; font-size: 0.76rem; color: var(--text-secondary);">${escapeHtml(q.helpText)}</p>` : ''}
               ${optionsPreview}
@@ -1285,7 +1287,7 @@
         } else {
           publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
           markFormDraftChanged(false);
-          showToast('✅ [Simulasi Lokal] Konfigurasi formulir dipublikasikan secara instan.', 'success');
+          showToast('Konfigurasi formulir berhasil disimpan.', 'success');
         }
       } catch (err) {
         console.error('Save schema error:', err);
@@ -1293,7 +1295,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = '<svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Publikasikan Perubahan</span>';
+          btn.innerHTML = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Publikasikan Perubahan</span>';
         }
       }
     }
@@ -1339,7 +1341,7 @@
           publishedServerSchema = JSON.parse(JSON.stringify(activeSchema));
           markFormDraftChanged(false);
           renderAllSchemaSections();
-          showToast('✅ [Simulasi Lokal] Skema formulir di-reset ke setelan awal.', 'success');
+          showToast('Skema formulir berhasil di-reset ke setelan awal.', 'success');
         }
 
         closeResetSchemaModal();
