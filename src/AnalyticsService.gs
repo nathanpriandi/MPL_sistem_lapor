@@ -244,7 +244,10 @@ const AnalyticsService = {
       const g = groups[key];
       g.count += 1;
 
-      const rawVal = row[measureFieldKey];
+      let rawVal = row[measureFieldKey];
+      if (measureFieldKey === 'luasLahanM2' && (!rawVal || Number(rawVal) === 0)) {
+        rawVal = row.luasLahanPanenM2 || row.luasLahanM2;
+      }
       if (rawVal !== undefined && rawVal !== null && rawVal !== '') {
         g.distinctValues.add(String(rawVal).trim());
         const num = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(/[^0-9.-]/g, ''));
@@ -566,12 +569,15 @@ const AnalyticsService = {
       // A planting is only already harvested if a harvest of the SAME crop was explicitly logged with volume
       const isAlreadyHarvested = Boolean(
         r.tglPanen && 
-        r.jumlahPanen && 
-        r.jumlahPanen > 0
+        Number(r.jumlahPanen || 0) > 0 &&
+        sep.komoditasPanen && 
+        sep.komoditasPanen.toLowerCase().trim() === cleanCropLower
       );
 
       schedule.push({
-        id: r.id || r.idKegiatan || '',
+        id: r.reportId || r.id || r.kodeKegiatan || '',
+        reportId: r.reportId || r.id || r.kodeKegiatan || '',
+        kodeKegiatan: r.kodeKegiatan || '',
         komoditas: cropName,
         lokasiKegiatan: r.lokasiKegiatan || '-',
         lokasiBlok: r.lokasiBlok || '',
@@ -1071,18 +1077,15 @@ const AnalyticsService = {
       const rawUpaya = String(r.upaya || '').trim();
       const severity = String(r.severity || 'NORMAL').toUpperCase();
 
-      const hasKendala = rawKendala.length > 3 && !EMPTY_KENDALA_PATTERNS.test(rawKendala);
-      const hasUpaya = rawUpaya.length > 3 && !EMPTY_UPAYA_PATTERNS.test(rawUpaya);
-      const isElevated = severity === 'URGENT' || severity === 'WARNING';
+      const hasKendala = rawKendala.length >= 3 && !EMPTY_KENDALA_PATTERNS.test(rawKendala);
+      const hasUpaya = rawUpaya.length >= 3 && !EMPTY_UPAYA_PATTERNS.test(rawUpaya);
+      const isElevated = (severity === 'URGENT' || severity === 'WARNING') && hasKendala;
 
       if (hasKendala || isElevated) {
         reportsWithObstacleCount++;
         if (hasUpaya) mitigatedCount++;
 
-        const category = hasKendala
-          ? classifyObstacleCategory(rawKendala)
-          : (severity === 'URGENT' ? 'Isu Kritis Lapangan' : 'Operasional Umum');
-
+        const category = classifyObstacleCategory(rawKendala);
         categoryMap[category] = (categoryMap[category] || 0) + 1;
 
         const loc = r.lokasiKegiatan || 'Lokasi Umum';
@@ -1104,7 +1107,7 @@ const AnalyticsService = {
           commodity: cropName,
           category: category,
           severity: severity,
-          kendala: hasKendala ? rawKendala : 'Memerlukan evaluasi operasional.',
+          kendala: rawKendala,
           upaya: hasUpaya ? rawUpaya : null,
           hasUpaya: hasUpaya
         });
@@ -1304,7 +1307,24 @@ const AnalyticsService = {
 
       } else {
         // Default dimension: 'komoditas'
-        breakdownList = this.getBreakdown(rowsToBreakdown, measureKey, 'sum', 'komoditasClean');
+        const isTanamMeasure = ['jumlahBenih', 'kerapatanTanam'].includes(measureKey);
+        const isPanenSalesMeasure = ['jumlahPanen', 'totalHargaRp', 'jumlahPenjualanUnit', 'produktivitasPanen', 'hargaRataRata'].includes(measureKey);
+
+        const cropGroupByFn = (r) => {
+          if (isTanamMeasure) {
+            return (r.komoditasTanam && r.komoditasTanam !== 'Lainnya') ? r.komoditasTanam : (r.komoditasClean || r.komoditas || 'Tanaman');
+          }
+          if (isPanenSalesMeasure) {
+            return (r.komoditasPanen && r.komoditasPanen !== 'Lainnya') ? r.komoditasPanen : (r.komoditasClean || r.komoditas || 'Hasil Panen');
+          }
+          if (measureKey === 'luasLahanM2') {
+            if (Number(r.luasLahanPanenM2 || 0) > 0 && r.komoditasPanen) return r.komoditasPanen;
+            if (Number(r.luasLahanM2 || 0) > 0 && r.komoditasTanam) return r.komoditasTanam;
+          }
+          return r.komoditasClean || r.komoditas || 'Komoditas Umum';
+        };
+
+        breakdownList = this.getBreakdown(rowsToBreakdown, measureKey, 'sum', cropGroupByFn);
       }
 
       // User-controlled sort

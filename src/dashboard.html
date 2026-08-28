@@ -87,6 +87,13 @@
       from { opacity: 0; transform: scale(0.96) translateY(8px); }
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
+    .spin-loading {
+      animation: spinAnim 0.75s linear infinite;
+    }
+    @keyframes spinAnim {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -173,8 +180,8 @@
                   </svg>
                   <span>Ekspor CSV</span>
                 </button>
-                <button class="btn btn-secondary btn-sm" onclick="loadAnalyticsDashboardData(true)" title="Muat ulang analitik terbaru dari server" style="height: 34px;">
-                  <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="btn btn-secondary btn-sm" id="dashRefreshBtn" onclick="loadAnalyticsDashboardData(true)" title="Muat ulang analitik terbaru dari server" style="height: 34px;">
+                  <svg class="svg-icon" id="dashRefreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
                   </svg>
                   <span>Perbarui</span>
@@ -648,7 +655,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadQuickLinks();
       loadAnalyticsDashboardData();
-      setInterval(updateFreshnessTag, 30000);
+      setInterval(updateFreshnessTag, 10000);
+      // Real-time live auto-polling every 25 seconds when browser tab is active
+      setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          loadAnalyticsDashboardData(false);
+        }
+      }, 25000);
     });
 
     function toggleSidebar() {
@@ -717,9 +730,11 @@
     }
 
     // ==========================================
-    // DATA FETCHING & ORCHESTRATION
+    // DATA FETCHING & ORCHESTRATION (REAL-TIME)
     // ==========================================
     async function loadAnalyticsDashboardData(isManual = false) {
+      const refreshIcon = document.getElementById('dashRefreshIcon');
+      if (refreshIcon) refreshIcon.classList.add('spin-loading');
       if (isManual) {
         const periodLabel = document.getElementById('dashPeriodLabel');
         if (periodLabel) periodLabel.innerText = 'Memperbarui data...';
@@ -749,6 +764,8 @@
       } catch (err) {
         console.error('Failed to load analytics dashboard data:', err);
         showToast('Gagal memuat analitik: ' + (err.message || err.toString()), 'error');
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('spin-loading');
       }
     }
 
@@ -1752,192 +1769,128 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Mock Data Generator for local testing
+    // Mock Data Generator for local testing (Aligned with Data.xlsx actual dataset)
     function generateMockAnalyticsData(params) {
       return {
         period: { code: params.period || 'this_month', label: 'Bulan Ini (Simulasi)', interval: 'day' },
         kpis: {
-          totalReports: 42,
-          totalSalesRp: 18500000,
-          totalPanenKg: 4250,
-          totalBenih: 12500,
-          activePlantingsCount: 8,
-          readyHarvestsCount: 2,
+          totalReports: 7,
+          totalSalesRp: 15050000,
+          totalPanenKg: 110,
+          totalBenih: 50,
+          activePlantingsCount: 1,
+          readyHarvestsCount: 0,
           overdueHarvestsCount: 0,
-          obstacleReportsCount: 12,
-          obstacleRate: 28.6,
-          urgentObstaclesCount: 2,
-          warningObstaclesCount: 5
+          obstacleReportsCount: 1,
+          obstacleRate: 14.3,
+          urgentObstaclesCount: 1,
+          warningObstaclesCount: 0
         },
         employeeLeaderboard: [
-          { rank: 1, idKaryawan: 'ALP-01', namaPic: 'Pasrep N', bidangDivisi: 'Alprof', totalLaporan: 14, percentage: 33.3, konsistensi: 'Sangat Aktif', badgeClass: 'badge-primary', terakhirMelapor: '2026-08-26' },
-          { rank: 2, idKaryawan: 'SGA-05', namaPic: 'Roby Sandi', bidangDivisi: 'SGA', totalLaporan: 11, percentage: 26.2, konsistensi: 'Sangat Aktif', badgeClass: 'badge-primary', terakhirMelapor: '2026-08-26' },
-          { rank: 3, idKaryawan: 'PKH-03', namaPic: 'Heru', bidangDivisi: 'Pekerja Harian', totalLaporan: 8, percentage: 19.0, konsistensi: 'Konsisten', badgeClass: 'badge-normal', terakhirMelapor: '2026-08-25' },
-          { rank: 4, idKaryawan: 'BKO-01', namaPic: 'Didi', bidangDivisi: 'BKO 28', totalLaporan: 6, percentage: 14.3, konsistensi: 'Konsisten', badgeClass: 'badge-normal', terakhirMelapor: '2026-08-24' },
-          { rank: 5, idKaryawan: 'MNJ-02', namaPic: 'Ariyana', bidangDivisi: 'Manajemen', totalLaporan: 3, percentage: 7.1, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-20' }
+          { rank: 1, idKaryawan: 'MNJ-06', namaPic: 'M Fauzan', bidangDivisi: 'Manajemen', totalLaporan: 2, percentage: 28.6, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' },
+          { rank: 2, idKaryawan: 'ALP-02', namaPic: 'Andi Willy', bidangDivisi: 'Alprof', totalLaporan: 1, percentage: 14.3, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' },
+          { rank: 3, idKaryawan: 'SGA-04', namaPic: 'Hasanudin', bidangDivisi: 'SGA', totalLaporan: 1, percentage: 14.3, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' },
+          { rank: 4, idKaryawan: 'SGA-01', namaPic: 'Ketut', bidangDivisi: 'SGA', totalLaporan: 1, percentage: 14.3, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' },
+          { rank: 5, idKaryawan: 'MNJ-04', namaPic: 'Martati', bidangDivisi: 'Manajemen', totalLaporan: 1, percentage: 14.3, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' },
+          { rank: 6, idKaryawan: 'ALP-05', namaPic: 'Mursito', bidangDivisi: 'Alprof', totalLaporan: 1, percentage: 14.3, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' }
         ],
         commodityAnalysis: generateMockCommodityAnalysis(params),
         harvestSchedule: {
           activeList: [
-            { komoditas: 'Pisang', lokasiKegiatan: 'Sektor 1 + Ciomas', namaPic: 'Pasrep N', idKaryawan: 'ALP-01', jumlahBenih: 500, luasLahanM2: 2500, tglTanam: '2026-05-28', estimasiPanenHst: 90, tglEstimasiPanen: '2026-08-26', daysRemaining: 0, status: 'ready' },
-            { komoditas: 'Jagung Manis', lokasiKegiatan: 'Sektor 2', namaPic: 'Roby Sandi', idKaryawan: 'SGA-05', jumlahBenih: 1200, luasLahanM2: 1800, tglTanam: '2026-06-05', estimasiPanenHst: 85, tglEstimasiPanen: '2026-08-29', daysRemaining: 3, status: 'ready' },
-            { komoditas: 'Pembibitan Kopi', lokasiKegiatan: 'Gunung Batu', namaPic: 'Heru', idKaryawan: 'PKH-03', jumlahBenih: 3000, luasLahanM2: 4000, tglTanam: '2026-07-10', estimasiPanenHst: 120, tglEstimasiPanen: '2026-11-07', daysRemaining: 73, status: 'growing' }
+            { id: '46f1cd65-13b2-40c9-8e93-15be1b57fb08', komoditas: 'Pisang', lokasiKegiatan: 'Sektor 2', lokasiBlok: 'A1', namaPic: 'M Fauzan', idKaryawan: 'MNJ-06', jumlahBenih: 50, luasLahanM2: 100, tglTanam: '2026-08-27', estimasiPanenHst: 90, tglEstimasiPanen: '2026-11-25', daysRemaining: 89, status: 'growing' }
           ],
-          readyCount: 2,
+          readyCount: 0,
           overdueCount: 0
         },
         salesAnalytics: {
-          grandTotalRp: 17300000,
-          totalEksternalRp: 14200000,
-          totalInternalSaleRp: 3100000,
-          totalCommercialUnits: 3800,
-          totalPenggunaanUnits: 850,
-          grandTotalUnits: 4650,
-          commercialRate: 81.7,
-          internalUsageRate: 18.3,
-          avgPricePerUnit: 4552,
-          salesCount: 14,
-          usageCount: 5,
-          topSellingCrop: 'Pisang',
-          topSellingRp: 9200000,
-          topUsageCrop: 'Pembibitan Kopi',
-          topUsageUnits: 500,
+          grandTotalRp: 15050000,
+          totalEksternalRp: 15050000,
+          totalInternalSaleRp: 0,
+          totalCommercialUnits: 1100,
+          totalPenggunaanUnits: 50,
+          grandTotalUnits: 1150,
+          commercialRate: 95.7,
+          internalUsageRate: 4.3,
+          avgPricePerUnit: 13682,
+          salesCount: 2,
+          usageCount: 1,
+          topSellingCrop: 'Edamame',
+          topSellingRp: 15000000,
+          topUsageCrop: 'Edamame',
+          topUsageUnits: 50,
           valueBreakdown: [
-            { channel: 'Penjualan Eksternal', value: 14200000, units: 3100, count: 10, percentage: 82.1, color: '#2563EB' },
-            { channel: 'Penjualan Internal', value: 3100000, units: 700, count: 4, percentage: 17.9, color: '#10B981' }
+            { channel: 'Penjualan Eksternal', value: 15050000, units: 1100, count: 2, percentage: 100.0, color: '#2563EB' },
+            { channel: 'Penjualan Internal', value: 0, units: 0, count: 0, percentage: 0.0, color: '#10B981' }
           ],
           volumeBreakdown: [
-            { channel: 'Penjualan Eksternal', units: 3100, percentage: 66.7, color: '#2563EB' },
-            { channel: 'Penjualan Internal', units: 700, percentage: 15.0, color: '#10B981' },
-            { channel: 'Penggunaan Operasional', units: 850, percentage: 18.3, color: '#F59E0B' }
+            { channel: 'Penjualan Eksternal', units: 1100, percentage: 95.7, color: '#2563EB' },
+            { channel: 'Penjualan Internal', units: 0, percentage: 0.0, color: '#10B981' },
+            { channel: 'Penggunaan Operasional', units: 50, percentage: 4.3, color: '#F59E0B' }
           ],
           insights: [
             {
               tag: 'Komersialisasi',
-              title: 'Tingkat Komersialisasi 81.7%',
-              description: 'Sebanyak 81.7% (3.800 unit/Kg) dari total hasil panen dialokasikan untuk penjualan komersial, menghasilkan pendapatan Rp 17.300.000.',
+              title: 'Tingkat Komersialisasi 95.7%',
+              description: 'Sebanyak 95.7% (1.100 unit/Kg) dari total hasil panen dialokasikan untuk penjualan komersial, menghasilkan pendapatan Rp 15.050.000.',
               variant: 'primary'
             },
             {
               tag: 'Pemanfaatan Mandiri',
-              title: 'Penggunaan Internal 18.3%',
-              description: 'Sebanyak 18.3% (850 unit/Kg) dialokasikan untuk kebutuhan operasional mandiri seperti pembibitan baru, pakan, dan konsumsi kebun.',
+              title: 'Penggunaan Internal 4.3%',
+              description: 'Sebanyak 4.3% (50 unit/Kg) dialokasikan untuk kebutuhan operasional mandiri seperti pembibitan baru, pakan ternak, dan konsumsi perkebunan.',
               variant: 'warning'
             },
             {
               tag: 'Komoditas Unggulan',
-              title: 'Pisang Penggerak Pendapatan',
-              description: 'Komoditas Pisang menyumbang porsi terbesar yaitu Rp 9.200.000 (53.2% dari total penjualan komersial).',
+              title: 'Edamame Penggerak Pendapatan',
+              description: 'Komoditas Edamame menyumbang porsi terbesar yaitu Rp 15.000.000 (99.7% dari total penjualan komersial).',
               variant: 'success'
             },
             {
               tag: 'Efisiensi Nilai',
-              title: 'Realisasi Rata-rata Rp 4.552/Unit',
-              description: 'Rata-rata nilai realisasi yang diperoleh adalah Rp 4.552 per unit/Kg komoditas komersial.',
+              title: 'Realisasi Rata-rata Rp 13.682/Unit',
+              description: 'Rata-rata nilai realisasi yang diperoleh adalah Rp 13.682 per unit/Kg komoditas komersial.',
               variant: 'neutral'
             }
           ]
         },
         riskAnalytics: {
-          totalReports: 42,
-          reportsWithObstacleCount: 12,
-          smoothOperationsCount: 30,
-          obstacleRate: 28.6,
-          urgentCount: 2,
-          warningCount: 5,
-          normalCount: 35,
-          mitigatedCount: 10,
-          unmitigatedCount: 2,
-          mitigationRate: 83.3,
+          totalReports: 7,
+          reportsWithObstacleCount: 1,
+          smoothOperationsCount: 6,
+          obstacleRate: 14.3,
+          mitigatedCount: 0,
+          unmitigatedCount: 1,
+          mitigationRate: 0.0,
           employeeObstacleMap: {
-            'Pasrep N': { count: 2, categories: { 'Hama & Penyakit': 1, 'Tenaga Kerja & Logistik': 1 } },
-            'Roby Sandi': { count: 1, categories: { 'Irigasi & Air': 1 } },
-            'Heru': { count: 1, categories: { 'Cuaca & Iklim': 1 } },
-            'Didi': { count: 1, categories: { 'Peralatan & Mesin': 1 } }
+            'M Fauzan': { count: 1, categories: { 'Peralatan & Mesin': 1 } }
           },
           categoryBreakdown: [
-            { category: 'Hama & Penyakit', count: 4, percentage: 33.3, color: '#ef4444' },
-            { category: 'Cuaca & Iklim', count: 3, percentage: 25.0, color: '#f59e0b' },
-            { category: 'Irigasi & Air', count: 2, percentage: 16.7, color: '#06b6d4' },
-            { category: 'Peralatan & Mesin', count: 2, percentage: 16.7, color: '#8b5cf6' },
-            { category: 'Tenaga Kerja & Logistik', count: 1, percentage: 8.3, color: '#ec4899' }
+            { category: 'Peralatan & Mesin', count: 1, percentage: 100.0, color: '#8b5cf6' }
           ],
           sectorBreakdown: [
-            { sector: 'Sektor 1 + Ciomas', count: 5, percentage: 41.7 },
-            { sector: 'Sektor 2', count: 4, percentage: 33.3 },
-            { sector: 'Gunung Batu', count: 3, percentage: 25.0 }
+            { sector: 'Sektor 2', count: 1, percentage: 100.0 }
           ],
           activeObstacles: [
             {
-              reportId: 'REP-2026-0826-01',
-              date: '2026-08-26',
-              pic: 'Pasrep N',
-              sector: 'Sektor 1 + Ciomas',
-              division: 'Alprof',
-              commodity: 'Jagung Manis',
-              category: 'Hama & Penyakit',
-              severity: 'URGENT',
-              kendala: 'Serangan ulat grayak (FAW) meluas pada plot B3 seluas kurang lebih 800 m2.',
-              upaya: 'Dilakukan penyemprotan insektisida nabati konsentrasi tinggi dan pemasangan feromon trap sore hari.',
-              hasUpaya: true
-            },
-            {
-              reportId: 'REP-2026-0825-04',
-              date: '2026-08-25',
-              pic: 'Roby Sandi',
+              reportId: '46f1cd65-13b2-40c9-8e93-15be1b57fb08',
+              date: '2026-08-27',
+              pic: 'M Fauzan',
               sector: 'Sektor 2',
-              division: 'SGA',
-              commodity: 'Edamame',
-              category: 'Irigasi & Air',
-              severity: 'URGENT',
-              kendala: 'Pipa saluran utama blok timur pecah akibat tekanan pompa, pasokan air terhenti.',
-              upaya: 'Penggantian sambungan pipa PVC 2 inch dan pemasangan klem darurat.',
-              hasUpaya: true
-            },
-            {
-              reportId: 'REP-2026-0825-02',
-              date: '2026-08-25',
-              pic: 'Heru',
-              sector: 'Gunung Batu',
-              division: 'Pekerja Harian',
-              commodity: 'Pembibitan Kopi',
-              category: 'Cuaca & Iklim',
-              severity: 'WARNING',
-              kendala: 'Hujan lebat disertai angin merusak sebagian naungan paranet pembibitan.',
-              upaya: 'Perbaikan rangka bambu paranet dan penambahan tiang penyangga cadangan.',
-              hasUpaya: true
-            },
-            {
-              reportId: 'REP-2026-0824-03',
-              date: '2026-08-24',
-              pic: 'Didi',
-              sector: 'Sektor 1 + Ciomas',
-              division: 'BKO 28',
+              division: 'Manajemen',
               commodity: 'Pisang',
               category: 'Peralatan & Mesin',
-              severity: 'WARNING',
-              kendala: 'Mesin babat rumput mengalami macet busi dan kehabisan oli samping.',
-              upaya: 'Pembersihan busi dan pengisian oli samping baru dari gudang bengkel.',
-              hasUpaya: true
-            },
-            {
-              reportId: 'REP-2026-0823-01',
-              date: '2026-08-23',
-              pic: 'Pasrep N',
-              sector: 'Sektor 2',
-              division: 'Alprof',
-              commodity: 'Terong',
-              category: 'Tenaga Kerja & Logistik',
-              severity: 'WARNING',
-              kendala: 'Kekurangan 2 orang tenaga pemetik saat panen raya pagi hari.',
-              upaya: 'Belum ada catatan tindakan mitigasi.',
+              severity: 'URGENT',
+              kendala: 'Wifi mati',
+              upaya: null,
               hasUpaya: false
             }
           ]
         },
         inactiveSectors: [
-          { sector: 'Sektor 4', daysInactive: 5, lastReportDate: '2026-08-22' },
-          { sector: 'MPL Jonggol', daysInactive: 4, lastReportDate: '2026-08-23' }
+          { sector: 'Sektor 3', daysInactive: 99, lastReportDate: 'Belum Ada Laporan' },
+          { sector: 'Sektor 4', daysInactive: 99, lastReportDate: 'Belum Ada Laporan' },
+          { sector: 'MPL Jonggol', daysInactive: 99, lastReportDate: 'Belum Ada Laporan' }
         ]
       };
     }
