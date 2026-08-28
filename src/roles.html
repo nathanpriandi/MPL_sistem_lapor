@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manajemen Hak Akses &amp; Role — Sistem Pelaporan Digital</title>
+  <?!= include('style'); ?>
+  <style>
+    .role-form-card {
+      background: var(--bg-surface, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: var(--radius-md, 10px);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+    }
+    .role-input-group {
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+    .role-input-field {
+      flex: 2 1 280px;
+      min-width: 220px;
+    }
+    .role-select-field {
+      flex: 1 1 200px;
+      min-width: 180px;
+    }
+    .role-table-wrapper {
+      background: #ffffff;
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: var(--radius-md, 10px);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+    }
+    .role-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .role-table th {
+      background: #f8fafc;
+      text-align: left;
+      color: #475569;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color, #e2e8f0);
+      font-size: 0.8125rem;
+      text-transform: none;
+      letter-spacing: normal;
+      font-family: var(--font-base) !important;
+    }
+    .role-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      font-size: 0.835rem;
+      vertical-align: middle;
+      font-family: var(--font-base) !important;
+    }
+    .role-table tr:last-child td {
+      border-bottom: none;
+    }
+    .role-table tr:hover td {
+      background: #f8fafc;
+    }
+    .badge-role-admin {
+      background: #e0e7ff;
+      color: #3730a3;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+    .badge-role-manager {
+      background: #fef3c7;
+      color: #b45309;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+    .badge-role-both {
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+    .badge-akun-utama {
+      font-size: 0.725rem;
+      color: #64748b;
+      font-weight: 600;
+      padding: 0.25rem 0.55rem;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <?!= includeSidebar(userRole, currentPage, webAppUrl); ?>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="main-wrapper">
+      <header class="topbar-internal">
+        <div class="topbar-left">
+          <button class="btn-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-breadcrumb">
+            <span class="breadcrumb-root">Konsol Internal</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Hak Akses &amp; Role</span>
+          </div>
+        </div>
+
+        <div id="userIdentityStrip" data-populated="1">
+          <div class="user-identity-menu" style="display: flex; align-items: center; gap: 0.65rem;">
+            <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'A' ?></div>
+            <div class="user-info">
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'mpl.sisteminformasi@gmail.com' ?></span>
+              <? if (userRole === 'both') { ?>
+                <span class="badge badge-primary">Admin &amp; Manager</span>
+              <? } else if (userRole === 'admin') { ?>
+                <span class="badge badge-primary">Admin Operasional</span>
+              <? } else if (userRole === 'manager') { ?>
+                <span class="badge badge-normal">Executive Manager</span>
+              <? } ?>
+            </div>
+            <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Keluar</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="container-wide" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
+        
+        <!-- PAGE HEADER -->
+        <div class="flex-between-wrap" style="margin-bottom: 1.5rem; align-items: flex-start; gap: 1rem;">
+          <div>
+            <h1 class="card-title" style="margin-bottom: 0.25rem; font-size: 1.35rem; line-height: 1.25;">Manajemen Hak Akses Akun Google</h1>
+            <p class="card-subtitle" style="margin-bottom: 0;">Kelola akun Google yang berhak mengakses Antrean Admin, Dashboard Manajer, dan Pengaturan Sistem.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button type="button" class="btn btn-secondary table-btn-sm" onclick="loadRolesData()" style="height: 36px; padding: 0 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              <span>Muat Ulang</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- FORM CARD: DAFTARKAN / PERBARUI AKUN GOOGLE -->
+        <div class="role-form-card">
+          <h2 style="margin: 0 0 0.85rem 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.45rem;">
+            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <span>Daftarkan / Perbarui Hak Akses Akun Google</span>
+          </h2>
+          <form id="formRoleRegistration" onsubmit="handleSaveRole(event)">
+            <div class="role-input-group">
+              <div class="role-input-field">
+                <label style="display: block; font-size: 0.775rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Alamat Email Google *</label>
+                <input type="email" id="inputRoleEmail" required placeholder="contoh: nama.staf@gmail.com" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; font-size: 0.875rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
+              </div>
+              <div class="role-select-field">
+                <label style="display: block; font-size: 0.775rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Hak Akses / Peran *</label>
+                <select id="selectRoleType" required onchange="updateRoleDescriptionHint()" class="form-select" style="width: 100%; padding: 0.55rem 0.75rem; font-size: 0.875rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
+                  <option value="admin">Admin Operasional</option>
+                  <option value="manager">Manager Eksekutif</option>
+                  <option value="both">Superadmin</option>
+                </select>
+              </div>
+              <div style="flex-shrink: 0;">
+                <button type="submit" id="btnSaveRole" class="btn btn-primary" style="padding: 0.55rem 1.35rem; font-size: 0.875rem; font-weight: 600; white-space: nowrap; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                  <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  <span>Simpan Akun</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- DEDICATED DYNAMIC ROLE DESCRIPTION LINE -->
+            <div id="roleDescriptionContainer" style="margin-top: 0.75rem; padding: 0.55rem 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #6366f1; border-radius: 6px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <div id="roleDescriptionText" style="color: #334155; line-height: 1.4;">
+                <strong style="color: #3730a3;">Admin Operasional:</strong> Hak akses mencakup <strong>Antrean Admin</strong>, <strong>Pengaturan Karyawan</strong>, dan <strong>Pengaturan Form</strong> (Dibatasi dari Dashboard Manajer).
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- TABLE CARD: DAFTAR AKUN TERDAFTAR -->
+        <div class="role-table-wrapper">
+          <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.95rem; font-weight: 700; color: #1e293b;">Daftar Akun Terdaftar</span>
+              <span id="roleCountBadge" style="background: #f1f5f9; color: #475569; font-weight: 700; font-size: 0.775rem; padding: 0.15rem 0.55rem; border-radius: 9999px;">0</span>
+            </div>
+            <div style="font-size: 0.775rem; color: #64748b;">
+              💡 Perubahan hak akses langsung berlaku aktif saat akun tersebut membuka tautan aplikasi.
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="role-table">
+              <thead>
+                <tr>
+                  <th style="width: 36%;">Akun Google (Email)</th>
+                  <th style="width: 24%;">Hak Akses / Peran</th>
+                  <th style="width: 22%;">Terakhir Aktif</th>
+                  <th style="width: 18%; text-align: left;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="roleTableBody">
+                <tr>
+                  <td colspan="4" style="padding: 2rem; text-align: center; color: #64748b;">
+                    <div style="display: inline-block; animation: spinAnim 0.75s linear infinite;">↻</div> Memuat data akun...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <?!= includeApp(webAppUrl); ?>
+  <script>
+    let activeRolesList = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRolesData();
+      if (typeof loadQuickLinks === 'function') {
+        loadQuickLinks();
+      }
+      updateRoleDescriptionHint();
+    });
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) sidebar.classList.toggle('sidebar-open');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function updateRoleDescriptionHint() {
+      const role = document.getElementById('selectRoleType')?.value || 'admin';
+      const container = document.getElementById('roleDescriptionContainer');
+      const textEl = document.getElementById('roleDescriptionText');
+      if (!container || !textEl) return;
+
+      if (role === 'admin') {
+        container.style.borderLeftColor = '#6366f1';
+        textEl.innerHTML = '<strong style="color: #3730a3;">Admin Operasional:</strong> Hak akses mencakup <strong>Antrean Admin</strong>, <strong>Pengaturan Karyawan</strong>, dan <strong>Pengaturan Form</strong> (Dibatasi dari Dashboard Manajer).';
+      } else if (role === 'manager') {
+        container.style.borderLeftColor = '#f59e0b';
+        textEl.innerHTML = '<strong style="color: #b45309;">Manager Eksekutif:</strong> Hak akses khusus <strong>Dashboard Manajer</strong> (Dibatasi dari Antrean Operasional Admin &amp; Pengaturan).';
+      } else if (role === 'both') {
+        container.style.borderLeftColor = '#10b981';
+        textEl.innerHTML = '<strong style="color: #065f46;">Superadmin:</strong> Hak akses penuh ke <strong>seluruh modul operasional</strong>, <strong>Dashboard Manajer</strong>, dan <strong>Manajemen Hak Akses Akun Google</strong>.';
+      }
+    }
+
+    async function loadRolesData() {
+      const tbody = document.getElementById('roleTableBody');
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 2rem; text-align: center; color: #64748b;">Memuat data akun...</td></tr>';
+      }
+
+      try {
+        let list = [];
+        if (isLiveServer()) {
+          list = await runServer('getUserRolesList');
+        } else {
+          list = [
+            { email: 'mpl.sisteminformasi@gmail.com', role: 'both', terakhirAktif: '', addedBy: 'System', addedAt: '2026-08-28' }
+          ];
+        }
+
+        // Strictly filter out any legacy dummy emails
+        activeRolesList = (list || []).filter(item => {
+          const em = String(item.email || '').toLowerCase();
+          return em && !em.includes('@agri.co.id') && !em.includes('staf.operasional') && !em.includes('local.dev');
+        });
+
+        renderRolesTable(activeRolesList);
+      } catch (err) {
+        console.error('Failed to load user roles:', err);
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="4" style="padding: 2rem; text-align: center; color: #dc2626;">Gagal memuat: ${escapeHtml(err.message || err.toString())}</td></tr>`;
+        }
+      }
+    }
+
+    function renderRolesTable(list) {
+      const tbody = document.getElementById('roleTableBody');
+      const badge = document.getElementById('roleCountBadge');
+      if (badge) badge.innerText = list ? list.length : 0;
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 2.5rem; text-align: center; color: #64748b;">Belum ada akun Google terdaftar. Silakan daftarkan akun di atas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map((item, idx) => {
+        const isPrimarySuperadmin = (item.email || '').toLowerCase() === 'mpl.sisteminformasi@gmail.com';
+        
+        let roleBadge = '<span class="badge-role-admin">Admin Operasional</span>';
+        if (item.role === 'manager') {
+          roleBadge = '<span class="badge-role-manager">Manager Eksekutif</span>';
+        } else if (item.role === 'both' || item.role === 'superadmin' || isPrimarySuperadmin) {
+          roleBadge = '<span class="badge-role-both">Superadmin</span>';
+        }
+
+        let lastActiveHtml = '<span style="color: #94a3b8; font-size: 0.8rem;">-</span>';
+        if (item.terakhirAktif && !item.terakhirAktif.includes('1970')) {
+          lastActiveHtml = `
+            <span style="display:inline-flex; align-items:center; gap:5px; font-size:0.825rem; color:#334155; font-weight:500;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${escapeHtml(item.terakhirAktif)}
+            </span>
+          `;
+        }
+
+        let deleteBtn = `<button type="button" class="btn btn-danger table-btn-sm" onclick="deleteRoleConfirm('${escapeHtml(item.email)}')" style="padding: 0.25rem 0.65rem; font-size: 0.775rem;">Hapus</button>`;
+        if (isPrimarySuperadmin) {
+          deleteBtn = `<span class="badge-akun-utama">Akun Utama</span>`;
+        }
+
+        return `
+          <tr>
+            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(item.email)}</td>
+            <td>${roleBadge}</td>
+            <td>${lastActiveHtml}</td>
+            <td style="text-align: left; white-space: nowrap;">
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="editRolePrompt(${idx})" style="padding: 0.25rem 0.65rem; font-size: 0.775rem; margin-right: 6px;">
+                Ubah Peran
+              </button>
+              ${deleteBtn}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function handleSaveRole(event) {
+      if (event) event.preventDefault();
+
+      const email = (document.getElementById('inputRoleEmail')?.value || '').trim().toLowerCase();
+      const role = document.getElementById('selectRoleType')?.value || 'admin';
+
+      if (!email || !email.includes('@')) {
+        showToast('Masukkan alamat email Google yang valid.', 'warning');
+        return;
+      }
+
+      const saveBtn = document.getElementById('btnSaveRole');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'Menyimpan...'; }
+
+      try {
+        const payload = { email, role };
+        if (isLiveServer()) {
+          const res = await runServer('saveUserRoleAccount', payload);
+          if (res && res.success) {
+            showToast(res.message || 'Akun berhasil disimpan!', 'success');
+            if (res.list) {
+              activeRolesList = res.list.filter(item => !String(item.email || '').toLowerCase().includes('@agri.co.id'));
+              renderRolesTable(activeRolesList);
+            } else {
+              loadRolesData();
+            }
+          } else {
+            showToast(res.message || 'Gagal menyimpan akun.', 'error');
+          }
+        } else {
+          showToast(`Akun ${email} berhasil disimpan sebagai ${role.toUpperCase()} (Simulasi)`, 'success');
+          activeRolesList = activeRolesList.filter(x => x.email !== email);
+          activeRolesList.push(payload);
+          renderRolesTable(activeRolesList);
+        }
+
+        // Reset input
+        document.getElementById('inputRoleEmail').value = '';
+        updateRoleDescriptionHint();
+      } catch (err) {
+        showToast('Gagal menyimpan akun: ' + (err.message || err.toString()), 'error');
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Simpan Akun</span>'; }
+      }
+    }
+
+    function editRolePrompt(idx) {
+      const item = activeRolesList[idx];
+      if (!item) return;
+
+      document.getElementById('inputRoleEmail').value = item.email;
+      document.getElementById('selectRoleType').value = item.role;
+      updateRoleDescriptionHint();
+      document.getElementById('inputRoleEmail').focus();
+    }
+
+    async function deleteRoleConfirm(email) {
+      if ((email || '').toLowerCase() === 'mpl.sisteminformasi@gmail.com') {
+        showToast('Akun Superadmin Utama (mpl.sisteminformasi@gmail.com) tidak dapat dihapus.', 'warning');
+        return;
+      }
+
+      if (!confirm(`Apakah Anda yakin ingin mencabut hak akses akun Google:\n\n${email}?`)) {
+        return;
+      }
+
+      try {
+        if (isLiveServer()) {
+          const res = await runServer('deleteUserRoleAccount', email);
+          if (res && res.success) {
+            showToast(res.message || 'Akses berhasil dicabut.', 'success');
+            if (res.list) {
+              activeRolesList = res.list.filter(item => !String(item.email || '').toLowerCase().includes('@agri.co.id'));
+              renderRolesTable(activeRolesList);
+            } else {
+              loadRolesData();
+            }
+          } else {
+            showToast(res.message || 'Gagal menghapus akun.', 'error');
+          }
+        } else {
+          activeRolesList = activeRolesList.filter(x => x.email !== email);
+          renderRolesTable(activeRolesList);
+          showToast(`Akses untuk ${email} dicabut (Simulasi)`, 'success');
+        }
+      } catch (err) {
+        showToast('Gagal menghapus akun: ' + (err.message || err.toString()), 'error');
+      }
+    }
+  </script>
+</body>
+</html>

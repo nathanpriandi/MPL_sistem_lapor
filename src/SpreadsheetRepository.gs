@@ -1623,5 +1623,231 @@ const SpreadsheetRepository = {
       Logger.log('SpreadsheetRepository Error in recordAnalyticsHistoryRollup: ' + e.toString());
       return false;
     }
+  },
+
+  /**
+   * Finds or creates the User_Roles sheet for multi-user RBAC.
+   * @param {Spreadsheet} [ss] 
+   * @returns {Sheet}
+   */
+  getUserRolesSheet_: function(ss) {
+    if (!ss) ss = this.getSpreadsheet();
+    let sheet = ss.getSheetByName('User_Roles');
+    const headers = ['Email', 'Role', 'Terakhir_Aktif', 'Ditambahkan_Oleh', 'Tanggal_Daftar'];
+
+    if (!sheet) {
+      sheet = ss.insertSheet('User_Roles');
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length)
+        .setBackground('#15803D')
+        .setFontColor('#FFFFFF')
+        .setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      
+      // Default Initial Accounts Seed (Single superadmin placeholder)
+      const initialRows = [
+        ['mpl.sisteminformasi@gmail.com', 'both', '', 'System Initializer', formatDate(new Date()).split(' ')[0]]
+      ];
+      sheet.getRange(2, 1, initialRows.length, headers.length).setValues(initialRows);
+      try { sheet.autoResizeColumns(1, headers.length); } catch (e) {}
+    } else {
+      // Ensure header has 5 columns
+      try {
+        const currentHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 5)).getValues()[0];
+        if (currentHeaders.length < 5 || currentHeaders[2] !== 'Terakhir_Aktif') {
+          sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+          sheet.getRange(1, 1, 1, headers.length)
+            .setBackground('#15803D')
+            .setFontColor('#FFFFFF')
+            .setFontWeight('bold');
+        }
+      } catch (eH) {}
+    }
+    return sheet;
+  },
+
+  /**
+   * Reads all registered user roles from User_Roles spreadsheet tab.
+   * Auto-purges any legacy dummy emails on the fly.
+   * @returns {Array<Object>}
+   */
+  getUserRolesFromSheet: function() {
+    try {
+      const sheet = this.getUserRolesSheet_();
+      if (!sheet || sheet.getLastRow() <= 1) return [];
+
+      const lastRow = sheet.getLastRow();
+      const raw = sheet.getRange(2, 1, lastRow - 1, Math.max(sheet.getLastColumn(), 5)).getValues();
+      const list = [];
+      const rowsToDelete = [];
+
+      raw.forEach((row, idx) => {
+        const email = String(row[0] || '').trim().toLowerCase();
+        if (!email || !email.includes('@')) return;
+
+        // Auto-purge any legacy dummy emails from live spreadsheet
+        if (email.includes('@agri.co.id') || email.includes('staf.operasional') || email.includes('local.dev')) {
+          rowsToDelete.push(idx + 2);
+          return;
+        }
+
+        let role = String(row[1] || 'admin').trim().toLowerCase();
+        if (email === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
+          role = 'both';
+        }
+
+        let terakhirAktif = '';
+        let addedBy = 'Admin';
+        let addedAt = '';
+
+        if (row.length >= 5) {
+          terakhirAktif = row[2] ? formatDate(row[2]) : '';
+          addedBy = String(row[3] || 'Admin').trim();
+          addedAt = row[4] ? formatDate(row[4]).split(' ')[0] : '';
+        } else if (row.length === 4) {
+          addedBy = String(row[2] || 'Admin').trim();
+          addedAt = row[3] ? formatDate(row[3]).split(' ')[0] : '';
+        }
+
+        if (terakhirAktif.includes('1970-01-01')) {
+          terakhirAktif = '';
+        }
+
+        list.push(UserRoleItem({
+          email: email,
+          role: role,
+          terakhirAktif: terakhirAktif,
+          addedBy: addedBy,
+          addedAt: addedAt
+        }));
+      });
+
+      // Purge dummy rows from sheet in reverse order so row indices stay stable
+      if (rowsToDelete.length > 0) {
+        for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+          try { sheet.deleteRow(rowsToDelete[i]); } catch (eDel) {}
+        }
+      }
+
+      // If sheet becomes empty after purging, ensure default superadmin row exists
+      if (list.length === 0) {
+        const defaultSuperadmin = UserRoleItem({
+          email: ConfigRepository.PLACEHOLDER_ADMIN,
+          role: 'both',
+          terakhirAktif: '',
+          addedBy: 'System Initializer',
+          addedAt: formatDate(new Date()).split(' ')[0]
+        });
+        this.saveUserRoleToSheet(defaultSuperadmin);
+        list.push(defaultSuperadmin);
+      }
+
+      return list;
+    } catch (err) {
+      Logger.log('SpreadsheetRepository Error in getUserRolesFromSheet: ' + err.toString());
+      return [];
+    }
+  },
+
+  /**
+   * Saves or updates a user role account in User_Roles sheet.
+   * @param {Object} item - { email, role, terakhirAktif, addedBy }
+   * @returns {{ success: boolean, item: Object }}
+   */
+  saveUserRoleToSheet: function(item) {
+    if (!item || !item.email || !item.email.includes('@')) {
+      throw new Error('Alamat email Google yang valid wajib diisi.');
+    }
+
+    const sheet = this.getUserRolesSheet_();
+    const emailToSave = item.email.trim().toLowerCase();
+    const roleItem = UserRoleItem(item);
+    const dateStr = formatDate(new Date()).split(' ')[0];
+
+    const lastRow = sheet.getLastRow();
+    let existingRowIndex = -1;
+    let existingLastActive = '';
+
+    if (lastRow > 1) {
+      const existingData = sheet.getRange(2, 1, lastRow - 1, Math.max(sheet.getLastColumn(), 3)).getValues();
+      for (let i = 0; i < existingData.length; i++) {
+        if (String(existingData[i][0] || '').trim().toLowerCase() === emailToSave) {
+          existingRowIndex = i + 2;
+          existingLastActive = existingData[i][2] ? formatDate(existingData[i][2]) : '';
+          break;
+        }
+      }
+    }
+
+    const rowData = [
+      roleItem.email,
+      roleItem.role,
+      roleItem.terakhirAktif || existingLastActive || '',
+      roleItem.addedBy || 'Admin',
+      roleItem.addedAt || dateStr
+    ];
+
+    if (existingRowIndex > 0) {
+      sheet.getRange(existingRowIndex, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+    }
+
+    return { success: true, item: roleItem };
+  },
+
+  /**
+   * Updates last active / logout timestamp for a user.
+   * @param {string} email 
+   * @param {string} [timestamp] 
+   */
+  updateUserLastActive: function(email, timestamp) {
+    if (!email) return;
+    const cleanEmail = email.trim().toLowerCase();
+    const timeStr = timestamp || formatDate(new Date());
+
+    try {
+      const sheet = this.getUserRolesSheet_();
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        const emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (let i = 0; i < emails.length; i++) {
+          if (String(emails[i][0] || '').trim().toLowerCase() === cleanEmail) {
+            sheet.getRange(i + 2, 3).setValue(timeStr);
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      Logger.log('SpreadsheetRepository Error in updateUserLastActive: ' + e.toString());
+    }
+  },
+
+  /**
+   * Deletes a user role account from User_Roles sheet.
+   * @param {string} email 
+   * @returns {{ success: boolean }}
+   */
+  deleteUserRoleFromSheet: function(email) {
+    if (!email) throw new Error('Email wajib disertakan.');
+    const sheet = this.getUserRolesSheet_();
+    const emailToDelete = email.trim().toLowerCase();
+
+    if (emailToDelete === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
+      throw new Error('Akun Superadmin Utama (' + ConfigRepository.PLACEHOLDER_ADMIN + ') tidak dapat dihapus.');
+    }
+
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return { success: true };
+
+    const emails = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (let i = 0; i < emails.length; i++) {
+      if (String(emails[i][0] || '').trim().toLowerCase() === emailToDelete) {
+        sheet.deleteRow(i + 2);
+        return { success: true };
+      }
+    }
+
+    return { success: true };
   }
 };

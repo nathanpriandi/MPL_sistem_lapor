@@ -372,3 +372,43 @@ function purgeLegacyPhotoFolders() {
   const res = AdminService.purgeLegacyPhotoFolders();
   return JSON.parse(JSON.stringify(res || {}));
 }
+
+/**
+ * Returns list of registered Google accounts with roles.
+ * @returns {Array<Object>}
+ */
+function getUserRolesList() {
+  const res = AdminService.getUserRolesList();
+  return JSON.parse(JSON.stringify(res || []));
+}
+
+/**
+ * Saves or updates a Google account role.
+ * @param {Object} accountData
+ * @returns {Object}
+ */
+function saveUserRoleAccount(accountData) {
+  const res = AdminService.saveUserRoleAccount(accountData);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Deletes a Google account role.
+ * @param {string} email
+ * @returns {Object}
+ */
+function deleteUserRoleAccount(email) {
+  const res = AdminService.deleteUserRoleAccount(email);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+
+/**
+ * Records user logout timestamp.
+ * @param {string} [email]
+ * @returns {Object}
+ */
+function recordUserLogout(email) {
+  const res = AuthService.recordUserLogout(email);
+  return JSON.parse(JSON.stringify(res || {}));
+}
+

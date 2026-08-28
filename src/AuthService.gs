@@ -23,18 +23,22 @@ const AuthService = {
       Logger.log('AuthService Notice: Session.getActiveUser().getEmail() restricted/unavailable.');
     }
 
-    const { effectiveAdmin, effectiveManager } = ConfigRepository.getEffectiveRoleEmails();
+    const { adminEmails, managerEmails, superadminEmails } = ConfigRepository.getEffectiveRoleEmails();
 
     if (userEmail) {
-      const isAdmin = effectiveAdmin && userEmail === effectiveAdmin;
-      const isManager = effectiveManager && userEmail === effectiveManager;
+      const isSuperadmin = superadminEmails && superadminEmails.includes(userEmail);
+      const isAdmin = adminEmails && adminEmails.includes(userEmail);
+      const isManager = managerEmails && managerEmails.includes(userEmail);
 
-      if (isAdmin && isManager) return 'both';
+      if (isSuperadmin || (isAdmin && isManager)) return 'both';
       if (isAdmin) return 'admin';
       if (isManager) return 'manager';
+
+      // Unauthorized Google account
+      return null;
     }
 
-    // Default fallback: If running on an internal deployment (not explicitly public), grant internal access
+    // Default fallback: If running on an internal deployment (e.g. editor or dev console where email is blank)
     if (this.isInternalWebAppDeployment()) {
       return 'both';
     }
@@ -68,6 +72,36 @@ const AuthService = {
    */
   isAuthorizedStaff: function() {
     return this.getUserRole() !== null;
+  },
+
+  /**
+   * Records logout timestamp for active user.
+   * @param {string} [customEmail] 
+   * @returns {{ success: boolean, timestamp: string, email: string }}
+   */
+  recordUserLogout: function(customEmail) {
+    let email = (customEmail || '').trim().toLowerCase();
+    if (!email) {
+      try {
+        email = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+      } catch (e) {}
+    }
+    if (!email) email = ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase();
+
+    const timestamp = formatDate(new Date());
+    SpreadsheetRepository.updateUserLastActive(email, timestamp);
+
+    // Refresh memory cache
+    try {
+      const updatedList = SpreadsheetRepository.getUserRolesFromSheet();
+      ConfigRepository.setUserRolesRegistry(updatedList);
+    } catch (eCache) {}
+
+    return {
+      success: true,
+      timestamp: timestamp,
+      email: email
+    };
   },
 
   /**

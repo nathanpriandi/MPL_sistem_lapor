@@ -528,3 +528,27 @@ function WeeklyStat(divisiName) {
     warningCount: 0
   };
 }
+
+/**
+ * Domain Entity: User Roles & Access Management
+ */
+const USER_ROLES = Object.freeze({
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  SUPERADMIN: 'both'
+});
+
+function UserRoleItem(data) {
+  const rawRole = String(data.role || USER_ROLES.ADMIN).trim().toLowerCase();
+  let role = USER_ROLES.ADMIN;
+  if (rawRole === 'manager') role = USER_ROLES.MANAGER;
+  else if (rawRole === 'both' || rawRole === 'superadmin' || rawRole === 'admin & manager') role = USER_ROLES.SUPERADMIN;
+
+  return {
+    email: String(data.email || '').trim().toLowerCase(),
+    role: role,
+    terakhirAktif: data.terakhirAktif ? String(data.terakhirAktif).trim() : '',
+    addedBy: String(data.addedBy || 'Admin').trim(),
+    addedAt: data.addedAt ? String(data.addedAt) : (new Date()).toISOString().split('T')[0]
+  };
+}

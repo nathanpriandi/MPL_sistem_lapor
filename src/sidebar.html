@@ -8,29 +8,43 @@
 
   <nav class="sidebar-nav">
     <div class="sidebar-section-label">NAVIGASI UTAMA</div>
-    <? if (typeof userRole === 'undefined' || !userRole || userRole === 'admin' || userRole === 'both') { ?>
+    
+    <!-- Admin & Superadmin Navigation -->
+    <? if (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'both')) { ?>
       <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=admin' : '#' ?>" onclick="navigateToPage('admin', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'admin') ? 'active' : '' ?>" id="sidebarNavAdmin">
         <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span>Antrean Admin</span>
       </a>
     <? } ?>
 
-    <? if (typeof userRole === 'undefined' || !userRole || userRole === 'manager' || userRole === 'both') { ?>
+    <!-- Manager & Superadmin Navigation -->
+    <? if (typeof userRole !== 'undefined' && (userRole === 'manager' || userRole === 'both')) { ?>
       <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=dashboard' : '#' ?>" onclick="navigateToPage('dashboard', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'dashboard') ? 'active' : '' ?>" id="sidebarNavDashboard">
         <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         <span>Dashboard Manajer</span>
       </a>
     <? } ?>
 
-    <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=employees' : '#' ?>" onclick="navigateToPage('employees', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'employees') ? 'active' : '' ?>" id="sidebarNavEmployees">
-      <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span>Pengaturan Karyawan</span>
-    </a>
+    <!-- Admin & Superadmin Navigation -->
+    <? if (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'both')) { ?>
+      <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=employees' : '#' ?>" onclick="navigateToPage('employees', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'employees') ? 'active' : '' ?>" id="sidebarNavEmployees">
+        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Pengaturan Karyawan</span>
+      </a>
 
-    <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=forms' : '#' ?>" onclick="navigateToPage('forms', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'forms') ? 'active' : '' ?>" id="sidebarNavForms">
-      <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      <span>Pengaturan Form</span>
-    </a>
+      <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=forms' : '#' ?>" onclick="navigateToPage('forms', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'forms') ? 'active' : '' ?>" id="sidebarNavForms">
+        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Pengaturan Form</span>
+      </a>
+    <? } ?>
+
+    <!-- STRICTLY SUPERADMIN ('both') ONLY -->
+    <? if (typeof userRole !== 'undefined' && userRole === 'both') { ?>
+      <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=roles' : '#' ?>" onclick="navigateToPage('roles', this); return false;" class="sidebar-nav-item <?= (typeof currentPage !== 'undefined' && currentPage === 'roles') ? 'active' : '' ?>" id="sidebarNavRoles">
+        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Hak Akses &amp; Role</span>
+      </a>
+    <? } ?>
 
     <div class="sidebar-divider"></div>
 
