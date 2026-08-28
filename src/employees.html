@@ -143,9 +143,7 @@
                 <div style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0 0.75rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); height: 32px; box-sizing: border-box; white-space: nowrap;">
                   <span style="color: var(--text-muted);">Total Karyawan:</span>
                   <strong id="metricTotalEmployees" style="color: var(--text-primary); font-weight: 700;">0</strong>
-                </div>
-
-                <!-- Reset Bawaan Button -->
+                </div>                <!-- Reset Bawaan Button -->
                 <button class="btn btn-secondary table-btn-sm" onclick="openResetEmployeesModal()" title="Reset ke 38 Karyawan Bawaan" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                   <span>Reset Bawaan</span>
@@ -169,11 +167,11 @@
             <div class="enterprise-toolbar-filters" style="margin-top: 0.65rem;">
               <div class="segmented-filter-pills" role="tablist" aria-label="Filter Divisi">
                 <button class="filter-pill active" onclick="setDivisionFilter('ALL', this)" id="divPill-ALL">Semua Divisi</button>
+                <button class="filter-pill" onclick="setDivisionFilter('Manajemen', this)" id="divPill-MNJ">Manajemen</button>
+                <button class="filter-pill" onclick="setDivisionFilter('BKO 28', this)" id="divPill-BKO">BKO 28</button>
+                <button class="filter-pill" onclick="setDivisionFilter('Pekerja Harian', this)" id="divPill-PKH">Pekerja Harian</button>
                 <button class="filter-pill" onclick="setDivisionFilter('Alprof', this)" id="divPill-Alprof">Alprof</button>
                 <button class="filter-pill" onclick="setDivisionFilter('SGA', this)" id="divPill-SGA">SGA</button>
-                <button class="filter-pill" onclick="setDivisionFilter('Pekerja Harian', this)" id="divPill-PKH">Pekerja Harian</button>
-                <button class="filter-pill" onclick="setDivisionFilter('BKO 28', this)" id="divPill-BKO">BKO 28</button>
-                <button class="filter-pill" onclick="setDivisionFilter('Manajemen', this)" id="divPill-MNJ">Manajemen</button>
               </div>
             </div>
           </div>
@@ -239,7 +237,7 @@
               <span id="idSuggestHint" style="font-size: 0.725rem; color: #0284c7; cursor: pointer;" onclick="applySuggestedId()"></span>
             </div>
             <input type="text" id="empModalId" class="form-input" placeholder="contoh: ALP-08" style="text-transform: uppercase; font-family: monospace; font-weight: 700;" required>
-            <small style="color: var(--text-muted); font-size: 0.75rem;">Format baku: Prefix Divisi + Angka 2 Digit (contoh: ALP-08, MNJ-10).</small>
+            <small style="color: var(--text-muted); font-size: 0.75rem;">Format baku: Prefix Divisi + Angka 2 Digit (contoh: ALP-08, MNJ-10, PKH-09, SGA-13).</small>
           </div>
 
           <!-- Nama Lengkap -->
@@ -288,7 +286,7 @@
       </div>
       <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Reset ke 38 Karyawan Bawaan?</h3>
       <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
-        Tindakan ini akan mengembalikan seluruh daftar ID karyawan ke <strong>38 Karyawan Standar Bawaan</strong>. Seluruh data kustom baru yang pernah ditambahkan akan diatur ulang.
+        Tindakan ini akan mengembalikan seluruh daftar ID karyawan ke <strong>38 Karyawan Standar Bawaan</strong> (Manajemen, BKO 28, Pekerja Harian, Alprof, dan SGA). Seluruh data kustom baru yang pernah ditambahkan akan diatur ulang.
       </p>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
@@ -299,7 +297,6 @@
   </div>
 
   <?!= includeApp(webAppUrl); ?>
-
   <script>
     let allEmployees = [];
     let isEditingEmployee = false;
@@ -314,6 +311,13 @@
       'Alprof': 'ALP-',
       'SGA': 'SGA-'
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchAndRenderEmployees();
+      if (typeof loadQuickLinks === 'function') {
+        loadQuickLinks();
+      }
+    });
 
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
@@ -334,9 +338,9 @@
       const s = String(divStr || '').toLowerCase();
       if (s.includes('alprof') || s.includes('alp')) return 'badge-div-alp';
       if (s.includes('sga')) return 'badge-div-sga';
-      if (s.includes('pekerja') || s.includes('harian') || s.includes('pkh')) return 'badge-div-pkh';
-      if (s.includes('bko')) return 'badge-div-bko';
       if (s.includes('manajemen') || s.includes('mnj')) return 'badge-div-mnj';
+      if (s.includes('bko')) return 'badge-div-bko';
+      if (s.includes('pekerja') || s.includes('pkh')) return 'badge-div-pkh';
       return 'badge-div-def';
     }
 
@@ -347,11 +351,9 @@
           allEmployees = Array.isArray(list) ? list : [];
         } else {
           allEmployees = (typeof EMPLOYEE_REGISTRY !== 'undefined') ? EMPLOYEE_REGISTRY.map(e => ({ ...e })) : [
+            { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
             { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
-            { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
-            { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
-            { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
-            { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' }
+            { id: 'SGA-01', name: 'Ketut', division: 'SGA' }
           ];
         }
 

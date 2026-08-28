@@ -30,13 +30,13 @@
           <label class="form-label" for="empId">ID Karyawan / Employee ID <span class="text-danger">*</span></label>
           <div class="emp-id-input-group">
             <div class="emp-id-input-wrapper">
-              <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: ALP-01, SGA-05, MNJ-02, PKH-03, BKO-01..." oninput="handleDynEmpIdInput(this.value)" required>
+              <input type="text" id="empId" name="empId" class="form-input" placeholder="Masukkan ID Anda" oninput="handleDynEmpIdInput(this.value)" required>
               <div class="emp-id-status-icon" id="dynEmpIdStatusIcon">
                 <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </div>
             </div>
           </div>
-          <span class="form-help">Masukkan ID resmi karyawan Anda (contoh: ALP-01).</span>
+          <span class="form-help">Masukkan ID karyawan Anda.</span>
 
           <!-- Auto-filled Verified Employee Card -->
           <div class="emp-verified-card" id="dynEmpVerifiedCard">
@@ -79,11 +79,10 @@
           <label class="form-label" for="site">Lokasi Kegiatan <span class="text-danger">*</span></label>
           <select id="site" name="site" class="form-input" required>
             <option value="" disabled selected>-- Pilih Lokasi Kegiatan --</option>
-            <option value="Sektor 1 + Ciomas">Sektor 1 + Ciomas</option>
-            <option value="Sektor 2">Sektor 2</option>
-            <option value="Sektor 3">Sektor 3</option>
-            <option value="Sektor 4">Sektor 4</option>
-            <option value="Gunung Batu">Gunung Batu</option>
+            <option value="Jonggol">Jonggol</option>
+            <option value="Cikalong">Cikalong</option>
+            <option value="Quilling">Quilling</option>
+            <option value="Jakarta">Jakarta</option>
           </select>
         </div>
 
@@ -150,44 +149,53 @@
   <?!= includeApp(webAppUrl); ?>
   <script>
     const DYN_EMPLOYEE_REGISTRY = [
-      { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
-      { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
-      { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen' },
-      { id: 'MNJ-04', name: 'Martati', division: 'Manajemen' },
-      { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen' },
-      { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen' },
-      { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen' },
-      { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen' },
-      { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen' },
-      { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
-      { id: 'BKO-02', name: 'Gultom', division: 'BKO 28' },
-      { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
-      { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian' },
-      { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian' },
-      { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian' },
-      { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian' },
-      { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian' },
-      { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian' },
-      { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian' },
-      { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
-      { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof' },
-      { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof' },
-      { id: 'ALP-04', name: 'M Aris', division: 'Alprof' },
-      { id: 'ALP-05', name: 'Mursito', division: 'Alprof' },
-      { id: 'ALP-06', name: 'Jatniko', division: 'Alprof' },
-      { id: 'ALP-07', name: 'Mislan', division: 'Alprof' },
-      { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
-      { id: 'SGA-02', name: 'Amas S', division: 'SGA' },
-      { id: 'SGA-03', name: 'M Yusuf', division: 'SGA' },
-      { id: 'SGA-04', name: 'Hasanudin', division: 'SGA' },
-      { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA' },
-      { id: 'SGA-06', name: 'Rukman', division: 'SGA' },
-      { id: 'SGA-07', name: 'Subandi', division: 'SGA' },
-      { id: 'SGA-08', name: 'Suganda', division: 'SGA' },
-      { id: 'SGA-09', name: 'Dede', division: 'SGA' },
-      { id: 'SGA-10', name: 'Wafa', division: 'SGA' },
-      { id: 'SGA-11', name: 'Rafi', division: 'SGA' },
-      { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
+      // Manajemen (9 Orang) — Bebas mengisi form langsung
+      { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-04', name: 'Martaty', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen', isPic: true },
+
+      // BKO 28 (2 Orang) — Pelaporan via Manajemen
+      { id: 'BKO-01', name: 'Didi', division: 'BKO 28', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'BKO-02', name: 'Gultom', division: 'BKO 28', isPic: false, delegatedTo: 'Manajemen' },
+
+      // Pekerja Harian (8 Orang) — Pelaporan via Manajemen
+      { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+
+      // Alprof (7 Orang) — Bebas mengisi form langsung
+      { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', isPic: true },
+      { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof', isPic: true },
+      { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof', isPic: true },
+      { id: 'ALP-04', name: 'M Aris', division: 'Alprof', isPic: true },
+      { id: 'ALP-05', name: 'Mursito', division: 'Alprof', isPic: true },
+      { id: 'ALP-06', name: 'Jatniko', division: 'Alprof', isPic: true },
+      { id: 'ALP-07', name: 'Mislan', division: 'Alprof', isPic: true },
+
+      // SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Ketut (SGA-01) & Amas S (SGA-02)
+      { id: 'SGA-01', name: 'Ketut', division: 'SGA', isPic: true },
+      { id: 'SGA-02', name: 'Amas S', division: 'SGA', isPic: true },
+      { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-06', name: 'Rukman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-07', name: 'Subandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-08', name: 'Suganda', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-09', name: 'Dede', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-10', name: 'Wafa', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-11', name: 'Rafi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
     ];
 
     function handleDynEmpIdInput(val) {
@@ -221,13 +229,63 @@
       });
 
       if (emp) {
+        const cleanEmpId = String(emp.id || '').toUpperCase().replace(/[\s\-_]/g, '');
+        const isSgaPicDyn = (cleanEmpId === 'SGA01' || cleanEmpId === 'SGA02');
+        const isSgaJuniorDyn = cleanEmpId.startsWith('SGA') && !isSgaPicDyn;
+        const isBkoDyn = cleanEmpId.startsWith('BKO');
+        const isPkhDyn = cleanEmpId.startsWith('PKH');
+
+        if (isSgaJuniorDyn) {
+          card.className = 'emp-verified-card active-invalid';
+          badge.className = 'emp-verified-badge emp-badge-invalid';
+          badge.style.background = '#fef3c7';
+          badge.style.color = '#92400e';
+          badge.style.borderColor = '#fde68a';
+          statusText.innerText = 'Pengisian Didelegasikan ke PIC';
+          statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+          displayNama.innerHTML = `<span style="color: #92400e;">${emp.name} (Pelaporan via PIC SGA)</span>`;
+          displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-sga">SGA</span>`;
+          hiddenNama.value = '';
+          hiddenDivisi.value = '';
+          return;
+        }
+
+        if (isBkoDyn) {
+          card.className = 'emp-verified-card active-invalid';
+          badge.className = 'emp-verified-badge emp-badge-invalid';
+          badge.style.background = '#e0e7ff';
+          badge.style.color = '#3730a3';
+          badge.style.borderColor = '#c7d2fe';
+          statusText.innerText = 'Pelaporan Melalui Alprof';
+          statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+          displayNama.innerHTML = `<span style="color: #3730a3;">${emp.name} (Pelaporan via Alprof)</span>`;
+          displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-bko">BKO 28</span>`;
+          hiddenNama.value = '';
+          hiddenDivisi.value = '';
+          return;
+        }
+
+        if (isPkhDyn) {
+          card.className = 'emp-verified-card active-invalid';
+          badge.className = 'emp-verified-badge emp-badge-invalid';
+          badge.style.background = '#e0f2fe';
+          badge.style.color = '#0369a1';
+          badge.style.borderColor = '#bae6fd';
+          statusText.innerText = 'Pelaporan Melalui Manajemen';
+          statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+          displayNama.innerHTML = `<span style="color: #0369a1;">${emp.name} (Pelaporan via Manajemen)</span>`;
+          displayDivisi.innerHTML = `<span>Pekerja Harian</span>`;
+          hiddenNama.value = '';
+          hiddenDivisi.value = '';
+          return;
+        }
+
         card.className = 'emp-verified-card active-valid';
         badge.className = 'emp-verified-badge emp-badge-valid';
         statusText.innerText = 'Terverifikasi';
         statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
         displayNama.innerText = emp.name;
-        const divSlug = emp.division.toLowerCase().replace(/[\s\-_]/g, '-');
-        displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-${divSlug}">${emp.division}</span>`;
+        displayDivisi.innerHTML = `<span>${emp.division}</span>`;
         hiddenNama.value = emp.name;
         hiddenDivisi.value = emp.division;
       } else {

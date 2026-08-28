@@ -268,7 +268,7 @@ function setupOperationalForm(ssId) {
   // Page 1: Identitas & Informasi Utama
   form.addTextItem()
     .setTitle('ID Karyawan')
-    .setHelpText('Masukkan ID resmi karyawan Anda (contoh: ALP-01, SGA-05, MNJ-02, PKH-03, BKO-01)')
+    .setHelpText('Masukkan ID karyawan Anda')
     .setRequired(true);
 
   form.addTextItem()
@@ -278,12 +278,12 @@ function setupOperationalForm(ssId) {
 
   form.addMultipleChoiceItem()
     .setTitle('Lokasi Kegiatan')
-    .setChoiceValues(['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'])
+    .setChoiceValues(['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'])
     .setRequired(true);
 
   form.addMultipleChoiceItem()
     .setTitle('Kegiatan yang Dilakukan')
-    .setChoiceValues(['Tanam atau tebar', 'Panen atau penjualan', 'Pengawasan'])
+    .setChoiceValues(['Agro', 'Ternak', 'Office', 'Pengawasan'])
     .setRequired(true);
 
   // Page 2: Kegiatan Tanam / Tebar

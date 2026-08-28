@@ -170,62 +170,138 @@ function isActualKendala(text) {
 
 /**
  * Master Employee Registry (38 Karyawan, 5 Divisi)
- * Mudah diingat untuk kelompok usia lanjut (Prefix Divisi + 2 Digit)
+ * - Manajemen (9 Orang) & Alprof (7 Orang): Bebas mengisi form langsung & dapat mewakili staf/rekan
+ * - BKO 28 (2 Orang) & Pekerja Harian (8 Orang): Diwakili & dilaporkan melalui tim Manajemen
+ * - SGA (12 Orang): Laporan wajib diisi oleh PIC resmi Ketut (SGA-01) atau Amas S (SGA-02)
  */
 const EMPLOYEE_REGISTRY = Object.freeze([
-  // Manajemen (9 Orang)
-  { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
-  { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
-  { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen' },
-  { id: 'MNJ-04', name: 'Martati', division: 'Manajemen' },
-  { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen' },
-  { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen' },
-  { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen' },
-  { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen' },
-  { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen' },
+  // Manajemen (9 Orang) — Bebas mengisi form langsung
+  { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-04', name: 'Martaty', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen', isPic: true },
 
-  // BKO 28 (2 Orang)
-  { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
-  { id: 'BKO-02', name: 'Gultom', division: 'BKO 28' },
+  // BKO 28 (2 Orang) — Pelaporan via Alprof
+  { id: 'BKO-01', name: 'Didi', division: 'BKO 28', isPic: false, delegatedTo: 'Alprof' },
+  { id: 'BKO-02', name: 'Gultom', division: 'BKO 28', isPic: false, delegatedTo: 'Alprof' },
 
-  // Pekerja Harian (8 Orang)
-  { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
-  { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian' },
-  { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian' },
-  { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian' },
-  { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian' },
-  { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian' },
-  { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian' },
-  { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian' },
+  // Pekerja Harian (8 Orang) — Pelaporan via Manajemen
+  { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
 
-  // Alprof (7 Orang)
-  { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
-  { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof' },
-  { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof' },
-  { id: 'ALP-04', name: 'M Aris', division: 'Alprof' },
-  { id: 'ALP-05', name: 'Mursito', division: 'Alprof' },
-  { id: 'ALP-06', name: 'Jatniko', division: 'Alprof' },
-  { id: 'ALP-07', name: 'Mislan', division: 'Alprof' },
+  // Alprof (7 Orang) — Bebas mengisi form langsung
+  { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', isPic: true },
+  { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof', isPic: true },
+  { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof', isPic: true },
+  { id: 'ALP-04', name: 'M Aris', division: 'Alprof', isPic: true },
+  { id: 'ALP-05', name: 'Mursito', division: 'Alprof', isPic: true },
+  { id: 'ALP-06', name: 'Jatniko', division: 'Alprof', isPic: true },
+  { id: 'ALP-07', name: 'Mislan', division: 'Alprof', isPic: true },
 
-  // SGA (12 Orang)
-  { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
-  { id: 'SGA-02', name: 'Amas S', division: 'SGA' },
-  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA' },
-  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA' },
-  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA' },
-  { id: 'SGA-06', name: 'Rukman', division: 'SGA' },
-  { id: 'SGA-07', name: 'Subandi', division: 'SGA' },
-  { id: 'SGA-08', name: 'Suganda', division: 'SGA' },
-  { id: 'SGA-09', name: 'Dede', division: 'SGA' },
-  { id: 'SGA-10', name: 'Wafa', division: 'SGA' },
-  { id: 'SGA-11', name: 'Rafi', division: 'SGA' },
-  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
+  // SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Ketut (SGA-01) & Amas S (SGA-02)
+  { id: 'SGA-01', name: 'Ketut', division: 'SGA', isPic: true },
+  { id: 'SGA-02', name: 'Amas S', division: 'SGA', isPic: true },
+  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-06', name: 'Rukman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-07', name: 'Subandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-08', name: 'Suganda', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-09', name: 'Dede', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-10', name: 'Wafa', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-11', name: 'Rafi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
 ]);
+
+/**
+ * Checks if an employee ID is an authorized primary form submitter.
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isAuthorizedFiller(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  if (clean.startsWith('MNJ') || clean.startsWith('ALP')) return true;
+  return clean === 'SGA01' || clean === 'SGA02';
+}
+
+/**
+ * Checks if an employee ID is an authorized SGA PIC.
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isSgaPic(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean === 'SGA01' || clean === 'SGA02';
+}
+
+/**
+ * Checks if an employee ID is an SGA junior member (non-PIC).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isSgaJunior(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean.startsWith('SGA') && clean !== 'SGA01' && clean !== 'SGA02';
+}
+
+/**
+ * Checks if an employee ID is BKO 28 worker (delegated to Alprof).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isBkoSubordinate(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean.startsWith('BKO');
+}
+
+/**
+ * Checks if an employee ID is Pekerja Harian worker (delegated to Management).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isPkhSubordinate(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean.startsWith('PKH');
+}
+
+/**
+ * Checks if an employee ID is a subordinate/worker represented by Management (PKH) or legacy check.
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isManagementSubordinate(empId) {
+  return isPkhSubordinate(empId);
+}
+
+/**
+ * Checks if an employee ID is a subordinate/worker represented by Alprof (BKO 28).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isAlprofSubordinate(empId) {
+  return isBkoSubordinate(empId);
+}
 
 /**
  * Returns active employee registry, preferring customized script property if present,
  * falling back to default EMPLOYEE_REGISTRY.
- * @returns {Array<{ id: string, name: string, division: string }>}
+ * @returns {Array<{ id: string, name: string, division: string, isPic?: boolean }>}
  */
 function getActiveEmployeeRegistry() {
   let list = [];
@@ -236,8 +312,25 @@ function getActiveEmployeeRegistry() {
     }
   }
   if (!list || list.length === 0) {
-    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division }));
+    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division, isPic: !!e.isPic }));
   }
+
+  // Ensure isPic is always properly normalized based on ID rules:
+  list = list.map(e => {
+    const cleanId = String(e.id || '').toUpperCase().replace(/[\s\-_]/g, '');
+    let isPic = true;
+    if (cleanId.startsWith('SGA')) {
+      isPic = (cleanId === 'SGA01' || cleanId === 'SGA02');
+    } else if (cleanId.startsWith('BKO') || cleanId.startsWith('PKH')) {
+      isPic = false;
+    }
+    return {
+      id: e.id,
+      name: e.name,
+      division: e.division,
+      isPic: isPic
+    };
+  });
 
   return JSON.parse(JSON.stringify(list));
 }
@@ -337,7 +430,10 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.jenisKegiatan || '' },
   { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', type: 'text', getValue: (r) => r.kegiatanTambahan || '' },
   { key: 'pengawasan', header: 'Pengawasan', type: 'select', groupable: true, getValue: (r) => r.pengawasan ? (r.pengawasan + (r.detailPengawasan ? ` — ${r.detailPengawasan}` : '')) : '' },
+  { key: 'pengawasanRincian', header: 'Pengawasan_Rincian', type: 'text', getValue: (r) => r.pengawasanRincian || r.detailPengawasan || '' },
   { key: 'administrasi', header: 'Administrasi', type: 'text', getValue: (r) => r.detailAdministrasi || r.administrasi || '' },
+  { key: 'officeJenis', header: 'Office_Jenis', type: 'select', groupable: true, getValue: (r) => r.officeJenis || '' },
+  { key: 'officeRincian', header: 'Office_Rincian', type: 'text', getValue: (r) => r.officeRincian || r.detailAdministrasi || '' },
   { key: 'statusPengelolaan', header: 'Status_Pengelolaan', type: 'select', groupable: true, getValue: (r) => r.statusPengelolaan || '' },
   { key: 'komoditas', header: 'Komoditas', type: 'select', groupable: true, getValue: (r) => r.komoditas || '' },
   { key: 'lokasiBlok', header: 'Lokasi_Blok_Tanam', type: 'text', getValue: (r) => r.lokasiBlok || r.lokasiBlokTanam || '' },
@@ -345,6 +441,7 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'jumlahBenih', header: 'Jumlah_Benih', type: 'number', summable: true, getValue: (r) => r.jumlahBenih || '' },
   { key: 'tglTanam', header: 'Tgl_Tanam', type: 'date', getValue: (r) => r.tglTanam || '' },
   { key: 'estimasiPanenHst', header: 'Estimasi_Panen_HST', type: 'number', summable: true, getValue: (r) => r.estimasiPanenHst || r.tglPerkiraanPanen || '' },
+  { key: 'populasiAgro', header: 'Populasi_Agro', type: 'number', summable: true, getValue: (r) => r.populasiAgro || 0 },
   { key: 'lokasiBlokPanen', header: 'Lokasi_Blok_Panen', type: 'text', getValue: (r) => r.lokasiBlokPanen || '' },
   { key: 'luasLahanPanenM2', header: 'Luas_Lahan_Panen_M2', type: 'number', summable: true, getValue: (r) => r.luasLahanPanenM2 || r.luasLahanPanen || '' },
   { key: 'tglPanen', header: 'Tgl_Panen', type: 'date', getValue: (r) => r.tglPanen || '' },
@@ -354,9 +451,30 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'jumlahPenjualanUnit', header: 'Jumlah_Penjualan_Unit', type: 'number', summable: true, getValue: (r) => r.jumlahPenjualanUnit || '' },
   { key: 'hargaSatuanRp', header: 'Harga_Satuan_Rp', type: 'number', summable: true, getValue: (r) => r.hargaSatuanRp || r.hargaJual || '' },
   { key: 'totalHargaRp', header: 'Total_Harga_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaRp || r.nilaiPenjualanRp || '' },
+  { key: 'pembeliNama', header: 'Pembeli_Nama', type: 'text', getValue: (r) => r.pembeliNama || '' },
+  { key: 'pembeliAlamat', header: 'Pembeli_Alamat', type: 'text', getValue: (r) => r.pembeliAlamat || '' },
+  { key: 'pembeliTelp', header: 'Pembeli_NoTelp', type: 'text', getValue: (r) => r.pembeliTelp || '' },
+  { key: 'jenisTernak', header: 'Jenis_Ternak', type: 'select', groupable: true, getValue: (r) => r.jenisTernak || '' },
+  { key: 'ternakMasuk', header: 'Ternak_Masuk', type: 'select', groupable: true, getValue: (r) => r.ternakMasuk ? `${r.ternakMasuk} (${r.ternakMasukQty || 0} ekor)` : '' },
+  { key: 'ternakMasukJenis', header: 'Ternak_Masuk_Jenis', type: 'select', getValue: (r) => r.ternakMasuk || r.ternakMasukJenis || '' },
+  { key: 'ternakMasukQty', header: 'Ternak_Masuk_Qty', type: 'number', summable: true, getValue: (r) => r.ternakMasukQty || 0 },
+  { key: 'ternakKeluar', header: 'Ternak_Keluar', type: 'select', groupable: true, getValue: (r) => r.ternakKeluar ? `${r.ternakKeluar} (${r.ternakKeluarQty || 0} ekor)` : '' },
+  { key: 'ternakKeluarJenis', header: 'Ternak_Keluar_Jenis', type: 'select', getValue: (r) => r.ternakKeluar || r.ternakKeluarJenis || '' },
+  { key: 'ternakKeluarQty', header: 'Ternak_Keluar_Qty', type: 'number', summable: true, getValue: (r) => r.ternakKeluarQty || 0 },
+  { key: 'populasiTernak', header: 'Populasi_Ternak', type: 'number', summable: true, getValue: (r) => r.populasiTernak || 0 },
+  { key: 'pakanMasukKg', header: 'Pakan_Masuk_Kg', type: 'number', summable: true, getValue: (r) => r.pakanMasukKg || 0 },
+  { key: 'pakanKeluarKg', header: 'Pakan_Keluar_Kg', type: 'number', summable: true, getValue: (r) => r.pakanKeluarKg || 0 },
+  { key: 'jenisKomoditasTernak', header: 'Jenis_Komoditas_Ternak', type: 'select', groupable: true, getValue: (r) => r.jenisKomoditasTernak || '' },
+  { key: 'jumlahPenjualanTernak', header: 'Jumlah_Penjualan_Ternak', type: 'number', summable: true, getValue: (r) => r.jumlahPenjualanTernak || 0 },
+  { key: 'hargaSatuanTernakRp', header: 'Harga_Satuan_Ternak_Rp', type: 'number', summable: true, getValue: (r) => r.hargaSatuanTernakRp || 0 },
+  { key: 'totalHargaTernakRp', header: 'Total_Harga_Ternak_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaTernakRp || 0 },
+  { key: 'pembeliTernakNama', header: 'Pembeli_Ternak_Nama', type: 'text', getValue: (r) => r.pembeliTernakNama || r.pembeliNama || '' },
+  { key: 'pembeliTernakAlamat', header: 'Pembeli_Ternak_Alamat', type: 'text', getValue: (r) => r.pembeliTernakAlamat || r.pembeliAlamat || '' },
+  { key: 'pembeliTernakTelp', header: 'Pembeli_Ternak_NoTelp', type: 'text', getValue: (r) => r.pembeliTernakTelp || r.pembeliTelp || '' },
   { key: 'jumlahUnitPenggunaan', header: 'Jumlah_Unit_Penggunaan', type: 'number', summable: true, getValue: (r) => r.jumlahUnitPenggunaan || '' },
   { key: 'tujuanPenggunaan', header: 'Tujuan_Penggunaan', type: 'select', groupable: true, getValue: (r) => r.tujuanPenggunaan || '' },
   { key: 'capaianKegiatan', header: 'Capaian_Kegiatan', type: 'text', getValue: (r) => r.capaianKegiatan || '' },
+  { key: 'anggotaTerlapor', header: 'Anggota_Terlapor', type: 'text', getValue: (r) => r.anggotaTerlaporText || (Array.isArray(r.anggotaTerlapor) ? r.anggotaTerlapor.map(a => `${a.name || a.id} (${a.id}): ${a.deskripsi || '-'}`).join('; ') : (r.anggotaTerlapor || '')) },
   { key: 'kendala', header: 'Kendala', type: 'text', getValue: (r) => r.kendala || '' },
   { key: 'upaya', header: 'Upaya', type: 'text', getValue: (r) => r.upaya || '' },
   { key: 'fotoUrl', header: 'Foto_URL', type: 'url', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl || (Array.isArray(r.photos) && r.photos[0])) },
@@ -391,6 +509,22 @@ function OperationalReport(data) {
     }
   }
 
+  let anggotaTerlapor = [];
+  if (Array.isArray(data.anggotaTerlapor)) {
+    anggotaTerlapor = data.anggotaTerlapor;
+  } else if (typeof data.anggotaTerlapor === 'string' && data.anggotaTerlapor.trim()) {
+    try {
+      const parsed = JSON.parse(data.anggotaTerlapor);
+      if (Array.isArray(parsed)) anggotaTerlapor = parsed;
+    } catch(e) {
+      anggotaTerlapor = data.anggotaTerlapor;
+    }
+  }
+
+  const anggotaTerlaporText = Array.isArray(anggotaTerlapor)
+    ? anggotaTerlapor.map(a => `${a.name || a.id} (${a.id}): ${a.deskripsi || '-'}`).join('; ')
+    : String(anggotaTerlapor || data.anggotaTerlaporText || '');
+
   return {
     reportId: data.reportId || '',
     idKaryawan: idKaryawan,
@@ -404,9 +538,12 @@ function OperationalReport(data) {
     jenisKegiatan: data.jenisKegiatan || '',
     kegiatanTambahan: Array.isArray(data.kegiatanTambahan) ? data.kegiatanTambahan.join(', ') : (data.kegiatanTambahan || ''),
     pengawasan: data.pengawasan || '',
-    detailPengawasan: data.detailPengawasan || '',
-    administrasi: data.administrasi || data.detailAdministrasi || '',
-    detailAdministrasi: data.detailAdministrasi || data.administrasi || '',
+    detailPengawasan: data.detailPengawasan || data.pengawasanRincian || '',
+    pengawasanRincian: data.pengawasanRincian || data.detailPengawasan || '',
+    administrasi: data.administrasi || data.detailAdministrasi || data.officeRincian || '',
+    detailAdministrasi: data.detailAdministrasi || data.administrasi || data.officeRincian || '',
+    officeJenis: data.officeJenis || '',
+    officeRincian: data.officeRincian || data.detailAdministrasi || '',
     statusPengelolaan: data.statusPengelolaan || '',
     statusPengelolaanPanen: data.statusPengelolaanPanen || '',
     komoditas: (() => {
@@ -425,6 +562,7 @@ function OperationalReport(data) {
     jumlahBenih: parseFloat(data.jumlahBenih) || 0,
     tglTanam: data.tglTanam || '',
     estimasiPanenHst: parseFloat(data.estimasiPanenHst) || 0,
+    populasiAgro: parseFloat(data.populasiAgro) || parseFloat(data.populasi) || 0,
     tglPanen: data.tglPanen || '',
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,
     tglPenjualan: data.tglPenjualan || '',
@@ -434,9 +572,31 @@ function OperationalReport(data) {
     tujuanDistribusi: Array.isArray(data.tujuanDistribusi) ? data.tujuanDistribusi.join(', ') : (data.tujuanDistribusi || ''),
     hargaSatuanRp: parseFloat(data.hargaSatuanRp) || 0,
     totalHargaRp: parseFloat(data.totalHargaRp) || 0,
+    pembeliNama: data.pembeliNama || '',
+    pembeliAlamat: data.pembeliAlamat || '',
+    pembeliTelp: data.pembeliTelp || '',
+    jenisTernak: data.jenisTernak || '',
+    ternakMasuk: data.ternakMasuk || '',
+    ternakMasukJenis: data.ternakMasukJenis || data.ternakMasuk || '',
+    ternakMasukQty: parseFloat(data.ternakMasukQty) || 0,
+    ternakKeluar: data.ternakKeluar || '',
+    ternakKeluarJenis: data.ternakKeluarJenis || data.ternakKeluar || '',
+    ternakKeluarQty: parseFloat(data.ternakKeluarQty) || 0,
+    populasiTernak: parseFloat(data.populasiTernak) || 0,
+    pakanMasukKg: parseFloat(data.pakanMasukKg) || 0,
+    pakanKeluarKg: parseFloat(data.pakanKeluarKg) || 0,
+    jenisKomoditasTernak: data.jenisKomoditasTernak || '',
+    jumlahPenjualanTernak: parseFloat(data.jumlahPenjualanTernak) || 0,
+    hargaSatuanTernakRp: parseFloat(data.hargaSatuanTernakRp) || 0,
+    totalHargaTernakRp: parseFloat(data.totalHargaTernakRp) || 0,
+    pembeliTernakNama: data.pembeliTernakNama || data.pembeliNama || '',
+    pembeliTernakAlamat: data.pembeliTernakAlamat || data.pembeliAlamat || '',
+    pembeliTernakTelp: data.pembeliTernakTelp || data.pembeliTelp || '',
     jumlahUnitPenggunaan: parseFloat(data.jumlahUnitPenggunaan) || 0,
     tujuanPenggunaan: Array.isArray(data.tujuanPenggunaan) ? data.tujuanPenggunaan.join(', ') : (data.tujuanPenggunaan || ''),
     capaianKegiatan: data.capaianKegiatan || '',
+    anggotaTerlapor: anggotaTerlapor,
+    anggotaTerlaporText: anggotaTerlaporText,
     kendala: normalizeKendalaText(data.kendala),
     upaya: normalizeKendalaText(data.kendala) ? (data.upaya || '') : '',
     fotoUrl: resolvedPhotoUrl,
@@ -461,7 +621,7 @@ function formatCustomFieldHeader(label) {
 
 /**
  * Returns the effective header list for operational reports:
- * 34 standard headers + any dynamic custom field headers.
+ * standard headers + any dynamic custom field headers.
  * @param {Array<Object>} customFields 
  * @returns {Array<string>}
  */
@@ -486,6 +646,22 @@ function QueueItem(data) {
     ? data.photos.map(p => extractStringUrl(p)).filter(Boolean)
     : [p1, p2, p3].filter(Boolean);
 
+  let anggotaTerlapor = [];
+  if (Array.isArray(data.anggotaTerlapor)) {
+    anggotaTerlapor = data.anggotaTerlapor;
+  } else if (typeof data.anggotaTerlapor === 'string' && data.anggotaTerlapor.trim()) {
+    try {
+      const parsed = JSON.parse(data.anggotaTerlapor);
+      if (Array.isArray(parsed)) anggotaTerlapor = parsed;
+    } catch(e) {
+      anggotaTerlapor = data.anggotaTerlapor;
+    }
+  }
+
+  const anggotaTerlaporText = Array.isArray(anggotaTerlapor)
+    ? anggotaTerlapor.map(a => `${a.name || a.id} (${a.id}): ${a.deskripsi || '-'}`).join('; ')
+    : String(anggotaTerlapor || data.anggotaTerlaporText || '');
+
   return {
     source: data.source || 'Laporan Operasional',
     reportId: data.reportId || '',
@@ -509,6 +685,8 @@ function QueueItem(data) {
     nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
     kendala: normKendala,
     upaya: normKendala ? (data.upaya || '') : '',
+    anggotaTerlapor: anggotaTerlapor,
+    anggotaTerlaporText: anggotaTerlaporText,
     fields: Array.isArray(data.fields) ? data.fields : [],
     raw: data.raw || null
   };

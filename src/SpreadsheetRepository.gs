@@ -674,6 +674,7 @@ const SpreadsheetRepository = {
             let rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
             let kendalaVal = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
             let upayaVal = kendalaVal ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
+            let anggotaTerlaporVal = this.getCellValue_(row, headerMap, 'Anggota_Terlapor') || this.getCellValue_(row, headerMap, 'Anggota Terlapor') || this.getCellValue_(row, headerMap, 'Tim') || '';
             let ringkasan = jenis || `Laporan ${sheetName}`;
 
             // Multi-criteria robust deduplication across synced/response sheets
@@ -770,6 +771,7 @@ const SpreadsheetRepository = {
               nilaiPenjualanRp: nilaiPenjualan,
               kendala: kendalaVal,
               upaya: upayaVal,
+              anggotaTerlaporText: anggotaTerlaporVal,
               fields: fields,
               raw: safeRaw
             }));

@@ -1213,7 +1213,7 @@
         'report_id', 'reportid', 'kode_kegiatan', 'kodekegiatan', 'timestamp', 'waktu_submit',
         'severity', 'reviewed', 'status_verifikasi', 'status verifikasi', 'status_peninjauan',
         'foto_url', 'foto_url_2', 'foto_url_3', 'foto_lampiran', 'photourl', 'photos',
-        'id_karyawan', 'idkaryawan', 'emp_id', 'empid'
+        'id_karyawan', 'idkaryawan', 'emp_id', 'empid', 'anggota_terlapor', 'anggotaterlapor'
       ];
       internalKeys.forEach(k => {
         fields.forEach(f => {
@@ -1222,6 +1222,45 @@
           }
         });
       });
+
+      // Anggota Terlapor
+      const rawAnggota = getFieldValue(['anggotaterlapor', 'anggota_terlapor', 'anggotatim'], item.anggotaTerlapor);
+      let anggotaList = [];
+      if (Array.isArray(rawAnggota)) {
+        anggotaList = rawAnggota;
+      } else if (typeof rawAnggota === 'string' && rawAnggota.trim().startsWith('[')) {
+        try {
+          anggotaList = JSON.parse(rawAnggota);
+        } catch (e) {
+          anggotaList = [];
+        }
+      }
+
+      let anggotaSectionHtml = '';
+      if (anggotaList && anggotaList.length > 0) {
+        anggotaSectionHtml = `
+          <div style="grid-column: 1 / -1; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Anggota Tim yang Dilaporkan (${anggotaList.length} Orang)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+              ${anggotaList.map((m, idx) => `
+                <div style="font-size: 0.8rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 5px; padding: 0.4rem 0.6rem;">
+                  <strong style="color: #1e293b;">${idx + 1}. ${escapeHtml(m.name || m.id)} (${escapeHtml(m.id)}):</strong> <span style="color: #475569;">${escapeHtml(m.deskripsi || '-')}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (typeof rawAnggota === 'string' && rawAnggota.trim() && rawAnggota !== '-') {
+        anggotaSectionHtml = `
+          <div style="grid-column: 1 / -1; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">Anggota Tim yang Dilaporkan:</div>
+            <div style="font-size: 0.8rem; color: #475569;">${escapeHtml(rawAnggota)}</div>
+          </div>
+        `;
+      }
 
       // Find unconsumed custom questions added dynamically by admin
       const unconsumedCustomFields = fields.filter(f => !consumedKeys.has(f.label) && f.value !== undefined && f.value !== null && String(f.value).trim() !== '' && String(f.value).trim() !== '-');
@@ -1255,6 +1294,7 @@
               <span class="inspector-data-label">Agenda Kegiatan Hari Ini</span>
               <span class="inspector-data-value" style="font-weight: 600; color: var(--primary);">${escapeHtml(jenisKegiatan || '-')}</span>
             </div>
+            ${anggotaSectionHtml}
           </div>
         </div>
       `;

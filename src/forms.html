@@ -345,15 +345,15 @@
             <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.35rem; display: block;">Identitas diverifikasi langsung dari database karyawan dan kontak pelapor diisi aktif.</small>
           </div>
 
-          <!-- Section 1.2: Lokasi Sektor Chips -->
+          <!-- Section 1.2: Lokasi Chips -->
           <div style="margin-bottom: 1.25rem;">
-            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.2 Pilihan Lokasi Kegiatan (Sektor Lapangan)</label>
-            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Daftar lokasi sektor yang dapat dipilih oleh staf (multi-select):</p>
+            <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">1.2 Pilihan Lokasi Kegiatan</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Daftar lokasi penugasan kegiatan yang dapat dipilih oleh staf:</p>
             <div class="chip-container" id="lokasiChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newLokasiInput" class="form-input" placeholder="Nama sektor baru (contoh: Sektor 5, Ciomas Timur...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLokasiOption();}" style="height: 34px; font-size: 0.825rem;">
+              <input type="text" id="newLokasiInput" class="form-input" placeholder="Nama lokasi baru (contoh: Jonggol, Cikalong...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLokasiOption();}" style="height: 34px; font-size: 0.825rem;">
               <button type="button" class="btn btn-secondary" onclick="addLokasiOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Sektor</span>
+                <span>+ Tambah Lokasi</span>
               </button>
             </div>
           </div>
@@ -720,7 +720,7 @@
       </div>
       <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Reset ke Setelan Awal Pabrik?</h3>
       <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
-        Tindakan ini akan mengembalikan seluruh skema formulir ke konfigurasi standar awal (5 Sektor Lapangan, 9 Master Komoditas, 3 Tindakan Pengawasan, dan menghapus seluruh pertanyaan tambahan).
+        Tindakan ini akan mengembalikan seluruh skema formulir ke konfigurasi standar awal (4 Lokasi Kegiatan, 9 Master Komoditas, 3 Tindakan Pengawasan, dan menghapus seluruh pertanyaan tambahan).
       </p>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
@@ -736,7 +736,7 @@
     const STEP_SECTIONS_CONFIG = {
       1: [
         { code: '1.1', label: 'Setelah 1.1 Verifikasi Identitas & Nomor Telepon' },
-        { code: '1.2', label: 'Setelah 1.2 Pilihan Lokasi Sektor' },
+        { code: '1.2', label: 'Setelah 1.2 Pilihan Lokasi Kegiatan' },
         { code: '1.3', label: 'Setelah 1.3 Pilihan Kegiatan Lapangan' },
         { code: '1.4', label: 'Setelah 1.4 Pengawasan & Administrasi' },
         { code: '1.end', label: 'Di Akhir Langkah 1 (Default)' }
@@ -774,7 +774,7 @@
       version: '1.0',
       title: 'Formulir Laporan Operasional',
       subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
-      lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
+      lokasiOptions: ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'],
       komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
       pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
       statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],
@@ -1329,7 +1329,7 @@
             version: '1.0',
             title: 'Formulir Laporan Operasional',
             subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
-            lokasiOptions: ['Sektor 1 + Ciomas', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu'],
+            lokasiOptions: ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'],
             komoditasOptions: ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
             pengawasanCategories: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
             statusPengelolaanOptions: ['Swakelola', 'Petani binaan', 'Kemitraan'],

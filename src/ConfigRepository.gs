@@ -244,11 +244,10 @@ const ConfigRepository = {
       title: 'Formulir Laporan Operasional',
       subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
       lokasiOptions: [
-        'Sektor 1 + Ciomas',
-        'Sektor 2',
-        'Sektor 3',
-        'Sektor 4',
-        'Gunung Batu'
+        'Jonggol',
+        'Cikalong',
+        'Quilling',
+        'Jakarta'
       ],
       kegiatanList: [
         { key: 'tanam', title: 'Tanam atau tebar', desc: 'Penanaman bibit atau tebar benih', enabled: true },
@@ -304,6 +303,13 @@ const ConfigRepository = {
               .filter(k => k !== 'Penyemaian')
               .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
             merged.komoditasOptions = Array.from(new Set(merged.komoditasOptions));
+          }
+          // Auto-migrate legacy Sektor locations to 'Jonggol', 'Cikalong', 'Quilling', 'Jakarta'
+          if (Array.isArray(merged.lokasiOptions)) {
+            const hasLegacySektor = merged.lokasiOptions.some(loc => loc.startsWith('Sektor') || loc === 'Gunung Batu');
+            if (hasLegacySektor) {
+              merged.lokasiOptions = ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'];
+            }
           }
           return merged;
         }
