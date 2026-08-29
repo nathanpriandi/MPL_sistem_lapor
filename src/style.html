@@ -2576,12 +2576,12 @@
     font-size: 0.8125rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
   }
 
   .inspector-kv-table td {
-    padding: 0.55rem 0.85rem;
+    padding: 0.6rem 0.85rem;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: top;
   }
@@ -2591,7 +2591,7 @@
   }
 
   .inspector-kv-table td.kv-key {
-    width: 35%;
+    width: 38%;
     font-weight: 600;
     color: #64748b;
     background: #f8fafc;
@@ -2608,7 +2608,7 @@
   .inspector-photo-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 0.75rem;
     display: flex;
     flex-direction: column;
@@ -2619,8 +2619,8 @@
   .inspector-photo-preview {
     max-width: 100%;
     max-height: 300px;
-    border-radius: 4px;
-    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
     object-fit: contain;
     background: #000000;
   }
@@ -2629,13 +2629,48 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 0.65rem;
+    padding-top: 0.75rem;
     border-top: 1px solid #f1f5f9;
     font-size: 0.725rem;
     color: #94a3b8;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+
+  /* WhatsApp Direct Contact Button */
+  .btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background-color: #25D366;
+    color: #ffffff !important;
+    font-size: 0.725rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.15s ease-in-out;
+    border: 1px solid #22c55e;
+    line-height: 1.2;
+    box-shadow: 0 1px 2px rgba(37, 211, 102, 0.2);
+    cursor: pointer;
+  }
+
+  .btn-whatsapp:hover {
+    background-color: #128C7E;
+    border-color: #0f766e;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(18, 140, 126, 0.3);
+  }
+
+  .btn-whatsapp:active {
+    transform: translateY(0);
+  }
+
+  .btn-whatsapp .svg-icon {
+    flex-shrink: 0;
   }
 
   .obstacle-header {
@@ -2676,76 +2711,6 @@
     color: #334155;
     white-space: pre-wrap;
     word-break: break-word;
-  }
-
-  /* Clean Key-Value Table */
-  .inspector-kv-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8125rem;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .inspector-kv-table td {
-    padding: 0.6rem 0.85rem;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: top;
-  }
-
-  .inspector-kv-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .inspector-kv-table td.kv-key {
-    width: 38%;
-    font-weight: 600;
-    color: #64748b;
-    background: #f8fafc;
-    border-right: 1px solid #f1f5f9;
-  }
-
-  .inspector-kv-table td.kv-val {
-    color: #0f172a;
-    font-weight: 500;
-    word-break: break-word;
-  }
-
-  /* Photo Attachment Container */
-  .inspector-photo-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-    align-items: center;
-  }
-
-  .inspector-photo-preview {
-    max-width: 100%;
-    max-height: 320px;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    object-fit: contain;
-    background: #000000;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .inspector-tech-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 0.75rem;
-    border-top: 1px solid #f1f5f9;
-    font-size: 0.725rem;
-    color: #94a3b8;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 
   .inspector-dynamic-table td {

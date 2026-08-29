@@ -1177,7 +1177,7 @@ const AnalyticsService = {
 
     // 3. Build Master clean list of crops
     const defaultCrops = [
-      'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon',
+      'Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon',
       'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'
     ];
     const presentCrops = new Set(defaultCrops);
@@ -1539,16 +1539,28 @@ const AnalyticsService = {
     // 8. Risk & Field Obstacle Intelligence (Requirement 5)
     const riskAnalytics = this.getRiskAndObstacleAnalytics(filteredRows);
 
-    // 9. Inactive Sectors Early Warning (GM Requirement: Q4)
-    const MASTER_SECTORS = ['Sektor 1 + Ciomas', 'Sektor 2', 'Gunung Batu', 'Sektor 3', 'Sektor 4', 'MPL Jonggol'];
+    // 9. Inactive Sectors Early Warning (Config-Driven & Canonical Locations)
+    let MASTER_SECTORS = ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'];
+    if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getLokasiOptions) {
+      try {
+        const configuredLocs = ConfigRepository.getLokasiOptions();
+        if (Array.isArray(configuredLocs) && configuredLocs.length > 0) {
+          MASTER_SECTORS = configuredLocs;
+        }
+      } catch (e) {
+        Logger.log('AnalyticsService: could not fetch getLokasiOptions: ' + e);
+      }
+    }
+
     const sectorLastReportMap = {};
     (allRows || []).forEach(r => {
       const sec = String(r.lokasiKegiatan || '').trim();
       if (!sec) return;
       const rTime = r.timestamp_raw instanceof Date ? r.timestamp_raw : (r.timestamp ? new Date(r.timestamp) : null);
       if (rTime && !isNaN(rTime.getTime())) {
-        if (!sectorLastReportMap[sec] || rTime > sectorLastReportMap[sec]) {
-          sectorLastReportMap[sec] = rTime;
+        const key = sec.toLowerCase();
+        if (!sectorLastReportMap[key] || rTime > sectorLastReportMap[key]) {
+          sectorLastReportMap[key] = rTime;
         }
       }
     });
@@ -1556,7 +1568,13 @@ const AnalyticsService = {
     const inactiveSectors = [];
     const nowTime = now.getTime();
     MASTER_SECTORS.forEach(secName => {
-      const lastDate = sectorLastReportMap[secName];
+      const lowerSec = secName.toLowerCase();
+      let lastDate = sectorLastReportMap[lowerSec];
+      if (!lastDate) {
+        const matchingKey = Object.keys(sectorLastReportMap).find(k => k === lowerSec || k.includes(lowerSec) || lowerSec.includes(k));
+        if (matchingKey) lastDate = sectorLastReportMap[matchingKey];
+      }
+
       if (!lastDate) {
         inactiveSectors.push({ sector: secName, daysInactive: 99, lastReportDate: 'Belum Ada Laporan' });
       } else {

@@ -327,6 +327,42 @@ function formatDateNow() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
+function normalizePhoneNumber(val) {
+  if (val === null || val === undefined) return '';
+  let s = String(val).trim();
+  if (!s || s === '-' || s === 'null' || s === 'undefined') return '';
+
+  if (/^[0-9.]+[eE]\+?[0-9]+$/.test(s)) {
+    try {
+      const num = Number(s);
+      if (!isNaN(num)) {
+        s = num.toLocaleString('fullwide', { useGrouping: false });
+      }
+    } catch (e) {}
+  }
+
+  const digits = s.replace(/\D/g, '');
+  if (!digits) return s;
+
+  if (digits.startsWith('628') && digits.length >= 10) {
+    return '0' + digits.substring(2);
+  }
+
+  if (digits.startsWith('8') && digits.length >= 9 && digits.length <= 13) {
+    return '0' + digits;
+  }
+
+  if (digits.startsWith('0')) {
+    return digits;
+  }
+
+  if (s.startsWith('+')) {
+    return '+' + digits;
+  }
+
+  return digits;
+}
+
 // On DOMContentLoaded: populate the identity strip and show local preview notice.
 // Nav link visibility is now handled entirely server-side via template conditionals
 // (<?= if (userRole === ...) { ?>) — no client-side hiding or restoration needed.

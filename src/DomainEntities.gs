@@ -392,21 +392,23 @@ function resolveSeparatedCommodities(rawKomoditas, rawKomoditasPanen, jenisKegia
     panen = panenStr.replace(/\s*\(Panen\)/i, '').trim();
   }
 
-  // 3. If str is a single plain crop name without markers
+  // 3. Resolve tanam if panen was populated but tanam is still empty and distinct str exists
+  if (!tanam && str && str !== panen && !matchPanen) {
+    tanam = str.replace(/\s*\(Tanam\)/i, '').trim();
+  }
+
+  // 4. If str is a single plain crop name without markers and no separate panenStr
   if (!tanam && !panen && str) {
-    if (jk.includes('tanam') && !jk.includes('panen')) {
+    if ((jk.includes('tanam') || jk.includes('tebar')) && !jk.includes('panen')) {
       tanam = str;
-    } else if (jk.includes('panen') && !jk.includes('tanam')) {
+      panen = '';
+    } else if (jk.includes('panen') && !jk.includes('tanam') && !jk.includes('tebar')) {
       panen = str;
+      tanam = '';
     } else {
-      // If both activities or unmarked, assign to both
       tanam = str;
-      panen = panenStr || str;
+      panen = str;
     }
-  } else if (!tanam && str && jk.includes('tanam')) {
-    tanam = str.replace(/\s*\(Tanam\)/i, '').replace(/\s*\(Panen\)/i, '').trim();
-  } else if (!panen && str && jk.includes('panen')) {
-    panen = str.replace(/\s*\(Tanam\)/i, '').replace(/\s*\(Panen\)/i, '').trim();
   }
 
   return {
@@ -425,7 +427,7 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'timestamp', header: 'Timestamp', type: 'date', getValue: (r) => r.timestamp || '' },
   { key: 'namaPic', header: 'Nama_PIC', type: 'text', getValue: (r) => r.namaPic || '' },
   { key: 'bidangDivisi', header: 'Bidang_Divisi', type: 'select', groupable: true, getValue: (r) => r.bidangDivisi || '' },
-  { key: 'nomorTelepon', header: 'Nomor_Telepon', type: 'text', getValue: (r) => r.nomorTelepon || r.noTelepon || r.telepon || '' },
+  { key: 'nomorTelepon', header: 'Nomor_Telepon', type: 'text', getValue: (r) => typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(r.nomorTelepon || r.noTelepon || r.telepon || '') : String(r.nomorTelepon || r.noTelepon || r.telepon || '') },
   { key: 'lokasiKegiatan', header: 'Lokasi_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.lokasiKegiatan || '' },
   { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.jenisKegiatan || '' },
   { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', type: 'text', getValue: (r) => r.kegiatanTambahan || '' },
@@ -453,14 +455,62 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'totalHargaRp', header: 'Total_Harga_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaRp || r.nilaiPenjualanRp || '' },
   { key: 'pembeliNama', header: 'Pembeli_Nama', type: 'text', getValue: (r) => r.pembeliNama || '' },
   { key: 'pembeliAlamat', header: 'Pembeli_Alamat', type: 'text', getValue: (r) => r.pembeliAlamat || '' },
-  { key: 'pembeliTelp', header: 'Pembeli_NoTelp', type: 'text', getValue: (r) => r.pembeliTelp || '' },
+  { key: 'pembeliTelp', header: 'Pembeli_NoTelp', type: 'text', getValue: (r) => typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(r.pembeliTelp || '') : String(r.pembeliTelp || '') },
   { key: 'jenisTernak', header: 'Jenis_Ternak', type: 'select', groupable: true, getValue: (r) => r.jenisTernak || '' },
-  { key: 'ternakMasuk', header: 'Ternak_Masuk', type: 'select', groupable: true, getValue: (r) => r.ternakMasuk ? `${r.ternakMasuk} (${r.ternakMasukQty || 0} ekor)` : '' },
-  { key: 'ternakMasukJenis', header: 'Ternak_Masuk_Jenis', type: 'select', getValue: (r) => r.ternakMasuk || r.ternakMasukJenis || '' },
-  { key: 'ternakMasukQty', header: 'Ternak_Masuk_Qty', type: 'number', summable: true, getValue: (r) => r.ternakMasukQty || 0 },
-  { key: 'ternakKeluar', header: 'Ternak_Keluar', type: 'select', groupable: true, getValue: (r) => r.ternakKeluar ? `${r.ternakKeluar} (${r.ternakKeluarQty || 0} ekor)` : '' },
-  { key: 'ternakKeluarJenis', header: 'Ternak_Keluar_Jenis', type: 'select', getValue: (r) => r.ternakKeluar || r.ternakKeluarJenis || '' },
-  { key: 'ternakKeluarQty', header: 'Ternak_Keluar_Qty', type: 'number', summable: true, getValue: (r) => r.ternakKeluarQty || 0 },
+  { 
+    key: 'ternakMasuk', 
+    header: 'Ternak_Masuk', 
+    type: 'select', 
+    groupable: true, 
+    getValue: (r) => {
+      const qty = parseInt(r.ternakMasukQty, 10) || 0;
+      let txt = String(r.ternakMasuk || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      const isNone = !txt || txt === '-' || txt.toLowerCase().startsWith('tidak ada') || txt.toLowerCase() === 'none' || txt.toLowerCase() === 'nihil';
+      if (qty <= 0 && isNone) return 'Tidak Ada';
+      if (qty > 0 && isNone) return `${qty} ekor`;
+      if (qty > 0) return `${txt} (${qty} ekor)`;
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { 
+    key: 'ternakMasukJenis', 
+    header: 'Ternak_Masuk_Jenis', 
+    type: 'select', 
+    getValue: (r) => {
+      let txt = String(r.ternakMasukJenis || r.ternakMasuk || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { key: 'ternakMasukQty', header: 'Ternak_Masuk_Qty', type: 'number', summable: true, getValue: (r) => parseInt(r.ternakMasukQty, 10) || 0 },
+  { 
+    key: 'ternakKeluar', 
+    header: 'Ternak_Keluar', 
+    type: 'select', 
+    groupable: true, 
+    getValue: (r) => {
+      const qty = parseInt(r.ternakKeluarQty, 10) || 0;
+      let txt = String(r.ternakKeluar || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      const isNone = !txt || txt === '-' || txt.toLowerCase().startsWith('tidak ada') || txt.toLowerCase() === 'none' || txt.toLowerCase() === 'nihil';
+      if (qty <= 0 && isNone) return 'Tidak Ada';
+      if (qty > 0 && isNone) return `${qty} ekor`;
+      if (qty > 0) return `${txt} (${qty} ekor)`;
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { 
+    key: 'ternakKeluarJenis', 
+    header: 'Ternak_Keluar_Jenis', 
+    type: 'select', 
+    getValue: (r) => {
+      let txt = String(r.ternakKeluarJenis || r.ternakKeluar || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { key: 'ternakKeluarQty', header: 'Ternak_Keluar_Qty', type: 'number', summable: true, getValue: (r) => parseInt(r.ternakKeluarQty, 10) || 0 },
   { key: 'populasiTernak', header: 'Populasi_Ternak', type: 'number', summable: true, getValue: (r) => r.populasiTernak || 0 },
   { key: 'pakanMasukKg', header: 'Pakan_Masuk_Kg', type: 'number', summable: true, getValue: (r) => r.pakanMasukKg || 0 },
   { key: 'pakanKeluarKg', header: 'Pakan_Keluar_Kg', type: 'number', summable: true, getValue: (r) => r.pakanKeluarKg || 0 },
@@ -470,7 +520,7 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'totalHargaTernakRp', header: 'Total_Harga_Ternak_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaTernakRp || 0 },
   { key: 'pembeliTernakNama', header: 'Pembeli_Ternak_Nama', type: 'text', getValue: (r) => r.pembeliTernakNama || r.pembeliNama || '' },
   { key: 'pembeliTernakAlamat', header: 'Pembeli_Ternak_Alamat', type: 'text', getValue: (r) => r.pembeliTernakAlamat || r.pembeliAlamat || '' },
-  { key: 'pembeliTernakTelp', header: 'Pembeli_Ternak_NoTelp', type: 'text', getValue: (r) => r.pembeliTernakTelp || r.pembeliTelp || '' },
+  { key: 'pembeliTernakTelp', header: 'Pembeli_Ternak_NoTelp', type: 'text', getValue: (r) => typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(r.pembeliTernakTelp || r.pembeliTelp || '') : String(r.pembeliTernakTelp || r.pembeliTelp || '') },
   { key: 'jumlahUnitPenggunaan', header: 'Jumlah_Unit_Penggunaan', type: 'number', summable: true, getValue: (r) => r.jumlahUnitPenggunaan || '' },
   { key: 'tujuanPenggunaan', header: 'Tujuan_Penggunaan', type: 'select', groupable: true, getValue: (r) => r.tujuanPenggunaan || '' },
   { key: 'capaianKegiatan', header: 'Capaian_Kegiatan', type: 'text', getValue: (r) => r.capaianKegiatan || '' },
@@ -493,7 +543,14 @@ function OperationalReport(data) {
   let bidangDivisi = data.bidangDivisi || data.site || '';
 
   // Auto-resolve from registry if ID or name is provided
-  if (idKaryawan && (!namaPic || !bidangDivisi)) {
+  if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getEmployee) {
+    const emp = ConfigRepository.getEmployee(idKaryawan || namaPic);
+    if (emp) {
+      idKaryawan = emp.id;
+      namaPic = emp.name;
+      bidangDivisi = bidangDivisi || emp.division;
+    }
+  } else if (idKaryawan && (!namaPic || !bidangDivisi)) {
     const emp = lookupEmployee(idKaryawan);
     if (emp) {
       idKaryawan = emp.id;
@@ -533,7 +590,7 @@ function OperationalReport(data) {
     timestamp: data.timestamp || '',
     namaPic: namaPic || idKaryawan || '',
     bidangDivisi: bidangDivisi || '',
-    nomorTelepon: data.nomorTelepon || data.noTelepon || data.telepon || '',
+    nomorTelepon: typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(data.nomorTelepon || data.noTelepon || data.telepon || '') : (data.nomorTelepon || data.noTelepon || data.telepon || ''),
     lokasiKegiatan: data.lokasiKegiatan || '',
     jenisKegiatan: data.jenisKegiatan || '',
     kegiatanTambahan: Array.isArray(data.kegiatanTambahan) ? data.kegiatanTambahan.join(', ') : (data.kegiatanTambahan || ''),
@@ -574,7 +631,7 @@ function OperationalReport(data) {
     totalHargaRp: parseFloat(data.totalHargaRp) || 0,
     pembeliNama: data.pembeliNama || '',
     pembeliAlamat: data.pembeliAlamat || '',
-    pembeliTelp: data.pembeliTelp || '',
+    pembeliTelp: typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(data.pembeliTelp || '') : (data.pembeliTelp || ''),
     jenisTernak: data.jenisTernak || '',
     ternakMasuk: data.ternakMasuk || '',
     ternakMasukJenis: data.ternakMasukJenis || data.ternakMasuk || '',
@@ -591,7 +648,7 @@ function OperationalReport(data) {
     totalHargaTernakRp: parseFloat(data.totalHargaTernakRp) || 0,
     pembeliTernakNama: data.pembeliTernakNama || data.pembeliNama || '',
     pembeliTernakAlamat: data.pembeliTernakAlamat || data.pembeliAlamat || '',
-    pembeliTernakTelp: data.pembeliTernakTelp || data.pembeliTelp || '',
+    pembeliTernakTelp: typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(data.pembeliTernakTelp || data.pembeliTelp || '') : (data.pembeliTernakTelp || data.pembeliTelp || ''),
     jumlahUnitPenggunaan: parseFloat(data.jumlahUnitPenggunaan) || 0,
     tujuanPenggunaan: Array.isArray(data.tujuanPenggunaan) ? data.tujuanPenggunaan.join(', ') : (data.tujuanPenggunaan || ''),
     capaianKegiatan: data.capaianKegiatan || '',

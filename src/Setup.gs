@@ -295,7 +295,7 @@ function setupOperationalForm(ssId) {
 
   form.addMultipleChoiceItem()
     .setTitle('Komoditas')
-    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
+    .setChoiceValues(['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
     .setRequired(true);
 
   form.addTextItem().setTitle('Lokasi / Blok').setHelpText('Contoh: Blok A1').setRequired(true);
@@ -304,8 +304,8 @@ function setupOperationalForm(ssId) {
   form.addDateItem().setTitle('Tanggal Tanam / Tebar').setRequired(true);
   form.addTextItem().setTitle('Estimasi Panen (Hari Setelah Tanam / HST)').setRequired(true);
 
-  // Page 3: Kegiatan Panen & Penjualan
-  form.addPageBreakItem().setTitle('Kegiatan Panen & Penjualan');
+  // Page 3: Kegiatan Panen & Penjualan Agro
+  form.addPageBreakItem().setTitle('Kegiatan Panen & Penjualan Agro');
   form.addMultipleChoiceItem()
     .setTitle('Status Pengelolaan')
     .setChoiceValues(['Swakelola', 'Petani binaan', 'Kemitraan'])
@@ -313,7 +313,7 @@ function setupOperationalForm(ssId) {
 
   form.addMultipleChoiceItem()
     .setTitle('Komoditas')
-    .setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
+    .setChoiceValues(['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'])
     .setRequired(true);
 
   form.addTextItem().setTitle('Lokasi / Blok').setHelpText('Contoh: Blok A1').setRequired(true);
@@ -321,24 +321,46 @@ function setupOperationalForm(ssId) {
   form.addDateItem().setTitle('Tanggal Panen').setRequired(true);
   form.addTextItem().setTitle('Jumlah Panen (kg)').setRequired(true);
   form.addDateItem().setTitle('Tanggal Penjualan').setRequired(true);
-  form.addMultipleChoiceItem()
+  form.addCheckboxItem()
     .setTitle('Tujuan Distribusi')
-    .setChoiceValues(['Penjualan eksternal', 'Penjualan internal', 'Penggunaan']);
+    .setChoiceValues(['Penjualan', 'Penggunaan Internal']);
 
-  // Page 4: Detail Penjualan
-  form.addSectionHeaderItem().setTitle('Detail Penjualan');
+  // Page 4: Detail Penjualan Agro
+  form.addSectionHeaderItem().setTitle('Detail Penjualan Agro');
   form.addTextItem().setTitle('Jumlah Penjualan Unit');
   form.addTextItem().setTitle('Harga Satuan (Rp)');
   form.addTextItem().setTitle('Total Harga');
+  form.addTextItem().setTitle('Nama Pembeli');
+  form.addTextItem().setTitle('No Telepon Pembeli');
+  form.addTextItem().setTitle('Alamat Pembeli');
 
-  // Page 5: Detail Penggunaan
-  form.addSectionHeaderItem().setTitle('Detail Penggunaan');
+  // Page 5: Detail Penggunaan Internal
+  form.addSectionHeaderItem().setTitle('Detail Penggunaan Internal');
   form.addTextItem().setTitle('Jumlah Unit Penggunaan');
   form.addCheckboxItem()
     .setTitle('Tujuan Penggunaan')
     .setChoiceValues(['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih']);
 
-  // Page 6: Kegiatan Pengawasan
+  // Page 6: Kegiatan Peternakan
+  form.addPageBreakItem().setTitle('Kegiatan Peternakan');
+  form.addMultipleChoiceItem()
+    .setTitle('Jenis Ternak')
+    .setChoiceValues(['Sapi', 'Kambing', 'Domba', 'Ayam Broiler', 'Ayam KUB', 'Ayam KUB Petelur']);
+  form.addTextItem().setTitle('Ternak Masuk - Kelahiran (Ekor)').setHelpText('Kosongkan/isi 0 jika tidak ada');
+  form.addTextItem().setTitle('Ternak Masuk - Pembelian (Ekor)').setHelpText('Kosongkan/isi 0 jika tidak ada');
+  form.addTextItem().setTitle('Ternak Keluar - Kematian (Ekor)').setHelpText('Kosongkan/isi 0 jika tidak ada');
+  form.addTextItem().setTitle('Ternak Keluar - Penjualan (Ekor)').setHelpText('Kosongkan/isi 0 jika tidak ada');
+  form.addTextItem().setTitle('Populasi Ternak Saat Ini (Ekor)');
+  form.addTextItem().setTitle('Pakan Masuk (Kg)');
+  form.addTextItem().setTitle('Pakan Keluar (Kg)');
+  form.addMultipleChoiceItem()
+    .setTitle('Jenis Komoditas Ternak')
+    .setChoiceValues(['Daging Sapi', 'Susu Sapi', 'Kambing Hidup', 'Domba Hidup', 'Ayam Hidup', 'Telur Ayam', 'Karkas Ayam', 'Pupuk Kandang / Kohe', 'Lainnya']);
+  form.addTextItem().setTitle('Jumlah Penjualan Ternak');
+  form.addTextItem().setTitle('Harga Satuan Ternak (Rp)');
+  form.addTextItem().setTitle('Total Harga Ternak (Rp)');
+
+  // Page 7: Kegiatan Pengawasan
   form.addPageBreakItem().setTitle('Kegiatan Pengawasan');
   form.addMultipleChoiceItem()
     .setTitle('Tindakan Pengawasan')
@@ -348,7 +370,7 @@ function setupOperationalForm(ssId) {
     .setTitle('Detail Pengawasan')
     .setRequired(true);
 
-  // Page 7: Kendala & Catatan Pelaporan
+  // Page 8: Kendala & Catatan Pelaporan
   form.addPageBreakItem().setTitle('Kendala & Catatan Pelaporan');
   form.addParagraphTextItem().setTitle('Capaian Kegiatan');
   form.addParagraphTextItem().setTitle('Kendala Kegiatan (jika ada)');
@@ -381,7 +403,7 @@ function syncLiveGoogleFormItems() {
     if (title === 'Komoditas') {
       try {
         const mc = item.asMultipleChoiceItem();
-        mc.setChoiceValues(['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala']);
+        mc.setChoiceValues(['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala']);
       } catch (e) {}
     }
     // 2. Update Pengawasan title
