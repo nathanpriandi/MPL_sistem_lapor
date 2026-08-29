@@ -212,6 +212,23 @@ function getCommodityAnalysis(params) {
 }
 
 /**
+ * Returns dynamic distinct options for any filterable field based on active filters.
+ * @param {Object} [params]
+ * @returns {Array<{ value: string, count: number }>}
+ */
+function getAnalyticsFilterOptions(params) {
+  return AnalyticsService.getDynamicFilterOptions(params);
+}
+
+/**
+ * Returns canonical field catalog metadata for analytics builders.
+ * @returns {Array<Object>}
+ */
+function getAnalyticsFieldCatalogRPC() {
+  return getAnalyticsFieldCatalog();
+}
+
+/**
  * Backward compatibility alias for getAnalyticsDashboardData.
  * @param {Object} [options]
  * @returns {Object}

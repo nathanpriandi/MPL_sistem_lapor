@@ -288,9 +288,6 @@
             </div>
           </div>
 
-          <!-- Inactive Sectors Early Warning Banner (Rendered dynamically when applicable) -->
-          <div id="inactiveSectorsContainer" style="display: none; margin-bottom: 1rem;"></div>
-
           <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.25rem;" class="dashboard-staff-kendala-grid">
 
             <!-- Left: Employee Ranking Table -->
@@ -396,17 +393,19 @@
         </div>
 
         <!-- ==========================================
-             SECTION 4: COMMODITY ANALYTICS (TANAM VS PANEN)
-             (Moved here to align with card #3: Hasil Panen)
+             SECTION 4: COMMODITY & OPERATIONAL ANALYTICS WORKSPACE
+             (Dynamic Multi-Filter, Multi-Sort, Time-Series & Breakdown Explorer)
         ========================================== -->
         <div class="card" style="margin-bottom: 1.5rem;" id="commoditySectionCard">
-          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
+          <div class="flex-between-wrap" style="align-items: flex-start; margin-bottom: 1rem; gap: 0.75rem;">
             <div>
               <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
                 <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <span>Dinamika Tren &amp; Breakdown Komoditas</span>
+                <span id="commoditySectionTitle">Dinamika Tren &amp; Breakdown Operasional</span>
               </h2>
-              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Analisis tren waktu tanam vs panen serta perbandingan agregat multi-ukuran dengan cakupan mandiri.</p>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;" id="commoditySectionSubtitle">
+                Analisis tren waktu tanam vs panen serta perbandingan agregat multi-ukuran dengan filter konjungtif mandiri.
+              </p>
             </div>
 
             <!-- Mode Toggle: Tren vs Breakdown -->
@@ -422,49 +421,78 @@
             </div>
           </div>
 
-          <!-- Card-Local Independent Scope & Control Toolbar (Single Clean Row) -->
-          <div class="widget-scope-toolbar" id="commodityToolbar">
-            <div class="widget-scope-controls">
+          <!-- Card-Local Independent Scope & Control Toolbar -->
+          <div class="widget-scope-toolbar" id="commodityToolbar" style="display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 0.85rem;">
+            <div class="widget-scope-controls" style="display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center;">
+              
               <!-- Breakdown Dimension Selector (Shown in Breakdown Mode) -->
-              <div class="widget-control-group" id="comDimensionGroup" style="display: none;">
-                <label for="comDimensionSelect" class="widget-control-label">Dimensi:</label>
-                <select id="comDimensionSelect" class="filter-select" style="min-width: 145px;" onchange="handleComDimensionChange(this.value)">
-                  <option value="komoditas">Komoditas</option>
-                  <option value="jenisKegiatan">Jenis Kegiatan</option>
-                  <option value="lokasiKegiatan">Lokasi / Sektor</option>
-                  <option value="lokasiBlok">Blok Lahan</option>
-                  <option value="namaPic">Karyawan / PIC</option>
+              <div class="widget-control-group" id="comDimensionGroup" style="display: none; align-items: center; gap: 0.35rem;">
+                <label for="comDimensionSelect" class="widget-control-label" style="font-size: 0.775rem; font-weight: 600; color: #475569;">Dimensi:</label>
+                <select id="comDimensionSelect" class="filter-select" style="min-width: 155px; height: 32px; font-size: 0.8rem;" onchange="handleComDimensionChange(this.value)">
+                  <optgroup label="Agro &amp; Lokasi">
+                    <option value="komoditas">Komoditas Agro</option>
+                    <option value="lokasiKegiatan">Lokasi / Sektor</option>
+                    <option value="lokasiBlok">Blok Lahan</option>
+                    <option value="statusPengelolaan">Status Pengelolaan</option>
+                    <option value="tujuanDistribusi">Tujuan Distribusi</option>
+                    <option value="tujuanPenggunaan">Lokasi Penggunaan Internal</option>
+                  </optgroup>
+                  <optgroup label="Peternakan">
+                    <option value="jenisTernak">Jenis Ternak</option>
+                    <option value="jenisKomoditasTernak">Komoditas Ternak</option>
+                    <option value="ternakMasukJenis">Mutasi Ternak Masuk</option>
+                    <option value="ternakKeluarJenis">Mutasi Ternak Keluar</option>
+                  </optgroup>
+                  <optgroup label="Organisasi &amp; Status">
+                    <option value="bidangDivisi">Bidang / Divisi</option>
+                    <option value="namaPic">Karyawan / PIC</option>
+                    <option value="jenisKegiatan">Jenis Kegiatan Utama</option>
+                    <option value="severity">Status Urgensi (Triage)</option>
+                    <option value="reviewed">Status Verifikasi</option>
+                  </optgroup>
                 </select>
               </div>
 
-              <!-- Measure Selector (Separated tanam & panen individual features + derived agronomics) -->
-              <div class="widget-control-group">
-                <label for="comMeasureSelect" class="widget-control-label">Ukuran:</label>
-                <select id="comMeasureSelect" class="filter-select" style="min-width: 165px;" onchange="handleComMeasureChange(this.value)">
-                  <option value="jumlahBenih">Populasi Benih</option>
-                  <option value="jumlahPanen">Hasil Panen (Kg)</option>
-                  <option value="luasLahanM2">Luas Lahan (m&sup2;)</option>
-                  <option value="totalHargaRp">Nilai Penjualan (Rp)</option>
-                  <option value="jumlahPenjualanUnit">Volume Penjualan (Unit)</option>
-                  <option value="count">Frekuensi Laporan</option>
-                  <option value="produktivitasPanen">Produktivitas Panen (Kg/m&sup2;)</option>
-                  <option value="kerapatanTanam">Kerapatan Tanam (Benih/m&sup2;)</option>
-                  <option value="hargaRataRata">Harga Rata-rata (Rp/Unit)</option>
-                </select>
-              </div>
-
-              <!-- Commodity Dropdown Selector -->
-              <div class="widget-control-group" id="comCropSelectGroup">
-                <label for="cropSelectFilter" class="widget-control-label" id="cropSelectFilterLabel">Komoditas:</label>
-                <select id="cropSelectFilter" class="filter-select" style="min-width: 145px;" onchange="handleCropChange(this.value)">
-                  <!-- Hydrated dynamically -->
+              <!-- Measure Selector (Grouped by module) -->
+              <div class="widget-control-group" style="display: flex; align-items: center; gap: 0.35rem;">
+                <label for="comMeasureSelect" class="widget-control-label" style="font-size: 0.775rem; font-weight: 600; color: #475569;">Ukuran:</label>
+                <select id="comMeasureSelect" class="filter-select" style="min-width: 175px; height: 32px; font-size: 0.8rem;" onchange="handleComMeasureChange(this.value)">
+                  <optgroup label="🌾 Pertanian (Agro)">
+                    <option value="jumlahPanen">Hasil Panen (Kg)</option>
+                    <option value="jumlahBenih">Populasi Benih (Benih)</option>
+                    <option value="luasLahanM2">Luas Lahan Tanam (m²)</option>
+                    <option value="luasLahanPanenM2">Luas Lahan Panen (m²)</option>
+                    <option value="populasiAgro">Populasi Tanaman (Pohon)</option>
+                    <option value="estimasiPanenHst">Estimasi Panen (HST)</option>
+                  </optgroup>
+                  <optgroup label="🐄 Peternakan (Ternak)">
+                    <option value="populasiTernak">Populasi Ternak (Ekor)</option>
+                    <option value="ternakMasukQty">Ternak Masuk (Ekor)</option>
+                    <option value="ternakKeluarQty">Ternak Keluar (Ekor)</option>
+                    <option value="pakanMasukKg">Pakan Masuk (Kg)</option>
+                    <option value="pakanKeluarKg">Pakan Keluar (Kg)</option>
+                    <option value="jumlahPenjualanTernak">Volume Penjualan Ternak</option>
+                    <option value="totalHargaTernakRp">Nilai Penjualan Ternak (Rp)</option>
+                  </optgroup>
+                  <optgroup label="💰 Finansial &amp; Distribusi">
+                    <option value="totalHargaRp">Nilai Penjualan Agro (Rp)</option>
+                    <option value="jumlahPenjualanUnit">Volume Penjualan Agro (Unit)</option>
+                    <option value="jumlahUnitPenggunaan">Volume Penggunaan Internal</option>
+                  </optgroup>
+                  <optgroup label="📊 Kinerja &amp; Frekuensi">
+                    <option value="count">Frekuensi Laporan (Laporan)</option>
+                    <option value="distinctEmployees">Jumlah Karyawan Unik (Orang)</option>
+                    <option value="produktivitasPanen">Produktivitas Panen (Kg/m²)</option>
+                    <option value="kerapatanTanam">Kerapatan Tanam (Benih/m²)</option>
+                    <option value="hargaRataRata">Harga Rata-Rata (Rp/Unit)</option>
+                  </optgroup>
                 </select>
               </div>
 
               <!-- Period Selector -->
-              <div class="widget-control-group">
-                <label for="comLocalPeriod" class="widget-control-label">Periode:</label>
-                <select id="comLocalPeriod" class="filter-select" onchange="handleComPeriodChange(this.value)">
+              <div class="widget-control-group" style="display: flex; align-items: center; gap: 0.35rem;">
+                <label for="comLocalPeriod" class="widget-control-label" style="font-size: 0.775rem; font-weight: 600; color: #475569;">Periode:</label>
+                <select id="comLocalPeriod" class="filter-select" style="height: 32px; font-size: 0.8rem;" onchange="handleComPeriodChange(this.value)">
                   <option value="inherit">Mengikuti Halaman (Default)</option>
                   <option value="this_week">Minggu Ini</option>
                   <option value="last_week">Minggu Lalu</option>
@@ -477,78 +505,175 @@
               </div>
 
               <!-- Custom Date Pickers Inline -->
-              <div id="comCustomDateGroup" class="widget-control-group" style="display: none;">
-                <input type="date" id="comCustomStart" class="filter-input" style="width: 125px;" onchange="fetchCommodityCardData()">
-                <span class="widget-control-label">s/d</span>
-                <input type="date" id="comCustomEnd" class="filter-input" style="width: 125px;" onchange="fetchCommodityCardData()">
+              <div id="comCustomDateGroup" class="widget-control-group" style="display: none; align-items: center; gap: 0.35rem;">
+                <input type="date" id="comCustomStart" class="filter-input" style="width: 125px; height: 32px; font-size: 0.8rem;" onchange="fetchCommodityCardData()">
+                <span style="font-size: 0.75rem; color: #64748b;">s/d</span>
+                <input type="date" id="comCustomEnd" class="filter-input" style="width: 125px; height: 32px; font-size: 0.8rem;" onchange="fetchCommodityCardData()">
               </div>
 
               <!-- Interval Selector (Shown in Tren Mode) -->
-              <div class="widget-control-group" id="comIntervalGroup">
-                <label for="comLocalInterval" class="widget-control-label">Interval:</label>
-                <select id="comLocalInterval" class="filter-select" onchange="fetchCommodityCardData()">
-                  <option value="day">Harian (Day)</option>
-                  <option value="week">Mingguan (Week)</option>
-                  <option value="month">Bulanan (Month)</option>
-                  <option value="quarter">Kuartalan (Quarter)</option>
-                  <option value="year">Tahunan (Year)</option>
+              <div class="widget-control-group" id="comIntervalGroup" style="display: flex; align-items: center; gap: 0.35rem;">
+                <label for="comLocalInterval" class="widget-control-label" style="font-size: 0.775rem; font-weight: 600; color: #475569;">Interval:</label>
+                <select id="comLocalInterval" class="filter-select" style="height: 32px; font-size: 0.8rem;" onchange="fetchCommodityCardData()">
+                  <option value="day">Harian</option>
+                  <option value="week">Mingguan</option>
+                  <option value="month">Bulanan</option>
+                  <option value="quarter">Kuartalan</option>
+                  <option value="year">Tahunan</option>
                 </select>
               </div>
 
-              <!-- Sort Selector (Shown in Breakdown Mode) -->
-              <div class="widget-control-group" id="comSortGroup" style="display: none;">
-                <label for="comSortSelect" class="widget-control-label">Urutkan:</label>
-                <select id="comSortSelect" class="filter-select" onchange="handleComSortChange(this.value)">
-                  <option value="val_desc">Nilai Tertinggi</option>
-                  <option value="val_asc">Nilai Terendah</option>
-                  <option value="alpha_asc">Nama A-Z</option>
-                  <option value="alpha_desc">Nama Z-A</option>
+              <!-- Aggregation Selector -->
+              <div class="widget-control-group" style="display: flex; align-items: center; gap: 0.35rem;">
+                <label for="comAggregationSelect" class="widget-control-label" style="font-size: 0.775rem; font-weight: 600; color: #475569;">Agregasi:</label>
+                <select id="comAggregationSelect" class="filter-select" style="height: 32px; font-size: 0.8rem;" onchange="fetchCommodityCardData()">
+                  <option value="sum">Jumlah Total (Sum)</option>
+                  <option value="avg">Rata-Rata (Avg)</option>
+                  <option value="max">Nilai Maksimal (Max)</option>
+                  <option value="min">Nilai Minimal (Min)</option>
+                  <option value="count">Frekuensi (Count)</option>
                 </select>
               </div>
             </div>
 
-            <!-- Refresh Button for Card -->
-            <div>
-              <button class="btn btn-secondary btn-sm" onclick="fetchCommodityCardData()" title="Perbarui analitik kartu ini" style="height: 34px;">
+            <!-- Builder Toggle Buttons & Refresh -->
+            <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary table-btn-sm" id="btnToggleFilterBuilder" onclick="toggleAnalyticsFilterBuilder()" style="height: 32px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span>Filter Lanjutan</span>
+                <span class="badge badge-primary" id="filterCountBadge" style="font-size: 0.65rem; padding: 1px 5px; display: none;">0</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary table-btn-sm" id="btnToggleSortBuilder" onclick="toggleAnalyticsSortBuilder()" style="height: 32px; display: none; align-items: center; gap: 0.35rem;">
+                <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span>Urutan</span>
+                <span style="font-size: 0.7rem; color: #64748b;" id="sortSummaryLabel">(Nilai &darr;)</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary btn-sm" onclick="fetchCommodityCardData()" title="Perbarui analitik kartu ini" style="height: 32px; padding: 0 0.6rem;">
                 <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                <span>Perbarui</span>
               </button>
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;" class="dashboard-commodity-grid">
+          <!-- Active Filters & Scope Summary Strip -->
+          <div id="analyticsActiveScopeStrip" style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 0.85rem; font-size: 0.775rem;">
+            <!-- Populated dynamically with active filter chips -->
+          </div>
+
+          <!-- Collapsible FilterBuilder Container -->
+          <div id="filterBuilderContainer" style="display: none; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+              <div>
+                <strong style="font-size: 0.875rem; color: #0f172a;">Filter Konjungtif (Logika AND)</strong>
+                <span style="font-size: 0.75rem; color: #64748b; margin-left: 0.5rem;">Maksimal 5 filter aktif</span>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary table-btn-sm" onclick="clearAllAnalyticsFilters()" style="color: #ef4444; border-color: #fca5a5;">Reset Filter</button>
+                <button type="button" class="btn btn-primary table-btn-sm" onclick="applyAnalyticsFiltersAndFetch()">Terapkan Filter</button>
+              </div>
+            </div>
+
+            <!-- Filter Rows List -->
+            <div id="filterBuilderRowsList" style="display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 0.85rem;">
+              <!-- Populated dynamically with filter rows -->
+            </div>
+
+            <!-- Add Filter Action -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <select id="selectFieldToAdd" class="filter-select" style="max-width: 220px; font-size: 0.8rem; height: 32px;">
+                <option value="">+ Tambah Kriteria Filter...</option>
+                <!-- Populated dynamically from ANALYTICS_FIELD_CATALOG -->
+              </select>
+              <button type="button" class="btn btn-secondary table-btn-sm" onclick="addFilterRowFromSelect()" style="height: 32px;">+ Tambah</button>
+            </div>
+          </div>
+
+          <!-- Collapsible SortBuilder Container -->
+          <div id="sortBuilderContainer" style="display: none; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+              <div>
+                <strong style="font-size: 0.875rem; color: #0f172a;">Pengurutan Multi-Level (Breakdown)</strong>
+                <span style="font-size: 0.75rem; color: #64748b; margin-left: 0.5rem;">Maksimal 5 tingkat urutan berurutan</span>
+              </div>
+              <button type="button" class="btn btn-primary table-btn-sm" onclick="applyAnalyticsSortsAndFetch()">Terapkan Urutan</button>
+            </div>
+
+            <!-- Sort Levels List -->
+            <div id="sortBuilderLevelsList" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.85rem;">
+              <!-- Populated dynamically with sort levels -->
+            </div>
+
+            <!-- Add Sort Level Action -->
+            <button type="button" class="btn btn-secondary table-btn-sm" onclick="addSortLevelRow()" id="btnAddSortLevel" style="height: 32px;">+ Tambah Tingkat Urutan</button>
+          </div>
+
+          <!-- Dynamic Explorer Grid: Visual Chart + Accessible Data Table + Participation Sidebar -->
+          <div style="display: grid; grid-template-columns: 2.1fr 1fr; gap: 1.25rem;" class="dashboard-commodity-grid">
             
-            <!-- Left: Chart Panel -->
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; position: relative; min-height: 310px; display: flex; flex-direction: column;">
-              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.75rem; gap: 0.5rem;">
-                <span style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary);" id="commodityChartTitle">Tren Populasi Benih Ditanam</span>
+            <!-- Left: Visual Chart Panel & Accessible Tabular Alternative -->
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; position: relative; display: flex; flex-direction: column; gap: 1rem;">
+              
+              <!-- Chart Header & Title -->
+              <div class="flex-between-wrap" style="align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);" id="commodityChartTitle">Visualisasi Tren</span>
+                <span class="badge badge-normal" id="chartMeasureBadge" style="font-size: 0.7rem;">Kg</span>
               </div>
 
-              <!-- Sparse Data State Container -->
-              <div id="commoditySparseDataState" class="sparse-data-state" style="display: none; flex: 1;">
-                <div class="sparse-data-icon">
-                  <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <!-- Sparse / Empty Data State Container -->
+              <div id="commoditySparseDataState" class="sparse-data-state" style="display: none; flex: 1; padding: 2rem 1rem; text-align: center;">
+                <div class="sparse-data-icon" style="margin-bottom: 0.5rem;">
+                  <svg class="svg-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
-                <div class="sparse-data-title">Belum cukup data pada periode ini untuk menampilkan tren yang bermakna</div>
-                <div class="sparse-data-desc">Tidak ditemukan aktivitas pelaporan atau volume untuk kombinasi komoditas, periode, dan filter yang dipilih. Coba perluas rentang periode atau ubah filter chip.</div>
+                <div class="sparse-data-title" style="font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Tidak ada data laporan yang cocok</div>
+                <div class="sparse-data-desc" style="font-size: 0.775rem; color: #64748b; max-width: 420px; margin: 0 auto;">Tidak ditemukan aktivitas pelaporan untuk kombinasi filter dan periode yang dipilih. Coba sesuaikan filter atau rentang waktu.</div>
               </div>
 
               <!-- Chart Canvas Container -->
-              <div class="chart-container" id="commodityChartContainer" style="position: relative; height: 260px; max-height: 260px; width: 100%; flex: 1;">
+              <div class="chart-container" id="commodityChartContainer" style="position: relative; height: 260px; max-height: 260px; width: 100%;">
                 <canvas id="commodityTrendChart" height="260" style="max-height: 260px; height: 260px; width: 100%; display: block;"></canvas>
               </div>
+
+              <!-- Formatted Accessible HTML Data Table (Alternative to chart) -->
+              <div id="commodityDataTableContainer" style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem; margin-top: 0.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <span style="font-size: 0.8rem; font-weight: 600; color: #334155;">Tabel Rincian Data Agregat:</span>
+                  <span style="font-size: 0.725rem; color: #64748b;" id="tableRecordCountLabel">&mdash;</span>
+                </div>
+                <div style="overflow-x: auto; max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                  <table class="division-table" id="commodityAccessibleTable" style="font-size: 0.775rem; width: 100%;">
+                    <caption class="sr-only" style="display: none;">Data Agregat Hasil Analisis Operasional</caption>
+                    <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">
+                      <tr>
+                        <th scope="col" style="width: 32px; text-align: center;">#</th>
+                        <th scope="col" id="thDimensionName">Kategori / Dimensi</th>
+                        <th scope="col" style="text-align: right;" id="thMeasureValue">Nilai Agregat</th>
+                        <th scope="col" style="text-align: center; width: 85px;" id="thPercentage">Porsi (%)</th>
+                        <th scope="col" style="text-align: center; width: 75px;">Laporan</th>
+                      </tr>
+                    </thead>
+                    <tbody id="commodityTableBody">
+                      <!-- Populated dynamically -->
+                    </tbody>
+                    <tfoot id="commodityTableFoot" style="position: sticky; bottom: 0; background: #f1f5f9; font-weight: 700;">
+                      <!-- Populated dynamically -->
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
             </div>
 
             <!-- Right: Staff Participation Panel -->
             <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; display: flex; flex-direction: column;">
               <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;" id="commodityParticipationTitle">
-                Partisipasi Staf: Pisang
+                Partisipasi Staf
               </div>
               <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.75rem 0;" id="commodityParticipationSubtitle">
-                Karyawan yang melaporkan aktivitas komoditas ini:
+                Karyawan yang melaporkan aktivitas pada cakupan filter ini:
               </p>
 
-              <div id="cropParticipationList" style="display: flex; flex-direction: column; gap: 0.45rem; overflow-y: auto; max-height: 250px;">
+              <div id="cropParticipationList" style="display: flex; flex-direction: column; gap: 0.45rem; overflow-y: auto; max-height: 520px;">
                 <!-- Populated dynamically -->
               </div>
             </div>
@@ -811,36 +936,6 @@
       if (data.riskAnalytics && data.employeeLeaderboard) {
         renderStaffKendalaSection(data.employeeLeaderboard, data.riskAnalytics);
       }
-
-      // 7. Inactive Sectors Early Warning (GM Q4)
-      renderInactiveSectors(data.inactiveSectors);
-    }
-
-    function renderInactiveSectors(inactiveList) {
-      const container = document.getElementById('inactiveSectorsContainer');
-      if (!container) return;
-      if (!inactiveList || inactiveList.length === 0) {
-        container.style.display = 'none';
-        container.innerHTML = '';
-        return;
-      }
-
-      container.style.display = 'block';
-      const sectorBadges = inactiveList.map(s => `
-        <span style="background: #ffffff; border: 1px solid #f59e0b; border-radius: 4px; padding: 2px 8px; font-weight: 600; font-size: 0.75rem; color: #b45309; display: inline-flex; align-items: center; gap: 4px;">
-          📍 ${escapeHtml(s.sector)} <span style="font-size: 0.7rem; color: #64748b; font-weight: normal;">(Jeda: ${s.daysInactive >= 90 ? 'N/A' : s.daysInactive + ' hari'})</span>
-        </span>
-      `).join(' ');
-
-      container.innerHTML = `
-        <div style="background: #fffdf5; border: 1px solid #fde68a; border-left: 3.5px solid #d97706; border-radius: 6px; padding: 0.65rem 0.9rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span style="font-size: 0.8rem; font-weight: 600; color: #92400e;">⚠️ Peringatan Sektor Pasif:</span>
-            <span style="font-size: 0.775rem; color: #78350f;">Lokasi berikut belum memiliki aktivitas pelaporan dalam 3+ hari terakhir:</span>
-            ${sectorBadges}
-          </div>
-        </div>
-      `;
     }
 
     // ==========================================
@@ -1015,17 +1110,60 @@
     }
 
     // ==========================================
-    // SECTION 2: COMMODITY & OPERATIONAL ENGINE
+    // SECTION 2: CANONICAL ANALYTICS ENGINE & BUILDERS
     // ==========================================
+    const CLIENT_ANALYTICS_CATALOG = [
+      { key: 'komoditas', label: 'Komoditas Agro', type: 'string', module: 'Agro', unit: '', format: 'text', options: ['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'] },
+      { key: 'lokasiKegiatan', label: 'Lokasi / Sektor', type: 'string', module: 'Umum', unit: '', format: 'text', options: ['Sektor 1', 'Sektor 2', 'Sektor 3', 'Sektor 4', 'Gunung Batu', 'Sektor 1 + Ciomas', 'Villa Quiling', 'Pasir Putih', 'MPL Jonggol', 'MPL Cikalong'] },
+      { key: 'lokasiBlok', label: 'Blok Lahan', type: 'string', module: 'Umum', unit: '', format: 'text' },
+      { key: 'jenisKegiatan', label: 'Jenis Kegiatan', type: 'string', module: 'Umum', unit: '', format: 'text', options: ['Tanam atau tebar', 'Panen atau penjualan', 'Pengawasan, Pemeliharaan', 'Administrasi'] },
+      { key: 'bidangDivisi', label: 'Bidang / Divisi', type: 'string', module: 'Umum', unit: '', format: 'text', options: ['Alprof', 'SGA', 'Manajemen', 'Umum'] },
+      { key: 'namaPic', label: 'Karyawan / PIC', type: 'string', module: 'Umum', unit: '', format: 'text' },
+      { key: 'jenisTernak', label: 'Jenis Ternak', type: 'string', module: 'Ternak', unit: '', format: 'text', options: ['Sapi', 'Kambing', 'Domba', 'Ayam Broiler', 'Ayam Petelur', 'Bebek'] },
+      { key: 'jenisKomoditasTernak', label: 'Komoditas Ternak', type: 'string', module: 'Ternak', unit: '', format: 'text' },
+      { key: 'tujuanDistribusi', label: 'Tujuan Distribusi', type: 'string', module: 'Agro', unit: '', format: 'text', options: ['Penjualan', 'Penggunaan Internal'] },
+      { key: 'tujuanPenggunaan', label: 'Lokasi Penggunaan Internal', type: 'string', module: 'Agro', unit: '', format: 'text', options: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih', 'Konsumsi', 'Bibit', 'Pakan'] },
+      { key: 'severity', label: 'Status Urgensi', type: 'string', module: 'Umum', unit: '', format: 'text', options: ['NORMAL', 'WARNING', 'URGENT'] },
+      { key: 'reviewed', label: 'Status Verifikasi', type: 'string', module: 'Umum', unit: '', format: 'text', options: ['Ditinjau', 'Belum Ditinjau'] },
+      // Numeric Measures
+      { key: 'jumlahPanen', label: 'Hasil Panen Agro', type: 'number', module: 'Agro', unit: 'kg', format: 'decimal' },
+      { key: 'jumlahBenih', label: 'Populasi Benih', type: 'number', module: 'Agro', unit: 'benih', format: 'integer' },
+      { key: 'luasLahanM2', label: 'Luas Lahan Tanam', type: 'number', module: 'Agro', unit: 'm²', format: 'decimal' },
+      { key: 'luasLahanPanenM2', label: 'Luas Lahan Panen', type: 'number', module: 'Agro', unit: 'm²', format: 'decimal' },
+      { key: 'populasiAgro', label: 'Populasi Tanaman Aktif', type: 'number', module: 'Agro', unit: 'pohon', format: 'integer' },
+      { key: 'estimasiPanenHst', label: 'Estimasi Panen', type: 'number', module: 'Agro', unit: 'HST', format: 'integer' },
+      { key: 'populasiTernak', label: 'Populasi Ternak', type: 'number', module: 'Ternak', unit: 'ekor', format: 'integer' },
+      { key: 'ternakMasukQty', label: 'Ternak Masuk', type: 'number', module: 'Ternak', unit: 'ekor', format: 'integer' },
+      { key: 'ternakKeluarQty', label: 'Ternak Keluar', type: 'number', module: 'Ternak', unit: 'ekor', format: 'integer' },
+      { key: 'pakanMasukKg', label: 'Pakan Masuk', type: 'number', module: 'Ternak', unit: 'kg', format: 'decimal' },
+      { key: 'pakanKeluarKg', label: 'Pakan Keluar', type: 'number', module: 'Ternak', unit: 'kg', format: 'decimal' },
+      { key: 'jumlahPenjualanTernak', label: 'Volume Penjualan Ternak', type: 'number', module: 'Ternak', unit: 'ekor', format: 'integer' },
+      { key: 'totalHargaTernakRp', label: 'Nilai Penjualan Ternak', type: 'number', module: 'Ternak', unit: 'Rp', format: 'currency' },
+      { key: 'totalHargaRp', label: 'Nilai Penjualan Agro', type: 'number', module: 'Agro', unit: 'Rp', format: 'currency' },
+      { key: 'jumlahPenjualanUnit', label: 'Volume Penjualan Agro', type: 'number', module: 'Agro', unit: 'unit', format: 'decimal' },
+      { key: 'jumlahUnitPenggunaan', label: 'Volume Penggunaan Internal', type: 'number', module: 'Agro', unit: 'unit', format: 'decimal' },
+      { key: 'count', label: 'Frekuensi Laporan', type: 'number', module: 'Umum', unit: 'laporan', format: 'integer' },
+      { key: 'distinctEmployees', label: 'Jumlah Karyawan Unik', type: 'number', module: 'Umum', unit: 'orang', format: 'integer' },
+      { key: 'produktivitasPanen', label: 'Produktivitas Panen', type: 'number', module: 'Agro', unit: 'kg/m²', format: 'decimal' },
+      { key: 'kerapatanTanam', label: 'Kerapatan Tanam', type: 'number', module: 'Agro', unit: 'benih/m²', format: 'decimal' },
+      { key: 'hargaRataRata', label: 'Harga Rata-Rata Penjualan', type: 'number', module: 'Agro', unit: 'Rp/unit', format: 'currency' }
+    ];
+
+    function getCatalogField(key) {
+      return CLIENT_ANALYTICS_CATALOG.find(f => f.key === key) || null;
+    }
+
+    // State Variables
     let currentCommodityData = null;
     let currentCommodityMode = 'tren'; // 'tren' | 'breakdown'
+    let currentAnalyticsFilters = []; // Array of { fieldKey, operator, value }
+    let currentAnalyticsSorts = [{ fieldKey: 'value', direction: 'desc' }]; // Array of { fieldKey, direction }
     let currentCommodityScope = {
       period: 'inherit',
       interval: 'day',
-      crop: 'all',
-      dimension: 'komoditas', // 'komoditas' | 'namaPic' | 'lokasiKegiatan'
-      measure: 'jumlahBenih',
-      sort: 'val_desc'
+      groupByKey: 'komoditas',
+      measureKey: 'jumlahPanen',
+      aggregation: 'sum'
     };
 
     function setCommodityMode(mode) {
@@ -1034,21 +1172,18 @@
       document.getElementById('btnModeBreakdown')?.classList.toggle('active', mode === 'breakdown');
 
       const dimGroup = document.getElementById('comDimensionGroup');
-      const cropGroup = document.getElementById('comCropSelectGroup');
-      const sortGroup = document.getElementById('comSortGroup');
+      const sortBtn = document.getElementById('btnToggleSortBuilder');
+      const sortContainer = document.getElementById('sortBuilderContainer');
       const intervalGroup = document.getElementById('comIntervalGroup');
 
       if (mode === 'tren') {
         if (dimGroup) dimGroup.style.display = 'none';
-        if (cropGroup) cropGroup.style.display = 'inline-flex';
-        if (sortGroup) sortGroup.style.display = 'none';
+        if (sortBtn) sortBtn.style.display = 'none';
+        if (sortContainer) sortContainer.style.display = 'none';
         if (intervalGroup) intervalGroup.style.display = 'inline-flex';
       } else {
-        // Breakdown mode
         if (dimGroup) dimGroup.style.display = 'inline-flex';
-        const activeDim = document.getElementById('comDimensionSelect')?.value || currentCommodityScope.dimension || 'komoditas';
-        if (cropGroup) cropGroup.style.display = (activeDim !== 'komoditas') ? 'inline-flex' : 'none';
-        if (sortGroup) sortGroup.style.display = 'inline-flex';
+        if (sortBtn) sortBtn.style.display = 'inline-flex';
         if (intervalGroup) intervalGroup.style.display = 'none';
       }
 
@@ -1056,13 +1191,7 @@
     }
 
     function handleComDimensionChange(val) {
-      currentCommodityScope.dimension = val;
-      const cropGroup = document.getElementById('comCropSelectGroup');
-      if (cropGroup) {
-        // When dimension is 'komoditas', hide crop filter because graph breaks down all crops.
-        // When dimension is 'namaPic' or 'lokasiKegiatan', show crop filter so user can scope to 'Jagung Tebon' or 'Semua Komoditas'.
-        cropGroup.style.display = (val !== 'komoditas') ? 'inline-flex' : 'none';
-      }
+      currentCommodityScope.groupByKey = val;
       fetchCommodityCardData();
     }
 
@@ -1076,20 +1205,347 @@
     }
 
     function handleComMeasureChange(val) {
-      currentCommodityScope.measure = val;
+      currentCommodityScope.measureKey = val;
       fetchCommodityCardData();
     }
 
-    function handleComSortChange(val) {
-      currentCommodityScope.sort = val;
+    // ==========================================
+    // FILTER BUILDER IMPLEMENTATION
+    // ==========================================
+    function toggleAnalyticsFilterBuilder() {
+      const container = document.getElementById('filterBuilderContainer');
+      if (!container) return;
+      const isVisible = container.style.display !== 'none';
+      container.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) {
+        populateFieldToAddDropdown();
+        renderAnalyticsFilterRows();
+      }
+    }
+
+    function populateFieldToAddDropdown() {
+      const sel = document.getElementById('selectFieldToAdd');
+      if (!sel) return;
+      
+      const modules = ['Umum', 'Agro', 'Ternak'];
+      let html = '<option value="">+ Tambah Kriteria Filter...</option>';
+      
+      modules.forEach(mod => {
+        const fields = CLIENT_ANALYTICS_CATALOG.filter(f => f.module === mod && !['count', 'distinctEmployees', 'produktivitasPanen', 'kerapatanTanam', 'hargaRataRata'].includes(f.key));
+        if (fields.length) {
+          html += `<optgroup label="${mod}">`;
+          fields.forEach(f => {
+            html += `<option value="${f.key}">${escapeHtml(f.label)}</option>`;
+          });
+          html += `</optgroup>`;
+        }
+      });
+      sel.innerHTML = html;
+    }
+
+    function addFilterRowFromSelect() {
+      const sel = document.getElementById('selectFieldToAdd');
+      const fieldKey = sel?.value;
+      if (!fieldKey) return;
+      
+      if (currentAnalyticsFilters.length >= 5) {
+        showToast('Maksimal 5 kriteria filter aktif.', 'warning');
+        return;
+      }
+
+      const fDesc = getCatalogField(fieldKey);
+      const defaultOp = fDesc?.options ? 'in' : (fDesc?.type === 'number' ? 'gte' : 'eq');
+      const defaultVal = fDesc?.options ? [fDesc.options[0]] : '';
+
+      currentAnalyticsFilters.push({
+        fieldKey: fieldKey,
+        operator: defaultOp,
+        value: defaultVal
+      });
+
+      sel.value = '';
+      renderAnalyticsFilterRows();
+      updateFilterBadge();
+    }
+
+    function removeAnalyticsFilter(index) {
+      currentAnalyticsFilters.splice(index, 1);
+      renderAnalyticsFilterRows();
+      updateFilterBadge();
+    }
+
+    function clearAllAnalyticsFilters() {
+      currentAnalyticsFilters = [];
+      renderAnalyticsFilterRows();
+      updateFilterBadge();
       fetchCommodityCardData();
     }
 
-    function handleCropChange(cropName) {
-      currentCommodityScope.crop = cropName;
+    function renderAnalyticsFilterRows() {
+      const listEl = document.getElementById('filterBuilderRowsList');
+      if (!listEl) return;
+
+      if (currentAnalyticsFilters.length === 0) {
+        listEl.innerHTML = `
+          <div style="font-size: 0.775rem; color: #94a3b8; font-style: italic; padding: 0.5rem 0;">
+            Belum ada filter aktif. Pilih kriteria dari menu dropdown di bawah untuk menyaring data.
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = currentAnalyticsFilters.map((f, idx) => {
+        const fDesc = getCatalogField(f.fieldKey) || { label: f.fieldKey, type: 'string' };
+        
+        let opOptions = `
+          <option value="eq" ${f.operator === 'eq' ? 'selected' : ''}>Sama dengan (=)</option>
+          <option value="neq" ${f.operator === 'neq' ? 'selected' : ''}>Tidak sama (&ne;)</option>
+          <option value="contains" ${f.operator === 'contains' ? 'selected' : ''}>Mengandung teks</option>
+          <option value="empty" ${f.operator === 'empty' ? 'selected' : ''}>Kosong (Nihil)</option>
+          <option value="not_empty" ${f.operator === 'not_empty' ? 'selected' : ''}>Terisi (Tidak Kosong)</option>
+        `;
+
+        if (fDesc.type === 'number') {
+          opOptions = `
+            <option value="gte" ${f.operator === 'gte' ? 'selected' : ''}>&ge; Minimal</option>
+            <option value="lte" ${f.operator === 'lte' ? 'selected' : ''}>&le; Maksimal</option>
+            <option value="eq" ${f.operator === 'eq' ? 'selected' : ''}>Sama dengan (=)</option>
+            <option value="between" ${f.operator === 'between' ? 'selected' : ''}>Antara (Min - Max)</option>
+          `;
+        } else if (fDesc.options && fDesc.options.length) {
+          opOptions = `
+            <option value="in" ${f.operator === 'in' ? 'selected' : ''}>Termasuk salah satu</option>
+            <option value="eq" ${f.operator === 'eq' ? 'selected' : ''}>Sama dengan (=)</option>
+            <option value="neq" ${f.operator === 'neq' ? 'selected' : ''}>Kecuali (&ne;)</option>
+          `;
+        }
+
+        const valueInputHtml = renderFilterValueEditorHtml(f, idx, fDesc);
+
+        return `
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.65rem;">
+            <span class="badge badge-primary" style="font-size: 0.75rem; min-width: 120px; text-align: left; padding: 0.35rem 0.6rem;">
+              ${escapeHtml(fDesc.label)}
+            </span>
+            <select class="filter-select" style="font-size: 0.775rem; height: 30px; min-width: 140px;" onchange="handleFilterOpChange(${idx}, this.value)">
+              ${opOptions}
+            </select>
+            <div style="flex: 1; min-width: 160px; display: flex; align-items: center;">
+              ${valueInputHtml}
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="removeAnalyticsFilter(${idx})" style="height: 28px; width: 28px; padding: 0; display: flex; align-items: center; justify-content: center; color: #ef4444; border-color: #fca5a5;" title="Hapus filter ini">
+              &times;
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFilterValueEditorHtml(filter, idx, fDesc) {
+      if (filter.operator === 'empty' || filter.operator === 'not_empty') {
+        return '<span style="font-size: 0.75rem; color: #64748b; font-style: italic;">(Tidak memerlukan nilai)</span>';
+      }
+
+      if (fDesc.options && fDesc.options.length) {
+        if (filter.operator === 'in') {
+          const selectedVals = Array.isArray(filter.value) ? filter.value : [filter.value];
+          return `
+            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+              ${fDesc.options.map(opt => {
+                const isSelected = selectedVals.includes(opt);
+                return `
+                  <button type="button" class="filter-pill ${isSelected ? 'active' : ''}" style="font-size: 0.7rem; padding: 2px 8px;" onclick="toggleFilterArrayValue(${idx}, '${escapeHtml(opt)}')">
+                    ${escapeHtml(opt)}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
+        } else {
+          return `
+            <select class="filter-select" style="font-size: 0.775rem; height: 30px; width: 100%;" onchange="handleFilterValChange(${idx}, this.value)">
+              ${fDesc.options.map(opt => `<option value="${escapeHtml(opt)}" ${opt === filter.value ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+            </select>
+          `;
+        }
+      }
+
+      if (fDesc.type === 'number') {
+        if (filter.operator === 'between') {
+          const min = (typeof filter.value === 'object' && filter.value) ? filter.value.min || '' : '';
+          const max = (typeof filter.value === 'object' && filter.value) ? filter.value.max || '' : '';
+          return `
+            <div style="display: flex; align-items: center; gap: 0.35rem; width: 100%;">
+              <input type="number" class="filter-input" placeholder="Min" style="font-size: 0.775rem; height: 30px; width: 80px;" value="${min}" onchange="handleFilterBetweenValChange(${idx}, 'min', this.value)">
+              <span style="font-size: 0.75rem; color: #64748b;">s/d</span>
+              <input type="number" class="filter-input" placeholder="Max" style="font-size: 0.775rem; height: 30px; width: 80px;" value="${max}" onchange="handleFilterBetweenValChange(${idx}, 'max', this.value)">
+            </div>
+          `;
+        }
+        return `
+          <input type="number" class="filter-input" placeholder="Nilai ${fDesc.unit ? `(${fDesc.unit})` : ''}" style="font-size: 0.775rem; height: 30px; width: 100%;" value="${filter.value || ''}" onchange="handleFilterValChange(${idx}, Number(this.value))">
+        `;
+      }
+
+      return `
+        <input type="text" class="filter-input" placeholder="Ketik kata kunci pencarian..." style="font-size: 0.775rem; height: 30px; width: 100%;" value="${escapeHtml(filter.value || '')}" onchange="handleFilterValChange(${idx}, this.value)">
+      `;
+    }
+
+    function handleFilterOpChange(idx, newOp) {
+      if (!currentAnalyticsFilters[idx]) return;
+      currentAnalyticsFilters[idx].operator = newOp;
+      renderAnalyticsFilterRows();
+    }
+
+    function handleFilterValChange(idx, newVal) {
+      if (!currentAnalyticsFilters[idx]) return;
+      currentAnalyticsFilters[idx].value = newVal;
+    }
+
+    function handleFilterBetweenValChange(idx, boundKey, val) {
+      if (!currentAnalyticsFilters[idx]) return;
+      let curr = currentAnalyticsFilters[idx].value;
+      if (typeof curr !== 'object' || curr === null) curr = { min: '', max: '' };
+      curr[boundKey] = val;
+      currentAnalyticsFilters[idx].value = curr;
+    }
+
+    function toggleFilterArrayValue(idx, val) {
+      if (!currentAnalyticsFilters[idx]) return;
+      let curr = currentAnalyticsFilters[idx].value;
+      if (!Array.isArray(curr)) curr = curr ? [curr] : [];
+      if (curr.includes(val)) {
+        curr = curr.filter(v => v !== val);
+      } else {
+        curr.push(val);
+      }
+      currentAnalyticsFilters[idx].value = curr;
+      renderAnalyticsFilterRows();
+    }
+
+    function updateFilterBadge() {
+      const badge = document.getElementById('filterCountBadge');
+      if (!badge) return;
+      const count = currentAnalyticsFilters.length;
+      badge.innerText = count;
+      badge.style.display = count > 0 ? 'inline-block' : 'none';
+      renderAnalyticsActiveScopeStrip();
+    }
+
+    function applyAnalyticsFiltersAndFetch() {
+      document.getElementById('filterBuilderContainer').style.display = 'none';
+      updateFilterBadge();
       fetchCommodityCardData();
     }
 
+    function renderAnalyticsActiveScopeStrip() {
+      const strip = document.getElementById('analyticsActiveScopeStrip');
+      if (!strip) return;
+
+      if (currentAnalyticsFilters.length === 0) {
+        strip.innerHTML = '';
+        strip.style.display = 'none';
+        return;
+      }
+
+      strip.style.display = 'flex';
+      strip.innerHTML = `
+        <span style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.25rem;">Filter Aktif (${currentAnalyticsFilters.length}):</span>
+        ${currentAnalyticsFilters.map((f, idx) => {
+          const fDesc = getCatalogField(f.fieldKey) || { label: f.fieldKey };
+          let valText = f.value;
+          if (Array.isArray(f.value)) valText = f.value.join(', ');
+          else if (typeof f.value === 'object' && f.value) valText = `${f.value.min || 0} - ${f.value.max || '∞'}`;
+          
+          return `
+            <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 12px; padding: 2px 8px; font-size: 0.725rem;">
+              <strong>${escapeHtml(fDesc.label)}:</strong> ${escapeHtml(String(valText))}
+              <span style="cursor: pointer; font-weight: bold; margin-left: 2px;" onclick="removeAnalyticsFilter(${idx}); fetchCommodityCardData();" title="Hapus filter ini">&times;</span>
+            </span>
+          `;
+        }).join('')}
+      `;
+    }
+
+    // ==========================================
+    // SORT BUILDER IMPLEMENTATION (BREAKDOWN)
+    // ==========================================
+    function toggleAnalyticsSortBuilder() {
+      const container = document.getElementById('sortBuilderContainer');
+      if (!container) return;
+      const isVisible = container.style.display !== 'none';
+      container.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) {
+        renderAnalyticsSortLevels();
+      }
+    }
+
+    function renderAnalyticsSortLevels() {
+      const listEl = document.getElementById('sortBuilderLevelsList');
+      if (!listEl) return;
+
+      listEl.innerHTML = currentAnalyticsSorts.map((s, idx) => `
+        <div style="display: flex; align-items: center; gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.45rem 0.65rem;">
+          <span style="font-size: 0.75rem; font-weight: 600; color: #475569; width: 65px;">Tingkat ${idx + 1}:</span>
+          <select class="filter-select" style="font-size: 0.775rem; height: 30px; flex: 1;" onchange="handleSortFieldChange(${idx}, this.value)">
+            <option value="value" ${s.fieldKey === 'value' ? 'selected' : ''}>Nilai Agregat Terhitung</option>
+            <option value="label" ${s.fieldKey === 'label' ? 'selected' : ''}>Label / Nama Kategori</option>
+            <option value="count" ${s.fieldKey === 'count' ? 'selected' : ''}>Frekuensi Jumlah Laporan</option>
+          </select>
+          <select class="filter-select" style="font-size: 0.775rem; height: 30px; width: 140px;" onchange="handleSortDirectionChange(${idx}, this.value)">
+            <option value="desc" ${s.direction === 'desc' ? 'selected' : ''}>Tertinggi &darr; (Z-A)</option>
+            <option value="asc" ${s.direction === 'asc' ? 'selected' : ''}>Terendah &uarr; (A-Z)</option>
+          </select>
+          ${currentAnalyticsSorts.length > 1 ? `
+            <button type="button" class="btn btn-secondary" onclick="removeSortLevel(${idx})" style="height: 28px; width: 28px; padding: 0; color: #ef4444; border-color: #fca5a5;">&times;</button>
+          ` : ''}
+        </div>
+      `).join('');
+
+      const btnAdd = document.getElementById('btnAddSortLevel');
+      if (btnAdd) btnAdd.style.display = currentAnalyticsSorts.length >= 5 ? 'none' : 'inline-block';
+    }
+
+    function addSortLevelRow() {
+      if (currentAnalyticsSorts.length >= 5) return;
+      const seen = new Set(currentAnalyticsSorts.map(s => s.fieldKey));
+      const candidates = ['label', 'count', 'value'];
+      const nextField = candidates.find(c => !seen.has(c)) || 'value';
+      currentAnalyticsSorts.push({ fieldKey: nextField, direction: 'desc' });
+      renderAnalyticsSortLevels();
+    }
+
+    function removeSortLevel(idx) {
+      if (currentAnalyticsSorts.length <= 1) return;
+      currentAnalyticsSorts.splice(idx, 1);
+      renderAnalyticsSortLevels();
+    }
+
+    function handleSortFieldChange(idx, fieldKey) {
+      if (!currentAnalyticsSorts[idx]) return;
+      currentAnalyticsSorts[idx].fieldKey = fieldKey;
+    }
+
+    function handleSortDirectionChange(idx, dir) {
+      if (!currentAnalyticsSorts[idx]) return;
+      currentAnalyticsSorts[idx].direction = dir;
+    }
+
+    function applyAnalyticsSortsAndFetch() {
+      document.getElementById('sortBuilderContainer').style.display = 'none';
+      const first = currentAnalyticsSorts[0];
+      const sortLbl = document.getElementById('sortSummaryLabel');
+      if (sortLbl && first) {
+        const fieldName = first.fieldKey === 'label' ? 'Nama' : (first.fieldKey === 'count' ? 'Laporan' : 'Nilai');
+        sortLbl.innerText = `(${fieldName} ${first.direction === 'asc' ? '↑' : '↓'})`;
+      }
+      fetchCommodityCardData();
+    }
+
+    // ==========================================
+    // DATA FETCHING & RENDERING
+    // ==========================================
     async function fetchCommodityCardData() {
       const periodVal = document.getElementById('comLocalPeriod')?.value || 'inherit';
       const effectivePeriod = periodVal === 'inherit' ? currentPeriodCode : periodVal;
@@ -1105,21 +1561,23 @@
       }
 
       const intervalVal = document.getElementById('comLocalInterval')?.value || 'day';
-      const cropVal = document.getElementById('cropSelectFilter')?.value || currentCommodityScope.crop || 'all';
-      const dimVal = document.getElementById('comDimensionSelect')?.value || currentCommodityScope.dimension || 'komoditas';
-      const measureVal = document.getElementById('comMeasureSelect')?.value || currentCommodityScope.measure || 'jumlahBenih';
-      const sortVal = document.getElementById('comSortSelect')?.value || currentCommodityScope.sort || 'val_desc';
+      const dimVal = document.getElementById('comDimensionSelect')?.value || currentCommodityScope.groupByKey || 'komoditas';
+      const measureVal = document.getElementById('comMeasureSelect')?.value || currentCommodityScope.measureKey || 'jumlahPanen';
+      const aggVal = document.getElementById('comAggregationSelect')?.value || 'sum';
 
       const params = {
         period: effectivePeriod,
         startDate: sDate,
         endDate: eDate,
         interval: intervalVal,
-        cropFilter: cropVal,
-        dimension: dimVal,
+        groupByKey: dimVal,
+        dimension: dimVal, // backward compat
         mode: currentCommodityMode,
-        measure: measureVal,
-        sort: sortVal
+        measureKey: measureVal,
+        measure: measureVal, // backward compat
+        aggregation: aggVal,
+        filters: currentAnalyticsFilters,
+        sorts: currentAnalyticsSorts
       };
 
       try {
@@ -1142,82 +1600,57 @@
       if (!comData) return;
       currentCommodityData = comData;
 
-      // 1. Populate crop select options with 'Semua Komoditas' and individual crops
-      const sel = document.getElementById('cropSelectFilter');
-      if (sel && comData.cropList && comData.cropList.length) {
-        const currentVal = sel.value || comData.selectedCrop || 'all';
-        let opts = `<option value="all" ${currentVal === 'all' ? 'selected' : ''}>Semua Komoditas</option>`;
-        comData.cropList.forEach(c => {
-          opts += `<option value="${escapeHtml(c)}" ${c === currentVal ? 'selected' : ''}>${escapeHtml(c)}</option>`;
-        });
-        sel.innerHTML = opts;
+      // 1. Dynamic Subtitle with Query Metadata
+      const subTitleEl = document.getElementById('commoditySectionSubtitle');
+      if (subTitleEl) {
+        const mDesc = comData.field || getCatalogField(comData.measureKey || comData.measure) || { label: 'Nilai' };
+        const gDesc = comData.groupBy || getCatalogField(comData.groupByKey || comData.dimension) || { label: 'Kategori' };
+        const countText = `${comData.matchedReportCount || comData.totalRows || 0} laporan cocok`;
+        
+        if (comData.mode === 'tren') {
+          subTitleEl.innerText = `Menampilkan ${countText} • Tren waktu kronologis untuk ${mDesc.label} (${comData.period?.label || 'Periode Aktif'}).`;
+        } else {
+          subTitleEl.innerText = `Menampilkan ${countText} • Dikelompokkan berdasarkan ${gDesc.label} • Ukuran: ${mDesc.label}.`;
+        }
       }
 
-      // 2. Dynamic Title
+      // 2. Chart Title & Unit Badge
       const chartTitle = document.getElementById('commodityChartTitle');
+      const measureBadge = document.getElementById('chartMeasureBadge');
+      const mDesc = comData.field || getCatalogField(comData.measureKey || comData.measure) || { label: 'Nilai', unit: '' };
+      const gDesc = comData.groupBy || getCatalogField(comData.groupByKey || comData.dimension) || { label: 'Kategori' };
+
       if (chartTitle) {
         if (comData.mode === 'tren') {
-          const measureLabels = {
-            'tanam_vs_panen': 'Tren Benih Tanam & Hasil Panen',
-            'jumlahBenih': 'Tren Populasi Benih Ditanam',
-            'jumlahPanen': 'Tren Volume Hasil Panen',
-            'luasLahanM2': 'Tren Luas Lahan Terkelola',
-            'totalHargaRp': 'Tren Nilai Penjualan Komoditas',
-            'jumlahPenjualanUnit': 'Tren Volume Penjualan Komoditas',
-            'count': 'Tren Frekuensi Laporan'
-          };
-          const labelDesc = measureLabels[comData.measure] || 'Tren Komoditas';
-          const cropName = (comData.selectedCrop && comData.selectedCrop !== 'all') ? comData.selectedCrop : 'Seluruh Komoditas';
-          chartTitle.innerText = `${labelDesc}: ${cropName}`;
+          chartTitle.innerText = `Tren Kronologis: ${mDesc.label}`;
         } else {
-          const dimLabels = {
-            'namaPic': 'Karyawan / PIC',
-            'lokasiKegiatan': 'Lokasi / Sektor',
-            'lokasiBlok': 'Blok Lahan',
-            'jenisKegiatan': 'Jenis Kegiatan',
-            'komoditas': 'Komoditas'
-          };
-          const measureLabels = {
-            'jumlahPanen': 'Hasil Panen (Kg)',
-            'jumlahBenih': 'Benih Ditanam',
-            'luasLahanM2': 'Luas Lahan (m²)',
-            'totalHargaRp': 'Nilai Penjualan (Rp)',
-            'jumlahPenjualanUnit': 'Volume Penjualan (Unit)',
-            'count': 'Frekuensi Laporan',
-            'produktivitasPanen': 'Produktivitas Panen (Kg/m²)',
-            'kerapatanTanam': 'Kerapatan Tanam (Benih/m²)',
-            'hargaRataRata': 'Harga Rata-rata (Rp/Unit)'
-          };
-          const dimText = dimLabels[comData.dimension || 'komoditas'] || 'Dimensi';
-          const measureText = measureLabels[comData.measure || 'jumlahPanen'] || 'Nilai';
-          const cropSuffix = (comData.selectedCrop && comData.selectedCrop !== 'all') ? ` [${comData.selectedCrop}]` : '';
-          chartTitle.innerText = `Perbandingan ${measureText} berdasarkan ${dimText}${cropSuffix}`;
+          chartTitle.innerText = `Distribusi ${mDesc.label} per ${gDesc.label}`;
         }
       }
+      if (measureBadge) {
+        measureBadge.innerText = mDesc.unit ? mDesc.unit.toUpperCase() : 'NILAI';
+      }
 
-      // 3. Sparse Data Verification
+      // 3. Sparse / Empty Data State Check
       let isSparse = false;
       if (comData.mode === 'tren') {
-        const sLabels = comData.singleTrend?.labels || [];
-        const sTotal = comData.singleTrend?.total || 0;
-        if (sLabels.length === 0 || (sLabels.length < 2 && sTotal === 0)) {
-          isSparse = true;
-        }
+        const trendData = comData.trend || comData.singleTrend;
+        const pts = trendData?.points || trendData?.values || [];
+        if (pts.length === 0 || (pts.length === 1 && (trendData.total || 0) === 0)) isSparse = true;
       } else {
-        // Breakdown mode
         const items = comData.breakdown || [];
-        const totalVal = items.reduce((acc, it) => acc + (it.value || 0), 0);
-        if (items.length === 0 || totalVal === 0) {
-          isSparse = true;
-        }
+        if (items.length === 0) isSparse = true;
       }
 
       const sparseEl = document.getElementById('commoditySparseDataState');
       const chartEl = document.getElementById('commodityChartContainer');
+      const tableContainer = document.getElementById('commodityDataTableContainer');
+
       if (sparseEl && chartEl) {
         if (isSparse) {
-          sparseEl.style.display = 'flex';
+          sparseEl.style.display = 'block';
           chartEl.style.display = 'none';
+          if (tableContainer) tableContainer.style.display = 'none';
           if (commodityTrendChartInstance) {
             commodityTrendChartInstance.destroy();
             commodityTrendChartInstance = null;
@@ -1225,64 +1658,36 @@
         } else {
           sparseEl.style.display = 'none';
           chartEl.style.display = 'block';
+          if (tableContainer) tableContainer.style.display = 'block';
           renderCommodityChart(comData);
+          renderAnalyticsResultTable(comData);
         }
       }
 
-      // 4. Dynamic Participation Panel Rendering
+      // 4. Participation Leaderboard Sidebar
       const partTitle = document.getElementById('commodityParticipationTitle');
-      const partSub = document.getElementById('commodityParticipationSubtitle');
       const partContainer = document.getElementById('cropParticipationList');
-
-      if (partTitle && partSub && partContainer) {
-        if (comData.mode === 'tren') {
-          const cropName = (comData.selectedCrop && comData.selectedCrop !== 'all') ? comData.selectedCrop : 'Komoditas';
-          partTitle.innerText = `Partisipasi Staf: ${cropName}`;
-          partSub.innerText = `Karyawan yang melapor untuk komoditas ini:`;
-        } else {
-          if (comData.dimension === 'namaPic') {
-            const cropName = (comData.selectedCrop && comData.selectedCrop !== 'all') ? ` (${comData.selectedCrop})` : '';
-            partTitle.innerText = `Rincian Karyawan Terlibat${cropName}`;
-            partSub.innerText = `Staf pelapor aktif pada cakupan data terpilih:`;
-          } else if (comData.dimension === 'lokasiKegiatan') {
-            partTitle.innerText = 'Sebaran Staf per Sektor Lahan';
-            partSub.innerText = 'Jumlah tenaga kerja unik yang aktif di setiap sektor:';
-          } else {
-            partTitle.innerText = 'Partisipasi Staf per Komoditas';
-            partSub.innerText = 'Jumlah karyawan unik yang membudidayakan tiap komoditas:';
-          }
-        }
-
+      if (partTitle && partContainer) {
         const parts = comData.participation || [];
+        partTitle.innerText = `Partisipasi Staf (${parts.length})`;
+        
         if (parts.length === 0) {
-          partContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8125rem; padding: 1.5rem;">Tidak ada staf tercatat pada filter ini.</div>';
+          partContainer.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.775rem; padding: 1.5rem 0;">Tidak ada staf tercatat pada filter ini.</div>';
         } else {
           partContainer.innerHTML = parts.map(p => `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.65rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
               <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 600; font-size: 0.8125rem; color: #1e293b;">${escapeHtml(p.label)}</span>
-                ${p.sublabel ? `<span style="font-size: 0.725rem; color: #64748b;">${escapeHtml(p.sublabel)}</span>` : ''}
+                <span style="font-weight: 600; font-size: 0.8rem; color: #1e293b;">${escapeHtml(p.label)}</span>
+                ${p.sublabel ? `<span style="font-size: 0.7rem; color: #64748b;">${escapeHtml(p.sublabel)}</span>` : ''}
               </div>
-              <span class="badge badge-normal" style="font-size: 0.75rem; font-weight: 600; white-space: nowrap;">${p.value} ${p.unit || 'Staf'}</span>
+              <span class="badge badge-normal" style="font-size: 0.725rem; font-weight: 600; white-space: nowrap;">${p.value} ${p.unit || 'Laporan'}</span>
             </div>
           `).join('');
         }
       }
-    }
 
-    function switchCropChartView(viewType) {
-      currentCropChartView = viewType;
-      ['btnViewBoth', 'btnViewTanam', 'btnViewPanen'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('active');
-      });
-      if (viewType === 'both') document.getElementById('btnViewBoth')?.classList.add('active');
-      if (viewType === 'tanam') document.getElementById('btnViewTanam')?.classList.add('active');
-      if (viewType === 'panen') document.getElementById('btnViewPanen')?.classList.add('active');
-
-      if (currentCommodityData) {
-        renderCommodityChart(currentCommodityData);
-      }
+      // Update active scope strip
+      renderAnalyticsActiveScopeStrip();
     }
 
     function renderCommodityChart(comData) {
@@ -1293,36 +1698,26 @@
         commodityTrendChartInstance.destroy();
       }
 
-      const palette = [
-        '#15803D', '#2563EB', '#D97706', '#7C3AED', '#0891B2',
-        '#E11D48', '#059669', '#4B5563', '#CA8A04', '#4338CA'
-      ];
+      const mDesc = comData.field || getCatalogField(comData.measureKey || comData.measure) || { label: 'Nilai', format: 'decimal', unit: '' };
+      const palette = ['#15803D', '#2563EB', '#D97706', '#7C3AED', '#0891B2', '#E11D48', '#059669', '#4B5563', '#CA8A04', '#4338CA'];
+
+      const formatMetricValue = (val) => {
+        if (mDesc.format === 'currency') return formatRupiah(val);
+        if (mDesc.format === 'integer') return `${formatNumber(val)} ${mDesc.unit || ''}`.trim();
+        return `${Number(val).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ${mDesc.unit || ''}`.trim();
+      };
 
       if (comData.mode === 'breakdown') {
-        // BAR CHART FOR MULTI-DIMENSIONAL BREAKDOWN
         const items = comData.breakdown || [];
         const labels = items.map(it => it.label);
         const values = items.map(it => it.value);
-        const measure = comData.measure || 'jumlahPanen';
-
-        const formatValueFn = (val) => {
-          if (measure === 'totalHargaRp') return formatRupiah(val);
-          if (measure === 'jumlahPanen') return `${formatNumber(val)} Kg`;
-          if (measure === 'luasLahanM2') return `${formatNumber(val)} m²`;
-          if (measure === 'jumlahBenih') return `${formatNumber(val)} Benih`;
-          if (measure === 'count') return `${formatNumber(val)} Laporan`;
-          if (measure === 'produktivitasPanen') return `${val} Kg/m²`;
-          if (measure === 'kerapatanTanam') return `${val} Benih/m²`;
-          if (measure === 'hargaRataRata') return `${formatRupiah(val)} / Unit`;
-          return formatNumber(val);
-        };
 
         commodityTrendChartInstance = new Chart(ctx, {
           type: 'bar',
           data: {
             labels: labels.length ? labels : ['Tidak Ada Data'],
             datasets: [{
-              label: chartLabelForMeasure(measure),
+              label: mDesc.label,
               data: values.length ? values : [0],
               backgroundColor: palette.slice(0, Math.max(1, labels.length)),
               borderRadius: 6
@@ -1337,8 +1732,8 @@
                 callbacks: {
                   label: function(context) {
                     const it = items[context.dataIndex];
-                    const pctText = it && it.percentage !== undefined ? ` (${it.percentage}%)` : '';
-                    return ' ' + formatValueFn(context.raw) + pctText;
+                    const pctText = it && it.percentage !== undefined ? ` (${it.percentage.toFixed(1)}%)` : '';
+                    return ' ' + formatMetricValue(context.raw) + pctText;
                   }
                 }
               }
@@ -1350,7 +1745,7 @@
                 ticks: {
                   font: { size: 11 },
                   callback: function(val) {
-                    if (measure === 'totalHargaRp') {
+                    if (mDesc.format === 'currency') {
                       if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'M';
                       if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'k';
                       return 'Rp ' + val;
@@ -1358,43 +1753,32 @@
                     return formatNumber(val);
                   }
                 },
-                title: { display: true, text: chartUnitForMeasure(measure), font: { size: 11, weight: 'bold' } }
+                title: { display: true, text: mDesc.unit ? mDesc.unit : 'Nilai', font: { size: 11, weight: 'bold' } }
               }
             }
           }
         });
 
       } else {
-        // LINE CHART FOR TREN MODE (Single Selected Measure)
-        const singleTrend = comData.singleTrend;
-        const labels = singleTrend?.labels || [];
-        const values = singleTrend?.values || [];
-        const measure = comData.measure || 'jumlahBenih';
-
-        const formatVal = (v) => {
-          if (measure === 'totalHargaRp') return formatRupiah(v);
-          if (measure === 'jumlahPanen') return `${formatNumber(v)} Kg`;
-          if (measure === 'luasLahanM2') return `${formatNumber(v)} m²`;
-          if (measure === 'jumlahBenih') return `${formatNumber(v)} Benih`;
-          if (measure === 'count') return `${formatNumber(v)} Laporan`;
-          if (measure === 'produktivitasPanen') return `${v} Kg/m²`;
-          if (measure === 'kerapatanTanam') return `${v} Benih/m²`;
-          if (measure === 'hargaRataRata') return `${formatRupiah(v)} / Unit`;
-          return formatNumber(v);
-        };
+        // TREN MODE
+        const trendData = comData.trend || comData.singleTrend;
+        const labels = trendData?.points ? trendData.points.map(p => p.label) : (trendData?.labels || []);
+        const values = trendData?.points ? trendData.points.map(p => p.value) : (trendData?.values || []);
 
         commodityTrendChartInstance = new Chart(ctx, {
           type: 'line',
           data: {
             labels: labels.length ? labels : ['Tidak Ada Data'],
             datasets: [{
-              label: chartLabelForMeasure(measure),
+              label: mDesc.label,
               data: values.length ? values : [0],
               borderColor: '#15803D',
               backgroundColor: 'rgba(21, 128, 61, 0.12)',
               borderWidth: 2,
               tension: 0.3,
-              fill: true
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6
             }]
           },
           options: {
@@ -1405,7 +1789,7 @@
               tooltip: {
                 callbacks: {
                   label: function(c) {
-                    return ' ' + formatVal(c.raw);
+                    return ' ' + formatMetricValue(c.raw);
                   }
                 }
               }
@@ -1417,7 +1801,7 @@
                 ticks: {
                   font: { size: 11 },
                   callback: function(val) {
-                    if (measure === 'totalHargaRp') {
+                    if (mDesc.format === 'currency') {
                       if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'M';
                       if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'k';
                       return 'Rp ' + val;
@@ -1425,7 +1809,7 @@
                     return formatNumber(val);
                   }
                 },
-                title: { display: true, text: chartUnitForMeasure(measure), font: { size: 11, weight: 'bold' } }
+                title: { display: true, text: mDesc.unit ? mDesc.unit : 'Nilai', font: { size: 11, weight: 'bold' } }
               }
             }
           }
@@ -1433,35 +1817,96 @@
       }
     }
 
-    function chartLabelForMeasure(m) {
-      const map = {
-        'tanam_vs_panen': 'Tanam vs Panen',
-        'jumlahBenih': 'Populasi Benih Ditanam',
-        'jumlahPanen': 'Hasil Panen (Kg)',
-        'luasLahanM2': 'Luas Lahan (m²)',
-        'totalHargaRp': 'Nilai Penjualan (Rp)',
-        'jumlahPenjualanUnit': 'Volume Penjualan (Unit)',
-        'count': 'Frekuensi Laporan',
-        'produktivitasPanen': 'Produktivitas Panen (Kg/m²)',
-        'kerapatanTanam': 'Kerapatan Tanam (Benih/m²)',
-        'hargaRataRata': 'Harga Rata-rata Realisasi'
-      };
-      return map[m] || 'Nilai';
-    }
+    function renderAnalyticsResultTable(comData) {
+      const tbody = document.getElementById('commodityTableBody');
+      const tfoot = document.getElementById('commodityTableFoot');
+      const thDim = document.getElementById('thDimensionName');
+      const thVal = document.getElementById('thMeasureValue');
+      const thPct = document.getElementById('thPercentage');
+      const countLbl = document.getElementById('tableRecordCountLabel');
+      if (!tbody) return;
 
-    function chartUnitForMeasure(m) {
-      const map = {
-        'jumlahBenih': 'Jumlah Benih',
-        'jumlahPanen': 'Kg',
-        'luasLahanM2': 'm²',
-        'totalHargaRp': 'Rupiah (Rp)',
-        'jumlahPenjualanUnit': 'Unit',
-        'count': 'Dokumen Laporan',
-        'produktivitasPanen': 'Kg / m²',
-        'kerapatanTanam': 'Benih / m²',
-        'hargaRataRata': 'Rupiah (Rp)'
+      const mDesc = comData.field || getCatalogField(comData.measureKey || comData.measure) || { label: 'Nilai', format: 'decimal', unit: '' };
+      const gDesc = comData.groupBy || getCatalogField(comData.groupByKey || comData.dimension) || { label: 'Kategori' };
+
+      const formatVal = (val) => {
+        if (mDesc.format === 'currency') return formatRupiah(val);
+        if (mDesc.format === 'integer') return `${formatNumber(val)} ${mDesc.unit || ''}`.trim();
+        return `${Number(val).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ${mDesc.unit || ''}`.trim();
       };
-      return map[m] || '';
+
+      if (comData.mode === 'breakdown') {
+        if (thDim) thDim.innerText = gDesc.label;
+        if (thVal) thVal.innerText = `${mDesc.label} (${mDesc.unit || 'Nilai'})`;
+        if (thPct) thPct.style.display = '';
+
+        const items = comData.breakdown || [];
+        if (countLbl) countLbl.innerText = `${items.length} kelompok ditemukan`;
+
+        const totalVal = items.reduce((acc, it) => acc + (it.value || 0), 0);
+        const totalCount = items.reduce((acc, it) => acc + (it.count || 0), 0);
+
+        tbody.innerHTML = items.map((it, idx) => `
+          <tr>
+            <td style="text-align: center; color: #64748b; font-family: monospace;">${idx + 1}</td>
+            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(it.label)}</td>
+            <td style="text-align: right; font-weight: 600; color: #1e293b; font-family: monospace;">${formatVal(it.value)}</td>
+            <td style="text-align: center;">
+              <span class="badge badge-normal" style="font-size: 0.725rem;">${(it.percentage || 0).toFixed(1)}%</span>
+            </td>
+            <td style="text-align: center; color: #64748b; font-family: monospace;">${it.count || 0}</td>
+          </tr>
+        `).join('');
+
+        if (tfoot) {
+          tfoot.innerHTML = `
+            <tr>
+              <td colspan="2" style="text-align: left; padding: 0.5rem 0.75rem;">TOTAL KESELURUHAN</td>
+              <td style="text-align: right; font-family: monospace; padding: 0.5rem 0.75rem;">${formatVal(totalVal)}</td>
+              <td style="text-align: center; padding: 0.5rem 0.75rem;">100.0%</td>
+              <td style="text-align: center; font-family: monospace; padding: 0.5rem 0.75rem;">${totalCount}</td>
+            </tr>
+          `;
+        }
+
+      } else {
+        // TREN MODE TABLE
+        if (thDim) thDim.innerText = 'Titik Interval Waktu';
+        if (thVal) thVal.innerText = `${mDesc.label} (${mDesc.unit || 'Nilai'})`;
+        if (thPct) thPct.style.display = 'none';
+
+        const trendData = comData.trend || comData.singleTrend;
+        const points = trendData?.points ? trendData.points : (trendData?.labels || []).map((l, i) => ({
+          label: l,
+          value: trendData?.values[i] || 0,
+          count: 1
+        }));
+
+        if (countLbl) countLbl.innerText = `${points.length} interval waktu`;
+        const totalVal = points.reduce((acc, p) => acc + (p.value || 0), 0);
+        const totalCount = points.reduce((acc, p) => acc + (p.count || 0), 0);
+
+        tbody.innerHTML = points.map((p, idx) => `
+          <tr>
+            <td style="text-align: center; color: #64748b; font-family: monospace;">${idx + 1}</td>
+            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.label)}</td>
+            <td style="text-align: right; font-weight: 600; color: #1e293b; font-family: monospace;">${formatVal(p.value)}</td>
+            <td style="display: none;">-</td>
+            <td style="text-align: center; color: #64748b; font-family: monospace;">${p.count || 0}</td>
+          </tr>
+        `).join('');
+
+        if (tfoot) {
+          tfoot.innerHTML = `
+            <tr>
+              <td colspan="2" style="text-align: left; padding: 0.5rem 0.75rem;">TOTAL AKUMULATIF</td>
+              <td style="text-align: right; font-family: monospace; padding: 0.5rem 0.75rem;">${formatVal(totalVal)}</td>
+              <td style="display: none;">100.0%</td>
+              <td style="text-align: center; font-family: monospace; padding: 0.5rem 0.75rem;">${totalCount}</td>
+            </tr>
+          `;
+        }
+      }
     }
 
     // ==========================================
@@ -1890,98 +2335,101 @@
               hasUpaya: false
             }
           ]
-        },
-        inactiveSectors: [
-          { sector: 'Sektor 3', daysInactive: 99, lastReportDate: 'Belum Ada Laporan' },
-          { sector: 'Sektor 4', daysInactive: 99, lastReportDate: 'Belum Ada Laporan' },
-          { sector: 'MPL Jonggol', daysInactive: 99, lastReportDate: 'Belum Ada Laporan' }
-        ]
+        }
       };
     }
 
     function generateMockCommodityAnalysis(params = {}) {
       const mode = params.mode || 'tren';
-      const dimension = params.dimension || 'komoditas';
-      const measure = params.measure || (mode === 'breakdown' ? 'jumlahPanen' : 'jumlahBenih');
+      const dimension = params.groupByKey || params.dimension || 'komoditas';
+      const measure = params.measureKey || params.measure || (mode === 'breakdown' ? 'jumlahPanen' : 'jumlahBenih');
       const sort = params.sort || 'val_desc';
-      const crop = params.cropFilter || 'all';
       const interval = params.interval || 'day';
 
-      const cropList = ['Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'];
+      const cropList = ['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'];
+      const mDesc = getCatalogField(measure) || { key: measure, label: measure, unit: '', format: 'decimal', module: 'Agro' };
+      const gDesc = getCatalogField(dimension) || { key: dimension, label: dimension, module: 'Umum' };
 
       // Sparse data simulation: if specific non-existent filter combination
-      if (params.filters && params.filters.some(f => f.fieldKey === 'bidangDivisi' && f.value === 'Manajemen' && crop === 'Pembibitan Pala')) {
+      if (params.filters && params.filters.some(f => f.fieldKey === 'bidangDivisi' && f.value === 'Manajemen' && f.fieldKey === 'komoditas' && f.value === 'Pembibitan Pala')) {
         return {
           period: { code: params.period || 'this_month', label: 'Bulan Ini (Simulasi)', interval: interval },
+          query: params,
+          field: mDesc,
+          groupBy: gDesc,
           mode: mode,
           dimension: dimension,
           measure: measure,
           sort: sort,
           cropList: cropList,
-          selectedCrop: crop,
-          tanamTrend: null,
-          panenTrend: null,
+          trend: { points: [], total: 0, count: 0 },
           singleTrend: { labels: [], values: [], total: 0 },
           breakdown: [],
           participation: [],
-          scopeMode: mode === 'tren' ? 'crop_specific' : 'multi_dimension',
-          dataPointCount: 0
+          matchedReportCount: 0,
+          totalRows: 0,
+          dataQuality: { totalRowsScanned: 50, matchedRows: 0, ignoredRows: 50, warnings: [] }
         };
       }
 
-      let singleTrend = null;
+      let trend = null;
       let breakdown = [];
       let participation = [];
 
       let labels = ['01/08', '08/08', '15/08', '22/08'];
-      if (interval === 'week') labels = ['Mg 2026-08-03', 'Mg 2026-08-10', 'Mg 2026-08-17', 'Mg 2026-08-24'];
-      else if (interval === 'month') labels = ['2026-05', '2026-06', '2026-07', '2026-08'];
-      else if (interval === 'quarter') labels = ['2025-Q4', '2026-Q1', '2026-Q2', '2026-Q3'];
+      if (interval === 'week') labels = ['Mg 03/08', 'Mg 10/08', 'Mg 17/08', 'Mg 24/08'];
+      else if (interval === 'month') labels = ['Mei 2026', 'Jun 2026', 'Jul 2026', 'Agu 2026'];
+      else if (interval === 'quarter') labels = ['Q4 2025', 'Q1 2026', 'Q2 2026', 'Q3 2026'];
       else if (interval === 'year') labels = ['2024', '2025', '2026'];
 
       if (mode === 'tren') {
-        let sVals = [1500, 2000, 3200, 2800];
-        if (measure === 'totalHargaRp') sVals = [4500000, 6800000, 9200000, 7800000];
-        else if (measure === 'luasLahanM2') sVals = [2000, 2500, 3500, 3000];
+        let sVals = [150, 200, 320, 280];
+        if (measure === 'totalHargaRp' || measure === 'totalHargaTernakRp') sVals = [4500000, 6800000, 9200000, 7800000];
+        else if (measure === 'luasLahanM2' || measure === 'luasLahanPanenM2') sVals = [2000, 2500, 3500, 3000];
         else if (measure === 'jumlahBenih') sVals = [1500, 2000, 3200, 2800];
         else if (measure === 'jumlahPanen') sVals = [600, 950, 1400, 1300];
-        else if (measure === 'jumlahPenjualanUnit') sVals = [500, 850, 1200, 1100];
+        else if (measure === 'populasiTernak') sVals = [25, 28, 30, 32];
+        else if (measure === 'ternakMasukQty') sVals = [4, 2, 5, 3];
+        else if (measure === 'ternakKeluarQty') sVals = [1, 0, 2, 1];
+        else if (measure === 'pakanMasukKg') sVals = [250, 300, 350, 300];
+        else if (measure === 'pakanKeluarKg') sVals = [200, 240, 280, 260];
         else if (measure === 'count') sVals = [4, 6, 9, 7];
         else if (measure === 'produktivitasPanen') sVals = [0.85, 1.2, 1.6, 1.45];
         else if (measure === 'kerapatanTanam') sVals = [4.5, 5.0, 5.8, 5.2];
         else if (measure === 'hargaRataRata') sVals = [7500, 8000, 8500, 8200];
-        singleTrend = { labels: labels, values: sVals, total: Math.round(sVals.reduce((a, b) => a + b, 0) * 100) / 100 };
 
-        // Participation panel scoped to selected crop
+        const totalVal = Math.round(sVals.reduce((a, b) => a + b, 0) * 100) / 100;
+        const pts = labels.map((l, i) => ({
+          key: l,
+          label: l,
+          value: sVals[i] || 0,
+          count: Math.max(1, Math.round((sVals[i] || 1) / 10))
+        }));
+
+        trend = {
+          points: pts,
+          labels: labels,
+          values: sVals,
+          total: totalVal,
+          count: pts.reduce((a, p) => a + p.count, 0)
+        };
+
         participation = [
           { key: 'ALP-01', label: 'Pasrep N', sublabel: 'ALP-01 • Alprof', value: 8, unit: 'Laporan' },
           { key: 'SGA-01', label: 'Ketut', sublabel: 'SGA-01 • SGA (PIC)', value: 5, unit: 'Laporan' },
           { key: 'MNJ-01', label: 'Sadmoko', sublabel: 'MNJ-01 • Manajemen', value: 3, unit: 'Laporan' }
         ];
+
       } else {
-        // MULTI-DIMENSIONAL BREAKDOWN MODE
+        // BREAKDOWN MODE
         if (dimension === 'namaPic') {
-          if (measure === 'jumlahBenih') {
-            const isJagungTebon = crop === 'Jagung Tebon';
-            breakdown = [
-              { key: 'ALP-01', label: 'Pasrep N', value: isJagungTebon ? 15000 : 18500, count: 8, percentage: isJagungTebon ? 50.0 : 42.0 },
-              { key: 'SGA-01', label: 'Ketut', value: isJagungTebon ? 8500 : 12000, count: 5, percentage: isJagungTebon ? 28.3 : 27.3 },
-              { key: 'MNJ-01', label: 'Sadmoko', value: isJagungTebon ? 6500 : 8500, count: 4, percentage: isJagungTebon ? 21.7 : 19.3 },
-              { key: 'SGA-02', label: 'Amas S', value: isJagungTebon ? 0 : 5000, count: 2, percentage: isJagungTebon ? 0 : 11.4 }
-            ].filter(b => b.value > 0);
-          } else if (measure === 'jumlahPanen') {
+          if (measure === 'jumlahPanen') {
             breakdown = [
               { key: 'ALP-01', label: 'Pasrep N', value: 2100, count: 8, percentage: 46.7 },
               { key: 'SGA-01', label: 'Ketut', value: 1400, count: 5, percentage: 31.1 },
               { key: 'MNJ-01', label: 'Sadmoko', value: 1000, count: 4, percentage: 22.2 }
             ];
-          } else if (measure === 'produktivitasPanen') {
-            breakdown = [
-              { key: 'ALP-01', label: 'Pasrep N', value: 1.65, count: 8, percentage: 41.2 },
-              { key: 'SGA-01', label: 'Ketut', value: 1.35, count: 5, percentage: 33.8 },
-              { key: 'MNJ-01', label: 'Sadmoko', value: 1.00, count: 4, percentage: 25.0 }
-            ];
-          } else if (measure === 'totalHargaRp') {
+          } else if (measure === 'totalHargaRp' || measure === 'totalHargaTernakRp') {
             breakdown = [
               { key: 'ALP-01', label: 'Pasrep N', value: 8500000, count: 8, percentage: 45.9 },
               { key: 'SGA-01', label: 'Ketut', value: 6200000, count: 5, percentage: 33.5 },
@@ -1994,129 +2442,132 @@
               { key: 'MNJ-01', label: 'Sadmoko', value: 8, count: 8, percentage: 24.3 }
             ];
           }
-
           participation = [
             { key: 'ALP-01', label: 'Pasrep N', sublabel: 'ALP-01 • Alprof', value: 14, unit: 'Laporan' },
             { key: 'SGA-01', label: 'Ketut', sublabel: 'SGA-01 • SGA (PIC)', value: 11, unit: 'Laporan' },
-            { key: 'MNJ-01', label: 'Sadmoko', sublabel: 'MNJ-01 • Manajemen', value: 8, unit: 'Laporan' },
-            { key: 'SGA-02', label: 'Amas S', sublabel: 'SGA-02 • SGA (PIC)', value: 6, unit: 'Laporan' }
+            { key: 'MNJ-01', label: 'Sadmoko', sublabel: 'MNJ-01 • Manajemen', value: 8, unit: 'Laporan' }
           ];
 
         } else if (dimension === 'lokasiKegiatan') {
           if (measure === 'jumlahPanen') {
             breakdown = [
-              { key: 'Sektor 1 + Ciomas', label: 'Sektor 1 + Ciomas', value: 2400, count: 18, percentage: 53.3 },
-              { key: 'Sektor 2', label: 'Sektor 2', value: 1600, count: 14, percentage: 35.6 },
-              { key: 'Gunung Batu', label: 'Gunung Batu', value: 500, count: 10, percentage: 11.1 }
-            ];
-          } else if (measure === 'produktivitasPanen') {
-            breakdown = [
-              { key: 'Sektor 2', label: 'Sektor 2', value: 1.55, count: 14, percentage: 38.8 },
-              { key: 'Sektor 1 + Ciomas', label: 'Sektor 1 + Ciomas', value: 1.40, count: 18, percentage: 35.0 },
-              { key: 'Gunung Batu', label: 'Gunung Batu', value: 1.05, count: 10, percentage: 26.2 }
+              { key: 'Sektor 1 + Ciomas', label: 'Sektor 1 + Ciomas', value: 2400, count: 18, percentage: 44.4 },
+              { key: 'Sektor 2', label: 'Sektor 2', value: 1600, count: 14, percentage: 29.6 },
+              { key: 'MPL Jonggol', label: 'MPL Jonggol', value: 900, count: 8, percentage: 16.7 },
+              { key: 'Gunung Batu', label: 'Gunung Batu', value: 500, count: 5, percentage: 9.3 }
             ];
           } else {
             breakdown = [
-              { key: 'Sektor 1 + Ciomas', label: 'Sektor 1 + Ciomas', value: 18, count: 18, percentage: 42.9 },
-              { key: 'Sektor 2', label: 'Sektor 2', value: 14, count: 14, percentage: 33.3 },
-              { key: 'Gunung Batu', label: 'Gunung Batu', value: 10, count: 10, percentage: 23.8 }
+              { key: 'Sektor 1 + Ciomas', label: 'Sektor 1 + Ciomas', value: 18, count: 18, percentage: 40.0 },
+              { key: 'Sektor 2', label: 'Sektor 2', value: 14, count: 14, percentage: 31.1 },
+              { key: 'MPL Jonggol', label: 'MPL Jonggol', value: 8, count: 8, percentage: 17.8 },
+              { key: 'Gunung Batu', label: 'Gunung Batu', value: 5, count: 5, percentage: 11.1 }
             ];
           }
-
           participation = [
             { key: 'Sektor 1 + Ciomas', label: 'Sektor 1 + Ciomas', sublabel: '', value: 7, unit: 'Staf' },
             { key: 'Sektor 2', label: 'Sektor 2', sublabel: '', value: 5, unit: 'Staf' },
-            { key: 'Gunung Batu', label: 'Gunung Batu', sublabel: '', value: 3, unit: 'Staf' }
+            { key: 'MPL Jonggol', label: 'MPL Jonggol', sublabel: '', value: 4, unit: 'Staf' }
           ];
 
-        } else if (dimension === 'lokasiBlok') {
+        } else if (dimension === 'jenisTernak') {
           breakdown = [
-            { key: 'Blok A1', label: 'Blok A1', value: 1850, count: 8, percentage: 38.5 },
-            { key: 'Blok B1', label: 'Blok B1', value: 1400, count: 6, percentage: 29.2 },
-            { key: 'Blok B2', label: 'Blok B2', value: 950, count: 5, percentage: 19.8 },
-            { key: 'Blok A2', label: 'Blok A2', value: 600, count: 4, percentage: 12.5 }
+            { key: 'Sapi', label: 'Sapi', value: 18, count: 8, percentage: 45.0 },
+            { key: 'Kambing', label: 'Kambing', value: 14, count: 6, percentage: 35.0 },
+            { key: 'Ayam Broiler', label: 'Ayam Broiler', value: 8, count: 4, percentage: 20.0 }
           ];
-
           participation = [
-            { key: 'Blok A1', label: 'Blok A1', sublabel: 'Sektor 1 + Ciomas', value: 8, unit: 'Laporan' },
-            { key: 'Blok B1', label: 'Blok B1', sublabel: 'Sektor 2', value: 6, unit: 'Laporan' },
-            { key: 'Blok B2', label: 'Blok B2', sublabel: 'Sektor 2', value: 5, unit: 'Laporan' }
+            { key: 'SGA-04', label: 'Hasanudin', sublabel: 'SGA-04 • SGA', value: 8, unit: 'Laporan' },
+            { key: 'SGA-01', label: 'Ketut', sublabel: 'SGA-01 • SGA (PIC)', value: 5, unit: 'Laporan' }
           ];
 
-        } else if (dimension === 'jenisKegiatan') {
+        } else if (dimension === 'tujuanPenggunaan') {
           breakdown = [
-            { key: 'Panen atau penjualan', label: 'Panen atau penjualan', value: 18, count: 18, percentage: 42.9 },
-            { key: 'Tanam atau tebar', label: 'Tanam atau tebar', value: 12, count: 12, percentage: 28.6 },
-            { key: 'Pengawasan, Pemeliharaan', label: 'Pengawasan, Pemeliharaan', value: 8, count: 8, percentage: 19.0 },
-            { key: 'Administrasi', label: 'Administrasi', value: 4, count: 4, percentage: 9.5 }
+            { key: 'MPL Jonggol', label: 'MPL Jonggol', value: 450, count: 6, percentage: 56.3 },
+            { key: 'MPL Cikalong', label: 'MPL Cikalong', value: 250, count: 4, percentage: 31.2 },
+            { key: 'Konsumsi', label: 'Konsumsi Kebun', value: 100, count: 2, percentage: 12.5 }
           ];
-
           participation = [
-            { key: 'Panen atau penjualan', label: 'Panen atau penjualan', sublabel: '', value: 18, unit: 'Laporan' },
-            { key: 'Tanam atau tebar', label: 'Tanam atau tebar', sublabel: '', value: 12, unit: 'Laporan' },
-            { key: 'Pengawasan, Pemeliharaan', label: 'Pengawasan, Pemeliharaan', sublabel: '', value: 8, unit: 'Laporan' },
-            { key: 'Administrasi', label: 'Administrasi', sublabel: '', value: 4, unit: 'Laporan' }
+            { key: 'ALP-02', label: 'Andi Willy', sublabel: 'ALP-02 • Alprof', value: 6, unit: 'Laporan' },
+            { key: 'MNJ-06', label: 'M Fauzan', sublabel: 'MNJ-06 • Manajemen', value: 4, unit: 'Laporan' }
           ];
 
         } else {
-          // Default: Komoditas
+          // Default: komoditas
           if (measure === 'jumlahPanen') {
             breakdown = [
-              { key: 'Pisang', label: 'Pisang', value: 1850, count: 10, percentage: 41.1 },
-              { key: 'Jagung Manis', label: 'Jagung Manis', value: 1200, count: 8, percentage: 26.7 },
-              { key: 'Edamame', label: 'Edamame', value: 950, count: 6, percentage: 21.1 },
-              { key: 'Terong', label: 'Terong', value: 500, count: 4, percentage: 11.1 }
+              { key: 'Alpukat', label: 'Alpukat', value: 2200, count: 12, percentage: 36.7 },
+              { key: 'Pisang', label: 'Pisang', value: 1850, count: 10, percentage: 30.8 },
+              { key: 'Jagung Manis', label: 'Jagung Manis', value: 1200, count: 8, percentage: 20.0 },
+              { key: 'Edamame', label: 'Edamame', value: 750, count: 5, percentage: 12.5 }
             ];
-          } else if (measure === 'produktivitasPanen') {
+          } else if (measure === 'totalHargaRp') {
             breakdown = [
-              { key: 'Pisang', label: 'Pisang', value: 1.48, count: 10, percentage: 37.0 },
-              { key: 'Jagung Manis', label: 'Jagung Manis', value: 1.33, count: 8, percentage: 33.3 },
-              { key: 'Edamame', label: 'Edamame', value: 1.19, count: 6, percentage: 29.7 }
-            ];
-          } else if (measure === 'kerapatanTanam') {
-            breakdown = [
-              { key: 'Edamame', label: 'Edamame', value: 6.0, count: 6, percentage: 46.2 },
-              { key: 'Jagung Manis', label: 'Jagung Manis', value: 5.0, count: 8, percentage: 38.5 },
-              { key: 'Pisang', label: 'Pisang', value: 2.0, count: 10, percentage: 15.4 }
-            ];
-          } else if (measure === 'hargaRataRata') {
-            breakdown = [
-              { key: 'Edamame', label: 'Edamame', value: 14500, count: 6, percentage: 48.3 },
-              { key: 'Pisang', label: 'Pisang', value: 8500, count: 10, percentage: 28.3 },
-              { key: 'Jagung Manis', label: 'Jagung Manis', value: 5500, count: 8, percentage: 18.3 },
-              { key: 'Terong', label: 'Terong', value: 1500, count: 4, percentage: 5.0 }
+              { key: 'Alpukat', label: 'Alpukat', value: 15400000, count: 12, percentage: 47.4 },
+              { key: 'Pisang', label: 'Pisang', value: 9200000, count: 10, percentage: 28.3 },
+              { key: 'Jagung Manis', label: 'Jagung Manis', value: 5100000, count: 8, percentage: 15.7 },
+              { key: 'Edamame', label: 'Edamame', value: 2800000, count: 5, percentage: 8.6 }
             ];
           } else {
             breakdown = [
-              { key: 'Pisang', label: 'Pisang', value: 9200000, count: 10, percentage: 53.2 },
-              { key: 'Jagung Manis', label: 'Jagung Manis', value: 5100000, count: 8, percentage: 29.5 },
-              { key: 'Edamame', label: 'Edamame', value: 3000000, count: 6, percentage: 17.3 }
+              { key: 'Alpukat', label: 'Alpukat', value: 12, count: 12, percentage: 34.3 },
+              { key: 'Pisang', label: 'Pisang', value: 10, count: 10, percentage: 28.6 },
+              { key: 'Jagung Manis', label: 'Jagung Manis', value: 8, count: 8, percentage: 22.8 },
+              { key: 'Edamame', label: 'Edamame', value: 5, count: 5, percentage: 14.3 }
             ];
           }
-
           participation = [
-            { key: 'Pisang', label: 'Pisang', sublabel: '', value: 8, unit: 'Staf' },
-            { key: 'Jagung Manis', label: 'Jagung Manis', sublabel: '', value: 6, unit: 'Staf' },
-            { key: 'Edamame', label: 'Edamame', sublabel: '', value: 5, unit: 'Staf' }
+            { key: 'ALP-01', label: 'Pasrep N', sublabel: 'ALP-01 • Alprof', value: 12, unit: 'Laporan' },
+            { key: 'SGA-01', label: 'Ketut', sublabel: 'SGA-01 • SGA (PIC)', value: 8, unit: 'Laporan' },
+            { key: 'MNJ-06', label: 'M Fauzan', sublabel: 'MNJ-06 • Manajemen', value: 6, unit: 'Laporan' }
           ];
         }
       }
 
+      // Apply Multi-Sort if provided in breakdown
+      if (mode === 'breakdown' && params.sorts && params.sorts.length) {
+        const sorts = params.sorts;
+        breakdown.sort((a, b) => {
+          for (let i = 0; i < sorts.length; i++) {
+            const s = sorts[i];
+            const isAsc = (s.direction === 'asc');
+            let cmp = 0;
+            if (s.fieldKey === 'value') cmp = a.value - b.value;
+            else if (s.fieldKey === 'count') cmp = a.count - b.count;
+            else if (s.fieldKey === 'label') cmp = a.label.localeCompare(b.label, 'id');
+            if (cmp !== 0) return isAsc ? cmp : -cmp;
+          }
+          return a.label.localeCompare(b.label, 'id');
+        });
+      }
+
+      const totalMatched = mode === 'tren' ? (trend?.count || 42) : breakdown.reduce((a, b) => a + (b.count || 0), 0);
+
       return {
         period: { code: params.period || 'this_month', label: 'Bulan Ini (Simulasi)', interval: interval },
+        query: params,
+        field: mDesc,
+        groupBy: gDesc,
         mode: mode,
         dimension: dimension,
         measure: measure,
         sort: sort,
         cropList: cropList,
-        selectedCrop: crop,
-        tanamTrend: null,
-        panenTrend: null,
-        singleTrend: singleTrend,
+        selectedCrop: 'all',
+        trend: trend,
+        singleTrend: trend,
         breakdown: breakdown,
         participation: participation,
         scopeMode: mode === 'tren' ? 'crop_specific' : 'multi_dimension',
-        dataPointCount: mode === 'tren' ? (singleTrend?.labels?.length || 0) : breakdown.length
+        dataPointCount: mode === 'tren' ? (trend?.points?.length || 0) : breakdown.length,
+        totalRows: totalMatched,
+        matchedReportCount: totalMatched,
+        dataQuality: {
+          totalRowsScanned: 50,
+          matchedRows: totalMatched,
+          ignoredRows: 50 - totalMatched,
+          warnings: []
+        }
       };
     }
   </script>

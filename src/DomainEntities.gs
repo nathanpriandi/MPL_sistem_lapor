@@ -787,3 +787,550 @@ function UserRoleItem(data) {
     addedAt: data.addedAt ? String(data.addedAt) : (new Date()).toISOString().split('T')[0]
   };
 }
+
+/**
+ * =========================================================================
+ * CANONICAL ANALYTICS FIELD CATALOG
+ * Defines all searchable dimensions, filterable attributes, aggregatable
+ * measures, units, operators, and metadata across Agro, Ternak, Office, etc.
+ * =========================================================================
+ */
+const ANALYTICS_FIELD_CATALOG = Object.freeze([
+  // --- KONTEKS & IDENTITAS UMUM ---
+  {
+    key: 'idKaryawan',
+    label: 'ID Karyawan',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'namaPic',
+    label: 'Nama PIC / Karyawan',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'bidangDivisi',
+    label: 'Bidang / Divisi',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Manajemen', 'Agro', 'Peternakan', 'Alprof', 'BKO 28', 'Pekerja Harian'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'lokasiKegiatan',
+    label: 'Lokasi / Sektor',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'jenisKegiatan',
+    label: 'Jenis Kegiatan Utama',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Agro', 'Ternak', 'Office', 'Pengawasan'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'timestamp',
+    label: 'Waktu Laporan',
+    type: 'date',
+    unit: '',
+    module: 'Umum',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'kodeKegiatan',
+    label: 'Kode Kegiatan',
+    type: 'string',
+    unit: '',
+    module: 'Umum',
+    roles: ['filter', 'sort'],
+    operators: ['eq', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'severity',
+    label: 'Status Urgensi (Triage)',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['urgent', 'normal'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'reviewed',
+    label: 'Status Verifikasi',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Belum Terverifikasi', 'Terverifikasi'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+
+  // --- MODUL AGRO: TANAM, PERAWATAN, PANEN & DISTRIBUSI ---
+  {
+    key: 'komoditas',
+    label: 'Komoditas Agro',
+    type: 'select',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'statusPengelolaan',
+    label: 'Status Pengelolaan Agro',
+    type: 'select',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Swakelola', 'Petani binaan', 'Kemitraan'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'lokasiBlok',
+    label: 'Blok Lahan Tanam',
+    type: 'string',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'luasLahanM2',
+    label: 'Luas Lahan Tanam',
+    type: 'number',
+    unit: 'm²',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'jumlahBenih',
+    label: 'Populasi Benih Tanam',
+    type: 'number',
+    unit: 'benih',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'tglTanam',
+    label: 'Tanggal Tanam',
+    type: 'date',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'estimasiPanenHst',
+    label: 'Estimasi Panen HST',
+    type: 'number',
+    unit: 'HST',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'populasiAgro',
+    label: 'Populasi Tanaman Aktif',
+    type: 'number',
+    unit: 'tanaman',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'lokasiBlokPanen',
+    label: 'Blok Panen',
+    type: 'string',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'luasLahanPanenM2',
+    label: 'Luas Lahan Panen',
+    type: 'number',
+    unit: 'm²',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'tglPanen',
+    label: 'Tanggal Panen',
+    type: 'date',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'jumlahPanen',
+    label: 'Hasil Panen Agro',
+    type: 'number',
+    unit: 'kg',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'tglPenjualan',
+    label: 'Tanggal Penjualan Agro',
+    type: 'date',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'tujuanDistribusi',
+    label: 'Tujuan Distribusi Agro',
+    type: 'multiselect',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Penjualan', 'Penggunaan Internal'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'jumlahPenjualanUnit',
+    label: 'Volume Penjualan Agro',
+    type: 'number',
+    unit: 'unit',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'hargaSatuanRp',
+    label: 'Harga Satuan Agro',
+    type: 'number',
+    unit: 'Rp/unit',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+  {
+    key: 'totalHargaRp',
+    label: 'Nilai Penjualan Agro',
+    type: 'number',
+    unit: 'Rp',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+  {
+    key: 'jumlahUnitPenggunaan',
+    label: 'Volume Penggunaan Internal Agro',
+    type: 'number',
+    unit: 'unit',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'tujuanPenggunaan',
+    label: 'Lokasi Penggunaan Internal',
+    type: 'multiselect',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+
+  // --- MODUL PETERNAKAN (TERNAK) ---
+  {
+    key: 'jenisTernak',
+    label: 'Jenis Ternak',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Sapi', 'Kambing', 'Domba', 'Ayam Broiler', 'Ayam KUB', 'Ayam KUB Petelur'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'ternakMasukJenis',
+    label: 'Jenis Mutasi Masuk',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Kelahiran', 'Pembelian'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'ternakMasukQty',
+    label: 'Ternak Masuk',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakKeluarJenis',
+    label: 'Jenis Mutasi Keluar',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Kematian', 'Penjualan'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'ternakKeluarQty',
+    label: 'Ternak Keluar',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'populasiTernak',
+    label: 'Populasi Ternak',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'pakanMasukKg',
+    label: 'Pakan Masuk',
+    type: 'number',
+    unit: 'kg',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'pakanKeluarKg',
+    label: 'Pakan Keluar (Konsumsi)',
+    type: 'number',
+    unit: 'kg',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'jenisKomoditasTernak',
+    label: 'Komoditas Ternak',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Daging Sapi', 'Susu Sapi', 'Kambing Hidup', 'Domba Hidup', 'Ayam Hidup', 'Telur Ayam', 'Karkas Ayam', 'Pupuk Kandang / Kohe', 'Lainnya'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'jumlahPenjualanTernak',
+    label: 'Volume Penjualan Ternak',
+    type: 'number',
+    unit: 'ekor/kg/unit',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'hargaSatuanTernakRp',
+    label: 'Harga Satuan Ternak',
+    type: 'number',
+    unit: 'Rp/unit',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+  {
+    key: 'totalHargaTernakRp',
+    label: 'Nilai Penjualan Ternak',
+    type: 'number',
+    unit: 'Rp',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+
+  // --- MODUL OFFICE & PENGAWASAN ---
+  {
+    key: 'officeJenis',
+    label: 'Kategori Office',
+    type: 'select',
+    unit: '',
+    module: 'Office',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Administrasi Umum', 'Keuangan & Pembukuan', 'SDM / HRD', 'Pengadaan / Logistik'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'pengawasan',
+    label: 'Tindakan Pengawasan',
+    type: 'select',
+    unit: '',
+    module: 'Pengawasan',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+
+  // --- METRIK DERIVATIF & AGREGASI UNIVERSAL ---
+  {
+    key: 'count',
+    label: 'Frekuensi Laporan',
+    type: 'number',
+    unit: 'laporan',
+    module: 'Umum',
+    roles: ['measure', 'sort'],
+    aggregations: ['count'],
+    format: 'integer',
+    isDerived: true
+  },
+  {
+    key: 'distinctEmployees',
+    label: 'Jumlah Karyawan Unik',
+    type: 'number',
+    unit: 'orang',
+    module: 'Umum',
+    roles: ['measure', 'sort'],
+    aggregations: ['count_distinct'],
+    format: 'integer',
+    isDerived: true
+  },
+  {
+    key: 'produktivitasPanen',
+    label: 'Produktivitas Panen',
+    type: 'number',
+    unit: 'kg/m²',
+    module: 'Agro',
+    roles: ['measure', 'sort'],
+    aggregations: ['avg'],
+    format: 'decimal',
+    isDerived: true
+  },
+  {
+    key: 'kerapatanTanam',
+    label: 'Kerapatan Tanam',
+    type: 'number',
+    unit: 'benih/m²',
+    module: 'Agro',
+    roles: ['measure', 'sort'],
+    aggregations: ['avg'],
+    format: 'decimal',
+    isDerived: true
+  },
+  {
+    key: 'hargaRataRata',
+    label: 'Harga Rata-Rata Penjualan',
+    type: 'number',
+    unit: 'Rp/unit',
+    module: 'Agro',
+    roles: ['measure', 'sort'],
+    aggregations: ['avg'],
+    format: 'currency',
+    isDerived: true
+  }
+]);
+
+/**
+ * Retrieves the canonical analytics field catalog.
+ * @returns {Array<Object>}
+ */
+function getAnalyticsFieldCatalog() {
+  return ANALYTICS_FIELD_CATALOG;
+}
+
+/**
+ * Looks up a single field descriptor from the catalog by key.
+ * @param {string} key
+ * @returns {Object|null}
+ */
+function getFieldDescriptor(key) {
+  if (!key) return null;
+  const cleanKey = String(key).trim();
+  return ANALYTICS_FIELD_CATALOG.find(f => f.key === cleanKey) || null;
+}
+
