@@ -1648,16 +1648,24 @@ const AnalyticsService = {
     // 2. Apply any secondary filters
     const filteredRows = this.applyFilters(allRows, params.filters);
 
-    // 3. Compute Executive KPIs
-    let totalSalesRp = 0;
+    // 3. Compute Executive KPIs (Agro, Ternak, and Combined)
+    let totalSalesAgroRp = 0;
+    let totalSalesTernakRp = 0;
     let totalPanenKg = 0;
     let totalBenih = 0;
+    let latestReportedLivestockPopulation = 0;
 
     filteredRows.forEach(r => {
-      totalSalesRp += Number(r.totalHargaRp || 0);
+      totalSalesAgroRp += Number(r.totalHargaRp || 0);
+      totalSalesTernakRp += Number(r.totalHargaTernakRp || 0);
       totalPanenKg += Number(r.jumlahPanen || 0);
       totalBenih += Number(r.jumlahBenih || 0);
+      if (Number(r.populasiTernak || 0) > 0) {
+        latestReportedLivestockPopulation = Number(r.populasiTernak);
+      }
     });
+
+    const totalSalesRp = totalSalesAgroRp + totalSalesTernakRp;
 
     // 4. Employee Leaderboard (Requirement 1)
     const employeeLeaderboard = this.getEmployeeReportingLeaderboard(filteredRows);
@@ -1681,18 +1689,16 @@ const AnalyticsService = {
     // 8. Risk & Field Obstacle Intelligence (Requirement 5)
     const riskAnalytics = this.getRiskAndObstacleAnalytics(filteredRows);
 
-    // 9. Inactive Sectors Early Warning (Config-Driven & Canonical Locations)
-    let MASTER_SECTORS = ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'];
-    if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getLokasiOptions) {
-      try {
-        const configuredLocs = ConfigRepository.getLokasiOptions();
-        if (Array.isArray(configuredLocs) && configuredLocs.length > 0) {
-          MASTER_SECTORS = configuredLocs;
-        }
-      } catch (e) {
-        Logger.log('AnalyticsService: could not fetch getLokasiOptions: ' + e);
-      }
-    }
+    // 9. Permanent Executive Decision Snapshot Layer
+    const decisionViews = this.getDecisionViewsData({
+      period: bounds.periodCode,
+      startDate: this.formatDateKey_(dFrom),
+      endDate: this.formatDateKey_(dTo),
+      interval: interval,
+      commodity: params.commodity,
+      priceBasis: params.priceBasis,
+      moduleScope: params.moduleScope
+    }, filteredRows, fullYearRows);
 
     return {
       period: {
@@ -1705,8 +1711,11 @@ const AnalyticsService = {
       kpis: {
         totalReports: filteredRows.length,
         totalSalesRp: totalSalesRp,
+        totalSalesAgroRp: totalSalesAgroRp,
+        totalSalesTernakRp: totalSalesTernakRp,
         totalPanenKg: Math.round(totalPanenKg * 10) / 10,
         totalBenih: totalBenih,
+        reportedLivestockPopulation: latestReportedLivestockPopulation,
         activePlantingsCount: activeHarvests.length,
         readyHarvestsCount: readyHarvestsCount,
         overdueHarvestsCount: overdueHarvestsCount
@@ -1720,7 +1729,602 @@ const AnalyticsService = {
         overdueCount: overdueHarvestsCount
       },
       salesAnalytics: salesAnalytics,
-      riskAnalytics: riskAnalytics
+      riskAnalytics: riskAnalytics,
+      decisionViews: decisionViews.decisionViews
+    };
+  },
+
+  /**
+   * Generates comprehensive permanent decision snapshot views across widgets.
+   * @param {Object} [params]
+   * @param {Array<Object>} [preloadedRows]
+   * @param {Array<Object>} [preloadedFullYearRows]
+   * @returns {Object}
+   */
+  getDecisionViewsData: function(params = {}, preloadedRows = null, preloadedFullYearRows = null) {
+    const bounds = this.resolvePeriodBounds_(params);
+    const dFrom = bounds.dFrom;
+    const dTo = bounds.dTo;
+    const interval = bounds.interval;
+
+    const rows = preloadedRows || SpreadsheetRepository.getAllOperationalRows(dFrom, dTo);
+    const now = new Date();
+
+    let fullYearRows = preloadedFullYearRows;
+    if (!fullYearRows) {
+      fullYearRows = SpreadsheetRepository.getAllOperationalRows(
+        new Date(now.getFullYear() - 1, 0, 1),
+        new Date(now.getFullYear() + 1, 11, 31)
+      );
+    }
+
+    const priceTrend = this.getPriceTrendWidgetData(rows, params, bounds);
+    const harvestByCommodity = this.getHarvestByCommodityWidgetData(rows);
+    const salesByCommodity = this.getSalesByCommodityWidgetData(rows);
+    const harvestPipeline = this.getHarvestPipelineWidgetData(fullYearRows, now);
+    const livestockMovement = this.getLivestockMovementWidgetData(rows, interval);
+    const operationalRisk = this.getOperationalRiskWidgetData(rows);
+
+    return {
+      period: {
+        code: bounds.periodCode,
+        label: bounds.periodLabel,
+        startDate: this.formatDateKey_(dFrom),
+        endDate: this.formatDateKey_(dTo),
+        interval: interval
+      },
+      decisionViews: {
+        priceTrend: priceTrend,
+        harvestByCommodity: harvestByCommodity,
+        salesByCommodity: salesByCommodity,
+        harvestPipeline: harvestPipeline,
+        livestockMovement: livestockMovement,
+        operationalRisk: operationalRisk
+      }
+    };
+  },
+
+  /**
+   * Widget A: Realized Selling Price Trend Engine (Tren Harga Realisasi Penjualan)
+   * Computes weighted realized price: Total Revenue / Valid Sold Quantity.
+   * @param {Array<Object>} rows
+   * @param {Object} params
+   * @param {Object} bounds
+   * @returns {Object}
+   */
+  getPriceTrendWidgetData: function(rows, params = {}, bounds = {}) {
+    const interval = bounds.interval || 'day';
+
+    // 1. Discover all candidate commodities with sales transactions in rows
+    const agroSalesMap = {};
+    const ternakSalesMap = {};
+
+    (rows || []).forEach(r => {
+      // Agro sales check
+      const agroRev = Number(r.totalHargaRp || 0);
+      const agroQty = Number(r.jumlahPenjualanUnit || r.jumlahPanen || 0);
+      const agroCom = r.komoditasPanen || r.komoditasClean || r.komoditas || '';
+      if (agroRev > 0 && agroCom && agroCom !== 'Lainnya') {
+        if (!agroSalesMap[agroCom]) agroSalesMap[agroCom] = { key: agroCom, label: agroCom, module: 'Agro', count: 0, totalRev: 0, totalQty: 0 };
+        agroSalesMap[agroCom].count++;
+        agroSalesMap[agroCom].totalRev += agroRev;
+        agroSalesMap[agroCom].totalQty += agroQty;
+      }
+
+      // Ternak sales check
+      const ternakRev = Number(r.totalHargaTernakRp || 0);
+      const ternakQty = Number(r.jumlahPenjualanTernak || 0);
+      const ternakCom = r.jenisKomoditasTernak || r.jenisTernak || '';
+      if (ternakRev > 0 && ternakCom && ternakCom !== 'Lainnya') {
+        if (!ternakSalesMap[ternakCom]) ternakSalesMap[ternakCom] = { key: ternakCom, label: ternakCom, module: 'Ternak', count: 0, totalRev: 0, totalQty: 0 };
+        ternakSalesMap[ternakCom].count++;
+        ternakSalesMap[ternakCom].totalRev += ternakRev;
+        ternakSalesMap[ternakCom].totalQty += ternakQty;
+      }
+    });
+
+    const availableCommodities = [
+      ...Object.values(agroSalesMap).sort((a, b) => b.count - a.count),
+      ...Object.values(ternakSalesMap).sort((a, b) => b.count - a.count)
+    ];
+
+    // Selected commodity resolution
+    let selCommodity = params.commodity || '';
+    if (!selCommodity && availableCommodities.length > 0) {
+      selCommodity = availableCommodities[0].key;
+    }
+
+    const matchedCom = availableCommodities.find(c => c.key.toLowerCase() === selCommodity.toLowerCase()) || (availableCommodities[0] || null);
+    const isTernak = matchedCom ? matchedCom.module === 'Ternak' : false;
+    const moduleScope = isTernak ? 'Ternak' : 'Agro';
+    const effectiveCommodityKey = matchedCom ? matchedCom.key : selCommodity;
+
+    // Determine unit & price basis
+    let validBases = isTernak ? ['Rp/ekor', 'Rp/kg', 'Rp/unit'] : ['Rp/unit', 'Rp/kg'];
+    let defaultBasis = isTernak ? 'Rp/ekor' : 'Rp/unit';
+    let selBasis = params.priceBasis && validBases.includes(params.priceBasis) ? params.priceBasis : defaultBasis;
+
+    // Filter relevant transaction rows
+    const matchingRows = (rows || []).filter(r => {
+      if (isTernak) {
+        const com = r.jenisKomoditasTernak || r.jenisTernak || '';
+        return com.toLowerCase() === effectiveCommodityKey.toLowerCase() && Number(r.totalHargaTernakRp || 0) > 0;
+      } else {
+        const com = r.komoditasPanen || r.komoditasClean || r.komoditas || '';
+        return com.toLowerCase() === effectiveCommodityKey.toLowerCase() && Number(r.totalHargaRp || 0) > 0;
+      }
+    });
+
+    // Grouping by interval
+    const intervalMap = {};
+    let totalValidRevenue = 0;
+    let totalValidQuantity = 0;
+    let totalTransactions = matchingRows.length;
+    let missingQuantityRowsCount = 0;
+
+    matchingRows.forEach(r => {
+      let d = null;
+      if (!isTernak && r.tglPenjualan_raw instanceof Date) d = r.tglPenjualan_raw;
+      else if (!isTernak && r.tglPenjualan) d = new Date(r.tglPenjualan);
+      else if (r.timestamp_raw instanceof Date) d = r.timestamp_raw;
+      else if (r.timestamp) d = new Date(r.timestamp);
+
+      if (!d || isNaN(d.getTime())) d = bounds.dFrom || new Date();
+
+      let intervalKey = '';
+      let intervalLabel = '';
+      if (interval === 'month') {
+        intervalKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        intervalLabel = intervalKey;
+      } else if (interval === 'week') {
+        const startW = AnalyticsService.getStartOfWeek_(d);
+        intervalKey = AnalyticsService.formatDateKey_(startW);
+        intervalLabel = 'Mg ' + intervalKey;
+      } else {
+        intervalKey = AnalyticsService.formatDateKey_(d);
+        intervalLabel = intervalKey;
+      }
+
+      const rev = isTernak ? Number(r.totalHargaTernakRp || 0) : Number(r.totalHargaRp || 0);
+      let qty = isTernak ? Number(r.jumlahPenjualanTernak || 0) : Number(r.jumlahPenjualanUnit || 0);
+      if (qty <= 0 && !isTernak && Number(r.jumlahPanen || 0) > 0 && selBasis === 'Rp/kg') {
+        qty = Number(r.jumlahPanen);
+      }
+
+      if (qty <= 0) {
+        missingQuantityRowsCount++;
+        qty = 1; // Fallback unit observation
+      }
+
+      if (!intervalMap[intervalKey]) {
+        intervalMap[intervalKey] = {
+          key: intervalKey,
+          label: intervalLabel,
+          revenue: 0,
+          quantity: 0,
+          transactionCount: 0
+        };
+      }
+
+      intervalMap[intervalKey].revenue += rev;
+      intervalMap[intervalKey].quantity += qty;
+      intervalMap[intervalKey].transactionCount += 1;
+
+      totalValidRevenue += rev;
+      totalValidQuantity += qty;
+    });
+
+    const sortedIntervalKeys = Object.keys(intervalMap).sort();
+    const points = sortedIntervalKeys.map(k => {
+      const it = intervalMap[k];
+      const realizedPrice = it.quantity > 0 ? Math.round(it.revenue / it.quantity) : 0;
+      return {
+        key: it.key,
+        label: it.label,
+        realizedPrice: realizedPrice,
+        revenue: it.revenue,
+        quantity: it.quantity,
+        quantityUnit: selBasis.replace('Rp/', ''),
+        transactionCount: it.transactionCount,
+        sourceCompleteness: 'complete'
+      };
+    });
+
+    // Compute delta comparison
+    let latestPrice = 0;
+    let previousPrice = 0;
+    let priceChangePct = 0;
+
+    if (points.length > 0) {
+      latestPrice = points[points.length - 1].realizedPrice;
+      if (points.length > 1) {
+        previousPrice = points[points.length - 2].realizedPrice;
+        if (previousPrice > 0) {
+          priceChangePct = Math.round(((latestPrice - previousPrice) / previousPrice) * 1000) / 10;
+        }
+      }
+    }
+
+    const overallWeightedPrice = totalValidQuantity > 0 ? Math.round(totalValidRevenue / totalValidQuantity) : 0;
+    const warnings = [];
+    if (missingQuantityRowsCount > 0) {
+      warnings.push(`${missingQuantityRowsCount} transaksi tidak mencantumkan kuantitas eksplisit (diasumsikan 1 unit).`);
+    }
+
+    return {
+      status: points.length > 0 ? 'ok' : 'empty',
+      commodity: { key: effectiveCommodityKey, label: effectiveCommodityKey, module: moduleScope },
+      metric: { key: 'hargaRealisasi', label: 'Harga Realisasi Penjualan', unit: selBasis, priceBasis: selBasis },
+      availableCommodities: availableCommodities,
+      validBases: validBases,
+      selectedBasis: selBasis,
+      points: points,
+      summary: {
+        latestPrice: latestPrice,
+        previousPrice: previousPrice,
+        priceChangePct: priceChangePct,
+        overallWeightedPrice: overallWeightedPrice,
+        totalRevenue: totalValidRevenue,
+        totalQuantity: totalValidQuantity,
+        transactionCount: totalTransactions
+      },
+      warnings: warnings
+    };
+  },
+
+  /**
+   * Widget B: Harvest Yield by Commodity (Hasil Panen per Komoditas)
+   * Answers which commodities produced the most harvest output with exact shares.
+   * @param {Array<Object>} rows
+   * @returns {Object}
+   */
+  getHarvestByCommodityWidgetData: function(rows) {
+    const harvestMap = {};
+    let totalHarvestKg = 0;
+
+    (rows || []).forEach(r => {
+      const kg = Number(r.jumlahPanen || 0);
+      const area = Number(r.luasLahanPanenM2 || r.luasLahanM2 || 0);
+      const com = r.komoditasPanen || r.komoditasClean || r.komoditas || '';
+      if (!com || com === 'Lainnya' || kg <= 0) return;
+
+      if (!harvestMap[com]) {
+        harvestMap[com] = {
+          commodity: com,
+          harvestKg: 0,
+          harvestedAreaM2: 0,
+          reportCount: 0
+        };
+      }
+
+      harvestMap[com].harvestKg += kg;
+      harvestMap[com].harvestedAreaM2 += area;
+      harvestMap[com].reportCount += 1;
+      totalHarvestKg += kg;
+    });
+
+    const points = Object.values(harvestMap)
+      .map(it => {
+        const share = totalHarvestKg > 0 ? Math.round((it.harvestKg / totalHarvestKg) * 1000) / 10 : 0;
+        const yieldPerM2 = it.harvestedAreaM2 > 0 ? Math.round((it.harvestKg / it.harvestedAreaM2) * 100) / 100 : null;
+        return {
+          commodity: it.commodity,
+          harvestKg: Math.round(it.harvestKg * 10) / 10,
+          harvestedAreaM2: it.harvestedAreaM2,
+          yieldPerM2: yieldPerM2,
+          reportCount: it.reportCount,
+          share: share
+        };
+      })
+      .sort((a, b) => b.harvestKg - a.harvestKg);
+
+    const topContributor = points.length > 0 ? points[0] : null;
+
+    return {
+      status: points.length > 0 ? 'ok' : 'empty',
+      totalHarvestKg: Math.round(totalHarvestKg * 10) / 10,
+      points: points,
+      topContributor: topContributor,
+      warnings: []
+    };
+  },
+
+  /**
+   * Widget C: Revenue & Sales Volume by Commodity with Internal Distribution
+   * Connects production to commercial outcomes without mixing units.
+   * @param {Array<Object>} rows
+   * @returns {Object}
+   */
+  getSalesByCommodityWidgetData: function(rows) {
+    const agroSalesMap = {};
+    const ternakSalesMap = {};
+    const internalDistMap = {};
+
+    let totalCommercialRevenueRp = 0;
+    let totalCommercialAgroRevenueRp = 0;
+    let totalCommercialTernakRevenueRp = 0;
+    let totalInternalUseUnits = 0;
+
+    (rows || []).forEach(r => {
+      // 1. Agro Commercial Sales
+      const agroRev = Number(r.totalHargaRp || 0);
+      const agroQty = Number(r.jumlahPenjualanUnit || 0);
+      const agroCom = r.komoditasPanen || r.komoditasClean || r.komoditas || '';
+      if (agroRev > 0 && agroCom && agroCom !== 'Lainnya') {
+        if (!agroSalesMap[agroCom]) {
+          agroSalesMap[agroCom] = { commodity: agroCom, module: 'Agro', revenueRp: 0, quantity: 0, quantityUnit: 'unit', reportCount: 0 };
+        }
+        agroSalesMap[agroCom].revenueRp += agroRev;
+        agroSalesMap[agroCom].quantity += agroQty;
+        agroSalesMap[agroCom].reportCount += 1;
+        totalCommercialRevenueRp += agroRev;
+        totalCommercialAgroRevenueRp += agroRev;
+      }
+
+      // 2. Ternak Commercial Sales
+      const ternakRev = Number(r.totalHargaTernakRp || 0);
+      const ternakQty = Number(r.jumlahPenjualanTernak || 0);
+      const ternakCom = r.jenisKomoditasTernak || r.jenisTernak || '';
+      if (ternakRev > 0 && ternakCom && ternakCom !== 'Lainnya') {
+        if (!ternakSalesMap[ternakCom]) {
+          ternakSalesMap[ternakCom] = { commodity: ternakCom, module: 'Ternak', revenueRp: 0, quantity: 0, quantityUnit: 'ekor/unit', reportCount: 0 };
+        }
+        ternakSalesMap[ternakCom].revenueRp += ternakRev;
+        ternakSalesMap[ternakCom].quantity += ternakQty;
+        ternakSalesMap[ternakCom].reportCount += 1;
+        totalCommercialRevenueRp += ternakRev;
+        totalCommercialTernakRevenueRp += ternakRev;
+      }
+
+      // 3. Internal Usage Distribution
+      const internalQty = Number(r.jumlahUnitPenggunaan || 0);
+      const internalDest = r.tujuanPenggunaan || '';
+      if (internalQty > 0 || (internalDest && internalDest !== '-')) {
+        const destKey = internalDest || 'Penggunaan Internal MPL';
+        if (!internalDistMap[destKey]) {
+          internalDistMap[destKey] = { destination: destKey, quantity: 0, reportCount: 0 };
+        }
+        internalDistMap[destKey].quantity += internalQty;
+        internalDistMap[destKey].reportCount += 1;
+        totalInternalUseUnits += internalQty;
+      }
+    });
+
+    const commercialPoints = [
+      ...Object.values(agroSalesMap),
+      ...Object.values(ternakSalesMap)
+    ].map(it => {
+      const realizedPrice = it.quantity > 0 ? Math.round(it.revenueRp / it.quantity) : 0;
+      return {
+        commodity: it.commodity,
+        module: it.module,
+        revenueRp: it.revenueRp,
+        quantity: it.quantity,
+        quantityUnit: it.quantityUnit,
+        realizedPrice: realizedPrice,
+        reportCount: it.reportCount
+      };
+    }).sort((a, b) => b.revenueRp - a.revenueRp);
+
+    const internalUsagePoints = Object.values(internalDistMap)
+      .map(it => ({
+        destination: it.destination,
+        quantity: it.quantity,
+        reportCount: it.reportCount,
+        share: totalInternalUseUnits > 0 ? Math.round((it.quantity / totalInternalUseUnits) * 1000) / 10 : 0
+      }))
+      .sort((a, b) => b.quantity - a.quantity);
+
+    return {
+      status: commercialPoints.length > 0 ? 'ok' : 'empty',
+      totalCommercialRevenueRp: totalCommercialRevenueRp,
+      totalCommercialAgroRevenueRp: totalCommercialAgroRevenueRp,
+      totalCommercialTernakRevenueRp: totalCommercialTernakRevenueRp,
+      totalInternalUseUnits: totalInternalUseUnits,
+      commercialPoints: commercialPoints,
+      internalUsagePoints: internalUsagePoints,
+      warnings: []
+    };
+  },
+
+  /**
+   * Widget D: Harvest Pipeline & Exceptions (Pipeline & Status Panen)
+   * High-priority pipeline summary with active, ready, overdue, and incomplete plantings.
+   * @param {Array<Object>} fullYearRows
+   * @param {Date} now
+   * @returns {Object}
+   */
+  getHarvestPipelineWidgetData: function(fullYearRows, now) {
+    const harvestSchedule = this.getHarvestSchedule(fullYearRows);
+    const activeList = harvestSchedule.filter(s => !s.isAlreadyHarvested);
+
+    const ready7DaysList = activeList.filter(s => s.daysRemaining >= -7 && s.daysRemaining <= 7 && !s.isOverdue);
+    const overdueList = activeList.filter(s => s.isOverdue);
+    const incompleteList = (fullYearRows || []).filter(r => {
+      const isTanam = String(r.jenisKegiatan || '').toLowerCase().includes('tanam');
+      const hasPlanting = isTanam || Number(r.jumlahBenih || 0) > 0;
+      if (!hasPlanting) return false;
+      return !r.tglTanam || !r.estimasiPanenHst;
+    });
+
+    return {
+      status: 'ok',
+      totalActivePlantings: activeList.length,
+      ready7DaysCount: ready7DaysList.length,
+      overdueCount: overdueList.length,
+      incompleteCount: incompleteList.length,
+      topReadyList: ready7DaysList.slice(0, 5),
+      topOverdueList: overdueList.slice(0, 5),
+      warnings: []
+    };
+  },
+
+  /**
+   * Widget E: Livestock Movement & Reported Population (Pergerakan & Populasi Ternak)
+   * Small-multiple layout for population, births, purchases, deaths, sales, feed, and revenue.
+   * @param {Array<Object>} rows
+   * @param {string} interval
+   * @returns {Object}
+   */
+  getLivestockMovementWidgetData: function(rows, interval = 'day') {
+    const hasTernakData = (rows || []).some(r => {
+      return Number(r.populasiTernak || 0) > 0 ||
+        Number(r.ternakMasukQty || 0) > 0 ||
+        Number(r.ternakKeluarQty || 0) > 0 ||
+        Number(r.totalHargaTernakRp || 0) > 0 ||
+        Number(r.pakanMasukKg || 0) > 0 ||
+        Number(r.pakanKeluarKg || 0) > 0 ||
+        String(r.jenisTernak || '').trim().length > 0;
+    });
+
+    if (!hasTernakData) {
+      return {
+        status: 'empty',
+        hasData: false,
+        summary: { totalPopulation: 0, totalEntry: 0, totalExit: 0, totalBirth: 0, totalPurchase: 0, totalDeath: 0, totalSale: 0, totalFeedInKg: 0, totalFeedOutKg: 0, totalRevenueRp: 0 },
+        points: [],
+        warnings: []
+      };
+    }
+
+    let totalBirth = 0;
+    let totalPurchase = 0;
+    let totalEntry = 0;
+    let totalDeath = 0;
+    let totalSale = 0;
+    let totalExit = 0;
+    let totalFeedIn = 0;
+    let totalFeedOut = 0;
+    let totalRevenue = 0;
+    let latestPopulation = 0;
+
+    const intervalMap = {};
+
+    (rows || []).forEach(r => {
+      const birth = Number(r.ternakMasukKelahiranQty || 0);
+      const buy = Number(r.ternakMasukPembelianQty || 0);
+      const entry = Number(r.ternakMasukQty || 0) || (birth + buy);
+
+      const death = Number(r.ternakKeluarKematianQty || 0);
+      const sale = Number(r.ternakKeluarPenjualanQty || 0);
+      const exit = Number(r.ternakKeluarQty || 0) || (death + sale);
+
+      const pop = Number(r.populasiTernak || 0);
+      const feedIn = Number(r.pakanMasukKg || 0);
+      const feedOut = Number(r.pakanKeluarKg || 0);
+      const rev = Number(r.totalHargaTernakRp || 0);
+
+      totalBirth += birth;
+      totalPurchase += buy;
+      totalEntry += entry;
+      totalDeath += death;
+      totalSale += sale;
+      totalExit += exit;
+      totalFeedIn += feedIn;
+      totalFeedOut += feedOut;
+      totalRevenue += rev;
+      if (pop > 0) latestPopulation = pop;
+
+      let d = r.timestamp_raw instanceof Date ? r.timestamp_raw : (r.timestamp ? new Date(r.timestamp) : new Date());
+      if (isNaN(d.getTime())) d = new Date();
+
+      let k = AnalyticsService.formatDateKey_(d);
+      if (interval === 'month') k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      else if (interval === 'week') k = 'Mg ' + AnalyticsService.formatDateKey_(AnalyticsService.getStartOfWeek_(d));
+
+      if (!intervalMap[k]) {
+        intervalMap[k] = {
+          label: k,
+          population: pop,
+          entryQty: 0,
+          birthQty: 0,
+          purchaseQty: 0,
+          exitQty: 0,
+          deathQty: 0,
+          saleQty: 0,
+          feedInKg: 0,
+          feedOutKg: 0,
+          revenueRp: 0
+        };
+      }
+
+      if (pop > 0) intervalMap[k].population = pop;
+      intervalMap[k].entryQty += entry;
+      intervalMap[k].birthQty += birth;
+      intervalMap[k].purchaseQty += buy;
+      intervalMap[k].exitQty += exit;
+      intervalMap[k].deathQty += death;
+      intervalMap[k].saleQty += sale;
+      intervalMap[k].feedInKg += feedIn;
+      intervalMap[k].feedOutKg += feedOut;
+      intervalMap[k].revenueRp += rev;
+    });
+
+    const points = Object.keys(intervalMap).sort().map(k => intervalMap[k]);
+
+    return {
+      status: 'ok',
+      hasData: true,
+      summary: {
+        reportedPopulation: latestPopulation,
+        totalEntry: totalEntry,
+        totalBirth: totalBirth,
+        totalPurchase: totalPurchase,
+        totalExit: totalExit,
+        totalDeath: totalDeath,
+        totalSale: totalSale,
+        totalFeedInKg: Math.round(totalFeedIn * 10) / 10,
+        totalFeedOutKg: Math.round(totalFeedOut * 10) / 10,
+        totalRevenueRp: totalRevenue
+      },
+      points: points,
+      warnings: []
+    };
+  },
+
+  /**
+   * Widget F: Operational Risk & Intervention Status (Risiko Operasional & Kendala)
+   * High-level exception radar and urgent intervention tracking.
+   * @param {Array<Object>} rows
+   * @returns {Object}
+   */
+  getOperationalRiskWidgetData: function(rows) {
+    const rawRisk = this.getRiskAndObstacleAnalytics(rows);
+
+    let urgentCount = 0;
+    let normalCount = 0;
+    let unresolvedCount = 0;
+    const locationMap = {};
+
+    (rows || []).forEach(r => {
+      if (!isActualKendala(r.kendala)) return;
+      const isUrgent = String(r.severity || '').toLowerCase() === 'urgent';
+      if (isUrgent) urgentCount++;
+      else normalCount++;
+
+      if (!r.upaya || String(r.upaya).trim().length === 0) {
+        unresolvedCount++;
+      }
+
+      const loc = r.lokasiKegiatan || 'Lokasi Lain';
+      locationMap[loc] = (locationMap[loc] || 0) + 1;
+    });
+
+    const topLocations = Object.keys(locationMap)
+      .map(k => ({ location: k, count: locationMap[k] }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      status: rawRisk.totalReports > 0 ? 'ok' : 'empty',
+      totalObstacles: rawRisk.reportsWithObstacleCount,
+      urgentCount: urgentCount,
+      normalCount: normalCount,
+      unresolvedCount: unresolvedCount,
+      mitigationRate: rawRisk.mitigationRate,
+      categoryBreakdown: rawRisk.categoryBreakdown,
+      topLocations: topLocations,
+      recentObstacles: rawRisk.activeObstacles.slice(0, 5),
+      warnings: []
     };
   }
 };

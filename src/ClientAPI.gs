@@ -212,6 +212,15 @@ function getCommodityAnalysis(params) {
 }
 
 /**
+ * Returns permanent executive decision views (price trend, harvest yield, revenue/sales volume, harvest pipeline, livestock movement, operational risk).
+ * @param {Object} [params]
+ * @returns {Object}
+ */
+function getDecisionViewsData(params) {
+  return AnalyticsService.getDecisionViewsData(params);
+}
+
+/**
  * Returns dynamic distinct options for any filterable field based on active filters.
  * @param {Object} [params]
  * @returns {Array<{ value: string, count: number }>}

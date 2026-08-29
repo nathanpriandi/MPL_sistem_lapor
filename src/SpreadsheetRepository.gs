@@ -566,6 +566,21 @@ const SpreadsheetRepository = {
       if (fieldKey === 'totalHargaTernakRp' && (normH.includes('totalhargaternak') || normH.includes('nilaiternak'))) {
         return row[idx];
       }
+      if (fieldKey === 'rincianPerawatanAgro' && (normH.includes('rincianperawatan') || normH.includes('perawatanagro'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakMasukKelahiranQty' && (normH.includes('kelahiran') || normH.includes('masukkelahiran'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakMasukPembelianQty' && (normH.includes('pembelian') || normH.includes('masukpembelian'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakKeluarKematianQty' && (normH.includes('kematian') || normH.includes('keluarkematian'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakKeluarPenjualanQty' && (normH.includes('keluarpenjualan') || normH.includes('ternakkeluarpenjualan'))) {
+        return row[idx];
+      }
       if (fieldKey === 'ternakMasukQty' && (normH.includes('ternakmasukqty') || normH.includes('masukekor'))) {
         return row[idx];
       }
@@ -1560,6 +1575,14 @@ const SpreadsheetRepository = {
           item.komoditasTanam = sep.komoditasTanam;
           item.komoditasPanen = sep.komoditasPanen;
           item.komoditas = sep.komoditasTanam || sep.komoditasPanen || item.komoditas || '';
+
+          // Reconcile livestock numeric totals
+          if (!item.ternakMasukQty && (item.ternakMasukKelahiranQty || item.ternakMasukPembelianQty)) {
+            item.ternakMasukQty = (item.ternakMasukKelahiranQty || 0) + (item.ternakMasukPembelianQty || 0);
+          }
+          if (!item.ternakKeluarQty && (item.ternakKeluarKematianQty || item.ternakKeluarPenjualanQty)) {
+            item.ternakKeluarQty = (item.ternakKeluarKematianQty || 0) + (item.ternakKeluarPenjualanQty || 0);
+          }
 
           // Generate unique fingerprint
           const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;

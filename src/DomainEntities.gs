@@ -444,6 +444,7 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'tglTanam', header: 'Tgl_Tanam', type: 'date', getValue: (r) => r.tglTanam || '' },
   { key: 'estimasiPanenHst', header: 'Estimasi_Panen_HST', type: 'number', summable: true, getValue: (r) => r.estimasiPanenHst || r.tglPerkiraanPanen || '' },
   { key: 'populasiAgro', header: 'Populasi_Agro', type: 'number', summable: true, getValue: (r) => r.populasiAgro || 0 },
+  { key: 'rincianPerawatanAgro', header: 'Rincian_Perawatan_Agro', type: 'text', getValue: (r) => r.rincianPerawatanAgro || '' },
   { key: 'lokasiBlokPanen', header: 'Lokasi_Blok_Panen', type: 'text', getValue: (r) => r.lokasiBlokPanen || '' },
   { key: 'luasLahanPanenM2', header: 'Luas_Lahan_Panen_M2', type: 'number', summable: true, getValue: (r) => r.luasLahanPanenM2 || r.luasLahanPanen || '' },
   { key: 'tglPanen', header: 'Tgl_Panen', type: 'date', getValue: (r) => r.tglPanen || '' },
@@ -483,6 +484,8 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
       return txt || 'Tidak Ada';
     } 
   },
+  { key: 'ternakMasukKelahiranQty', header: 'Ternak_Masuk_Kelahiran_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakMasukKelahiranQty) || 0 },
+  { key: 'ternakMasukPembelianQty', header: 'Ternak_Masuk_Pembelian_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakMasukPembelianQty) || 0 },
   { key: 'ternakMasukQty', header: 'Ternak_Masuk_Qty', type: 'number', summable: true, getValue: (r) => parseInt(r.ternakMasukQty, 10) || 0 },
   { 
     key: 'ternakKeluar', 
@@ -510,6 +513,8 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
       return txt || 'Tidak Ada';
     } 
   },
+  { key: 'ternakKeluarKematianQty', header: 'Ternak_Keluar_Kematian_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakKeluarKematianQty) || 0 },
+  { key: 'ternakKeluarPenjualanQty', header: 'Ternak_Keluar_Penjualan_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakKeluarPenjualanQty) || 0 },
   { key: 'ternakKeluarQty', header: 'Ternak_Keluar_Qty', type: 'number', summable: true, getValue: (r) => parseInt(r.ternakKeluarQty, 10) || 0 },
   { key: 'populasiTernak', header: 'Populasi_Ternak', type: 'number', summable: true, getValue: (r) => r.populasiTernak || 0 },
   { key: 'pakanMasukKg', header: 'Pakan_Masuk_Kg', type: 'number', summable: true, getValue: (r) => r.pakanMasukKg || 0 },
@@ -620,6 +625,7 @@ function OperationalReport(data) {
     tglTanam: data.tglTanam || '',
     estimasiPanenHst: parseFloat(data.estimasiPanenHst) || 0,
     populasiAgro: parseFloat(data.populasiAgro) || parseFloat(data.populasi) || 0,
+    rincianPerawatanAgro: data.rincianPerawatanAgro || '',
     tglPanen: data.tglPanen || '',
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,
     tglPenjualan: data.tglPenjualan || '',
@@ -635,10 +641,26 @@ function OperationalReport(data) {
     jenisTernak: data.jenisTernak || '',
     ternakMasuk: data.ternakMasuk || '',
     ternakMasukJenis: data.ternakMasukJenis || data.ternakMasuk || '',
-    ternakMasukQty: parseFloat(data.ternakMasukQty) || 0,
+    ternakMasukKelahiranQty: parseFloat(data.ternakMasukKelahiranQty) || 0,
+    ternakMasukPembelianQty: parseFloat(data.ternakMasukPembelianQty) || 0,
+    ternakMasukQty: (() => {
+      const explicit = parseFloat(data.ternakMasukQty);
+      if (!isNaN(explicit) && explicit > 0) return explicit;
+      const k = parseFloat(data.ternakMasukKelahiranQty) || 0;
+      const p = parseFloat(data.ternakMasukPembelianQty) || 0;
+      return (k + p) || (isNaN(explicit) ? 0 : explicit);
+    })(),
     ternakKeluar: data.ternakKeluar || '',
     ternakKeluarJenis: data.ternakKeluarJenis || data.ternakKeluar || '',
-    ternakKeluarQty: parseFloat(data.ternakKeluarQty) || 0,
+    ternakKeluarKematianQty: parseFloat(data.ternakKeluarKematianQty) || 0,
+    ternakKeluarPenjualanQty: parseFloat(data.ternakKeluarPenjualanQty) || 0,
+    ternakKeluarQty: (() => {
+      const explicit = parseFloat(data.ternakKeluarQty);
+      if (!isNaN(explicit) && explicit > 0) return explicit;
+      const d = parseFloat(data.ternakKeluarKematianQty) || 0;
+      const s = parseFloat(data.ternakKeluarPenjualanQty) || 0;
+      return (d + s) || (isNaN(explicit) ? 0 : explicit);
+    })(),
     populasiTernak: parseFloat(data.populasiTernak) || 0,
     pakanMasukKg: parseFloat(data.pakanMasukKg) || 0,
     pakanKeluarKg: parseFloat(data.pakanKeluarKg) || 0,
@@ -981,6 +1003,16 @@ const ANALYTICS_FIELD_CATALOG = Object.freeze([
     format: 'integer'
   },
   {
+    key: 'rincianPerawatanAgro',
+    label: 'Rincian Perawatan Agro',
+    type: 'string',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['eq', 'neq', 'contains'],
+    format: 'text'
+  },
+  {
     key: 'lokasiBlokPanen',
     label: 'Blok Panen',
     type: 'string',
@@ -1123,8 +1155,30 @@ const ANALYTICS_FIELD_CATALOG = Object.freeze([
     format: 'text'
   },
   {
+    key: 'ternakMasukKelahiranQty',
+    label: 'Ternak Lahir',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakMasukPembelianQty',
+    label: 'Ternak Beli',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
     key: 'ternakMasukQty',
-    label: 'Ternak Masuk',
+    label: 'Total Ternak Masuk',
     type: 'number',
     unit: 'ekor',
     module: 'Ternak',
@@ -1145,8 +1199,30 @@ const ANALYTICS_FIELD_CATALOG = Object.freeze([
     format: 'text'
   },
   {
+    key: 'ternakKeluarKematianQty',
+    label: 'Ternak Mati',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakKeluarPenjualanQty',
+    label: 'Ternak Terjual',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
     key: 'ternakKeluarQty',
-    label: 'Ternak Keluar',
+    label: 'Total Ternak Keluar',
     type: 'number',
     unit: 'ekor',
     module: 'Ternak',

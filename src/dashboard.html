@@ -270,6 +270,374 @@
 
 
         <!-- ==========================================
+             QUICK-ACCESS DECISION & EXPLORER PRESETS
+        ========================================== -->
+        <div class="decision-presets-bar" id="decisionPresetsBar" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+            <span style="font-size: 0.775rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 0.35rem; margin-right: 0.25rem;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
+              <span>Pintasan Eksekutif:</span>
+            </span>
+            <button class="filter-pill active" onclick="applyDecisionPreset('priceTrend')" id="presetBtnPrice">🏷️ Tren Harga</button>
+            <button class="filter-pill" onclick="applyDecisionPreset('harvestYield')" id="presetBtnHarvest">🌾 Hasil Panen</button>
+            <button class="filter-pill" onclick="applyDecisionPreset('salesVolume')" id="presetBtnSales">💰 Penjualan</button>
+            <button class="filter-pill" onclick="applyDecisionPreset('livestock')" id="presetBtnLivestock">🐄 Peternakan</button>
+            <button class="filter-pill" onclick="applyDecisionPreset('harvestSchedule')" id="presetBtnSched">📅 Status Panen</button>
+            <button class="filter-pill" onclick="applyDecisionPreset('risk')" id="presetBtnRisk">⚠️ Risiko &amp; Kendala</button>
+            <button class="filter-pill" onclick="applyDecisionPreset('customExplorer')" id="presetBtnExplorer">🔍 Eksplorasi Lanjutan</button>
+          </div>
+          <div style="font-size: 0.725rem; color: #64748b;" id="decisionPresetStatus">
+            Ringkasan Keputusan Aktif
+          </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION: RINGKASAN KEPUTUSAN EKSEKUTIF (DECISION SNAPSHOT)
+             (Always-visible decision-grade visual widgets)
+        ========================================== -->
+        <div id="decisionSnapshotSection" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0 0 0.2rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                <span>Ringkasan Keputusan Bisnis &amp; Operasional</span>
+              </h2>
+              <p style="font-size: 0.8rem; color: #475569; margin: 0;">Sintesis realisasi harga jual, output panen, arus komersial, pergerakan ternak, dan mitigasi risiko.</p>
+            </div>
+            <span class="badge badge-normal" style="font-size: 0.725rem;">Executive Cockpit</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 1.25rem;" class="decision-widgets-grid">
+            
+            <!-- WIDGET A: TREN HARGA REALISASI PENJUALAN -->
+            <div class="card decision-widget-card" id="widgetPriceTrendCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+                <div>
+                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #2563EB;">🏷️</span>
+                    <span>Tren Harga Realisasi Penjualan</span>
+                  </h3>
+                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Rata-rata tertimbang harga transaksi riil per interval waktu.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                  <select id="priceTrendCommoditySelect" class="filter-select" style="height: 30px; font-size: 0.775rem; min-width: 140px;" onchange="handlePriceTrendCommodityChange(this.value)">
+                    <option value="">Pilih Komoditas...</option>
+                  </select>
+                  <span id="priceTrendBasisBadge" class="badge badge-primary" style="font-size: 0.725rem; font-family: monospace;">Rp/unit</span>
+                </div>
+              </div>
+
+              <!-- Price Key Metrics -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 500;">Harga Terkini</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a; font-family: monospace;" id="priceTrendLatestPrice">Rp 0</div>
+                  <div style="font-size: 0.675rem;" id="priceTrendDeltaBadge">-</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 500;">Rata-rata Tertimbang</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; font-family: monospace;" id="priceTrendWeightedPrice">Rp 0</div>
+                  <div style="font-size: 0.675rem; color: #64748b;" id="priceTrendTxCount">0 Transaksi</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 500;">Total Omzet Komoditas</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #059669; font-family: monospace;" id="priceTrendTotalRevenue">Rp 0</div>
+                  <div style="font-size: 0.675rem; color: #64748b;" id="priceTrendTotalQty">0 Volume</div>
+                </div>
+              </div>
+
+              <!-- Chart Canvas -->
+              <div style="position: relative; height: 180px; width: 100%; margin-bottom: 0.5rem;">
+                <canvas id="priceTrendChart"></canvas>
+              </div>
+
+              <!-- Table Toggle & Container -->
+              <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
+                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('priceTrendTableWrap', 'btnTogglePriceTable')" id="btnTogglePriceTable">
+                  📊 Tampilkan Tabel Data
+                </button>
+              </div>
+              <div id="priceTrendTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <table class="division-table" style="font-size: 0.75rem; width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Interval</th>
+                      <th style="text-align: right;">Harga Rata-rata</th>
+                      <th style="text-align: right;">Kuantitas</th>
+                      <th style="text-align: right;">Total Nilai</th>
+                      <th style="text-align: center;">Transaksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="priceTrendTableBody">
+                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Belum ada data harga</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- WIDGET B: HASIL PANEN PER KOMODITAS -->
+            <div class="card decision-widget-card" id="widgetHarvestYieldCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+                <div>
+                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #D97706;">🌾</span>
+                    <span>Hasil Panen per Komoditas</span>
+                  </h3>
+                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Perbandingan kuantitas panen riil dan pangsa produksi.</p>
+                </div>
+                <span class="badge badge-normal" id="harvestTopContributorBadge" style="font-size: 0.725rem;">Total: 0 Kg</span>
+              </div>
+
+              <!-- Chart Canvas -->
+              <div style="position: relative; height: 215px; width: 100%; margin-bottom: 0.5rem;">
+                <canvas id="harvestYieldChart"></canvas>
+              </div>
+
+              <!-- Table Toggle & Container -->
+              <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
+                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('harvestYieldTableWrap', 'btnToggleHarvestTable')" id="btnToggleHarvestTable">
+                  📊 Tampilkan Tabel Data
+                </button>
+              </div>
+              <div id="harvestYieldTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <table class="division-table" style="font-size: 0.75rem; width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Komoditas</th>
+                      <th style="text-align: right;">Hasil Panen (Kg)</th>
+                      <th style="text-align: center;">Kontribusi</th>
+                      <th style="text-align: right;">Produktivitas (Kg/m²)</th>
+                      <th style="text-align: center;">Laporan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="harvestYieldTableBody">
+                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Belum ada data panen</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- WIDGET C: PENDAPATAN & VOLUME PENJUALAN -->
+            <div class="card decision-widget-card" id="widgetSalesVolumeCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+                <div>
+                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #059669;">💰</span>
+                    <span>Pendapatan dan Volume Penjualan</span>
+                  </h3>
+                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Integrasi output komersial dan alokasi penggunaan internal.</p>
+                </div>
+                <div class="segmented-filter-pills" style="font-size: 0.73rem;">
+                  <button class="filter-pill active" id="btnSaleMetricVal" onclick="switchSalesDecisionMetric('value')">Nilai (Rp)</button>
+                  <button class="filter-pill" id="btnSaleMetricVol" onclick="switchSalesDecisionMetric('volume')">Volume</button>
+                  <button class="filter-pill" id="btnSaleMetricPrice" onclick="switchSalesDecisionMetric('price')">Harga/Unit</button>
+                </div>
+              </div>
+
+              <!-- Sales vs Internal Summary Banner -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                  <span style="font-size: 0.675rem; color: #64748b; font-weight: 500;">Penjualan Komersial:</span>
+                  <div style="font-size: 0.875rem; font-weight: 700; color: #059669; font-family: monospace;" id="salesDecisionCommercialVal">Rp 0</div>
+                </div>
+                <div>
+                  <span style="font-size: 0.675rem; color: #64748b; font-weight: 500;">Penggunaan Internal:</span>
+                  <div style="font-size: 0.875rem; font-weight: 700; color: #2563EB; font-family: monospace;" id="salesDecisionInternalVal">0 Unit</div>
+                </div>
+              </div>
+
+              <!-- Chart Canvas -->
+              <div style="position: relative; height: 180px; width: 100%; margin-bottom: 0.5rem;">
+                <canvas id="salesDecisionChart"></canvas>
+              </div>
+
+              <!-- Table Toggle & Container -->
+              <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
+                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('salesDecisionTableWrap', 'btnToggleSalesTable')" id="btnToggleSalesTable">
+                  📊 Tampilkan Tabel Data
+                </button>
+              </div>
+              <div id="salesDecisionTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <table class="division-table" style="font-size: 0.75rem; width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Komoditas</th>
+                      <th>Modul</th>
+                      <th style="text-align: right;">Nilai Penjualan</th>
+                      <th style="text-align: right;">Volume</th>
+                      <th style="text-align: right;">Harga Satuan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="salesDecisionTableBody">
+                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Belum ada data penjualan</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- WIDGET D: PIPELINE & STATUS PANEN -->
+            <div class="card decision-widget-card" id="widgetHarvestPipelineCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+                <div>
+                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #D97706;">📅</span>
+                    <span>Pipeline &amp; Status Panen (HST)</span>
+                  </h3>
+                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Monitoring plot tanam aktif, estimasi siap panen, dan alert keterlambatan.</p>
+                </div>
+                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #15803D; font-weight: 600;" onclick="scrollToSection('harvestScheduleSection')">
+                  Lihat Jadwal Penuh &darr;
+                </button>
+              </div>
+
+              <!-- Pipeline KPI Tiles -->
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; margin-bottom: 0.85rem;">
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 0.65rem 0.85rem;">
+                  <div style="font-size: 0.725rem; font-weight: 600; color: #166534;">Plot Ditanam Aktif</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #14532d;" id="pipelineActiveCount">0</div>
+                  <div style="font-size: 0.675rem; color: #15803d;">Masa tumbuh &amp; perawatan</div>
+                </div>
+                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 0.65rem 0.85rem;">
+                  <div style="font-size: 0.725rem; font-weight: 600; color: #92400e;">Siap Panen (&le; 7 Hari)</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #78350f;" id="pipelineReadyCount">0</div>
+                  <div style="font-size: 0.675rem; color: #b45309;">Prioritas persiapan logistik</div>
+                </div>
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 0.65rem 0.85rem;">
+                  <div style="font-size: 0.725rem; font-weight: 600; color: #991b1b;">Lewat Estimasi HST</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #7f1d1d;" id="pipelineOverdueCount">0</div>
+                  <div style="font-size: 0.675rem; color: #b91c1c;">Perlu konfirmasi lapangan</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem;">
+                  <div style="font-size: 0.725rem; font-weight: 600; color: #475569;">Data Belum Lengkap</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #334155;" id="pipelineIncompleteCount">0</div>
+                  <div style="font-size: 0.675rem; color: #64748b;">Tanpa tgl tanam / HST</div>
+                </div>
+              </div>
+
+              <!-- Upcoming Ready Mini-List -->
+              <div style="margin-top: auto;">
+                <div style="font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Plot Terdekat Siap Panen:</div>
+                <div id="pipelineMiniList" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 120px; overflow-y: auto;">
+                  <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada plot siap panen dalam waktu dekat.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- WIDGET E: PERGERAKAN & POPULASI TERNAK -->
+            <div class="card decision-widget-card" id="widgetLivestockCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+                <div>
+                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #8B5CF6;">🐄</span>
+                    <span>Pergerakan &amp; Populasi Ternak</span>
+                  </h3>
+                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Dinamika kelahiran, pembelian, kematian, penjualan, dan konsumsi pakan.</p>
+                </div>
+                <span class="badge badge-neutral" id="livestockStatusBadge" style="font-size: 0.725rem;">Modul Peternakan</span>
+              </div>
+
+              <!-- Livestock Small Multiples KPI Row -->
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.75rem;">
+                <div>
+                  <div style="font-size: 0.675rem; color: #64748b;">Populasi Terkini</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a;" id="lsPopVal">0</div>
+                  <div style="font-size: 0.65rem; color: #64748b;">Ekor</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #166534;">Mutasi Masuk</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #15803d;" id="lsEntryVal">+0</div>
+                  <div style="font-size: 0.65rem; color: #64748b;" id="lsEntrySub">0 Lahir | 0 Beli</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #991b1b;">Mutasi Keluar</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #b91c1c;" id="lsExitVal">-0</div>
+                  <div style="font-size: 0.65rem; color: #64748b;" id="lsExitSub">0 Mati | 0 Jual</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #d97706;">Pakan Keluar</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #b45309;" id="lsFeedVal">0</div>
+                  <div style="font-size: 0.65rem; color: #64748b;">Kg Konsumsi</div>
+                </div>
+              </div>
+
+              <!-- Chart Canvas or Empty Container -->
+              <div id="livestockChartContainer" style="position: relative; height: 180px; width: 100%; margin-bottom: 0.5rem;">
+                <canvas id="livestockMovementChart"></canvas>
+              </div>
+
+              <!-- Table Toggle & Container -->
+              <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
+                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('livestockTableWrap', 'btnToggleLivestockTable')" id="btnToggleLivestockTable">
+                  📊 Tampilkan Tabel Data
+                </button>
+              </div>
+              <div id="livestockTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <table class="division-table" style="font-size: 0.75rem; width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Interval</th>
+                      <th style="text-align: right;">Populasi</th>
+                      <th style="text-align: right;">Masuk</th>
+                      <th style="text-align: right;">Keluar</th>
+                      <th style="text-align: right;">Pakan (Kg)</th>
+                      <th style="text-align: right;">Omzet Ternak</th>
+                    </tr>
+                  </thead>
+                  <tbody id="livestockTableBody">
+                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Belum ada data mutasi ternak</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- WIDGET F: RISIKO OPERASIONAL & KENDALA -->
+            <div class="card decision-widget-card" id="widgetOperationalRiskCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+                <div>
+                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #EF4444;">⚠️</span>
+                    <span>Risiko Operasional &amp; Kendala</span>
+                  </h3>
+                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Monitoring kendala lapangan, status urgensi, dan kecepatan mitigasi.</p>
+                </div>
+                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #15803D; font-weight: 600;" onclick="scrollToSection('staffKendalaSection')">
+                  Lihat Feed Kendala &darr;
+                </button>
+              </div>
+
+              <!-- Risk Summary KPI Bar -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem;">
+                <div>
+                  <div style="font-size: 0.675rem; color: #64748b;">Total Kendala</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a;" id="riskTotalObstacles">0</div>
+                  <div style="font-size: 0.65rem; color: #64748b;">Laporan terdeteksi</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #b91c1c;">Kendala URGENT</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #b91c1c;" id="riskUrgentCount">0</div>
+                  <div style="font-size: 0.65rem; color: #991b1b;">Perlu tindakan segera</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #b45309;">Belum Ditangani</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #d97706;" id="riskUnresolvedCount">0</div>
+                  <div style="font-size: 0.65rem; color: #b45309;" id="riskMitigationRate">Mitigasi: 100%</div>
+                </div>
+              </div>
+
+              <!-- Category Distribution Bars -->
+              <div style="margin-top: 0.25rem;">
+                <div style="font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Distribusi Tipe Kendala:</div>
+                <div id="riskCategoryBarsMini" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 140px; overflow-y: auto;">
+                  <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada kendala pada periode ini.</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+        <!-- ==========================================
              SECTION 2: STAFF ACTIVITY & FIELD OBSTACLE INTELLIGENCE
              (Aligned with card #1: Total Laporan)
         ========================================== -->
@@ -921,20 +1289,745 @@
         }
       }
 
-      // 5th KPI removed (kendala card removed from top strip)
+      // 3. Permanent Executive Decision Snapshot Layer (Always Visible)
+      if (data.decisionViews) {
+        renderDecisionSnapshot(data.decisionViews);
+      }
 
-      // 3. Commodity Dropdown & Analysis (Requirement 2)
-      renderCommoditySection(data.commodityAnalysis);
+      // 4. Commodity Explorer (Decoupled & Polling-Safe)
+      const isExplorerCustomized = (typeof currentAnalyticsFilters !== 'undefined' && currentAnalyticsFilters.length > 0) ||
+                                   (typeof currentAnalyticsSorts !== 'undefined' && currentAnalyticsSorts.length > 0);
+      if (!isExplorerCustomized && data.commodityAnalysis) {
+        renderCommoditySection(data.commodityAnalysis);
+      }
 
-      // 4. Smart Harvest Schedule via HST (Requirement 3)
-      renderHarvestScheduleTable(data.harvestSchedule.activeList);
+      // 5. Smart Harvest Schedule via HST (Requirement 3)
+      if (data.harvestSchedule) {
+        renderHarvestScheduleTable(data.harvestSchedule.activeList);
+      }
 
-      // 5. Sales Analytics & Commercial Breakdowns (Requirement 4)
-      renderSalesSection(data.salesAnalytics);
+      // 6. Sales Analytics & Commercial Breakdowns (Requirement 4)
+      if (data.salesAnalytics) {
+        renderSalesSection(data.salesAnalytics);
+      }
 
-      // 6. Staff Activity & Risk Intelligence (Requirement 5)
+      // 7. Staff Activity & Risk Intelligence (Requirement 5)
       if (data.riskAnalytics && data.employeeLeaderboard) {
         renderStaffKendalaSection(data.employeeLeaderboard, data.riskAnalytics);
+      }
+    }
+
+    // ==========================================
+    // PERMANENT EXECUTIVE DECISION SNAPSHOT LAYER
+    // (Widgets A-F + Quick Presets)
+    // ==========================================
+    let _activeDecisionViews = null;
+    let _activeSalesDecisionMetric = 'value'; // 'value' | 'volume' | 'price'
+    let priceTrendChartInstance = null;
+    let harvestYieldChartInstance = null;
+    let salesDecisionChartInstance = null;
+    let livestockMovementChartInstance = null;
+
+    function renderDecisionSnapshot(decisionViews) {
+      if (!decisionViews) return;
+      _activeDecisionViews = decisionViews;
+
+      // 1. Render Widget A: Price Trend
+      if (decisionViews.priceTrend) {
+        renderPriceTrendWidget(decisionViews.priceTrend);
+      }
+
+      // 2. Render Widget B: Harvest Yield by Commodity
+      if (decisionViews.harvestByCommodity) {
+        renderHarvestByCommodityWidget(decisionViews.harvestByCommodity);
+      }
+
+      // 3. Render Widget C: Sales Volume & Internal Distribution
+      if (decisionViews.salesByCommodity) {
+        renderSalesByCommodityWidget(decisionViews.salesByCommodity);
+      }
+
+      // 4. Render Widget D: Harvest Pipeline & Exceptions
+      if (decisionViews.harvestPipeline) {
+        renderHarvestPipelineWidget(decisionViews.harvestPipeline);
+      }
+
+      // 5. Render Widget E: Livestock Movement & Population
+      if (decisionViews.livestockMovement) {
+        renderLivestockMovementWidget(decisionViews.livestockMovement);
+      }
+
+      // 6. Render Widget F: Operational Risk & Obstacle Status
+      if (decisionViews.operationalRisk) {
+        renderOperationalRiskWidget(decisionViews.operationalRisk);
+      }
+    }
+
+    // --- WIDGET A: PRICE TREND ---
+    function renderPriceTrendWidget(data) {
+      if (!data) return;
+
+      // Populate commodities dropdown
+      const selectEl = document.getElementById('priceTrendCommoditySelect');
+      if (selectEl && data.availableCommodities) {
+        const currVal = selectEl.value;
+        const optionsHtml = data.availableCommodities.map(c => `
+          <option value="${escapeHtml(c.key)}" ${c.key === data.commodity.key ? 'selected' : ''}>
+            ${escapeHtml(c.label)} (${c.module})
+          </option>
+        `).join('');
+
+        if (data.availableCommodities.length === 0) {
+          selectEl.innerHTML = '<option value="">Belum ada transaksi penjualan</option>';
+        } else {
+          selectEl.innerHTML = optionsHtml;
+          if (currVal && data.availableCommodities.some(c => c.key === currVal)) {
+            selectEl.value = currVal;
+          }
+        }
+      }
+
+      // Update Basis Badge
+      const basisBadge = document.getElementById('priceTrendBasisBadge');
+      if (basisBadge) {
+        basisBadge.innerText = data.selectedBasis || 'Rp/unit';
+      }
+
+      // Update Sub-KPIs
+      const latestPriceEl = document.getElementById('priceTrendLatestPrice');
+      const deltaEl = document.getElementById('priceTrendDeltaBadge');
+      const weightedPriceEl = document.getElementById('priceTrendWeightedPrice');
+      const txCountEl = document.getElementById('priceTrendTxCount');
+      const totalRevEl = document.getElementById('priceTrendTotalRevenue');
+      const totalQtyEl = document.getElementById('priceTrendTotalQty');
+
+      if (latestPriceEl) latestPriceEl.innerText = formatRupiah(data.summary.latestPrice);
+      if (weightedPriceEl) weightedPriceEl.innerText = formatRupiah(data.summary.overallWeightedPrice);
+      if (txCountEl) txCountEl.innerText = `${formatNumber(data.summary.transactionCount)} Transaksi`;
+      if (totalRevEl) totalRevEl.innerText = formatRupiah(data.summary.totalRevenue);
+      if (totalQtyEl) totalQtyEl.innerText = `${formatNumber(data.summary.totalQuantity)} ${data.selectedBasis.replace('Rp/', '')}`;
+
+      if (deltaEl) {
+        const change = data.summary.priceChangePct || 0;
+        if (change > 0) {
+          deltaEl.innerHTML = `<span style="color: #166534; font-weight: 600;">▲ +${change}% vs sblm</span>`;
+        } else if (change < 0) {
+          deltaEl.innerHTML = `<span style="color: #b91c1c; font-weight: 600;">▼ ${change}% vs sblm</span>`;
+        } else {
+          deltaEl.innerHTML = `<span style="color: #64748b;">- vs sblm</span>`;
+        }
+      }
+
+      // Render Table Data
+      const tableBody = document.getElementById('priceTrendTableBody');
+      if (tableBody) {
+        if (!data.points || data.points.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada data harga transaksi riil untuk komoditas ini.</td></tr>';
+        } else {
+          tableBody.innerHTML = data.points.map(p => `
+            <tr>
+              <td style="font-weight: 500;">${escapeHtml(p.label)}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace;">${formatRupiah(p.realizedPrice)}</td>
+              <td style="text-align: right; font-family: monospace;">${formatNumber(p.quantity)} ${escapeHtml(p.quantityUnit)}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace; color: #059669;">${formatRupiah(p.revenue)}</td>
+              <td style="text-align: center; color: #64748b;">${p.transactionCount}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // Render Chart.js
+      const canvas = document.getElementById('priceTrendChart');
+      if (!canvas) return;
+
+      const labels = (data.points || []).map(p => p.label);
+      const values = (data.points || []).map(p => p.realizedPrice);
+
+      if (priceTrendChartInstance) {
+        priceTrendChartInstance.destroy();
+        priceTrendChartInstance = null;
+      }
+
+      if (labels.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText('Belum ada transaksi harga untuk komoditas terpilih', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+      gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+      gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+      priceTrendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `Harga Realisasi (${data.selectedBasis})`,
+            data: values,
+            borderColor: '#2563EB',
+            backgroundColor: gradient,
+            borderWidth: 2.5,
+            pointBackgroundColor: '#2563EB',
+            pointRadius: 3.5,
+            pointHoverRadius: 5.5,
+            fill: true,
+            tension: 0.25
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const pt = (data.points || [])[context.dataIndex];
+                  return [
+                    ` Harga: ${formatRupiah(context.raw)}`,
+                    ` Volume: ${formatNumber(pt?.quantity || 0)} ${pt?.quantityUnit || ''}`,
+                    ` Omzet: ${formatRupiah(pt?.revenue || 0)}`,
+                    ` Transaksi: ${pt?.transactionCount || 0}`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: '#64748b', maxRotation: 45 }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { size: 10 },
+                color: '#64748b',
+                callback: function(val) {
+                  if (val >= 1000000) return (val / 1000000).toFixed(1) + ' jt';
+                  if (val >= 1000) return (val / 1000).toFixed(0) + ' rb';
+                  return val;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    async function handlePriceTrendCommodityChange(commodityKey) {
+      if (!commodityKey) return;
+      try {
+        const params = {
+          period: currentPeriodCode,
+          startDate: document.getElementById('dashCustomStartDate')?.value || '',
+          endDate: document.getElementById('dashCustomEndDate')?.value || '',
+          commodity: commodityKey
+        };
+
+        if (isLiveServer()) {
+          const res = await runServer('getDecisionViewsData', params);
+          if (res && res.decisionViews && res.decisionViews.priceTrend) {
+            renderPriceTrendWidget(res.decisionViews.priceTrend);
+          }
+        } else {
+          const res = generateMockAnalyticsData(params);
+          if (res && res.decisionViews && res.decisionViews.priceTrend) {
+            renderPriceTrendWidget(res.decisionViews.priceTrend);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to change price trend commodity:', err);
+      }
+    }
+
+    // --- WIDGET B: HARVEST YIELD BY COMMODITY ---
+    function renderHarvestByCommodityWidget(data) {
+      if (!data) return;
+
+      const badge = document.getElementById('harvestTopContributorBadge');
+      if (badge) {
+        if (data.topContributor) {
+          badge.innerText = `Top: ${data.topContributor.commodity} (${data.topContributor.share}%)`;
+          badge.title = `Total Panen: ${formatNumber(data.totalHarvestKg)} Kg`;
+        } else {
+          badge.innerText = `Total: ${formatNumber(data.totalHarvestKg)} Kg`;
+        }
+      }
+
+      // Render Table Data
+      const tableBody = document.getElementById('harvestYieldTableBody');
+      if (tableBody) {
+        if (!data.points || data.points.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada data panen riil pada periode ini.</td></tr>';
+        } else {
+          tableBody.innerHTML = data.points.map(p => `
+            <tr>
+              <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.commodity)}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace; color: #d97706;">${formatNumber(p.harvestKg)}</td>
+              <td style="text-align: center;"><span class="badge badge-normal" style="font-size: 0.7rem;">${p.share}%</span></td>
+              <td style="text-align: right; font-family: monospace;">${p.yieldPerM2 !== null ? p.yieldPerM2 : '-'}</td>
+              <td style="text-align: center; color: #64748b;">${p.reportCount}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // Render Horizontal Bar Chart
+      const canvas = document.getElementById('harvestYieldChart');
+      if (!canvas) return;
+
+      const topPoints = (data.points || []).slice(0, 8);
+      const labels = topPoints.map(p => p.commodity);
+      const values = topPoints.map(p => p.harvestKg);
+
+      if (harvestYieldChartInstance) {
+        harvestYieldChartInstance.destroy();
+        harvestYieldChartInstance = null;
+      }
+
+      if (labels.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText('Belum ada data hasil panen pada periode ini', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      harvestYieldChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Hasil Panen (Kg)',
+            data: values,
+            backgroundColor: '#F59E0B',
+            hoverBackgroundColor: '#D97706',
+            borderRadius: 4,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const pt = topPoints[context.dataIndex];
+                  return [
+                    ` Hasil Panen: ${formatNumber(pt?.harvestKg || 0)} Kg`,
+                    ` Pangsa: ${pt?.share || 0}%`,
+                    ` Laporan: ${pt?.reportCount || 0} catatan`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { size: 10 },
+                color: '#64748b',
+                callback: val => formatNumber(val) + ' Kg'
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 10, weight: 600 }, color: '#1e293b' }
+            }
+          }
+        }
+      });
+    }
+
+    // --- WIDGET C: SALES BY COMMODITY & INTERNAL USE ---
+    function renderSalesByCommodityWidget(data) {
+      if (!data) return;
+
+      const comValEl = document.getElementById('salesDecisionCommercialVal');
+      const intValEl = document.getElementById('salesDecisionInternalVal');
+
+      if (comValEl) comValEl.innerText = formatRupiah(data.totalCommercialRevenueRp);
+      if (intValEl) intValEl.innerText = `${formatNumber(data.totalInternalUseUnits)} Unit / Kg`;
+
+      // Render Table Data
+      const tableBody = document.getElementById('salesDecisionTableBody');
+      if (tableBody) {
+        if (!data.commercialPoints || data.commercialPoints.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada data penjualan komersial pada periode ini.</td></tr>';
+        } else {
+          tableBody.innerHTML = data.commercialPoints.map(p => `
+            <tr>
+              <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.commodity)}</td>
+              <td><span class="badge ${p.module === 'Ternak' ? 'badge-primary' : 'badge-neutral'}" style="font-size: 0.675rem;">${p.module}</span></td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace; color: #059669;">${formatRupiah(p.revenueRp)}</td>
+              <td style="text-align: right; font-family: monospace;">${formatNumber(p.quantity)} ${escapeHtml(p.quantityUnit)}</td>
+              <td style="text-align: right; font-family: monospace; color: #2563EB;">${formatRupiah(p.realizedPrice)}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // Render Bar Chart based on active metric
+      const canvas = document.getElementById('salesDecisionChart');
+      if (!canvas) return;
+
+      const topPoints = (data.commercialPoints || []).slice(0, 8);
+      const labels = topPoints.map(p => p.commodity);
+
+      let chartData = [];
+      let chartLabel = '';
+      let barColor = '#10B981';
+
+      if (_activeSalesDecisionMetric === 'volume') {
+        chartData = topPoints.map(p => p.quantity);
+        chartLabel = 'Volume Terjual';
+        barColor = '#3B82F6';
+      } else if (_activeSalesDecisionMetric === 'price') {
+        chartData = topPoints.map(p => p.realizedPrice);
+        chartLabel = 'Harga Satuan Realisasi (Rp)';
+        barColor = '#8B5CF6';
+      } else {
+        chartData = topPoints.map(p => p.revenueRp);
+        chartLabel = 'Nilai Penjualan (Rp)';
+        barColor = '#059669';
+      }
+
+      if (salesDecisionChartInstance) {
+        salesDecisionChartInstance.destroy();
+        salesDecisionChartInstance = null;
+      }
+
+      if (labels.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText('Belum ada data penjualan pada periode ini', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      salesDecisionChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: chartLabel,
+            data: chartData,
+            backgroundColor: barColor,
+            borderRadius: 4,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const pt = topPoints[context.dataIndex];
+                  if (_activeSalesDecisionMetric === 'volume') {
+                    return ` Volume: ${formatNumber(pt?.quantity || 0)} ${pt?.quantityUnit || ''}`;
+                  } else if (_activeSalesDecisionMetric === 'price') {
+                    return ` Harga Realisasi: ${formatRupiah(pt?.realizedPrice || 0)}`;
+                  } else {
+                    return ` Omzet: ${formatRupiah(pt?.revenueRp || 0)}`;
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: '#64748b', maxRotation: 40 }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { size: 10 },
+                color: '#64748b',
+                callback: function(val) {
+                  if (_activeSalesDecisionMetric === 'volume') return formatNumber(val);
+                  if (val >= 1000000) return (val / 1000000).toFixed(1) + ' jt';
+                  if (val >= 1000) return (val / 1000).toFixed(0) + ' rb';
+                  return val;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function switchSalesDecisionMetric(metric) {
+      _activeSalesDecisionMetric = metric;
+      document.querySelectorAll('#widgetSalesVolumeCard .segmented-filter-pills .filter-pill').forEach(el => el.classList.remove('active'));
+
+      if (metric === 'volume') document.getElementById('btnSaleMetricVol')?.classList.add('active');
+      else if (metric === 'price') document.getElementById('btnSaleMetricPrice')?.classList.add('active');
+      else document.getElementById('btnSaleMetricVal')?.classList.add('active');
+
+      if (_activeDecisionViews && _activeDecisionViews.salesByCommodity) {
+        renderSalesByCommodityWidget(_activeDecisionViews.salesByCommodity);
+      }
+    }
+
+    // --- WIDGET D: HARVEST PIPELINE ---
+    function renderHarvestPipelineWidget(data) {
+      if (!data) return;
+
+      document.getElementById('pipelineActiveCount').innerText = formatNumber(data.totalActivePlantings);
+      document.getElementById('pipelineReadyCount').innerText = formatNumber(data.ready7DaysCount);
+      document.getElementById('pipelineOverdueCount').innerText = formatNumber(data.overdueCount);
+      document.getElementById('pipelineIncompleteCount').innerText = formatNumber(data.incompleteCount);
+
+      const miniListEl = document.getElementById('pipelineMiniList');
+      if (!miniListEl) return;
+
+      const readyPlots = data.topReadyList || [];
+      if (readyPlots.length === 0) {
+        miniListEl.innerHTML = '<div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada plot siap panen dalam 7 hari ke depan.</div>';
+        return;
+      }
+
+      miniListEl.innerHTML = readyPlots.map(p => `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.35rem 0.5rem; font-size: 0.75rem;">
+          <div>
+            <strong style="color: #0f172a;">${escapeHtml(p.komoditas)}</strong>
+            <span style="color: #64748b; font-size: 0.7rem;">(${escapeHtml(p.lokasiSektor || '-')})</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <span style="font-family: monospace; color: #475569;">Est: ${escapeHtml(p.estimasiTglPanen || '-')}</span>
+            <span class="badge badge-normal" style="font-size: 0.675rem; padding: 1px 5px;">${p.statusLabel || 'Siap Panen'}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- WIDGET E: LIVESTOCK MOVEMENT ---
+    function renderLivestockMovementWidget(data) {
+      if (!data) return;
+
+      const popEl = document.getElementById('lsPopVal');
+      const entryEl = document.getElementById('lsEntryVal');
+      const entrySubEl = document.getElementById('lsEntrySub');
+      const exitEl = document.getElementById('lsExitVal');
+      const exitSubEl = document.getElementById('lsExitSub');
+      const feedEl = document.getElementById('lsFeedVal');
+      const badge = document.getElementById('livestockStatusBadge');
+
+      if (popEl) popEl.innerText = formatNumber(data.summary?.reportedPopulation || 0);
+      if (entryEl) entryEl.innerText = `+${formatNumber(data.summary?.totalEntry || 0)}`;
+      if (entrySubEl) entrySubEl.innerText = `${data.summary?.totalBirth || 0} Lahir | ${data.summary?.totalPurchase || 0} Beli`;
+      if (exitEl) exitEl.innerText = `-${formatNumber(data.summary?.totalExit || 0)}`;
+      if (exitSubEl) exitSubEl.innerText = `${data.summary?.totalDeath || 0} Mati | ${data.summary?.totalSale || 0} Jual`;
+      if (feedEl) feedEl.innerText = formatNumber(data.summary?.totalFeedOutKg || 0);
+
+      if (badge) {
+        badge.innerText = data.hasData ? `${formatNumber(data.summary?.totalRevenueRp || 0)} Omzet Ternak` : 'Belum Ada Mutasi';
+      }
+
+      // Render Table Data
+      const tableBody = document.getElementById('livestockTableBody');
+      if (tableBody) {
+        if (!data.points || data.points.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada data pergerakan ternak pada periode ini.</td></tr>';
+        } else {
+          tableBody.innerHTML = data.points.map(p => `
+            <tr>
+              <td style="font-weight: 500;">${escapeHtml(p.label)}</td>
+              <td style="text-align: right; font-family: monospace;">${formatNumber(p.population || 0)}</td>
+              <td style="text-align: right; font-family: monospace; color: #15803d;">+${p.entryQty}</td>
+              <td style="text-align: right; font-family: monospace; color: #b91c1c;">-${p.exitQty}</td>
+              <td style="text-align: right; font-family: monospace; color: #d97706;">${formatNumber(p.feedOutKg)}</td>
+              <td style="text-align: right; font-family: monospace; font-weight: 600;">${formatRupiah(p.revenueRp)}</td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // Render Multi-Dataset Chart
+      const canvas = document.getElementById('livestockMovementChart');
+      if (!canvas) return;
+
+      const labels = (data.points || []).map(p => p.label);
+
+      if (livestockMovementChartInstance) {
+        livestockMovementChartInstance.destroy();
+        livestockMovementChartInstance = null;
+      }
+
+      if (labels.length === 0 || !data.hasData) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText('Belum ada data mutasi peternakan pada periode ini', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      livestockMovementChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Masuk (Lahir+Beli)',
+              data: data.points.map(p => p.entryQty),
+              backgroundColor: '#10B981',
+              borderRadius: 3
+            },
+            {
+              type: 'bar',
+              label: 'Keluar (Mati+Jual)',
+              data: data.points.map(p => p.exitQty),
+              backgroundColor: '#EF4444',
+              borderRadius: 3
+            },
+            {
+              type: 'line',
+              label: 'Populasi',
+              data: data.points.map(p => p.population),
+              borderColor: '#8B5CF6',
+              borderWidth: 2,
+              pointRadius: 3,
+              fill: false,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { boxWidth: 10, font: { size: 10 } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: '#64748b' }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { font: { size: 10 }, color: '#64748b', precision: 0 }
+            },
+            y1: {
+              position: 'right',
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: '#8B5CF6', precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    // --- WIDGET F: OPERATIONAL RISK ---
+    function renderOperationalRiskWidget(data) {
+      if (!data) return;
+
+      document.getElementById('riskTotalObstacles').innerText = formatNumber(data.totalObstacles);
+      document.getElementById('riskUrgentCount').innerText = formatNumber(data.urgentCount);
+      document.getElementById('riskUnresolvedCount').innerText = formatNumber(data.unresolvedCount);
+      document.getElementById('riskMitigationRate').innerText = `Mitigasi: ${data.mitigationRate}%`;
+
+      const barsContainer = document.getElementById('riskCategoryBarsMini');
+      if (!barsContainer) return;
+
+      const categories = data.categoryBreakdown || [];
+      if (categories.length === 0) {
+        barsContainer.innerHTML = '<div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada kendala operasional pada periode ini.</div>';
+        return;
+      }
+
+      const total = categories.reduce((s, c) => s + c.count, 0);
+      const max = Math.max(...categories.map(c => c.count), 1);
+
+      barsContainer.innerHTML = categories.slice(0, 4).map(c => {
+        const pct = Math.round((c.count / max) * 100);
+        return `
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.725rem;">
+              <span style="font-weight: 600; color: #334155;">${escapeHtml(c.category)}</span>
+              <span style="color: #64748b; font-family: monospace;">${c.count} (${total > 0 ? Math.round((c.count / total) * 100) : 0}%)</span>
+            </div>
+            <div style="height: 5px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
+              <div style="height: 100%; width: ${pct}%; background: ${c.color || '#EF4444'}; border-radius: 9999px;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- SUPPORTING CONTROLS ---
+    function toggleWidgetTable(tableWrapId, btnId) {
+      const wrap = document.getElementById(tableWrapId);
+      const btn = document.getElementById(btnId);
+      if (!wrap) return;
+
+      const isHidden = wrap.style.display === 'none';
+      wrap.style.display = isHidden ? 'block' : 'none';
+      if (btn) {
+        btn.innerText = isHidden ? '✕ Tutup Tabel' : '📊 Tampilkan Tabel Data';
+      }
+    }
+
+    function applyDecisionPreset(presetKey) {
+      document.querySelectorAll('#decisionPresetsBar .filter-pill').forEach(el => el.classList.remove('active'));
+
+      const statusEl = document.getElementById('decisionPresetStatus');
+
+      if (presetKey === 'priceTrend') {
+        document.getElementById('presetBtnPrice')?.classList.add('active');
+        scrollToSection('widgetPriceTrendCard');
+        if (statusEl) statusEl.innerText = 'Pintasan: Tren Harga Realisasi';
+      } else if (presetKey === 'harvestYield') {
+        document.getElementById('presetBtnHarvest')?.classList.add('active');
+        scrollToSection('widgetHarvestYieldCard');
+        if (statusEl) statusEl.innerText = 'Pintasan: Hasil Panen Komoditas';
+      } else if (presetKey === 'salesVolume') {
+        document.getElementById('presetBtnSales')?.classList.add('active');
+        scrollToSection('widgetSalesVolumeCard');
+        if (statusEl) statusEl.innerText = 'Pintasan: Penjualan & Distribusi';
+      } else if (presetKey === 'livestock') {
+        document.getElementById('presetBtnLivestock')?.classList.add('active');
+        scrollToSection('widgetLivestockCard');
+        if (statusEl) statusEl.innerText = 'Pintasan: Peternakan & Populasi';
+      } else if (presetKey === 'harvestSchedule') {
+        document.getElementById('presetBtnSched')?.classList.add('active');
+        scrollToSection('harvestScheduleSection');
+        if (statusEl) statusEl.innerText = 'Pintasan: Jadwal Panen Cerdas HST';
+      } else if (presetKey === 'risk') {
+        document.getElementById('presetBtnRisk')?.classList.add('active');
+        scrollToSection('widgetOperationalRiskCard');
+        if (statusEl) statusEl.innerText = 'Pintasan: Risiko & Kendala';
+      } else if (presetKey === 'customExplorer') {
+        document.getElementById('presetBtnExplorer')?.classList.add('active');
+        scrollToSection('commoditySectionCard');
+        if (statusEl) statusEl.innerText = 'Mode Eksplorasi Multi-Dimensi';
       }
     }
 
@@ -2244,6 +3337,112 @@
           { rank: 6, idKaryawan: 'ALP-05', namaPic: 'Mursito', bidangDivisi: 'Alprof', totalLaporan: 1, percentage: 14.3, konsistensi: 'Cukup', badgeClass: 'badge-neutral', terakhirMelapor: '2026-08-28' }
         ],
         commodityAnalysis: generateMockCommodityAnalysis(params),
+        decisionViews: {
+          priceTrend: {
+            status: 'ok',
+            commodity: { key: 'Edamame', label: 'Edamame', module: 'Agro' },
+            metric: { key: 'hargaRealisasi', label: 'Harga Realisasi Penjualan', unit: 'Rp/kg', priceBasis: 'Rp/kg' },
+            availableCommodities: [
+              { key: 'Edamame', label: 'Edamame', module: 'Agro', count: 2 },
+              { key: 'Pisang', label: 'Pisang', module: 'Agro', count: 1 },
+              { key: 'Sapi', label: 'Sapi', module: 'Ternak', count: 1 }
+            ],
+            validBases: ['Rp/kg', 'Rp/unit'],
+            selectedBasis: 'Rp/kg',
+            points: [
+              { key: '2026-08-01', label: '01/08', realizedPrice: 13500, revenue: 4500000, quantity: 333, quantityUnit: 'kg', transactionCount: 1, sourceCompleteness: 'complete' },
+              { key: '2026-08-15', label: '15/08', realizedPrice: 14000, revenue: 5600000, quantity: 400, quantityUnit: 'kg', transactionCount: 1, sourceCompleteness: 'complete' },
+              { key: '2026-08-28', label: '28/08', realizedPrice: 14800, revenue: 4950000, quantity: 334, quantityUnit: 'kg', transactionCount: 1, sourceCompleteness: 'complete' }
+            ],
+            summary: {
+              latestPrice: 14800,
+              previousPrice: 14000,
+              priceChangePct: 5.7,
+              overallWeightedPrice: 14104,
+              totalRevenue: 15050000,
+              totalQuantity: 1067,
+              transactionCount: 3
+            },
+            warnings: []
+          },
+          harvestByCommodity: {
+            status: 'ok',
+            totalHarvestKg: 110,
+            points: [
+              { commodity: 'Pisang', harvestKg: 70, harvestedAreaM2: 100, yieldPerM2: 0.7, reportCount: 2, share: 63.6 },
+              { commodity: 'Edamame', harvestKg: 40, harvestedAreaM2: 50, yieldPerM2: 0.8, reportCount: 1, share: 36.4 }
+            ],
+            topContributor: { commodity: 'Pisang', harvestKg: 70, share: 63.6 },
+            warnings: []
+          },
+          salesByCommodity: {
+            status: 'ok',
+            totalCommercialRevenueRp: 15050000,
+            totalCommercialAgroRevenueRp: 15050000,
+            totalCommercialTernakRevenueRp: 0,
+            totalInternalUseUnits: 50,
+            commercialPoints: [
+              { commodity: 'Edamame', module: 'Agro', revenueRp: 15000000, quantity: 1000, quantityUnit: 'kg', realizedPrice: 15000, reportCount: 1 },
+              { commodity: 'Pisang', module: 'Agro', revenueRp: 50000, quantity: 100, quantityUnit: 'kg', realizedPrice: 500, reportCount: 1 }
+            ],
+            internalUsagePoints: [
+              { destination: 'MPL Jonggol', quantity: 35, reportCount: 1, share: 70.0 },
+              { destination: 'MPL Cikalong', quantity: 15, reportCount: 1, share: 30.0 }
+            ],
+            warnings: []
+          },
+          harvestPipeline: {
+            status: 'ok',
+            totalActivePlantings: 1,
+            ready7DaysCount: 0,
+            overdueCount: 0,
+            incompleteCount: 0,
+            topReadyList: [],
+            topOverdueList: [],
+            warnings: []
+          },
+          livestockMovement: {
+            status: 'ok',
+            hasData: true,
+            summary: {
+              reportedPopulation: 25,
+              totalEntry: 4,
+              totalBirth: 3,
+              totalPurchase: 1,
+              totalExit: 1,
+              totalDeath: 0,
+              totalSale: 1,
+              totalFeedInKg: 300,
+              totalFeedOutKg: 240,
+              totalRevenueRp: 2500000
+            },
+            points: [
+              { label: '01/08', population: 22, entryQty: 2, exitQty: 0, feedOutKg: 60, revenueRp: 0 },
+              { label: '08/08', population: 23, entryQty: 1, exitQty: 0, feedOutKg: 60, revenueRp: 0 },
+              { label: '15/08', population: 24, entryQty: 1, exitQty: 0, feedOutKg: 60, revenueRp: 0 },
+              { label: '22/08', population: 25, entryQty: 0, exitQty: 1, feedOutKg: 60, revenueRp: 2500000 }
+            ],
+            warnings: []
+          },
+          operationalRisk: {
+            status: 'ok',
+            totalObstacles: 1,
+            urgentCount: 1,
+            normalCount: 0,
+            unresolvedCount: 1,
+            mitigationRate: 0.0,
+            categoryBreakdown: [
+              { category: 'Peralatan & Mesin', count: 1, color: '#8b5cf6' }
+            ],
+            topLocations: [
+              { location: 'Sektor 2', count: 1 }
+            ],
+            recentObstacles: [
+              { pic: 'M Fauzan', category: 'Peralatan & Mesin', severity: 'URGENT', kendala: 'Wifi mati' }
+            ],
+            warnings: []
+          }
+        },
         harvestSchedule: {
           activeList: [
             { id: '46f1cd65-13b2-40c9-8e93-15be1b57fb08', komoditas: 'Pisang', lokasiKegiatan: 'Sektor 2', lokasiBlok: 'A1', namaPic: 'M Fauzan', idKaryawan: 'MNJ-06', jumlahBenih: 50, luasLahanM2: 100, tglTanam: '2026-08-27', estimasiPanenHst: 90, tglEstimasiPanen: '2026-11-25', daysRemaining: 89, status: 'growing' }
