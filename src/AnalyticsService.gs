@@ -1593,7 +1593,7 @@ const AnalyticsService = {
       mode: mode,
       dimension: groupByKey, // backwards compatibility
       measure: measureKey, // backwards compatibility
-      sort: (query.sorts[0]?.fieldKey || 'val') + '_' + (query.sorts[0]?.direction || 'desc'), // backwards compatibility
+      sort: ((query.sorts && query.sorts[0] && query.sorts[0].fieldKey) ? query.sorts[0].fieldKey : 'val') + '_' + ((query.sorts && query.sorts[0] && query.sorts[0].direction) ? query.sorts[0].direction : 'desc'), // backwards compatibility
       cropList: cropList,
       selectedCrop: query.cropFilter,
       rawCropFilter: query.cropFilter,

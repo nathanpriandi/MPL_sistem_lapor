@@ -101,8 +101,20 @@ function doGet(e) {
   template.userEmail = userEmail;
   template.currentPage = file;
 
+  const pageTitleMap = {
+    'index': 'Sistem Lapor MPL | Laporan Operasional',
+    'dynamicform': 'Sistem Lapor MPL | Laporan Operasional',
+    'dashboard': 'Sistem Lapor MPL | Dashboard Manajer',
+    'admin': 'Sistem Lapor MPL | Antrean Admin',
+    'forms': 'Sistem Lapor MPL | Pengaturan Form',
+    'employees': 'Sistem Lapor MPL | Pengaturan Karyawan',
+    'roles': 'Sistem Lapor MPL | Hak Akses & Role',
+    'camera': 'Sistem Lapor MPL | Kamera Lapangan'
+  };
+  const finalTitle = pageTitleMap[file] || 'Sistem Lapor MPL';
+
   return template.evaluate()
-    .setTitle('Sistem Pelaporan Digital — Integrated Agriculture')
+    .setTitle(finalTitle)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -130,24 +142,28 @@ function renderAccessRestricted(title, reason) {
     </div>`;
   }
 
+  const screenTitle = title ? `Sistem Lapor MPL | ${title}` : 'Sistem Lapor MPL | Akses Terbatas';
+
   return HtmlService.createHtmlOutput(
     '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<style>' +
-    'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F7F8FA; color: #0F172A; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1rem; }' +
-    '.card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 2rem; max-width: 480px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; }' +
-    '.icon { font-size: 3rem; margin-bottom: 1rem; }' +
-    'h2 { font-size: 1.35rem; color: #B91C1C; margin-bottom: 0.75rem; font-weight: 700; }' +
+    'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F8FAFC; color: #0F172A; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1rem; }' +
+    '.card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 2.25rem; max-width: 480px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); text-align: center; }' +
+    '.brand-logo { margin-bottom: 1.25rem; color: #0F6B3A; }' +
+    '.icon-wrap { width: 56px; height: 56px; margin: 0 auto 1.25rem; background: #FEF2F2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #B91C1C; }' +
+    'h2 { font-size: 1.35rem; color: #0F172A; margin-bottom: 0.75rem; font-weight: 700; }' +
     'p { color: #475569; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem; }' +
-    '.btn { display: inline-block; background: #15803D; color: #FFFFFF; text-decoration: none; padding: 0.65rem 1.25rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; }' +
+    '.btn { display: inline-block; background: #0F6B3A; color: #FFFFFF; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: background 0.15s; }' +
+    '.btn:hover { background: #0B542D; }' +
     '</style></head><body>' +
     '<div class="card">' +
-    '<div class="icon">🔒</div>' +
-    '<h2>' + title + '</h2>' +
+    '<div class="icon-wrap"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>' +
+    '<h2>' + (title || 'Akses Terbatas') + '</h2>' +
     emailBanner +
     '<p>' + reason + '</p>' +
-    '<button onclick="' + backAction + '" class="btn">Kembali ke Form Publik</button>' +
+    '<button onclick="' + backAction + '" class="btn">Kembali ke Form Laporan</button>' +
     '</div></body></html>'
-  ).setTitle(title);
+  ).setTitle(screenTitle);
 }
 
 /**
@@ -157,21 +173,29 @@ function renderAccessRestricted(title, reason) {
  * @returns {string}
  */
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  try {
+    return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  } catch (err) {
+    Logger.log('include error for ' + filename + ': ' + err.toString());
+    return '';
+  }
 }
 
 /**
  * Injects client configuration variables into a script tag preceding app.html contents.
  * @param {string} webAppUrl 
- * @param {string} urgentKeywordsJson 
- * @param {string} warningKeywordsJson 
  * @returns {string}
  */
 function includeApp(webAppUrl) {
   const scriptTag = '<script>\n' +
     '  window.SERVER_WEB_APP_URL = ' + JSON.stringify(webAppUrl || '') + ';\n' +
     '</script>\n';
-  return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
+  try {
+    return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
+  } catch (err) {
+    Logger.log('includeApp error: ' + err.toString());
+    return scriptTag;
+  }
 }
 
 /**
@@ -182,22 +206,27 @@ function includeApp(webAppUrl) {
  * @returns {string}
  */
 function includeHeader(userRole, currentPage, webAppUrl) {
-  const template = HtmlService.createTemplateFromFile('header');
-  template.userRole = userRole;
-  template.currentPage = currentPage;
-  template.webAppUrl = webAppUrl;
+  try {
+    const template = HtmlService.createTemplateFromFile('header');
+    template.userRole = userRole || null;
+    template.currentPage = currentPage || 'index';
+    template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
 
-  let userEmail = '';
-  if (userRole) {
-    try {
-      userEmail = (Session.getActiveUser().getEmail() || '').trim();
-    } catch (e) {
-      userEmail = '';
+    let userEmail = '';
+    if (userRole) {
+      try {
+        userEmail = (Session.getActiveUser().getEmail() || '').trim();
+      } catch (e) {
+        userEmail = '';
+      }
     }
-  }
-  template.userEmail = userEmail;
+    template.userEmail = userEmail;
 
-  return template.evaluate().getContent();
+    return template.evaluate().getContent();
+  } catch (err) {
+    Logger.log('includeHeader error: ' + err.toString());
+    return '';
+  }
 }
 
 /**
@@ -208,19 +237,24 @@ function includeHeader(userRole, currentPage, webAppUrl) {
  * @returns {string}
  */
 function includeSidebar(userRole, currentPage, webAppUrl) {
-  const template = HtmlService.createTemplateFromFile('sidebar');
-  template.userRole = userRole || '';
-  template.currentPage = currentPage || '';
-  template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
-
-  let userEmail = '';
   try {
-    userEmail = (Session.getActiveUser().getEmail() || '').trim();
-  } catch (e) {
-    userEmail = '';
-  }
-  template.userEmail = userEmail;
+    const template = HtmlService.createTemplateFromFile('sidebar');
+    template.userRole = userRole || '';
+    template.currentPage = currentPage || '';
+    template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
 
-  return template.evaluate().getContent();
+    let userEmail = '';
+    try {
+      userEmail = (Session.getActiveUser().getEmail() || '').trim();
+    } catch (e) {
+      userEmail = '';
+    }
+    template.userEmail = userEmail;
+
+    return template.evaluate().getContent();
+  } catch (err) {
+    Logger.log('includeSidebar error: ' + err.toString());
+    return '';
+  }
 }
 

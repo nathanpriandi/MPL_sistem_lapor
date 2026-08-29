@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Executive Manager Dashboard — Sistem Pelaporan Digital</title>
+  <title>Sistem Lapor MPL | Dashboard Manajer</title>
   <?!= include('style'); ?>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -109,7 +109,7 @@
             <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div class="topbar-breadcrumb">
-            <span class="breadcrumb-root">Konsol Internal</span>
+            <span class="breadcrumb-root">Sistem Lapor MPL</span>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">Dashboard Manajer</span>
           </div>
@@ -2240,8 +2240,10 @@
 
     function setCommodityMode(mode) {
       currentCommodityMode = mode;
-      document.getElementById('btnModeTren')?.classList.toggle('active', mode === 'tren');
-      document.getElementById('btnModeBreakdown')?.classList.toggle('active', mode === 'breakdown');
+      const btnTren = document.getElementById('btnModeTren');
+      if (btnTren) btnTren.classList.toggle('active', mode === 'tren');
+      const btnBreakdown = document.getElementById('btnModeBreakdown');
+      if (btnBreakdown) btnBreakdown.classList.toggle('active', mode === 'breakdown');
 
       const dimGroup = document.getElementById('comDimensionGroup');
       const sortBtn = document.getElementById('btnToggleSortBuilder');
@@ -2619,23 +2621,33 @@
     // DATA FETCHING & RENDERING
     // ==========================================
     async function fetchCommodityCardData() {
-      const periodVal = document.getElementById('comLocalPeriod')?.value || 'inherit';
+      const localPeriodEl = document.getElementById('comLocalPeriod');
+      const periodVal = localPeriodEl ? localPeriodEl.value : 'inherit';
       const effectivePeriod = periodVal === 'inherit' ? currentPeriodCode : periodVal;
       
       let sDate = '';
       let eDate = '';
       if (periodVal === 'inherit') {
-        sDate = document.getElementById('dashCustomStartDate')?.value || '';
-        eDate = document.getElementById('dashCustomEndDate')?.value || '';
+        const startEl = document.getElementById('dashCustomStartDate');
+        const endEl = document.getElementById('dashCustomEndDate');
+        sDate = startEl ? startEl.value : '';
+        eDate = endEl ? endEl.value : '';
       } else if (periodVal === 'custom') {
-        sDate = document.getElementById('comCustomStart')?.value || '';
-        eDate = document.getElementById('comCustomEnd')?.value || '';
+        const startEl = document.getElementById('comCustomStart');
+        const endEl = document.getElementById('comCustomEnd');
+        sDate = startEl ? startEl.value : '';
+        eDate = endEl ? endEl.value : '';
       }
 
-      const intervalVal = document.getElementById('comLocalInterval')?.value || 'day';
-      const dimVal = document.getElementById('comDimensionSelect')?.value || currentCommodityScope.groupByKey || 'komoditas';
-      const measureVal = document.getElementById('comMeasureSelect')?.value || currentCommodityScope.measureKey || 'jumlahPanen';
-      const aggVal = document.getElementById('comAggregationSelect')?.value || 'sum';
+      const intEl = document.getElementById('comLocalInterval');
+      const dimEl = document.getElementById('comDimensionSelect');
+      const measEl = document.getElementById('comMeasureSelect');
+      const aggEl = document.getElementById('comAggregationSelect');
+
+      const intervalVal = intEl ? intEl.value : 'day';
+      const dimVal = (dimEl && dimEl.value) ? dimEl.value : (currentCommodityScope.groupByKey || 'komoditas');
+      const measureVal = (measEl && measEl.value) ? measEl.value : (currentCommodityScope.measureKey || 'jumlahPanen');
+      const aggVal = aggEl ? aggEl.value : 'sum';
 
       const params = {
         period: effectivePeriod,
@@ -2750,6 +2762,206 @@
 
       // Update active scope strip
       renderAnalyticsActiveScopeStrip();
+    }
+
+    function renderCommodityChart(data) {
+      const canvas = document.getElementById('commodityTrendChart');
+      if (!canvas) return;
+
+      if (commodityTrendChartInstance) {
+        commodityTrendChartInstance.destroy();
+        commodityTrendChartInstance = null;
+      }
+
+      if (typeof Chart === 'undefined') {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'center';
+        ctx.fillText('Pratinjau visual memerlukan Chart.js. Data ditampilkan pada tabel di bawah.', canvas.width / 2, canvas.height / 2);
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      const isTren = (data.mode === 'tren');
+      const mDesc = data.field || getCatalogField(data.measureKey || data.measure) || { label: 'Nilai', unit: '' };
+      const isRupiah = String(data.measureKey || data.measure || '').toLowerCase().includes('rp') || String(data.measureKey || data.measure || '').toLowerCase().includes('harga');
+
+      if (isTren) {
+        const trendData = data.trend || data.singleTrend || { labels: [], values: [] };
+        const labels = trendData.labels || (trendData.points || []).map(p => p.label || p.date) || [];
+        const values = trendData.values || (trendData.points || []).map(p => Number(p.value || p.jumlahPanen || p.amount || 0)) || [];
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+        gradient.addColorStop(0, 'rgba(15, 107, 58, 0.28)');
+        gradient.addColorStop(1, 'rgba(15, 107, 58, 0.01)');
+
+        commodityTrendChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: mDesc.label,
+              data: values,
+              borderColor: '#0F6B3A',
+              backgroundColor: gradient,
+              borderWidth: 2.5,
+              pointBackgroundColor: '#0F6B3A',
+              pointRadius: 3.5,
+              pointHoverRadius: 5.5,
+              fill: true,
+              tension: 0.25
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const val = context.raw || 0;
+                    return ` ${mDesc.label}: ${isRupiah ? formatRupiah(val) : formatNumber(val)} ${mDesc.unit || ''}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(v) {
+                    if (isRupiah) {
+                      if (v >= 1000000) return (v / 1000000).toFixed(1) + ' Jt';
+                      if (v >= 1000) return (v / 1000).toFixed(0) + ' Rb';
+                      return v;
+                    }
+                    return formatNumber(v);
+                  }
+                }
+              }
+            }
+          }
+        });
+      } else {
+        const breakdown = data.breakdown || [];
+        const labels = breakdown.map(b => b.label || b.key || '-');
+        const values = breakdown.map(b => Number(b.value || 0));
+
+        commodityTrendChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: mDesc.label,
+              data: values,
+              backgroundColor: 'rgba(15, 107, 58, 0.85)',
+              borderColor: '#0F6B3A',
+              borderWidth: 1,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const item = breakdown[context.dataIndex] || {};
+                    const val = context.raw || 0;
+                    return [
+                      ` ${mDesc.label}: ${isRupiah ? formatRupiah(val) : formatNumber(val)} ${mDesc.unit || ''}`,
+                      ` Porsi: ${item.percentage || 0}%`,
+                      ` Jumlah Laporan: ${item.count || 0}`
+                    ];
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(v) {
+                    if (isRupiah) {
+                      if (v >= 1000000) return (v / 1000000).toFixed(1) + ' Jt';
+                      if (v >= 1000) return (v / 1000).toFixed(0) + ' Rb';
+                      return v;
+                    }
+                    return formatNumber(v);
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function renderAnalyticsResultTable(data) {
+      const table = document.getElementById('commodityAccessibleTable');
+      const countLabel = document.getElementById('tableRecordCountLabel');
+      const thDim = document.getElementById('thDimensionName');
+      const thVal = document.getElementById('thMeasureValue');
+      if (!table) return;
+
+      const isTren = (data.mode === 'tren');
+      const mDesc = data.field || getCatalogField(data.measureKey || data.measure) || { label: 'Nilai', unit: '' };
+      const gDesc = data.groupBy || getCatalogField(data.groupByKey || data.dimension) || { label: 'Kategori' };
+      const isRupiah = String(data.measureKey || data.measure || '').toLowerCase().includes('rp') || String(data.measureKey || data.measure || '').toLowerCase().includes('harga');
+
+      if (thDim) thDim.innerText = isTren ? 'Waktu / Periode' : (gDesc.label || 'Kategori');
+      if (thVal) thVal.innerText = `${mDesc.label} ${mDesc.unit ? `(${mDesc.unit})` : ''}`;
+
+      let tbody = table.querySelector('tbody');
+      if (!tbody) {
+        tbody = document.createElement('tbody');
+        table.appendChild(tbody);
+      }
+
+      let rowsHtml = '';
+      if (isTren) {
+        const trendData = data.trend || data.singleTrend || { labels: [], values: [] };
+        const labels = trendData.labels || (trendData.points || []).map(p => p.label || p.date) || [];
+        const values = trendData.values || (trendData.points || []).map(p => Number(p.value || p.jumlahPanen || 0)) || [];
+        const total = values.reduce((a, b) => a + b, 0);
+
+        if (countLabel) countLabel.innerText = `${labels.length} Titik Waktu`;
+
+        labels.forEach((lbl, idx) => {
+          const val = values[idx] || 0;
+          const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+          rowsHtml += `
+            <tr>
+              <td style="text-align: center; color: #64748b;">${idx + 1}</td>
+              <td style="font-weight: 600; color: #1e293b;">${escapeHtml(lbl)}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace;">${isRupiah ? formatRupiah(val) : formatNumber(val)}</td>
+              <td style="text-align: center;"><span class="badge badge-neutral" style="font-size: 0.7rem;">${pct}%</span></td>
+            </tr>
+          `;
+        });
+      } else {
+        const breakdown = data.breakdown || [];
+        if (countLabel) countLabel.innerText = `${breakdown.length} Kategori`;
+
+        breakdown.forEach((item, idx) => {
+          const val = Number(item.value || 0);
+          rowsHtml += `
+            <tr>
+              <td style="text-align: center; color: #64748b;">${idx + 1}</td>
+              <td style="font-weight: 600; color: #1e293b;">${escapeHtml(item.label || item.key || '-')}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace;">${isRupiah ? formatRupiah(val) : formatNumber(val)}</td>
+              <td style="text-align: center;"><span class="badge badge-primary" style="font-size: 0.7rem;">${item.percentage || 0}%</span></td>
+            </tr>
+          `;
+        });
+      }
+
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 1rem;">Tidak ada data</td></tr>';
     }
 
     function resetExplorerToDefaults() {
@@ -3034,7 +3246,7 @@
       const mode = params.mode || 'tren';
       const dimension = params.groupByKey || params.dimension || 'komoditas';
       const measure = params.measureKey || params.measure || (mode === 'breakdown' ? 'jumlahPanen' : 'jumlahBenih');
-      const sort = params.sort || 'val_desc';
+      const sortOption = params.sort || 'val_desc';
       const interval = params.interval || 'day';
 
       const cropList = ['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'];
@@ -3051,7 +3263,7 @@
           mode: mode,
           dimension: dimension,
           measure: measure,
-          sort: sort,
+          sort: sortOption,
           cropList: cropList,
           trend: { points: [], total: 0, count: 0 },
           singleTrend: { labels: [], values: [], total: 0 },
@@ -3232,7 +3444,7 @@
         });
       }
 
-      const totalMatched = mode === 'tren' ? (trend?.count || 42) : breakdown.reduce((a, b) => a + (b.count || 0), 0);
+      const totalMatched = mode === 'tren' ? ((trend && trend.count) || 42) : breakdown.reduce((a, b) => a + (b.count || 0), 0);
 
       return {
         period: { code: params.period || 'this_month', label: 'Bulan Ini (Simulasi)', interval: interval },
@@ -3242,7 +3454,7 @@
         mode: mode,
         dimension: dimension,
         measure: measure,
-        sort: sort,
+        sort: sortOption,
         cropList: cropList,
         selectedCrop: 'all',
         trend: trend,
@@ -3250,7 +3462,7 @@
         breakdown: breakdown,
         participation: participation,
         scopeMode: mode === 'tren' ? 'crop_specific' : 'multi_dimension',
-        dataPointCount: mode === 'tren' ? (trend?.points?.length || 0) : breakdown.length,
+        dataPointCount: mode === 'tren' ? ((trend && trend.points && trend.points.length) || 0) : breakdown.length,
         totalRows: totalMatched,
         matchedReportCount: totalMatched,
         dataQuality: {

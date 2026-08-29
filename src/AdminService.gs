@@ -12,7 +12,13 @@ const AdminService = {
    * @returns {Array} Array of QueueItem objects.
    */
   getAdminQueueData: function() {
-    return SpreadsheetRepository.getAdminQueueData();
+    try {
+      const list = SpreadsheetRepository.getAdminQueueData();
+      return JSON.parse(JSON.stringify(list || []));
+    } catch (e) {
+      Logger.log('AdminService Error in getAdminQueueData: ' + e.toString());
+      return [];
+    }
   },
 
   /**
@@ -29,7 +35,8 @@ const AdminService = {
   },
 
   /**
-   * Returns aggregated stats for Executive Manager Dashboard.
+   * Returns aggregated stats for Dashboard Manajer.
+   * @param {string|Object} [filterParam]
    * @returns {Object|null}
    */
   getDashboardStats: function(options) {

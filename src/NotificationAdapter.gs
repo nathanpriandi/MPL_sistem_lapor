@@ -38,7 +38,7 @@ const NotificationAdapter = {
       `Rincian / Isi Laporan:\n` +
       `${details}\n\n` +
       `--------------------------------------------------\n` +
-      `Harap segera periksa tab Admin_Queue pada Spreadsheet Sistem Pelaporan Digital.`;
+      `Harap segera periksa Antrean Admin pada Sistem Lapor MPL.`;
 
     try {
       MailApp.sendEmail({
@@ -120,7 +120,7 @@ const NotificationAdapter = {
       `   - Ikan (Perikanan)  : ${divIkan.panenVolume.toLocaleString('id-ID')} Kg | ${divIkan.activityCount} aktivitas | Rp ${divIkan.nilaiPenjualanRp.toLocaleString('id-ID')}\n\n` +
       `==================================================\n` +
       `Buka Dashboard Manajer untuk visualisasi interaktif dan grafik tren mingguan:\n` +
-      `${webAppUrl || ConfigRepository.getPublicWebAppUrl() || 'Aplikasi Sistem Pelaporan Digital'}`;
+      `${webAppUrl || ConfigRepository.getPublicWebAppUrl() || 'Sistem Lapor MPL'}`;
 
     try {
       MailApp.sendEmail({ to: managerEmail, subject: subject, body: body });

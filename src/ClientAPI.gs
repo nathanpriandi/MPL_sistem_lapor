@@ -180,21 +180,33 @@ function submitDynamicFormResponse(formId, payload) {
  * @returns {Array} Array of QueueItem objects.
  */
 function getAdminQueueData() {
-  return AdminService.getAdminQueueData();
+  try {
+    const res = AdminService.getAdminQueueData();
+    return JSON.parse(JSON.stringify(res || []));
+  } catch (e) {
+    Logger.log('ClientAPI Error in getAdminQueueData: ' + e.toString());
+    return [];
+  }
 }
 
 /**
  * Updates Review_Status of a report by matching Report_ID.
  * @param {string} reportId - Unique UUID of report.
  * @param {string} newStatus - Target status ('Unreviewed', 'In Review', 'Action Needed', 'Closed').
- * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string }}
+ * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string, error?: string }}
  */
 function updateReviewStatus(reportId, newStatus) {
-  return AdminService.updateReviewStatus(reportId, newStatus);
+  try {
+    const res = AdminService.updateReviewStatus(reportId, newStatus);
+    return JSON.parse(JSON.stringify(res || { success: true }));
+  } catch (e) {
+    Logger.log('ClientAPI Error in updateReviewStatus: ' + e.toString());
+    return { success: false, error: e.message || e.toString() };
+  }
 }
 
 /**
- * Returns aggregated stats and smart analytics for Executive Manager Dashboard.
+ * Returns aggregated stats and smart analytics for Dashboard Manajer.
  * @param {Object} [params]
  * @returns {Object} JSON dataset for manager dashboard rendering.
  */
@@ -351,7 +363,13 @@ function getFormSheetUrl(formId) {
  * @returns {Array}
  */
 function getExpiringDailyTabs() {
-  return AdminService.getExpiringDailyTabs();
+  try {
+    const res = AdminService.getExpiringDailyTabs();
+    return JSON.parse(JSON.stringify(res || []));
+  } catch (e) {
+    Logger.log('ClientAPI Error in getExpiringDailyTabs: ' + e.toString());
+    return [];
+  }
 }
 
 /**

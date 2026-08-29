@@ -1,8 +1,17 @@
 <style>
-  /* Sistem Pelaporan Digital — Design Tokens & Base Styles */
+  /* Sistem Lapor MPL — Design Tokens & Base Styles */
 
   :root {
     --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* Sistem Lapor MPL — Master Brand Tokens */
+    --brand-primary: #0F6B3A;
+    --brand-primary-hover: #0B542D;
+    --brand-primary-strong: #064E2A;
+    --brand-primary-tint: #EEF8F1;
+    --brand-accent: #C9922E;
+    --brand-accent-tint: #FBF4E5;
+    --brand-ink: #14231D;
 
     /* Neutrals (light theme) */
     --bg-app: #F8FAFC;
@@ -18,16 +27,13 @@
     --text-on-primary: #FFFFFF;
 
     /* Brand */
-    --primary: #15803D;
-    /* green-700 — AA contrast on white text */
-    --primary-hover: #166534;
-    /* green-800 */
-    --primary-active: #14532D;
-    --primary-tint: #F0FDF4;
-    /* green-50, for light backgrounds/badges */
+    --primary: #0F6B3A;
+    /* green-800 — WCAG AAA contrast */
+    --primary-hover: #0B542D;
+    --primary-active: #064E2A;
+    --primary-tint: #EEF8F1;
     --primary-border: #BBF7D0;
-    /* green-200 */
-    --primary-ring: rgba(21, 128, 61, 0.2);
+    --primary-ring: rgba(15, 107, 58, 0.2);
 
     --secondary: #475569;
     /* slate-600, for secondary buttons/text */
@@ -160,24 +166,167 @@
     gap: var(--space-3);
   }
 
-  .logo {
+  /* ==========================================================================
+     Sistem Lapor MPL — Master Brand Identity & Logo Components
+     ========================================================================== */
+  .mpl-brand-component {
+    display: inline-flex;
+    align-items: center;
+    cursor: default;
+    user-select: none;
+  }
+
+  .mpl-brand-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius-sm);
+    transition: opacity 0.15s ease;
+    min-height: 44px;
+  }
+
+  .mpl-brand-link:focus-visible {
+    outline: 2px solid var(--brand-accent);
+    outline-offset: 3px;
+  }
+
+  .mpl-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    color: var(--brand-ink, #14231D);
+  }
+
+  .mpl-brand__mark {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    color: var(--brand-primary, #0F6B3A);
+    pointer-events: none;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mpl-brand-link:hover .mpl-brand__mark {
+    transform: scale(1.05);
+  }
+
+  .mpl-brand__wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .mpl-brand__prefix {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    color: var(--text-secondary, #475569);
+  }
+
+  .mpl-brand__focus {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--brand-primary, #0F6B3A);
+  }
+
+  /* Tagline / Subtitle */
+  .mpl-brand__tagline {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748B);
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+  }
+
+  /* Compact variant (mark only) */
+  .mpl-brand--compact .mpl-brand__wordmark,
+  .mpl-brand--compact .mpl-brand__tagline {
+    display: none !important;
+  }
+
+  .mpl-brand--compact .mpl-brand__mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Dark variant (sidebar/night mode) */
+  .mpl-brand--dark {
+    color: #FFFFFF;
+  }
+
+  .mpl-brand--dark .mpl-brand__mark {
+    color: #FFFFFF;
+  }
+
+  .mpl-brand--dark .mpl-brand__prefix {
+    color: #CBD5E1;
+  }
+
+  .mpl-brand--dark .mpl-brand__focus {
+    color: #22C55E;
+  }
+
+  .mpl-brand--dark .mpl-brand__tagline {
+    color: #94A3B8;
+  }
+
+  /* Sidebar brand layout */
+  .sidebar-brand-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .mpl-brand--sidebar {
     display: flex;
     align-items: center;
+    gap: 10px;
+  }
+
+  .mpl-brand--sidebar .mpl-brand__mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .mpl-brand--sidebar .mpl-brand__wordmark-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .mpl-brand--sidebar .mpl-brand__prefix {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary, #475569);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+
+  .mpl-brand--sidebar .mpl-brand__focus {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--brand-primary, #0F6B3A);
+    line-height: 1;
+  }
+
+  /* Legacy compatibility aliases */
+  .logo {
+    display: inline-flex;
+    align-items: center;
     gap: var(--space-2);
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--text-primary);
     text-decoration: none;
+    color: var(--text-primary);
   }
 
   .logo-badge {
-    background: var(--primary);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    color: var(--text-on-primary);
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    display: none;
   }
 
   nav {
