@@ -660,8 +660,8 @@ function computePeriodSummary(rows, startDateStr, endDateStr) {
     
     filtered.push(item);
     
-    const panenVal = parseFloat(item.jumlahPanen || (item.raw ? item.raw[15] : 0)) || 0;
-    const salesVal = parseFloat(item.nilaiPenjualanRp || (item.raw ? item.raw[19] : 0)) || 0;
+    const panenVal = parseFloat(item.jumlahPanen || 0) || 0;
+    const salesVal = parseFloat(item.nilaiPenjualanRp || item.totalHargaRp || 0) || 0;
     
     totalPanen += panenVal;
     totalNilaiPenjualan += salesVal;
@@ -682,9 +682,9 @@ function computePeriodSummary(rows, startDateStr, endDateStr) {
     }
     
     const reviewStatus = String(item.reviewStatus || 'Belum Terverifikasi');
-    const rawKendala = item.kendala || (item.raw ? item.raw[20] : '') || '';
+    const rawKendala = item.kendala || '';
     const kendalaText = normalizeKendalaText(rawKendala);
-    const upayaText = kendalaText ? String(item.upaya || (item.raw ? item.raw[21] : '') || '').trim() : '';
+    const upayaText = kendalaText ? String(item.upaya || '').trim() : '';
     
     const isVerified = (reviewStatus.toLowerCase() === 'terverifikasi' || reviewStatus.toLowerCase() === 'closed' || reviewStatus.toLowerCase() === 'verified');
     const isUnresolved = (!isVerified) && isActualKendala(kendalaText);

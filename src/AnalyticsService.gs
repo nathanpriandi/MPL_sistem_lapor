@@ -1667,13 +1667,10 @@ const AnalyticsService = {
 
     const totalSalesRp = totalSalesAgroRp + totalSalesTernakRp;
 
-    // 4. Employee Leaderboard (Requirement 1)
+    // 4. Employee Leaderboard (Operations Owner)
     const employeeLeaderboard = this.getEmployeeReportingLeaderboard(filteredRows);
 
-    // 5. Commodity Analysis — Decoupled & Scoped Module (Phase 24)
-    const commodityAnalysis = this.getCommodityAnalysis(params);
-
-    // 6. Smart Panen Harvest Schedule via HST (Requirement 3)
+    // 5. Smart Panen Harvest Schedule via HST (Full Year Rowset)
     const fullYearRows = SpreadsheetRepository.getAllOperationalRows(
       new Date(now.getFullYear() - 1, 0, 1),
       new Date(now.getFullYear() + 1, 11, 31)
@@ -1683,22 +1680,12 @@ const AnalyticsService = {
     const readyHarvestsCount = activeHarvests.filter(s => s.isReady).length;
     const overdueHarvestsCount = activeHarvests.filter(s => s.isOverdue).length;
 
-    // 7. Sales Analytics & Commercial Breakdowns (Requirement 4)
-    const salesAnalytics = this.getSalesAnalytics(filteredRows, interval);
-
-    // 8. Risk & Field Obstacle Intelligence (Requirement 5)
-    const riskAnalytics = this.getRiskAndObstacleAnalytics(filteredRows);
-
-    // 9. Permanent Executive Decision Snapshot Layer
-    const decisionViews = this.getDecisionViewsData({
-      period: bounds.periodCode,
-      startDate: this.formatDateKey_(dFrom),
-      endDate: this.formatDateKey_(dTo),
-      interval: interval,
-      commodity: params.commodity,
-      priceBasis: params.priceBasis,
-      moduleScope: params.moduleScope
-    }, filteredRows, fullYearRows);
+    // 6. Feature-Level Canonical Decision Engines (Using single normalized rowset)
+    const priceTrend = this.getPriceTrendWidgetData(filteredRows, params, bounds);
+    const harvestByCommodity = this.getHarvestByCommodityWidgetData(filteredRows);
+    const salesByCommodity = this.getSalesByCommodityWidgetData(filteredRows);
+    const livestockMovement = this.getLivestockMovementWidgetData(filteredRows, interval);
+    const operationalRisk = this.getOperationalRiskWidgetData(filteredRows);
 
     return {
       period: {
@@ -1720,17 +1707,46 @@ const AnalyticsService = {
         readyHarvestsCount: readyHarvestsCount,
         overdueHarvestsCount: overdueHarvestsCount
       },
-      employeeLeaderboard: employeeLeaderboard,
-      commodityAnalysis: commodityAnalysis,
+      harvest: {
+        performanceByCommodity: harvestByCommodity,
+        scheduleSummary: {
+          totalActive: activeHarvests.length,
+          readyCount: readyHarvestsCount,
+          overdueCount: overdueHarvestsCount
+        }
+      },
+      commerce: {
+        salesByCommodity: salesByCommodity,
+        priceTrend: priceTrend
+      },
+      livestock: livestockMovement,
+      operations: {
+        employeeLeaderboard: employeeLeaderboard,
+        risk: operationalRisk
+      },
       harvestSchedule: {
-        activeList: activeHarvests.slice(0, 30),
+        activeList: activeHarvests.slice(0, 50),
         totalActive: activeHarvests.length,
         readyCount: readyHarvestsCount,
         overdueCount: overdueHarvestsCount
       },
-      salesAnalytics: salesAnalytics,
-      riskAnalytics: riskAnalytics,
-      decisionViews: decisionViews.decisionViews
+      // Backward-compatibility references for older callers
+      employeeLeaderboard: employeeLeaderboard,
+      salesAnalytics: salesByCommodity,
+      riskAnalytics: operationalRisk,
+      decisionViews: {
+        priceTrend: priceTrend,
+        harvestByCommodity: harvestByCommodity,
+        salesByCommodity: salesByCommodity,
+        harvestPipeline: {
+          status: 'ok',
+          totalActivePlantings: activeHarvests.length,
+          ready7DaysCount: readyHarvestsCount,
+          overdueCount: overdueHarvestsCount
+        },
+        livestockMovement: livestockMovement,
+        operationalRisk: operationalRisk
+      }
     };
   },
 
@@ -1887,13 +1903,17 @@ const AnalyticsService = {
 
       const rev = isTernak ? Number(r.totalHargaTernakRp || 0) : Number(r.totalHargaRp || 0);
       let qty = isTernak ? Number(r.jumlahPenjualanTernak || 0) : Number(r.jumlahPenjualanUnit || 0);
+      let rowEstimated = false;
+
       if (qty <= 0 && !isTernak && Number(r.jumlahPanen || 0) > 0 && selBasis === 'Rp/kg') {
         qty = Number(r.jumlahPanen);
+        rowEstimated = true;
       }
 
       if (qty <= 0) {
         missingQuantityRowsCount++;
         qty = 1; // Fallback unit observation
+        rowEstimated = true;
       }
 
       if (!intervalMap[intervalKey]) {
@@ -1902,13 +1922,15 @@ const AnalyticsService = {
           label: intervalLabel,
           revenue: 0,
           quantity: 0,
-          transactionCount: 0
+          transactionCount: 0,
+          hasEstimatedRows: false
         };
       }
 
       intervalMap[intervalKey].revenue += rev;
       intervalMap[intervalKey].quantity += qty;
       intervalMap[intervalKey].transactionCount += 1;
+      if (rowEstimated) intervalMap[intervalKey].hasEstimatedRows = true;
 
       totalValidRevenue += rev;
       totalValidQuantity += qty;
@@ -1926,7 +1948,7 @@ const AnalyticsService = {
         quantity: it.quantity,
         quantityUnit: selBasis.replace('Rp/', ''),
         transactionCount: it.transactionCount,
-        sourceCompleteness: 'complete'
+        sourceCompleteness: it.hasEstimatedRows ? 'estimated' : 'complete'
       };
     });
 
@@ -1948,16 +1970,19 @@ const AnalyticsService = {
     const overallWeightedPrice = totalValidQuantity > 0 ? Math.round(totalValidRevenue / totalValidQuantity) : 0;
     const warnings = [];
     if (missingQuantityRowsCount > 0) {
-      warnings.push(`${missingQuantityRowsCount} transaksi tidak mencantumkan kuantitas eksplisit (diasumsikan 1 unit).`);
+      warnings.push(`${missingQuantityRowsCount} transaksi tidak mencantumkan kuantitas riil sehingga menggunakan estimasi.`);
     }
 
     return {
       status: points.length > 0 ? 'ok' : 'empty',
       commodity: { key: effectiveCommodityKey, label: effectiveCommodityKey, module: moduleScope },
       metric: { key: 'hargaRealisasi', label: 'Harga Realisasi Penjualan', unit: selBasis, priceBasis: selBasis },
+      quantityField: isTernak ? 'jumlahPenjualanTernak' : 'jumlahPenjualanUnit',
       availableCommodities: availableCommodities,
       validBases: validBases,
       selectedBasis: selBasis,
+      isEstimated: missingQuantityRowsCount > 0,
+      sourceCompleteness: missingQuantityRowsCount === 0 ? 'complete' : 'partial',
       points: points,
       summary: {
         latestPrice: latestPrice,

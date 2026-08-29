@@ -687,64 +687,52 @@ const SpreadsheetRepository = {
             }
 
             let kodeKegiatan = String(
-              this.getCellValue_(row, headerMap, 'Kode_Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Kode Kegiatan', 1) || 
+              this.findRowValueByField_(row, headerMap, 'kodeKegiatan', 'Kode_Kegiatan') || 
               ''
             ).trim();
 
-            let rawTime = this.getCellValue_(row, headerMap, 'Timestamp', 3) || this.getCellValue_(row, headerMap, 'Waktu', 0);
+            let rawTime = this.findRowValueByField_(row, headerMap, 'timestamp', 'Timestamp') || this.findRowValueByField_(row, headerMap, 'waktu', 'Waktu');
             let timestamp = formatDate(rawTime || new Date());
             
             let namaPic = String(
-              this.getCellValue_(row, headerMap, 'Nama_PIC') || 
-              this.getCellValue_(row, headerMap, 'Nama') || 
-              this.getCellValue_(row, headerMap, 'Nama PIC') || 
-              this.getCellValue_(row, headerMap, 'Emp_ID', 4) || 
+              this.findRowValueByField_(row, headerMap, 'namaPic', 'Nama_PIC') || 
+              this.findRowValueByField_(row, headerMap, 'empId', 'Emp_ID') || 
               ''
             ).trim();
 
             let divisi = String(
-              this.getCellValue_(row, headerMap, 'Bidang_Divisi') || 
-              this.getCellValue_(row, headerMap, 'Divisi') || 
-              this.getCellValue_(row, headerMap, 'Site', 5) || 
+              this.findRowValueByField_(row, headerMap, 'bidangDivisi', 'Bidang_Divisi') || 
+              this.findRowValueByField_(row, headerMap, 'divisi', 'Divisi') || 
               ''
             ).trim();
 
             let nomorTelepon = typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(
-              this.getCellValue_(row, headerMap, 'Nomor_Telepon') || 
-              this.getCellValue_(row, headerMap, 'Nomor Telepon') || 
-              this.getCellValue_(row, headerMap, 'No_Telepon') || 
-              this.getCellValue_(row, headerMap, 'Telepon') || 
-              this.getCellValue_(row, headerMap, 'No. Telepon / WhatsApp') || 
+              this.findRowValueByField_(row, headerMap, 'nomorTelepon', 'Nomor_Telepon') || 
               ''
             ) : String(
-              this.getCellValue_(row, headerMap, 'Nomor_Telepon') || 
-              this.getCellValue_(row, headerMap, 'Nomor Telepon') || 
-              this.getCellValue_(row, headerMap, 'No_Telepon') || 
-              this.getCellValue_(row, headerMap, 'Telepon') || 
-              this.getCellValue_(row, headerMap, 'No. Telepon / WhatsApp') || 
+              this.findRowValueByField_(row, headerMap, 'nomorTelepon', 'Nomor_Telepon') || 
               ''
             ).trim();
 
             let lokasi = String(
-              this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Lokasi Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Lokasi', 6) || 
+              this.findRowValueByField_(row, headerMap, 'lokasiKegiatan', 'Lokasi_Kegiatan') || 
+              this.findRowValueByField_(row, headerMap, 'lokasi', 'Lokasi') || 
               ''
             ).trim();
 
             let jenis = String(
-              this.getCellValue_(row, headerMap, 'Jenis_Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Jenis Kegiatan', 7) || 
+              this.findRowValueByField_(row, headerMap, 'jenisKegiatan', 'Jenis_Kegiatan') || 
               ''
             ).trim();
 
-            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
-            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
-            let rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
+            let jumlahPanen = parseFloat(this.findRowValueByField_(row, headerMap, 'jumlahPanen', 'Jumlah_Panen_Kg') || 0) || 0;
+            let totalHargaAgro = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaRp', 'Total_Harga_Rp') || 0) || 0;
+            let totalHargaTernak = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaTernakRp', 'Total_Harga_Ternak_Rp') || 0) || 0;
+            let nilaiPenjualan = totalHargaAgro + totalHargaTernak;
+            let rawKendala = this.findRowValueByField_(row, headerMap, 'kendala', 'Kendala');
             let kendalaVal = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
-            let upayaVal = kendalaVal ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
-            let anggotaTerlaporVal = this.getCellValue_(row, headerMap, 'Anggota_Terlapor') || this.getCellValue_(row, headerMap, 'Anggota Terlapor') || this.getCellValue_(row, headerMap, 'Tim') || '';
+            let upayaVal = kendalaVal ? String(this.findRowValueByField_(row, headerMap, 'upaya', 'Upaya') || '').trim() : '';
+            let anggotaTerlaporVal = this.findRowValueByField_(row, headerMap, 'anggotaTerlapor', 'Anggota_Terlapor') || this.findRowValueByField_(row, headerMap, 'tim', 'Tim') || '';
             let ringkasan = jenis || `Laporan ${sheetName}`;
 
             // Multi-criteria robust deduplication across synced/response sheets
@@ -1154,23 +1142,25 @@ const SpreadsheetRepository = {
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
 
           values.forEach(row => {
-            const reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '').trim();
-            const kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '').trim();
-            const kodeKegiatanRef = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan_Ref', 2) || '').trim();
-            const rawTimestamp = this.getCellValue_(row, headerMap, 'Timestamp', 3);
-            const namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '').trim();
-            const divisiRaw = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '').trim();
-            const lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '').trim();
-            const jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '').trim();
+            const reportId = String(this.findRowValueByField_(row, headerMap, 'reportId', 'Report_ID') || '').trim();
+            const kodeKegiatan = String(this.findRowValueByField_(row, headerMap, 'kodeKegiatan', 'Kode_Kegiatan') || '').trim();
+            const kodeKegiatanRef = String(this.findRowValueByField_(row, headerMap, 'kodeKegiatanRef', 'Kode_Kegiatan_Ref') || '').trim();
+            const rawTimestamp = this.findRowValueByField_(row, headerMap, 'timestamp', 'Timestamp') || this.findRowValueByField_(row, headerMap, 'waktu', 'Waktu');
+            const namaPic = String(this.findRowValueByField_(row, headerMap, 'namaPic', 'Nama_PIC') || this.findRowValueByField_(row, headerMap, 'empId', 'Emp_ID') || '').trim();
+            const divisiRaw = String(this.findRowValueByField_(row, headerMap, 'bidangDivisi', 'Bidang_Divisi') || this.findRowValueByField_(row, headerMap, 'divisi', 'Divisi') || '').trim();
+            const lokasi = String(this.findRowValueByField_(row, headerMap, 'lokasiKegiatan', 'Lokasi_Kegiatan') || this.findRowValueByField_(row, headerMap, 'lokasi', 'Lokasi') || '').trim();
+            const jenis = String(this.findRowValueByField_(row, headerMap, 'jenisKegiatan', 'Jenis_Kegiatan') || '').trim();
 
-            const tglPerkiraanPanen = this.getCellValue_(row, headerMap, 'Tgl_Perkiraan_Panen', 15) || this.getCellValue_(row, headerMap, 'Estimasi_Panen_HST');
-            const tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 16);
-            const jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
-            const nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
-            const rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
+            const tglPerkiraanPanen = this.findRowValueByField_(row, headerMap, 'estimasiPanenHst', 'Estimasi_Panen_HST') || this.findRowValueByField_(row, headerMap, 'tglPerkiraanPanen', 'Tgl_Perkiraan_Panen');
+            const tglPanen = this.findRowValueByField_(row, headerMap, 'tglPanen', 'Tgl_Panen');
+            const jumlahPanen = parseFloat(this.findRowValueByField_(row, headerMap, 'jumlahPanen', 'Jumlah_Panen_Kg') || 0) || 0;
+            const totalHargaAgro = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaRp', 'Total_Harga_Rp') || 0) || 0;
+            const totalHargaTernak = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaTernakRp', 'Total_Harga_Ternak_Rp') || 0) || 0;
+            const nilaiPenjualan = totalHargaAgro + totalHargaTernak;
+            const rawKendala = this.findRowValueByField_(row, headerMap, 'kendala', 'Kendala');
             const kendala = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
-            const upaya = kendala ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
-            const severity = String(this.getCellValue_(row, headerMap, 'Severity', 29) || (kendala ? 'urgent' : 'normal')).toLowerCase();
+            const upaya = kendala ? String(this.findRowValueByField_(row, headerMap, 'upaya', 'Upaya') || '').trim() : '';
+            const severity = String(this.findRowValueByField_(row, headerMap, 'severity', 'Severity') || (kendala ? 'urgent' : 'normal')).toLowerCase();
             const rawReviewStatus = 
               this.getCellValue_(row, headerMap, 'Status Verifikasi') || 
               this.getCellValue_(row, headerMap, 'Status_Verifikasi') || 

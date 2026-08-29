@@ -1368,21 +1368,37 @@
   /* Metrics Grid & Cards */
   .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-4);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-3);
     margin-bottom: var(--space-5);
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
+    .metrics-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
     .metrics-grid {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 480px) {
     .metrics-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* Section Anchor Offset for Top Navigation Bar */
+  #staffKendalaSection,
+  #harvestScheduleSection,
+  #livestockSection,
+  #productionMarketSection,
+  #commercialSection,
+  #commoditySectionCard {
+    scroll-margin-top: 85px;
   }
 
   .metric-card {

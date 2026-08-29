@@ -197,120 +197,321 @@
 
         <!-- ==========================================
              SECTION 1: KEY METRIC CARDS STRIP (INTERACTIVE NAVIGATION)
+        <!-- ==========================================
+             KEY METRIC CARDS STRIP (5 CANONICAL CARDS IN ONE LINE)
         ========================================== -->
-        <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.85rem; margin-bottom: 1.5rem;">
+        <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
           
-          <!-- 1. Total Laporan (Clickable -> Scrolls to Staff & Kondisi Section) -->
-          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('staffKendalaSection')" title="Klik untuk menuju Aktivitas Staf &amp; Analisis Kendala">
+          <!-- 1. Total Laporan (Clickable -> Scrolls to Section 1: Staff & Kondisi Lapangan) -->
+          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('staffKendalaSection')" title="Klik untuk menuju Aktivitas Staf &amp; Analisis Kendala" style="padding: 0.75rem 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
-              <span class="metric-label">Total Laporan</span>
-              <span class="badge badge-primary" style="font-size: 0.7rem; padding: 2px 7px;">Lihat Staf &darr;</span>
+              <span class="metric-label" style="font-size: 0.775rem;">Total Laporan</span>
+              <span class="badge badge-primary" style="font-size: 0.675rem; padding: 2px 6px;">Lihat Staf &darr;</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
-              <span class="metric-value" id="kpiTotalReports"><span class="skeleton-box" style="width: 45px; height: 26px; vertical-align: middle;"></span></span>
+              <span class="metric-value" id="kpiTotalReports" style="font-size: 1.35rem;"><span class="skeleton-box" style="width: 40px; height: 24px; vertical-align: middle;"></span></span>
             </div>
-            <span class="metric-sublabel">Aktivitas pelaporan staf</span>
-            <div class="metric-trend" style="color: var(--primary);">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span>Staf &amp; Kondisi Lapangan &darr;</span>
-            </div>
-          </div>
-
-          <!-- 2. Penanaman Aktif (Clickable -> Navigates to Harvest Schedule) -->
-          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('harvestScheduleSection')" title="Klik untuk menuju Jadwal Panen Cerdas HST">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
-              <span class="metric-label">Penanaman Aktif</span>
-              <span class="badge badge-normal" id="badgeReadyCount" style="font-size: 0.7rem; padding: 2px 7px;">0 Siap Panen</span>
-            </div>
-            <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem;">
-              <span class="metric-value" id="kpiActivePlantings"><span class="skeleton-box" style="width: 40px; height: 26px; vertical-align: middle;"></span></span>
-              <span style="font-size: 0.825rem; font-weight: 600; color: var(--text-secondary);">Plot Ditanam</span>
-            </div>
-            <span class="metric-sublabel" id="kpiOverdueSub">Estimasi panen otomatis HST</span>
-            <div class="metric-trend" style="color: var(--text-secondary);">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>Lihat Jadwal Panen &darr;</span>
+            <span class="metric-sublabel" style="font-size: 0.725rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Aktivitas pelaporan staf</span>
+            <div class="metric-trend" style="color: var(--primary); font-size: 0.725rem; margin-top: 0.25rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Staf &amp; Kendala &darr;</span>
             </div>
           </div>
 
-          <!-- 3. Hasil Panen (Clickable -> Navigates to Commodity Breakdown Panen) -->
-          <div class="metric-card kpi-interactive-card" onclick="navigateToCommodityMeasure('jumlahPanen')" title="Klik untuk melihat Breakdown Hasil Panen Komoditas">
+          <!-- 2. Penanaman Aktif (Clickable -> Scrolls to Section 2: Jadwal Panen Cerdas HST) -->
+          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('harvestScheduleSection')" title="Klik untuk menuju Jadwal Panen Cerdas HST" style="padding: 0.75rem 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
-              <span class="metric-label">Hasil Panen</span>
-              <span class="badge badge-normal" style="font-size: 0.7rem; padding: 2px 7px;">Output</span>
+              <span class="metric-label" style="font-size: 0.775rem;">Penanaman Aktif</span>
+              <span class="badge badge-normal" id="badgeReadyCount" style="font-size: 0.675rem; padding: 2px 6px;">0 Siap Panen</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem;">
-              <span class="metric-value" id="kpiTotalPanen"><span class="skeleton-box" style="width: 60px; height: 26px; vertical-align: middle;"></span></span>
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Kg</span>
+            <div style="display: flex; align-items: baseline; gap: 0.35rem; margin-bottom: 0.25rem;">
+              <span class="metric-value" id="kpiActivePlantings" style="font-size: 1.35rem;"><span class="skeleton-box" style="width: 35px; height: 24px; vertical-align: middle;"></span></span>
+              <span style="font-size: 0.775rem; font-weight: 600; color: var(--text-secondary);">Plot</span>
             </div>
-            <span class="metric-sublabel">Total output panen seluruh komoditas</span>
-            <div class="metric-trend" style="color: #d97706;">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
-              <span>Breakdown Panen &darr;</span>
+            <span class="metric-sublabel" id="kpiOverdueSub" style="font-size: 0.725rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Estimasi panen HST</span>
+            <div class="metric-trend" style="color: var(--text-secondary); font-size: 0.725rem; margin-top: 0.25rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Jadwal Panen &darr;</span>
             </div>
           </div>
 
-          <!-- 4. Pendapatan Penjualan (Clickable -> Navigates to Sales Section) -->
-          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('distributionInsightsSection')" title="Klik untuk menuju Analisis Penjualan &amp; Distribusi">
+          <!-- 3. Populasi Ternak (Clickable -> Scrolls to Section 3: Dinamika Peternakan & Populasi) -->
+          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('livestockSection')" title="Klik untuk menuju Dinamika Peternakan &amp; Populasi" style="padding: 0.75rem 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
-              <span class="metric-label">Pendapatan Penjualan</span>
-              <span class="badge badge-normal" style="font-size: 0.7rem; padding: 2px 7px;">Komersial</span>
+              <span class="metric-label" style="font-size: 0.775rem;">Populasi Ternak</span>
+              <span class="badge badge-normal" id="badgeLivestockStatus" style="font-size: 0.675rem; padding: 2px 6px;">Peternakan</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.25rem;">
-              <span class="metric-value" id="kpiTotalSales" style="font-size: 1.35rem; word-break: break-all;"><span class="skeleton-box" style="width: 105px; height: 26px; vertical-align: middle;"></span></span>
+            <div style="display: flex; align-items: baseline; gap: 0.35rem; margin-bottom: 0.25rem;">
+              <span class="metric-value" id="kpiTotalLivestock" style="font-size: 1.35rem;"><span class="skeleton-box" style="width: 35px; height: 24px; vertical-align: middle;"></span></span>
+              <span style="font-size: 0.775rem; font-weight: 600; color: var(--text-secondary);">Ekor</span>
             </div>
-            <span class="metric-sublabel" id="kpiSalesCountSub">Akumulasi transaksi komersial</span>
-            <div class="metric-trend" style="color: #059669;">
-              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              <span>Arus Kas &amp; Distribusi &darr;</span>
+            <span class="metric-sublabel" id="kpiLivestockMutationSub" style="font-size: 0.725rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Mutasi: +0 In | -0 Out</span>
+            <div class="metric-trend" style="color: #8B5CF6; font-size: 0.725rem; margin-top: 0.25rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <span>Dinamika Ternak &darr;</span>
+            </div>
+          </div>
+
+          <!-- 4. Hasil Panen (Clickable -> Scrolls to Section 4: Produksi & Harga) -->
+          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('productionMarketSection')" title="Klik untuk menuju Kinerja Hasil Panen &amp; Tren Harga" style="padding: 0.75rem 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+              <span class="metric-label" style="font-size: 0.775rem;">Hasil Panen</span>
+              <span class="badge badge-normal" style="font-size: 0.675rem; padding: 2px 6px;">Output</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 0.35rem; margin-bottom: 0.25rem;">
+              <span class="metric-value" id="kpiTotalPanen" style="font-size: 1.35rem;"><span class="skeleton-box" style="width: 50px; height: 24px; vertical-align: middle;"></span></span>
+              <span style="font-size: 0.775rem; font-weight: 600; color: var(--text-secondary);">Kg</span>
+            </div>
+            <span class="metric-sublabel" style="font-size: 0.725rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Output seluruh komoditas</span>
+            <div class="metric-trend" style="color: #d97706; font-size: 0.725rem; margin-top: 0.25rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13a9 9 0 0 1 12.8-7.8A9 9 0 0 1 20 18a7 7 0 0 1-9 2z"/><path d="M12 11v9"/></svg>
+              <span>Hasil Panen &amp; Harga &darr;</span>
+            </div>
+          </div>
+
+          <!-- 5. Pendapatan Penjualan (Clickable -> Scrolls to Section 5: Komersial & Distribusi) -->
+          <div class="metric-card kpi-interactive-card" onclick="scrollToSection('commercialSection')" title="Klik untuk menuju Analisis Komersial &amp; Distribusi" style="padding: 0.75rem 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+              <span class="metric-label" style="font-size: 0.775rem;">Pendapatan Penjualan</span>
+              <span class="badge badge-normal" style="font-size: 0.675rem; padding: 2px 6px;">Komersial</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 0.35rem; margin-bottom: 0.25rem;">
+              <span class="metric-value" id="kpiTotalSales" style="font-size: 1.25rem; word-break: break-all;"><span class="skeleton-box" style="width: 85px; height: 24px; vertical-align: middle;"></span></span>
+            </div>
+            <span class="metric-sublabel" id="kpiSalesCountSub" style="font-size: 0.725rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Agro &amp; Peternakan</span>
+            <div class="metric-trend" style="color: #059669; font-size: 0.725rem; margin-top: 0.25rem;">
+              <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              <span>Komersial &amp; Distribusi &darr;</span>
             </div>
           </div>
 
         </div>
 
-
         <!-- ==========================================
-             QUICK-ACCESS DECISION & EXPLORER PRESETS
+             SECTION 1: AKTIVITAS STAF & KONDISI LAPANGAN
+             (Matches Card 1: Total Laporan)
+             (Single Canonical Owner for Staff Leaderboard & Obstacle Logs)
         ========================================== -->
-        <div class="decision-presets-bar" id="decisionPresetsBar" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.9rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-            <span style="font-size: 0.775rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 0.35rem; margin-right: 0.25rem;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
-              <span>Pintasan Eksekutif:</span>
-            </span>
-            <button class="filter-pill active" onclick="applyDecisionPreset('priceTrend')" id="presetBtnPrice">🏷️ Tren Harga</button>
-            <button class="filter-pill" onclick="applyDecisionPreset('harvestYield')" id="presetBtnHarvest">🌾 Hasil Panen</button>
-            <button class="filter-pill" onclick="applyDecisionPreset('salesVolume')" id="presetBtnSales">💰 Penjualan</button>
-            <button class="filter-pill" onclick="applyDecisionPreset('livestock')" id="presetBtnLivestock">🐄 Peternakan</button>
-            <button class="filter-pill" onclick="applyDecisionPreset('harvestSchedule')" id="presetBtnSched">📅 Status Panen</button>
-            <button class="filter-pill" onclick="applyDecisionPreset('risk')" id="presetBtnRisk">⚠️ Risiko &amp; Kendala</button>
-            <button class="filter-pill" onclick="applyDecisionPreset('customExplorer')" id="presetBtnExplorer">🔍 Eksplorasi Lanjutan</button>
-          </div>
-          <div style="font-size: 0.725rem; color: #64748b;" id="decisionPresetStatus">
-            Ringkasan Keputusan Aktif
-          </div>
-        </div>
-
-        <!-- ==========================================
-             SECTION: RINGKASAN KEPUTUSAN EKSEKUTIF (DECISION SNAPSHOT)
-             (Always-visible decision-grade visual widgets)
-        ========================================== -->
-        <div id="decisionSnapshotSection" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div class="card" style="margin-bottom: 1.5rem; scroll-margin-top: 85px;" id="staffKendalaSection">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
             <div>
-              <h2 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0 0 0.2rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-                <span>Ringkasan Keputusan Bisnis &amp; Operasional</span>
+              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Aktivitas Staf &amp; Kondisi Lapangan</span>
               </h2>
-              <p style="font-size: 0.8rem; color: #475569; margin: 0;">Sintesis realisasi harga jual, output panen, arus komersial, pergerakan ternak, dan mitigasi risiko.</p>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Peringkat konsistensi pelaporan karyawan, agregasi mitigasi kendala, dan log hambatan operasional lapangan.</p>
             </div>
-            <span class="badge badge-normal" style="font-size: 0.725rem;">Executive Cockpit</span>
+            <!-- Search / filter quick bar -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+              <input type="text" id="staffKendalaSearch" class="filter-input" placeholder="🔍 Cari karyawan atau kendala..." style="height: 32px; font-size: 0.8rem; min-width: 220px;" oninput="renderStaffRankTable(); renderKendalaFeed();">
+            </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 1.25rem;" class="decision-widgets-grid">
+          <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.25rem;" class="dashboard-staff-kendala-grid">
+
+            <!-- Left: Employee Ranking Table -->
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; overflow: hidden;">
+              <div style="padding: 0.65rem 0.9rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.8125rem; font-weight: 600; color: #0f172a;">Peringkat Aktivitas Pelaporan</span>
+                <span style="font-size: 0.75rem; color: #64748b;" id="staffRankCountBadge">&mdash; karyawan</span>
+              </div>
+              <div style="overflow-y: auto; max-height: 360px;">
+                <table class="division-table" style="font-size: 0.8rem;">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px; text-align: center;">#</th>
+                      <th>Karyawan</th>
+                      <th>Divisi</th>
+                      <th style="text-align: center;">Laporan</th>
+                      <th style="text-align: center;">Kontribusi</th>
+                      <th style="text-align: center;">Laporan Terakhir</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staffRankTableBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right: Integrated Risk Summary & Obstacle Category Types -->
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; overflow: hidden;">
+              <!-- Integrated Risk Summary KPI Strip -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0.55rem 0.75rem;">
+                <div>
+                  <div style="font-size: 0.675rem; color: #64748b;">Total Kendala</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a;" id="riskTotalObstacles">0</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #b91c1c;">URGENT</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #b91c1c;" id="riskUrgentCount">0</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.675rem; color: #b45309;">Belum Ditangani</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #d97706;" id="riskUnresolvedCount">0</div>
+                </div>
+              </div>
+
+              <!-- Category Bar Chart (horizontal bar blocks) -->
+              <div style="padding: 0.65rem 0.9rem 0.35rem 0.9rem; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-size: 0.75rem; font-weight: 600; color: #475569; display: block; margin-bottom: 0.35rem;">Distribusi Tipe Kendala:</span>
+                <div id="kendalaCategoryBars" style="display: flex; flex-direction: column; gap: 0.45rem; overflow-y: auto; max-height: 120px;">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <div style="padding: 0.5rem 0.9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; background: #f8fafc;">
+                <span style="font-size: 0.75rem; color: #64748b;">Log Kendala:</span>
+                <div class="segmented-filter-pills" style="font-size: 0.73rem;">
+                  <button class="filter-pill active" id="kendalaTabAll" onclick="filterKendalaFeed('all')">Semua</button>
+                  <button class="filter-pill" id="kendalaTabNoUpaya" onclick="filterKendalaFeed('noUpaya')">Belum Ditangani</button>
+                </div>
+              </div>
+
+              <!-- Kendala Log Feed (compact) -->
+              <div id="kendalaFeedContainer" style="padding: 0.65rem 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; max-height: 180px;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 2: JADWAL PANEN CERDAS (HST ENGINE)
+             (Matches Card 2: Penanaman Aktif)
+             (Single Canonical Owner for Harvest Prediction & Schedule)
+        ========================================== -->
+        <div class="card" id="harvestScheduleSection" style="margin-bottom: 1.5rem; scroll-margin-top: 85px;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
+            <div>
+              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="15" r="2"/></svg>
+                <span>Jadwal Panen Cerdas (Prediksi HST)</span>
+              </h2>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Kalkulasi cerdas tanggal panen otomatis dari <strong>Tanggal Tanam + HST</strong> untuk pemantauan masa panen mendatang.</p>
+            </div>
+
+            <!-- Schedule Filter Tabs -->
+            <div class="segmented-filter-pills" role="tablist" aria-label="Filter Jadwal Panen">
+              <button class="filter-pill active" id="btnSchedAll" onclick="filterHarvestScheduleTable('all')">Semua Plot</button>
+              <button class="filter-pill" id="btnSchedReady" onclick="filterHarvestScheduleTable('ready')">Siap Panen (&le; 7 Hari)</button>
+              <button class="filter-pill" id="btnSchedGrowing" onclick="filterHarvestScheduleTable('growing')">Masa Tumbuh</button>
+              <button class="filter-pill" id="btnSchedOverdue" onclick="filterHarvestScheduleTable('overdue')">Lewat HST</button>
+            </div>
+          </div>
+
+          <!-- Schedule Table -->
+          <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+            <table class="table-sticky-col responsive-card-table harvest-table">
+              <thead>
+                <tr>
+                  <th>Komoditas &amp; Lahan</th>
+                  <th>Lokasi Sektor</th>
+                  <th>PIC Pelapor</th>
+                  <th style="text-align: center;">Tgl Tanam</th>
+                  <th style="text-align: center;">Estimasi HST</th>
+                  <th style="text-align: center;">Prediksi Tanggal Panen</th>
+                  <th style="text-align: center;">Status / Sisa Waktu</th>
+                </tr>
+              </thead>
+              <tbody id="harvestScheduleTableBody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    Memuat jadwal panen aktif...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 3: PETERNAKAN & POPULASI
+             (Matches Card 3: Populasi Ternak)
+             (Canonical Owner for Livestock Movement & Dynamics)
+        ========================================== -->
+        <div class="card" id="livestockSection" style="margin-bottom: 1.5rem; scroll-margin-top: 85px;">
+          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
+            <div>
+              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>Peternakan: Dinamika Mutasi &amp; Populasi Ternak</span>
+              </h2>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Pemantauan populasi, mutasi masuk (kelahiran/pembelian), mutasi keluar (kematian/penjualan), konsumsi pakan, dan pendapatan ternak.</p>
+            </div>
+            <span class="badge badge-neutral" id="livestockStatusBadge" style="font-size: 0.725rem;">Modul Peternakan</span>
+          </div>
+
+          <!-- Livestock Small Multiples KPI Row -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem; margin-bottom: 0.75rem;">
+            <div>
+              <div style="font-size: 0.675rem; color: #64748b;">Populasi Terkini</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #0f172a; font-family: monospace;" id="lsPopVal">0</div>
+              <div style="font-size: 0.65rem; color: #64748b;">Ekor</div>
+            </div>
+            <div>
+              <div style="font-size: 0.675rem; color: #166534;">Mutasi Masuk</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #15803d; font-family: monospace;" id="lsEntryVal">+0</div>
+              <div style="font-size: 0.65rem; color: #64748b;" id="lsEntrySub">0 Lahir | 0 Beli</div>
+            </div>
+            <div>
+              <div style="font-size: 0.675rem; color: #991b1b;">Mutasi Keluar</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #b91c1c; font-family: monospace;" id="lsExitVal">-0</div>
+              <div style="font-size: 0.65rem; color: #64748b;" id="lsExitSub">0 Mati | 0 Jual</div>
+            </div>
+            <div>
+              <div style="font-size: 0.675rem; color: #d97706;">Pakan Keluar</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #b45309; font-family: monospace;" id="lsFeedVal">0</div>
+              <div style="font-size: 0.65rem; color: #64748b;">Kg Konsumsi</div>
+            </div>
+            <div>
+              <div style="font-size: 0.675rem; color: #059669;">Omzet Ternak</div>
+              <div style="font-size: 1rem; font-weight: 700; color: #047857; font-family: monospace;" id="lsRevVal">Rp 0</div>
+              <div style="font-size: 0.65rem; color: #64748b;">Penjualan Hewan</div>
+            </div>
+          </div>
+
+          <!-- Chart Canvas or Empty Container -->
+          <div id="livestockChartContainer" style="position: relative; height: 190px; width: 100%; margin-bottom: 0.5rem;">
+            <canvas id="livestockMovementChart"></canvas>
+          </div>
+
+          <!-- Table Toggle & Container -->
+          <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
+            <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('livestockTableWrap', 'btnToggleLivestockTable')" id="btnToggleLivestockTable">
+              📊 Tampilkan Tabel Mutasi Ternak
+            </button>
+          </div>
+          <div id="livestockTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+            <table class="division-table" style="font-size: 0.75rem; width: 100%;">
+              <thead>
+                <tr>
+                  <th>Interval</th>
+                  <th style="text-align: right;">Populasi</th>
+                  <th style="text-align: right;">Masuk</th>
+                  <th style="text-align: right;">Keluar</th>
+                  <th style="text-align: right;">Pakan (Kg)</th>
+                  <th style="text-align: right;">Omzet Ternak</th>
+                </tr>
+              </thead>
+              <tbody id="livestockTableBody">
+                <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Belum ada data mutasi ternak</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 4: PRODUKSI & HARGA (AGRO & TERNAK)
+             (Matches Card 4: Hasil Panen)
+             (Canonical owners for Realized Price Trend & Harvest Performance)
+        ========================================== -->
+        <div id="productionMarketSection" style="margin-bottom: 1.5rem; scroll-margin-top: 85px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 1.25rem;">
             
-            <!-- WIDGET A: TREN HARGA REALISASI PENJUALAN -->
-            <div class="card decision-widget-card" id="widgetPriceTrendCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+            <!-- CARD A: TREN HARGA REALISASI PENJUALAN -->
+            <div class="card" id="widgetPriceTrendCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
               <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
                 <div>
                   <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
@@ -319,11 +520,15 @@
                   </h3>
                   <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Rata-rata tertimbang harga transaksi riil per interval waktu.</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.4rem;">
-                  <select id="priceTrendCommoditySelect" class="filter-select" style="height: 30px; font-size: 0.775rem; min-width: 140px;" onchange="handlePriceTrendCommodityChange(this.value)">
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                  <select id="priceTrendCommoditySelect" class="filter-select" style="height: 30px; font-size: 0.775rem; min-width: 130px;" onchange="handlePriceTrendCommodityChange(this.value)">
                     <option value="">Pilih Komoditas...</option>
                   </select>
-                  <span id="priceTrendBasisBadge" class="badge badge-primary" style="font-size: 0.725rem; font-family: monospace;">Rp/unit</span>
+                  <select id="priceTrendBasisSelect" class="filter-select" style="height: 30px; font-size: 0.75rem; font-family: monospace; min-width: 85px;" onchange="handlePriceTrendBasisChange(this.value)">
+                    <option value="Rp/unit">Rp/unit</option>
+                    <option value="Rp/kg">Rp/kg</option>
+                    <option value="Rp/ekor">Rp/ekor</option>
+                  </select>
                 </div>
               </div>
 
@@ -375,13 +580,13 @@
               </div>
             </div>
 
-            <!-- WIDGET B: HASIL PANEN PER KOMODITAS -->
-            <div class="card decision-widget-card" id="widgetHarvestYieldCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
+            <!-- CARD B: KINERJA HASIL PANEN PER KOMODITAS -->
+            <div class="card" id="widgetHarvestYieldCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
               <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
                 <div>
                   <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
                     <span style="color: #D97706;">🌾</span>
-                    <span>Hasil Panen per Komoditas</span>
+                    <span>Kinerja Hasil Panen per Komoditas</span>
                   </h3>
                   <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Perbandingan kuantitas panen riil dan pangsa produksi.</p>
                 </div>
@@ -417,362 +622,98 @@
               </div>
             </div>
 
-            <!-- WIDGET C: PENDAPATAN & VOLUME PENJUALAN -->
-            <div class="card decision-widget-card" id="widgetSalesVolumeCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
-              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
-                <div>
-                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="color: #059669;">💰</span>
-                    <span>Pendapatan dan Volume Penjualan</span>
-                  </h3>
-                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Integrasi output komersial dan alokasi penggunaan internal.</p>
-                </div>
-                <div class="segmented-filter-pills" style="font-size: 0.73rem;">
-                  <button class="filter-pill active" id="btnSaleMetricVal" onclick="switchSalesDecisionMetric('value')">Nilai (Rp)</button>
-                  <button class="filter-pill" id="btnSaleMetricVol" onclick="switchSalesDecisionMetric('volume')">Volume</button>
-                  <button class="filter-pill" id="btnSaleMetricPrice" onclick="switchSalesDecisionMetric('price')">Harga/Unit</button>
-                </div>
-              </div>
-
-              <!-- Sales vs Internal Summary Banner -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem;">
-                <div>
-                  <span style="font-size: 0.675rem; color: #64748b; font-weight: 500;">Penjualan Komersial:</span>
-                  <div style="font-size: 0.875rem; font-weight: 700; color: #059669; font-family: monospace;" id="salesDecisionCommercialVal">Rp 0</div>
-                </div>
-                <div>
-                  <span style="font-size: 0.675rem; color: #64748b; font-weight: 500;">Penggunaan Internal:</span>
-                  <div style="font-size: 0.875rem; font-weight: 700; color: #2563EB; font-family: monospace;" id="salesDecisionInternalVal">0 Unit</div>
-                </div>
-              </div>
-
-              <!-- Chart Canvas -->
-              <div style="position: relative; height: 180px; width: 100%; margin-bottom: 0.5rem;">
-                <canvas id="salesDecisionChart"></canvas>
-              </div>
-
-              <!-- Table Toggle & Container -->
-              <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
-                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('salesDecisionTableWrap', 'btnToggleSalesTable')" id="btnToggleSalesTable">
-                  📊 Tampilkan Tabel Data
-                </button>
-              </div>
-              <div id="salesDecisionTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
-                <table class="division-table" style="font-size: 0.75rem; width: 100%;">
-                  <thead>
-                    <tr>
-                      <th>Komoditas</th>
-                      <th>Modul</th>
-                      <th style="text-align: right;">Nilai Penjualan</th>
-                      <th style="text-align: right;">Volume</th>
-                      <th style="text-align: right;">Harga Satuan</th>
-                    </tr>
-                  </thead>
-                  <tbody id="salesDecisionTableBody">
-                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Belum ada data penjualan</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- WIDGET D: PIPELINE & STATUS PANEN -->
-            <div class="card decision-widget-card" id="widgetHarvestPipelineCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
-              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
-                <div>
-                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="color: #D97706;">📅</span>
-                    <span>Pipeline &amp; Status Panen (HST)</span>
-                  </h3>
-                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Monitoring plot tanam aktif, estimasi siap panen, dan alert keterlambatan.</p>
-                </div>
-                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #15803D; font-weight: 600;" onclick="scrollToSection('harvestScheduleSection')">
-                  Lihat Jadwal Penuh &darr;
-                </button>
-              </div>
-
-              <!-- Pipeline KPI Tiles -->
-              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; margin-bottom: 0.85rem;">
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 0.65rem 0.85rem;">
-                  <div style="font-size: 0.725rem; font-weight: 600; color: #166534;">Plot Ditanam Aktif</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #14532d;" id="pipelineActiveCount">0</div>
-                  <div style="font-size: 0.675rem; color: #15803d;">Masa tumbuh &amp; perawatan</div>
-                </div>
-                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 0.65rem 0.85rem;">
-                  <div style="font-size: 0.725rem; font-weight: 600; color: #92400e;">Siap Panen (&le; 7 Hari)</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #78350f;" id="pipelineReadyCount">0</div>
-                  <div style="font-size: 0.675rem; color: #b45309;">Prioritas persiapan logistik</div>
-                </div>
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 0.65rem 0.85rem;">
-                  <div style="font-size: 0.725rem; font-weight: 600; color: #991b1b;">Lewat Estimasi HST</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #7f1d1d;" id="pipelineOverdueCount">0</div>
-                  <div style="font-size: 0.675rem; color: #b91c1c;">Perlu konfirmasi lapangan</div>
-                </div>
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem;">
-                  <div style="font-size: 0.725rem; font-weight: 600; color: #475569;">Data Belum Lengkap</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #334155;" id="pipelineIncompleteCount">0</div>
-                  <div style="font-size: 0.675rem; color: #64748b;">Tanpa tgl tanam / HST</div>
-                </div>
-              </div>
-
-              <!-- Upcoming Ready Mini-List -->
-              <div style="margin-top: auto;">
-                <div style="font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Plot Terdekat Siap Panen:</div>
-                <div id="pipelineMiniList" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 120px; overflow-y: auto;">
-                  <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada plot siap panen dalam waktu dekat.</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- WIDGET E: PERGERAKAN & POPULASI TERNAK -->
-            <div class="card decision-widget-card" id="widgetLivestockCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
-              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
-                <div>
-                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="color: #8B5CF6;">🐄</span>
-                    <span>Pergerakan &amp; Populasi Ternak</span>
-                  </h3>
-                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Dinamika kelahiran, pembelian, kematian, penjualan, dan konsumsi pakan.</p>
-                </div>
-                <span class="badge badge-neutral" id="livestockStatusBadge" style="font-size: 0.725rem;">Modul Peternakan</span>
-              </div>
-
-              <!-- Livestock Small Multiples KPI Row -->
-              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.65rem; margin-bottom: 0.75rem;">
-                <div>
-                  <div style="font-size: 0.675rem; color: #64748b;">Populasi Terkini</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a;" id="lsPopVal">0</div>
-                  <div style="font-size: 0.65rem; color: #64748b;">Ekor</div>
-                </div>
-                <div>
-                  <div style="font-size: 0.675rem; color: #166534;">Mutasi Masuk</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #15803d;" id="lsEntryVal">+0</div>
-                  <div style="font-size: 0.65rem; color: #64748b;" id="lsEntrySub">0 Lahir | 0 Beli</div>
-                </div>
-                <div>
-                  <div style="font-size: 0.675rem; color: #991b1b;">Mutasi Keluar</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #b91c1c;" id="lsExitVal">-0</div>
-                  <div style="font-size: 0.65rem; color: #64748b;" id="lsExitSub">0 Mati | 0 Jual</div>
-                </div>
-                <div>
-                  <div style="font-size: 0.675rem; color: #d97706;">Pakan Keluar</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #b45309;" id="lsFeedVal">0</div>
-                  <div style="font-size: 0.65rem; color: #64748b;">Kg Konsumsi</div>
-                </div>
-              </div>
-
-              <!-- Chart Canvas or Empty Container -->
-              <div id="livestockChartContainer" style="position: relative; height: 180px; width: 100%; margin-bottom: 0.5rem;">
-                <canvas id="livestockMovementChart"></canvas>
-              </div>
-
-              <!-- Table Toggle & Container -->
-              <div style="display: flex; justify-content: flex-end; margin-top: auto; padding-top: 0.35rem;">
-                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('livestockTableWrap', 'btnToggleLivestockTable')" id="btnToggleLivestockTable">
-                  📊 Tampilkan Tabel Data
-                </button>
-              </div>
-              <div id="livestockTableWrap" style="display: none; margin-top: 0.5rem; max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
-                <table class="division-table" style="font-size: 0.75rem; width: 100%;">
-                  <thead>
-                    <tr>
-                      <th>Interval</th>
-                      <th style="text-align: right;">Populasi</th>
-                      <th style="text-align: right;">Masuk</th>
-                      <th style="text-align: right;">Keluar</th>
-                      <th style="text-align: right;">Pakan (Kg)</th>
-                      <th style="text-align: right;">Omzet Ternak</th>
-                    </tr>
-                  </thead>
-                  <tbody id="livestockTableBody">
-                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Belum ada data mutasi ternak</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- WIDGET F: RISIKO OPERASIONAL & KENDALA -->
-            <div class="card decision-widget-card" id="widgetOperationalRiskCard" style="display: flex; flex-direction: column; margin-bottom: 0;">
-              <div class="flex-between-wrap" style="align-items: center; margin-bottom: 0.85rem; gap: 0.5rem;">
-                <div>
-                  <h3 style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.15rem 0; display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="color: #EF4444;">⚠️</span>
-                    <span>Risiko Operasional &amp; Kendala</span>
-                  </h3>
-                  <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Monitoring kendala lapangan, status urgensi, dan kecepatan mitigasi.</p>
-                </div>
-                <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #15803D; font-weight: 600;" onclick="scrollToSection('staffKendalaSection')">
-                  Lihat Feed Kendala &darr;
-                </button>
-              </div>
-
-              <!-- Risk Summary KPI Bar -->
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem;">
-                <div>
-                  <div style="font-size: 0.675rem; color: #64748b;">Total Kendala</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a;" id="riskTotalObstacles">0</div>
-                  <div style="font-size: 0.65rem; color: #64748b;">Laporan terdeteksi</div>
-                </div>
-                <div>
-                  <div style="font-size: 0.675rem; color: #b91c1c;">Kendala URGENT</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #b91c1c;" id="riskUrgentCount">0</div>
-                  <div style="font-size: 0.65rem; color: #991b1b;">Perlu tindakan segera</div>
-                </div>
-                <div>
-                  <div style="font-size: 0.675rem; color: #b45309;">Belum Ditangani</div>
-                  <div style="font-size: 0.95rem; font-weight: 700; color: #d97706;" id="riskUnresolvedCount">0</div>
-                  <div style="font-size: 0.65rem; color: #b45309;" id="riskMitigationRate">Mitigasi: 100%</div>
-                </div>
-              </div>
-
-              <!-- Category Distribution Bars -->
-              <div style="margin-top: 0.25rem;">
-                <div style="font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Distribusi Tipe Kendala:</div>
-                <div id="riskCategoryBarsMini" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 140px; overflow-y: auto;">
-                  <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada kendala pada periode ini.</div>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
 
-
         <!-- ==========================================
-             SECTION 2: STAFF ACTIVITY & FIELD OBSTACLE INTELLIGENCE
-             (Aligned with card #1: Total Laporan)
+             SECTION 5: PENJUALAN KOMERSIAL & PEMANFAATAN INTERNAL
+             (Matches Card 5: Pendapatan Penjualan)
+             (Single Canonical Owner for Sales & Distribution)
         ========================================== -->
-        <div class="card" style="margin-bottom: 1.5rem;" id="staffKendalaSection">
+        <div class="card" style="margin-bottom: 1.5rem; scroll-margin-top: 85px;" id="commercialSection">
           <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
             <div>
               <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
-                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Aktivitas Staf &amp; Kondisi Lapangan</span>
+                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <span>Komersial &amp; Distribusi Hasil Panen / Ternak</span>
               </h2>
-              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Peringkat konsistensi pelaporan karyawan dan distribusi tipe hambatan operasional lapangan per periode.</p>
+              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Integrasi transaksi komersial (Agro &amp; Peternakan) serta alokasi pemanfaatan mandiri operasional internal.</p>
             </div>
-            <!-- Search / filter quick bar -->
-            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
-              <input type="text" id="staffKendalaSearch" class="filter-input" placeholder="&#128269; Cari karyawan atau kendala..." style="height: 32px; font-size: 0.8rem; min-width: 220px;" oninput="renderStaffRankTable(); renderKendalaFeed();">
+
+            <div class="segmented-filter-pills" style="font-size: 0.73rem;">
+              <button class="filter-pill active" id="btnSaleMetricVal" onclick="switchSalesDecisionMetric('value')">Nilai (Rp)</button>
+              <button class="filter-pill" id="btnSaleMetricVol" onclick="switchSalesDecisionMetric('volume')">Volume</button>
+              <button class="filter-pill" id="btnSaleMetricPrice" onclick="switchSalesDecisionMetric('price')">Harga Satuan</button>
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.25rem;" class="dashboard-staff-kendala-grid">
-
-            <!-- Left: Employee Ranking Table -->
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; overflow: hidden;">
-              <div style="padding: 0.65rem 0.9rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.8125rem; font-weight: 600; color: #0f172a;">Peringkat Aktivitas Pelaporan</span>
-                <span style="font-size: 0.75rem; color: #64748b;" id="staffRankCountBadge">&mdash; karyawan</span>
-              </div>
-              <div style="overflow-y: auto; max-height: 360px;">
-                <table class="division-table" style="font-size: 0.8rem;">
-                  <thead>
-                    <tr>
-                      <th style="width: 36px; text-align: center;">#</th>
-                      <th>Karyawan</th>
-                      <th>Divisi</th>
-                      <th style="text-align: center;">Laporan</th>
-                      <th style="text-align: center;">Kontribusi</th>
-                      <th style="text-align: center;">Laporan Terakhir</th>
-                    </tr>
-                  </thead>
-                  <tbody id="staffRankTableBody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
+          <!-- Top Commercial vs Internal Summary Banner -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem;">
+              <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Penjualan Komersial Total</span>
+              <div style="font-size: 1.2rem; font-weight: 700; color: #059669; margin-top: 0.15rem; font-family: monospace;" id="salesDecisionCommercialVal">Rp 0</div>
+              <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;" id="salesCommercialModuleSplit">Agro: Rp 0 | Ternak: Rp 0</div>
             </div>
 
-            <!-- Right: Obstacle Category Types -->
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; overflow: hidden;">
-              <div style="padding: 0.65rem 0.9rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.8125rem; font-weight: 600; color: #0f172a;">Tipe Hambatan Operasional</span>
-                <span style="font-size: 0.75rem; color: #64748b;" id="kendalaTypesBadge">Periode aktif</span>
-              </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem;">
+              <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Penggunaan Internal Operasional</span>
+              <div style="font-size: 1.2rem; font-weight: 700; color: #2563eb; margin-top: 0.15rem; font-family: monospace;" id="salesDecisionInternalVal">0 Unit</div>
+              <div style="font-size: 0.75rem; color: #d97706; margin-top: 0.15rem;" id="salesInternalDestSplit">Pakan, bibit &amp; kebun mandiri</div>
+            </div>
+          </div>
 
-              <!-- Category Bar Chart (horizontal bar blocks) -->
-              <div id="kendalaCategoryBars" style="padding: 0.75rem 0.9rem; display: flex; flex-direction: column; gap: 0.55rem; overflow-y: auto; max-height: 160px;">
-                <!-- Populated dynamically -->
-              </div>
+          <!-- Chart Canvas -->
+          <div style="position: relative; height: 210px; width: 100%; margin-bottom: 0.75rem;">
+            <canvas id="salesDecisionChart"></canvas>
+          </div>
 
-              <div style="border-top: 1px solid #e2e8f0; padding: 0.65rem 0.9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem;">
-                <span style="font-size: 0.75rem; color: #64748b;">Log terbaru:</span>
-                <div class="segmented-filter-pills" style="font-size: 0.73rem;">
-                  <button class="filter-pill active" id="kendalaTabAll" onclick="filterKendalaFeed('all')">Semua</button>
-                  <button class="filter-pill" id="kendalaTabNoUpaya" onclick="filterKendalaFeed('noUpaya')">Belum Ditangani</button>
-                </div>
-              </div>
-
-              <!-- Kendala Log Feed (compact) -->
-              <div id="kendalaFeedContainer" style="padding: 0 0.9rem 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; max-height: 180px;">
-                <!-- Populated dynamically -->
-              </div>
+          <!-- Table Toggle & Container -->
+          <div style="display: flex; justify-content: flex-end; margin-top: 0.25rem;">
+            <button type="button" class="btn-ghost" style="font-size: 0.73rem; padding: 2px 8px; color: #475569;" onclick="toggleWidgetTable('salesDecisionTableWrap', 'btnToggleSalesTable')" id="btnToggleSalesTable">
+              📊 Tampilkan Tabel Rincian Penjualan &amp; Distribusi
+            </button>
+          </div>
+          <div id="salesDecisionTableWrap" style="display: none; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="max-height: 180px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+              <table class="division-table" style="font-size: 0.75rem; width: 100%;">
+                <thead>
+                  <tr>
+                    <th>Komoditas</th>
+                    <th>Modul</th>
+                    <th style="text-align: right;">Nilai Penjualan</th>
+                    <th style="text-align: right;">Volume</th>
+                    <th style="text-align: right;">Harga Satuan</th>
+                  </tr>
+                </thead>
+                <tbody id="salesDecisionTableBody">
+                  <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Belum ada data penjualan</td></tr>
+                </tbody>
+              </table>
             </div>
 
+            <!-- Internal Usage Breakdown Table -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.65rem 0.85rem; background: #f8fafc;">
+              <span style="font-size: 0.75rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem; display: block;">Distribusi Penggunaan Internal per Lokasi / Tujuan:</span>
+              <div id="internalUsageDestList" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <span style="font-size: 0.75rem; color: #94a3b8;">Tidak ada alokasi penggunaan internal.</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- ==========================================
-             SECTION 3: SMART HARVEST SCHEDULE (HST ENGINE)
-             (Moved here to align with card #2: Penanaman Aktif)
-        ========================================== -->
-        <div class="card" id="harvestScheduleSection" style="margin-bottom: 1.5rem;">
-          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
-            <div>
-              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
-                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="15" r="2"/></svg>
-                <span>Jadwal Panen Cerdas (Prediksi HST)</span>
-              </h2>
-              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Kalkulasi cerdas tanggal panen otomatis dari <strong>Tanggal Tanam + HST</strong>. Memudahkan pemantauan masa panen mendatang.</p>
-            </div>
-
-            <!-- Schedule Filter Tabs -->
-            <div class="segmented-filter-pills" role="tablist" aria-label="Filter Jadwal Panen">
-              <button class="filter-pill active" id="btnSchedAll" onclick="filterHarvestScheduleTable('all')">Semua Plot</button>
-              <button class="filter-pill" id="btnSchedReady" onclick="filterHarvestScheduleTable('ready')">Siap Panen (&le; 7 Hari)</button>
-              <button class="filter-pill" id="btnSchedGrowing" onclick="filterHarvestScheduleTable('growing')">Masa Tumbuh</button>
-              <button class="filter-pill" id="btnSchedOverdue" onclick="filterHarvestScheduleTable('overdue')">Lewat HST</button>
-            </div>
-          </div>
-
-          <!-- Schedule Table -->
-          <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-            <table class="table-sticky-col responsive-card-table harvest-table">
-              <thead>
-                <tr>
-                  <th>Komoditas &amp; Lahan</th>
-                  <th>Lokasi Sektor</th>
-                  <th>PIC Pelapor</th>
-                  <th style="text-align: center;">Tgl Tanam</th>
-                  <th style="text-align: center;">Estimasi HST</th>
-                  <th style="text-align: center;">Prediksi Tanggal Panen</th>
-                  <th style="text-align: center;">Status / Sisa Waktu</th>
-                </tr>
-              </thead>
-              <tbody id="harvestScheduleTableBody">
-                <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                    Memuat jadwal panen aktif...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ==========================================
-             SECTION 4: COMMODITY & OPERATIONAL ANALYTICS WORKSPACE
-             (Dynamic Multi-Filter, Multi-Sort, Time-Series & Breakdown Explorer)
+             SECTION 6: ADVANCED ANALYTICS EXPLORER (EKSPLORASI LANJUTAN)
+             (Single Canonical Drill-down Tool for Custom Analysis)
         ========================================== -->
         <div class="card" style="margin-bottom: 1.5rem;" id="commoditySectionCard">
           <div class="flex-between-wrap" style="align-items: flex-start; margin-bottom: 1rem; gap: 0.75rem;">
             <div>
               <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
                 <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <span id="commoditySectionTitle">Dinamika Tren &amp; Breakdown Operasional</span>
+                <span id="commoditySectionTitle">Eksplorasi Lanjutan &amp; Analisis Kustom</span>
               </h2>
               <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;" id="commoditySectionSubtitle">
-                Analisis tren waktu tanam vs panen serta perbandingan agregat multi-ukuran dengan filter konjungtif mandiri.
+                Analisis mendalam multi-dimensi, multi-ukuran, multi-filter konjungtif, dan pengurutan berurutan.
               </p>
             </div>
 
@@ -821,11 +762,11 @@
                 </select>
               </div>
 
-              <!-- Measure Selector (Grouped by module) -->
+              <!-- Measure Selector -->
               <div class="widget-control-group" style="display: flex; align-items: center; gap: 0.35rem;">
                 <label for="comMeasureSelect" class="widget-control-label" style="font-size: 0.775rem; font-weight: 600; color: #475569;">Ukuran:</label>
                 <select id="comMeasureSelect" class="filter-select" style="min-width: 175px; height: 32px; font-size: 0.8rem;" onchange="handleComMeasureChange(this.value)">
-                  <optgroup label="🌾 Pertanian (Agro)">
+                  <optgroup label="Pertanian (Agro)">
                     <option value="jumlahPanen">Hasil Panen (Kg)</option>
                     <option value="jumlahBenih">Populasi Benih (Benih)</option>
                     <option value="luasLahanM2">Luas Lahan Tanam (m²)</option>
@@ -833,7 +774,7 @@
                     <option value="populasiAgro">Populasi Tanaman (Pohon)</option>
                     <option value="estimasiPanenHst">Estimasi Panen (HST)</option>
                   </optgroup>
-                  <optgroup label="🐄 Peternakan (Ternak)">
+                  <optgroup label="Peternakan (Ternak)">
                     <option value="populasiTernak">Populasi Ternak (Ekor)</option>
                     <option value="ternakMasukQty">Ternak Masuk (Ekor)</option>
                     <option value="ternakKeluarQty">Ternak Keluar (Ekor)</option>
@@ -842,12 +783,12 @@
                     <option value="jumlahPenjualanTernak">Volume Penjualan Ternak</option>
                     <option value="totalHargaTernakRp">Nilai Penjualan Ternak (Rp)</option>
                   </optgroup>
-                  <optgroup label="💰 Finansial &amp; Distribusi">
+                  <optgroup label="Finansial &amp; Distribusi">
                     <option value="totalHargaRp">Nilai Penjualan Agro (Rp)</option>
                     <option value="jumlahPenjualanUnit">Volume Penjualan Agro (Unit)</option>
                     <option value="jumlahUnitPenggunaan">Volume Penggunaan Internal</option>
                   </optgroup>
-                  <optgroup label="📊 Kinerja &amp; Frekuensi">
+                  <optgroup label="Kinerja &amp; Frekuensi">
                     <option value="count">Frekuensi Laporan (Laporan)</option>
                     <option value="distinctEmployees">Jumlah Karyawan Unik (Orang)</option>
                     <option value="produktivitasPanen">Produktivitas Panen (Kg/m²)</option>
@@ -976,8 +917,8 @@
             <button type="button" class="btn btn-secondary table-btn-sm" onclick="addSortLevelRow()" id="btnAddSortLevel" style="height: 32px;">+ Tambah Tingkat Urutan</button>
           </div>
 
-          <!-- Dynamic Explorer Grid: Visual Chart + Accessible Data Table + Participation Sidebar -->
-          <div style="display: grid; grid-template-columns: 2.1fr 1fr; gap: 1.25rem;" class="dashboard-commodity-grid">
+          <!-- Dynamic Explorer Grid: Visual Chart + Accessible Data Table + Query Summary -->
+          <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 1.25rem;" class="dashboard-commodity-grid">
             
             <!-- Left: Visual Chart Panel & Accessible Tabular Alternative -->
             <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; position: relative; display: flex; flex-direction: column; gap: 1rem;">
@@ -1032,88 +973,38 @@
 
             </div>
 
-            <!-- Right: Staff Participation Panel -->
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; display: flex; flex-direction: column;">
-              <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;" id="commodityParticipationTitle">
-                Partisipasi Staf
+            <!-- Right: Query Result Summary & Drilldown Metadata Panel -->
+            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; display: flex; flex-direction: column;" id="explorerQuerySummaryPanel">
+              <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">
+                Ringkasan Kueri Eksplorasi
               </div>
-              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.75rem 0;" id="commodityParticipationSubtitle">
-                Karyawan yang melaporkan aktivitas pada cakupan filter ini:
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.75rem 0;">
+                Metadata hasil kueri analitik kustom:
               </p>
 
-              <div id="cropParticipationList" style="display: flex; flex-direction: column; gap: 0.45rem; overflow-y: auto; max-height: 520px;">
-                <!-- Populated dynamically -->
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem;">
+                  <div style="font-size: 0.7rem; color: #64748b;">Laporan Cocok</div>
+                  <div style="font-size: 1.15rem; font-weight: 700; color: #0f172a;" id="explorerMatchingReportsCount">0</div>
+                  <div style="font-size: 0.675rem; color: #64748b;">dokumen laporan teragregasi</div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem;">
+                  <div style="font-size: 0.7rem; color: #64748b;">Karyawan Unik Terlibat</div>
+                  <div style="font-size: 1.15rem; font-weight: 700; color: #2563eb;" id="explorerUniqueEmployeesCount">0</div>
+                  <div style="font-size: 0.675rem; color: #64748b;">PIC pelapor aktif</div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem;">
+                  <div style="font-size: 0.7rem; color: #64748b;">Status Scope</div>
+                  <div style="font-size: 0.8rem; font-weight: 600; color: #334155; margin-top: 2px;" id="explorerScopeSummaryText">Scope Mengikuti Halaman</div>
+                </div>
               </div>
-            </div>
 
-          </div>
-        </div>
-
-        <!-- ==========================================
-             SECTION 5: COMMERCIAL MONETIZATION & INTERNAL UTILIZATION INSIGHTS
-             (Moved here to align with card #4: Pendapatan Penjualan)
-        ========================================== -->
-        <div class="card" style="margin-bottom: 1.5rem;" id="distributionInsightsSection">
-          <div class="flex-between-wrap" style="align-items: center; margin-bottom: 1rem; gap: 0.75rem;">
-            <div>
-              <h2 class="card-title card-title-sm" style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; font-weight: 600;">
-                <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-                <span>Distribusi Hasil Panen: Penjualan vs Penggunaan Internal</span>
-              </h2>
-              <p class="card-subtitle" style="font-size: 0.8rem; margin-bottom: 0;">Wawasan tingkat tinggi pemetaan hasil panen antara monetisasi komersial (eksternal/internal) dan kebutuhan operasional mandiri.</p>
-            </div>
-
-            <!-- View Toggle: Nilai Nominal (Rp) vs Volume Alokasi (Unit/Kg) -->
-            <div class="segmented-filter-pills" role="tablist" aria-label="Tampilan Distribusi">
-              <button class="filter-pill active" id="btnDistValue" onclick="switchDistributionMetric('value')">Berdasarkan Nilai (Rp)</button>
-              <button class="filter-pill" id="btnDistVolume" onclick="switchDistributionMetric('volume')">Berdasarkan Volume (Kg/Unit)</button>
-            </div>
-          </div>
-
-          <!-- Top 3 High-Level Ratio Badges/Summary Strip -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem;">
-              <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Penjualan Komersial</span>
-              <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-top: 0.15rem;" id="distCommercialRevenue">Rp 0</div>
-              <div style="font-size: 0.75rem; color: #16a34a; margin-top: 0.15rem;" id="distCommercialSub">0 unit/Kg terjual</div>
-            </div>
-
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem;">
-              <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Penggunaan Internal</span>
-              <div style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-top: 0.15rem;" id="distInternalUsageUnits">0 unit/Kg</div>
-              <div style="font-size: 0.75rem; color: #d97706; margin-top: 0.15rem;" id="distInternalUsageSub">Bibit, Pakan &amp; Konsumsi</div>
-            </div>
-
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem;">
-              <span style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Rasio Komersialisasi</span>
-              <div style="font-size: 1.2rem; font-weight: 700; color: #2563eb; margin-top: 0.15rem;" id="distCommercialRate">0%</div>
-              <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;" id="distRateSub">Tingkat Penyerapan Pasar</div>
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1.2fr 1.4fr; gap: 1.25rem;" class="dashboard-sales-grid">
-            
-            <!-- Left: Distribution Allocation Chart & Breakdown -->
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; display: flex; flex-direction: column;">
-              <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;" id="distributionChartTitle">
-                Proporsi Alokasi Distribusi
-              </div>
-              <div class="chart-container" style="position: relative; height: 210px; max-height: 210px; width: 100%; margin-bottom: 0.75rem;">
-                <canvas id="distributionChart" height="210" style="max-height: 210px; height: 210px; width: 100%; display: block;"></canvas>
-              </div>
-              <div id="distributionLegendList" style="display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.8125rem;">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-            <!-- Right: Executive Strategic Insights Grid -->
-            <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: #ffffff; display: flex; flex-direction: column;">
-              <div style="font-size: 0.825rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
-                <span>Wawasan Strategis Berbasis Data</span>
-                <span class="badge badge-primary" style="font-size: 0.7rem; font-weight: 600;">Otomatisasi Analitik</span>
-              </div>
-              <div id="distributionInsightsGrid" style="display: flex; flex-direction: column; gap: 0.65rem; overflow-y: auto; max-height: 310px;">
-                <!-- Populated dynamically with 4 insight cards -->
+              <div style="margin-top: auto; padding-top: 1rem;">
+                <button type="button" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center;" onclick="resetExplorerToDefaults()">
+                  Reset Kueri ke Default
+                </button>
               </div>
             </div>
 
@@ -1121,7 +1012,7 @@
         </div>
 
         <!-- Footer Drilldown Banner to Admin Queue -->
-        <div class="drilldown-banner">
+        <div class="drilldown-banner" id="drilldownBanner">
           <div class="drilldown-banner-text">
             <h4>Butuh Rincian Laporan Lapangan Per Dokumen?</h4>
             <p>Buka Antrean Admin untuk memeriksa dokumen laporan individual, status peninjauan, foto bukti lapangan, dan audit trail.</p>
@@ -1138,16 +1029,53 @@
   <?!= includeApp(webAppUrl); ?>
 
   <script>
-    // Global State
+    // Centralized Explicit Dashboard State
+    const dashboardState = {
+      globalScope: {
+        period: 'this_month',
+        startDate: '',
+        endDate: '',
+        cropFilter: ''
+      },
+      price: {
+        commodity: '',
+        basis: 'Rp/unit'
+      },
+      commerce: {
+        metric: 'value' // 'value' | 'volume' | 'price'
+      },
+      schedule: {
+        filter: 'all' // 'all' | 'ready' | 'growing' | 'overdue'
+      },
+      obstacles: {
+        tab: 'all', // 'all' | 'noUpaya'
+        search: ''
+      },
+      explorer: {
+        mode: 'tren', // 'tren' | 'breakdown'
+        measureKey: 'jumlahPanen',
+        groupByKey: 'komoditas',
+        period: 'inherit',
+        startDate: '',
+        endDate: '',
+        interval: 'day',
+        aggregation: 'sum',
+        filters: [],
+        sorts: [{ fieldKey: 'value', direction: 'desc' }],
+        isCustomized: false
+      }
+    };
+
     let activeAnalyticsData = null;
-    let currentPeriodCode = 'this_month';
-    let currentCropChartView = 'both'; // 'both' | 'tanam' | 'panen'
-    let currentSalesBreakdownKey = 'commodity'; // 'commodity' | 'division' | 'distribution'
-    let currentScheduleFilter = 'all'; // 'all' | 'ready' | 'growing' | 'overdue'
+    let _dashboardReqSeq = 0;
+    let lastFetchedTime = null;
 
     // Chart.js Instances
+    let priceTrendChartInstance = null;
+    let harvestYieldChartInstance = null;
+    let salesDecisionChartInstance = null;
+    let livestockMovementChartInstance = null;
     let commodityTrendChartInstance = null;
-    let salesBreakdownChartInstance = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       loadQuickLinks();
@@ -1176,7 +1104,6 @@
       return Math.round(num).toLocaleString('id-ID');
     }
 
-    let lastFetchedTime = null;
     function updateFreshnessTag() {
       const textEl = document.getElementById('dashLastUpdatedText') || document.getElementById('dashLastUpdatedTag');
       if (!textEl || !lastFetchedTime) return;
@@ -1187,7 +1114,7 @@
     }
 
     function setDashboardPeriod(periodCode, btnElement) {
-      currentPeriodCode = periodCode;
+      dashboardState.globalScope.period = periodCode;
       document.querySelectorAll('#dashPeriodControl .filter-pill, #dashPeriodControl .dash-seg-btn').forEach(el => el.classList.remove('active'));
       if (btnElement) btnElement.classList.add('active');
 
@@ -1203,7 +1130,16 @@
     function scrollToSection(sectionId) {
       const sec = document.getElementById(sectionId);
       if (sec) {
-        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Calculate offset so sticky header doesn't obscure the section title and controls
+        const headerOffset = 90;
+        const elementPosition = sec.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth'
+        });
+
         sec.classList.remove('section-highlight-pulse');
         // Force DOM reflow to restart CSS animation
         void sec.offsetWidth;
@@ -1230,6 +1166,7 @@
     // DATA FETCHING & ORCHESTRATION (REAL-TIME)
     // ==========================================
     async function loadAnalyticsDashboardData(isManual = false) {
+      const thisReqSeq = ++_dashboardReqSeq;
       const refreshIcon = document.getElementById('dashRefreshIcon');
       if (refreshIcon) refreshIcon.classList.add('spin-loading');
       if (isManual) {
@@ -1238,10 +1175,12 @@
       }
 
       const params = {
-        period: currentPeriodCode,
+        period: dashboardState.globalScope.period,
         startDate: document.getElementById('dashCustomStartDate')?.value || '',
         endDate: document.getElementById('dashCustomEndDate')?.value || '',
-        cropFilter: document.getElementById('cropSelectFilter')?.value || ''
+        cropFilter: document.getElementById('cropSelectFilter')?.value || '',
+        commodity: dashboardState.price.commodity,
+        priceBasis: dashboardState.price.basis
       };
 
       try {
@@ -1252,6 +1191,8 @@
           // Local development simulator
           res = generateMockAnalyticsData(params);
         }
+
+        if (thisReqSeq !== _dashboardReqSeq) return; // Discard stale response
 
         activeAnalyticsData = res;
         lastFetchedTime = Date.now();
@@ -1269,108 +1210,108 @@
     function renderAllDashboardSections(data) {
       if (!data) return;
 
-      // 1. Period Badge
+      // 1. Global Period Badge
       const periodLabel = document.getElementById('dashPeriodLabel');
-      if (periodLabel) periodLabel.innerText = data.period.label || 'Periode Terpilih';
+      if (periodLabel) periodLabel.innerText = data.period?.label || 'Periode Terpilih';
 
-      // 2. Executive KPIs
-      document.getElementById('kpiTotalReports').innerText = formatNumber(data.kpis.totalReports);
-      document.getElementById('kpiTotalSales').innerText = formatRupiah(data.kpis.totalSalesRp);
-      document.getElementById('kpiTotalPanen').innerText = formatNumber(data.kpis.totalPanenKg);
-      document.getElementById('kpiActivePlantings').innerText = formatNumber(data.kpis.activePlantingsCount);
-      document.getElementById('badgeReadyCount').innerText = `${data.kpis.readyHarvestsCount} Siap Panen`;
-      
-      const overdueSub = document.getElementById('kpiOverdueSub');
-      if (overdueSub) {
-        if (data.kpis.overdueHarvestsCount > 0) {
-          overdueSub.innerHTML = `<span style="color: #b91c1c; font-weight: 600;">⚠️ ${data.kpis.overdueHarvestsCount} plot lewat HST</span>`;
-        } else {
-          overdueSub.innerText = 'Semua jadwal panen tepat waktu';
+      // 2. Executive KPI Strip (5 Canonical Cards)
+      if (data.kpis) {
+        // Card 1: Total Laporan
+        document.getElementById('kpiTotalReports').innerText = formatNumber(data.kpis.totalReports);
+        
+        // Card 2: Penanaman Aktif
+        document.getElementById('kpiActivePlantings').innerText = formatNumber(data.kpis.activePlantingsCount);
+        document.getElementById('badgeReadyCount').innerText = `${data.kpis.readyHarvestsCount} Siap Panen`;
+        
+        // Card 3: Populasi Ternak
+        const lsPop = data.livestock?.summary?.reportedPopulation ?? data.kpis.reportedLivestockPopulation ?? 0;
+        const lsEntry = data.livestock?.summary?.totalEntry || 0;
+        const lsExit = data.livestock?.summary?.totalExit || 0;
+        const lsCardVal = document.getElementById('kpiTotalLivestock');
+        const lsCardSub = document.getElementById('kpiLivestockMutationSub');
+        const lsBadge = document.getElementById('badgeLivestockStatus');
+        if (lsCardVal) lsCardVal.innerText = formatNumber(lsPop);
+        if (lsCardSub) {
+          if (lsEntry > 0 || lsExit > 0) {
+            lsCardSub.innerText = `+${lsEntry} Masuk | -${lsExit} Keluar`;
+          } else if (lsPop > 0) {
+            lsCardSub.innerText = `${formatNumber(lsPop)} ekor terdata aktif`;
+          } else {
+            lsCardSub.innerText = 'Belum ada mutasi ternak';
+          }
+        }
+        if (lsBadge) {
+          lsBadge.innerText = (data.livestock?.hasData || lsPop > 0) ? 'Data Aktif' : 'Peternakan';
+        }
+
+        // Card 4: Hasil Panen
+        document.getElementById('kpiTotalPanen').innerText = formatNumber(data.kpis.totalPanenKg);
+
+        // Card 5: Pendapatan Penjualan
+        document.getElementById('kpiTotalSales').innerText = formatRupiah(data.kpis.totalSalesRp);
+        
+        const overdueSub = document.getElementById('kpiOverdueSub');
+        if (overdueSub) {
+          if (data.kpis.overdueHarvestsCount > 0) {
+            overdueSub.innerHTML = `<span style="color: #b91c1c; font-weight: 600;">⚠️ ${data.kpis.overdueHarvestsCount} plot lewat HST</span>`;
+          } else {
+            overdueSub.innerText = 'Semua jadwal panen tepat waktu';
+          }
         }
       }
 
-      // 3. Permanent Executive Decision Snapshot Layer (Always Visible)
-      if (data.decisionViews) {
-        renderDecisionSnapshot(data.decisionViews);
+      // 3. Section 1: Aktivitas Staf & Kondisi Lapangan
+      const riskData = data.operations?.risk || data.riskAnalytics || data.decisionViews?.operationalRisk;
+      const leaderboard = data.operations?.employeeLeaderboard || data.employeeLeaderboard;
+      if (leaderboard || riskData) {
+        renderStaffKendalaSection(leaderboard, riskData);
       }
 
-      // 4. Commodity Explorer (Decoupled & Polling-Safe)
-      const isExplorerCustomized = (typeof currentAnalyticsFilters !== 'undefined' && currentAnalyticsFilters.length > 0) ||
-                                   (typeof currentAnalyticsSorts !== 'undefined' && currentAnalyticsSorts.length > 0);
-      if (!isExplorerCustomized && data.commodityAnalysis) {
-        renderCommoditySection(data.commodityAnalysis);
-      }
-
-      // 5. Smart Harvest Schedule via HST (Requirement 3)
+      // 4. Section 2: Jadwal Panen Cerdas (HST Engine)
       if (data.harvestSchedule) {
         renderHarvestScheduleTable(data.harvestSchedule.activeList);
       }
 
-      // 6. Sales Analytics & Commercial Breakdowns (Requirement 4)
-      if (data.salesAnalytics) {
-        renderSalesSection(data.salesAnalytics);
+      // 5. Section 3: Peternakan & Populasi
+      if (data.livestock || data.decisionViews?.livestockMovement) {
+        renderLivestockSection(data.livestock || data.decisionViews?.livestockMovement);
       }
 
-      // 7. Staff Activity & Risk Intelligence (Requirement 5)
-      if (data.riskAnalytics && data.employeeLeaderboard) {
-        renderStaffKendalaSection(data.employeeLeaderboard, data.riskAnalytics);
+      // 6. Section 4: Produksi & Tren Harga Realisasi
+      if (data.commerce?.priceTrend || data.decisionViews?.priceTrend) {
+        renderPriceTrendWidget(data.commerce?.priceTrend || data.decisionViews?.priceTrend);
+      }
+      if (data.harvest?.performanceByCommodity || data.decisionViews?.harvestByCommodity) {
+        renderHarvestByCommodityWidget(data.harvest?.performanceByCommodity || data.decisionViews?.harvestByCommodity);
+      }
+
+      // 7. Section 5: Komersial & Distribusi
+      if (data.commerce?.salesByCommodity || data.decisionViews?.salesByCommodity || data.salesAnalytics) {
+        renderCommercialSection(data.commerce?.salesByCommodity || data.decisionViews?.salesByCommodity || data.salesAnalytics);
+      }
+
+      // 8. Section 6: Eksplorasi Lanjutan (Decoupled — Never overwrite customized explorer state!)
+      if (!dashboardState.explorer.isCustomized) {
+        if (data.commodityAnalysis) {
+          renderCommoditySection(data.commodityAnalysis);
+        } else {
+          fetchCommodityCardData();
+        }
       }
     }
 
     // ==========================================
-    // PERMANENT EXECUTIVE DECISION SNAPSHOT LAYER
-    // (Widgets A-F + Quick Presets)
+    // CANONICAL VIEW HANDLERS & RENDERERS
     // ==========================================
-    let _activeDecisionViews = null;
-    let _activeSalesDecisionMetric = 'value'; // 'value' | 'volume' | 'price'
-    let priceTrendChartInstance = null;
-    let harvestYieldChartInstance = null;
-    let salesDecisionChartInstance = null;
-    let livestockMovementChartInstance = null;
 
-    function renderDecisionSnapshot(decisionViews) {
-      if (!decisionViews) return;
-      _activeDecisionViews = decisionViews;
-
-      // 1. Render Widget A: Price Trend
-      if (decisionViews.priceTrend) {
-        renderPriceTrendWidget(decisionViews.priceTrend);
-      }
-
-      // 2. Render Widget B: Harvest Yield by Commodity
-      if (decisionViews.harvestByCommodity) {
-        renderHarvestByCommodityWidget(decisionViews.harvestByCommodity);
-      }
-
-      // 3. Render Widget C: Sales Volume & Internal Distribution
-      if (decisionViews.salesByCommodity) {
-        renderSalesByCommodityWidget(decisionViews.salesByCommodity);
-      }
-
-      // 4. Render Widget D: Harvest Pipeline & Exceptions
-      if (decisionViews.harvestPipeline) {
-        renderHarvestPipelineWidget(decisionViews.harvestPipeline);
-      }
-
-      // 5. Render Widget E: Livestock Movement & Population
-      if (decisionViews.livestockMovement) {
-        renderLivestockMovementWidget(decisionViews.livestockMovement);
-      }
-
-      // 6. Render Widget F: Operational Risk & Obstacle Status
-      if (decisionViews.operationalRisk) {
-        renderOperationalRiskWidget(decisionViews.operationalRisk);
-      }
-    }
-
-    // --- WIDGET A: PRICE TREND ---
+    // --- SECTION 1: PRICE TREND WIDGET ---
     function renderPriceTrendWidget(data) {
       if (!data) return;
 
       // Populate commodities dropdown
       const selectEl = document.getElementById('priceTrendCommoditySelect');
       if (selectEl && data.availableCommodities) {
-        const currVal = selectEl.value;
+        const currVal = dashboardState.price.commodity || selectEl.value;
         const optionsHtml = data.availableCommodities.map(c => `
           <option value="${escapeHtml(c.key)}" ${c.key === data.commodity.key ? 'selected' : ''}>
             ${escapeHtml(c.label)} (${c.module})
@@ -1378,7 +1319,7 @@
         `).join('');
 
         if (data.availableCommodities.length === 0) {
-          selectEl.innerHTML = '<option value="">Belum ada transaksi penjualan</option>';
+          selectEl.innerHTML = '<option value="">Belum ada transaksi</option>';
         } else {
           selectEl.innerHTML = optionsHtml;
           if (currVal && data.availableCommodities.some(c => c.key === currVal)) {
@@ -1387,11 +1328,15 @@
         }
       }
 
-      // Update Basis Badge
-      const basisBadge = document.getElementById('priceTrendBasisBadge');
-      if (basisBadge) {
-        basisBadge.innerText = data.selectedBasis || 'Rp/unit';
+      // Populate Basis Select
+      const basisSelect = document.getElementById('priceTrendBasisSelect');
+      if (basisSelect && data.validBases) {
+        basisSelect.innerHTML = data.validBases.map(b => `
+          <option value="${b}" ${b === data.selectedBasis ? 'selected' : ''}>${b}</option>
+        `).join('');
+        dashboardState.price.basis = data.selectedBasis;
       }
+      dashboardState.price.commodity = data.commodity.key;
 
       // Update Sub-KPIs
       const latestPriceEl = document.getElementById('priceTrendLatestPrice');
@@ -1418,7 +1363,7 @@
         }
       }
 
-      // Render Table Data
+      // Table body
       const tableBody = document.getElementById('priceTrendTableBody');
       if (tableBody) {
         if (!data.points || data.points.length === 0) {
@@ -1436,7 +1381,7 @@
         }
       }
 
-      // Render Chart.js
+      // Render chart
       const canvas = document.getElementById('priceTrendChart');
       if (!canvas) return;
 
@@ -1521,14 +1466,24 @@
       });
     }
 
-    async function handlePriceTrendCommodityChange(commodityKey) {
-      if (!commodityKey) return;
+    function handlePriceTrendBasisChange(newBasis) {
+      if (!newBasis) return;
+      dashboardState.price.basis = newBasis;
+      handlePriceTrendCommodityChange(dashboardState.price.commodity, newBasis);
+    }
+
+    async function handlePriceTrendCommodityChange(commodityKey, optionalBasis = null) {
+      if (!commodityKey && !dashboardState.price.commodity) return;
+      if (commodityKey) dashboardState.price.commodity = commodityKey;
+      if (optionalBasis) dashboardState.price.basis = optionalBasis;
+
       try {
         const params = {
-          period: currentPeriodCode,
+          period: dashboardState.globalScope.period,
           startDate: document.getElementById('dashCustomStartDate')?.value || '',
           endDate: document.getElementById('dashCustomEndDate')?.value || '',
-          commodity: commodityKey
+          commodity: dashboardState.price.commodity,
+          priceBasis: dashboardState.price.basis
         };
 
         if (isLiveServer()) {
@@ -1543,11 +1498,11 @@
           }
         }
       } catch (err) {
-        console.error('Failed to change price trend commodity:', err);
+        console.error('Failed to change price trend commodity/basis:', err);
       }
     }
 
-    // --- WIDGET B: HARVEST YIELD BY COMMODITY ---
+    // --- SECTION 1: HARVEST PERFORMANCE WIDGET ---
     function renderHarvestByCommodityWidget(data) {
       if (!data) return;
 
@@ -1653,23 +1608,28 @@
       });
     }
 
-    // --- WIDGET C: SALES BY COMMODITY & INTERNAL USE ---
-    function renderSalesByCommodityWidget(data) {
+    // --- SECTION 2: COMMERCIAL & INTERNAL DISTRIBUTION ---
+    function renderCommercialSection(data) {
       if (!data) return;
 
       const comValEl = document.getElementById('salesDecisionCommercialVal');
+      const modSplitEl = document.getElementById('salesCommercialModuleSplit');
       const intValEl = document.getElementById('salesDecisionInternalVal');
 
-      if (comValEl) comValEl.innerText = formatRupiah(data.totalCommercialRevenueRp);
-      if (intValEl) intValEl.innerText = `${formatNumber(data.totalInternalUseUnits)} Unit / Kg`;
+      if (comValEl) comValEl.innerText = formatRupiah(data.totalCommercialRevenueRp || data.grandTotalRp || 0);
+      if (modSplitEl) {
+        modSplitEl.innerText = `Agro: ${formatRupiah(data.totalCommercialAgroRevenueRp || data.totalEksternalRp || 0)} | Ternak: ${formatRupiah(data.totalCommercialTernakRevenueRp || 0)}`;
+      }
+      if (intValEl) intValEl.innerText = `${formatNumber(data.totalInternalUseUnits || data.totalPenggunaanUnits || 0)} Unit / Kg`;
 
       // Render Table Data
       const tableBody = document.getElementById('salesDecisionTableBody');
       if (tableBody) {
-        if (!data.commercialPoints || data.commercialPoints.length === 0) {
+        const commPoints = data.commercialPoints || [];
+        if (commPoints.length === 0) {
           tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada data penjualan komersial pada periode ini.</td></tr>';
         } else {
-          tableBody.innerHTML = data.commercialPoints.map(p => `
+          tableBody.innerHTML = commPoints.map(p => `
             <tr>
               <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.commodity)}</td>
               <td><span class="badge ${p.module === 'Ternak' ? 'badge-primary' : 'badge-neutral'}" style="font-size: 0.675rem;">${p.module}</span></td>
@@ -1677,6 +1637,23 @@
               <td style="text-align: right; font-family: monospace;">${formatNumber(p.quantity)} ${escapeHtml(p.quantityUnit)}</td>
               <td style="text-align: right; font-family: monospace; color: #2563EB;">${formatRupiah(p.realizedPrice)}</td>
             </tr>
+          `).join('');
+        }
+      }
+
+      // Internal usage distribution
+      const destContainer = document.getElementById('internalUsageDestList');
+      if (destContainer) {
+        const destPoints = data.internalUsagePoints || [];
+        if (destPoints.length === 0) {
+          destContainer.innerHTML = '<span style="font-size: 0.75rem; color: #94a3b8;">Tidak ada alokasi penggunaan internal.</span>';
+        } else {
+          destContainer.innerHTML = destPoints.map(d => `
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.35rem 0.65rem; font-size: 0.75rem;">
+              <span style="font-weight: 600; color: #0f172a;">${escapeHtml(d.destination)}:</span>
+              <span style="font-family: monospace; font-weight: 600; color: #2563eb;">${formatNumber(d.quantity)} Unit</span>
+              <span style="color: #64748b;">(${d.share}%)</span>
+            </div>
           `).join('');
         }
       }
@@ -1692,11 +1669,11 @@
       let chartLabel = '';
       let barColor = '#10B981';
 
-      if (_activeSalesDecisionMetric === 'volume') {
+      if (dashboardState.commerce.metric === 'volume') {
         chartData = topPoints.map(p => p.quantity);
         chartLabel = 'Volume Terjual';
         barColor = '#3B82F6';
-      } else if (_activeSalesDecisionMetric === 'price') {
+      } else if (dashboardState.commerce.metric === 'price') {
         chartData = topPoints.map(p => p.realizedPrice);
         chartLabel = 'Harga Satuan Realisasi (Rp)';
         barColor = '#8B5CF6';
@@ -1743,9 +1720,9 @@
               callbacks: {
                 label: function(context) {
                   const pt = topPoints[context.dataIndex];
-                  if (_activeSalesDecisionMetric === 'volume') {
+                  if (dashboardState.commerce.metric === 'volume') {
                     return ` Volume: ${formatNumber(pt?.quantity || 0)} ${pt?.quantityUnit || ''}`;
-                  } else if (_activeSalesDecisionMetric === 'price') {
+                  } else if (dashboardState.commerce.metric === 'price') {
                     return ` Harga Realisasi: ${formatRupiah(pt?.realizedPrice || 0)}`;
                   } else {
                     return ` Omzet: ${formatRupiah(pt?.revenueRp || 0)}`;
@@ -1765,7 +1742,7 @@
                 font: { size: 10 },
                 color: '#64748b',
                 callback: function(val) {
-                  if (_activeSalesDecisionMetric === 'volume') return formatNumber(val);
+                  if (dashboardState.commerce.metric === 'volume') return formatNumber(val);
                   if (val >= 1000000) return (val / 1000000).toFixed(1) + ' jt';
                   if (val >= 1000) return (val / 1000).toFixed(0) + ' rb';
                   return val;
@@ -1778,110 +1755,86 @@
     }
 
     function switchSalesDecisionMetric(metric) {
-      _activeSalesDecisionMetric = metric;
-      document.querySelectorAll('#widgetSalesVolumeCard .segmented-filter-pills .filter-pill').forEach(el => el.classList.remove('active'));
+      dashboardState.commerce.metric = metric;
+      document.querySelectorAll('#commercialSection .segmented-filter-pills .filter-pill').forEach(el => el.classList.remove('active'));
 
       if (metric === 'volume') document.getElementById('btnSaleMetricVol')?.classList.add('active');
       else if (metric === 'price') document.getElementById('btnSaleMetricPrice')?.classList.add('active');
       else document.getElementById('btnSaleMetricVal')?.classList.add('active');
 
-      if (_activeDecisionViews && _activeDecisionViews.salesByCommodity) {
-        renderSalesByCommodityWidget(_activeDecisionViews.salesByCommodity);
+      if (activeAnalyticsData) {
+        const commData = activeAnalyticsData.commerce?.salesByCommodity || activeAnalyticsData.decisionViews?.salesByCommodity || activeAnalyticsData.salesAnalytics;
+        if (commData) renderCommercialSection(commData);
       }
     }
 
-    // --- WIDGET D: HARVEST PIPELINE ---
-    function renderHarvestPipelineWidget(data) {
+    // --- SECTION 3: LIVESTOCK DYNAMICS & POPULATION ---
+    function renderLivestockSection(data) {
       if (!data) return;
 
-      document.getElementById('pipelineActiveCount').innerText = formatNumber(data.totalActivePlantings);
-      document.getElementById('pipelineReadyCount').innerText = formatNumber(data.ready7DaysCount);
-      document.getElementById('pipelineOverdueCount').innerText = formatNumber(data.overdueCount);
-      document.getElementById('pipelineIncompleteCount').innerText = formatNumber(data.incompleteCount);
-
-      const miniListEl = document.getElementById('pipelineMiniList');
-      if (!miniListEl) return;
-
-      const readyPlots = data.topReadyList || [];
-      if (readyPlots.length === 0) {
-        miniListEl.innerHTML = '<div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada plot siap panen dalam 7 hari ke depan.</div>';
-        return;
-      }
-
-      miniListEl.innerHTML = readyPlots.map(p => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.35rem 0.5rem; font-size: 0.75rem;">
-          <div>
-            <strong style="color: #0f172a;">${escapeHtml(p.komoditas)}</strong>
-            <span style="color: #64748b; font-size: 0.7rem;">(${escapeHtml(p.lokasiSektor || '-')})</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.4rem;">
-            <span style="font-family: monospace; color: #475569;">Est: ${escapeHtml(p.estimasiTglPanen || '-')}</span>
-            <span class="badge badge-normal" style="font-size: 0.675rem; padding: 1px 5px;">${p.statusLabel || 'Siap Panen'}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // --- WIDGET E: LIVESTOCK MOVEMENT ---
-    function renderLivestockMovementWidget(data) {
-      if (!data) return;
-
-      const popEl = document.getElementById('lsPopVal');
-      const entryEl = document.getElementById('lsEntryVal');
-      const entrySubEl = document.getElementById('lsEntrySub');
-      const exitEl = document.getElementById('lsExitVal');
-      const exitSubEl = document.getElementById('lsExitSub');
-      const feedEl = document.getElementById('lsFeedVal');
       const badge = document.getElementById('livestockStatusBadge');
-
-      if (popEl) popEl.innerText = formatNumber(data.summary?.reportedPopulation || 0);
-      if (entryEl) entryEl.innerText = `+${formatNumber(data.summary?.totalEntry || 0)}`;
-      if (entrySubEl) entrySubEl.innerText = `${data.summary?.totalBirth || 0} Lahir | ${data.summary?.totalPurchase || 0} Beli`;
-      if (exitEl) exitEl.innerText = `-${formatNumber(data.summary?.totalExit || 0)}`;
-      if (exitSubEl) exitSubEl.innerText = `${data.summary?.totalDeath || 0} Mati | ${data.summary?.totalSale || 0} Jual`;
-      if (feedEl) feedEl.innerText = formatNumber(data.summary?.totalFeedOutKg || 0);
-
       if (badge) {
-        badge.innerText = data.hasData ? `${formatNumber(data.summary?.totalRevenueRp || 0)} Omzet Ternak` : 'Belum Ada Mutasi';
+        badge.innerText = data.hasData ? 'Data Aktif' : 'Belum Ada Data';
+        badge.className = data.hasData ? 'badge badge-primary' : 'badge badge-neutral';
       }
 
-      // Render Table Data
+      const sum = data.summary || {};
+      const popEl = document.getElementById('lsPopVal');
+      const inEl = document.getElementById('lsEntryVal');
+      const inSub = document.getElementById('lsEntrySub');
+      const outEl = document.getElementById('lsExitVal');
+      const outSub = document.getElementById('lsExitSub');
+      const feedEl = document.getElementById('lsFeedVal');
+      const revEl = document.getElementById('lsRevVal');
+
+      if (popEl) popEl.innerText = formatNumber(sum.reportedPopulation || 0);
+      if (inEl) inEl.innerText = `+${formatNumber(sum.totalEntry || 0)}`;
+      if (inSub) inSub.innerText = `${formatNumber(sum.totalBirth || 0)} Lahir | ${formatNumber(sum.totalPurchase || 0)} Beli`;
+      if (outEl) outEl.innerText = `-${formatNumber(sum.totalExit || 0)}`;
+      if (outSub) outSub.innerText = `${formatNumber(sum.totalDeath || 0)} Mati | ${formatNumber(sum.totalSale || 0)} Jual`;
+      if (feedEl) feedEl.innerText = formatNumber(sum.totalFeedOutKg || 0);
+      if (revEl) revEl.innerText = formatRupiah(sum.totalRevenueRp || 0);
+
+      // Table data
       const tableBody = document.getElementById('livestockTableBody');
       if (tableBody) {
         if (!data.points || data.points.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada data pergerakan ternak pada periode ini.</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 0.75rem;">Belum ada catatan mutasi ternak pada periode ini.</td></tr>';
         } else {
           tableBody.innerHTML = data.points.map(p => `
             <tr>
               <td style="font-weight: 500;">${escapeHtml(p.label)}</td>
-              <td style="text-align: right; font-family: monospace;">${formatNumber(p.population || 0)}</td>
-              <td style="text-align: right; font-family: monospace; color: #15803d;">+${p.entryQty}</td>
-              <td style="text-align: right; font-family: monospace; color: #b91c1c;">-${p.exitQty}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace;">${formatNumber(p.population)}</td>
+              <td style="text-align: right; font-family: monospace; color: #166534;">+${formatNumber(p.entryQty)}</td>
+              <td style="text-align: right; font-family: monospace; color: #b91c1c;">-${formatNumber(p.exitQty)}</td>
               <td style="text-align: right; font-family: monospace; color: #d97706;">${formatNumber(p.feedOutKg)}</td>
-              <td style="text-align: right; font-family: monospace; font-weight: 600;">${formatRupiah(p.revenueRp)}</td>
+              <td style="text-align: right; font-weight: 600; font-family: monospace; color: #047857;">${formatRupiah(p.revenueRp || 0)}</td>
             </tr>
           `).join('');
         }
       }
 
-      // Render Multi-Dataset Chart
+      // Chart
       const canvas = document.getElementById('livestockMovementChart');
       if (!canvas) return;
 
       const labels = (data.points || []).map(p => p.label);
+      const entries = (data.points || []).map(p => p.entryQty);
+      const exits = (data.points || []).map(p => p.exitQty);
+      const pops = (data.points || []).map(p => p.population);
 
       if (livestockMovementChartInstance) {
         livestockMovementChartInstance.destroy();
         livestockMovementChartInstance = null;
       }
 
-      if (labels.length === 0 || !data.hasData) {
+      if (!data.hasData || labels.length === 0) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.font = '12px sans-serif';
         ctx.fillStyle = '#94a3b8';
         ctx.textAlign = 'center';
-        ctx.fillText('Belum ada data mutasi peternakan pada periode ini', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('Belum ada data pelaporan peternakan pada periode ini', canvas.width / 2, canvas.height / 2);
         return;
       }
 
@@ -1892,28 +1845,30 @@
           labels: labels,
           datasets: [
             {
-              type: 'bar',
-              label: 'Masuk (Lahir+Beli)',
-              data: data.points.map(p => p.entryQty),
-              backgroundColor: '#10B981',
-              borderRadius: 3
-            },
-            {
-              type: 'bar',
-              label: 'Keluar (Mati+Jual)',
-              data: data.points.map(p => p.exitQty),
-              backgroundColor: '#EF4444',
-              borderRadius: 3
-            },
-            {
               type: 'line',
-              label: 'Populasi',
-              data: data.points.map(p => p.population),
+              label: 'Populasi (Ekor)',
+              data: pops,
               borderColor: '#8B5CF6',
+              backgroundColor: 'transparent',
               borderWidth: 2,
               pointRadius: 3,
-              fill: false,
               yAxisID: 'y1'
+            },
+            {
+              type: 'bar',
+              label: 'Masuk (+)',
+              data: entries,
+              backgroundColor: '#10B981',
+              borderRadius: 3,
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: 'Keluar (-)',
+              data: exits,
+              backgroundColor: '#EF4444',
+              borderRadius: 3,
+              yAxisID: 'y'
             }
           ]
         },
@@ -1921,10 +1876,7 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              position: 'top',
-              labels: { boxWidth: 10, font: { size: 10 } }
-            }
+            legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } }
           },
           scales: {
             x: {
@@ -1945,39 +1897,66 @@
       });
     }
 
-    // --- WIDGET F: OPERATIONAL RISK ---
-    function renderOperationalRiskWidget(data) {
-      if (!data) return;
+    // --- SECTION 4: SMART HARVEST SCHEDULE (HST) ---
+    let _cachedHarvestScheduleList = [];
 
-      document.getElementById('riskTotalObstacles').innerText = formatNumber(data.totalObstacles);
-      document.getElementById('riskUrgentCount').innerText = formatNumber(data.urgentCount);
-      document.getElementById('riskUnresolvedCount').innerText = formatNumber(data.unresolvedCount);
-      document.getElementById('riskMitigationRate').innerText = `Mitigasi: ${data.mitigationRate}%`;
+    function renderHarvestScheduleTable(activeList) {
+      _cachedHarvestScheduleList = activeList || [];
+      const filterKey = dashboardState.schedule.filter || 'all';
+      filterHarvestScheduleTable(filterKey);
+    }
 
-      const barsContainer = document.getElementById('riskCategoryBarsMini');
-      if (!barsContainer) return;
+    function filterHarvestScheduleTable(filterKey) {
+      dashboardState.schedule.filter = filterKey;
+      document.querySelectorAll('#harvestScheduleSection .segmented-filter-pills .filter-pill').forEach(el => el.classList.remove('active'));
 
-      const categories = data.categoryBreakdown || [];
-      if (categories.length === 0) {
-        barsContainer.innerHTML = '<div style="font-size: 0.75rem; color: #94a3b8; text-align: center; padding: 0.5rem;">Tidak ada kendala operasional pada periode ini.</div>';
+      if (filterKey === 'ready') document.getElementById('btnSchedReady')?.classList.add('active');
+      else if (filterKey === 'growing') document.getElementById('btnSchedGrowing')?.classList.add('active');
+      else if (filterKey === 'overdue') document.getElementById('btnSchedOverdue')?.classList.add('active');
+      else document.getElementById('btnSchedAll')?.classList.add('active');
+
+      const tbody = document.getElementById('harvestScheduleTableBody');
+      if (!tbody) return;
+
+      let list = [..._cachedHarvestScheduleList];
+      if (filterKey === 'ready') list = list.filter(s => s.isReady);
+      else if (filterKey === 'growing') list = list.filter(s => !s.isReady && !s.isOverdue);
+      else if (filterKey === 'overdue') list = list.filter(s => s.isOverdue);
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada plot yang cocok dengan status filter ini.</td></tr>`;
         return;
       }
 
-      const total = categories.reduce((s, c) => s + c.count, 0);
-      const max = Math.max(...categories.map(c => c.count), 1);
+      tbody.innerHTML = list.map(item => {
+        let statusBadge = '<span class="badge badge-neutral" style="font-size:0.72rem;">Masa Tumbuh</span>';
+        if (item.isOverdue) {
+          statusBadge = `<span class="badge badge-danger" style="font-size:0.72rem;">⚠️ Lewat HST (${Math.abs(item.daysRemaining)} hr)</span>`;
+        } else if (item.isReady) {
+          statusBadge = `<span class="badge badge-warning" style="font-size:0.72rem;">⏳ Siap (${item.daysRemaining} hr lagi)</span>`;
+        } else if (item.daysRemaining !== null) {
+          statusBadge = `<span class="badge badge-normal" style="font-size:0.72rem;">${item.daysRemaining} hari lagi</span>`;
+        }
 
-      barsContainer.innerHTML = categories.slice(0, 4).map(c => {
-        const pct = Math.round((c.count / max) * 100);
         return `
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.725rem;">
-              <span style="font-weight: 600; color: #334155;">${escapeHtml(c.category)}</span>
-              <span style="color: #64748b; font-family: monospace;">${c.count} (${total > 0 ? Math.round((c.count / total) * 100) : 0}%)</span>
-            </div>
-            <div style="height: 5px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
-              <div style="height: 100%; width: ${pct}%; background: ${c.color || '#EF4444'}; border-radius: 9999px;"></div>
-            </div>
-          </div>
+          <tr>
+            <td>
+              <div style="font-weight: 600; color: #0f172a;">${escapeHtml(item.komoditas || '-')}</div>
+              <div style="font-size: 0.73rem; color: #64748b;">${formatNumber(item.jumlahBenih || 0)} benih / ${formatNumber(item.luasLahanM2 || 0)} m²</div>
+            </td>
+            <td>
+              <div style="font-size: 0.8rem; font-weight: 500;">${escapeHtml(item.lokasiKegiatan || '-')}</div>
+              <div style="font-size: 0.72rem; color: #64748b;">${escapeHtml(item.lokasiBlok || '-')}</div>
+            </td>
+            <td>
+              <div style="font-size: 0.8rem; font-weight: 500;">${escapeHtml(item.namaPic || '-')}</div>
+              <div style="font-size: 0.72rem; color: #64748b;">${escapeHtml(item.idKaryawan || '')}</div>
+            </td>
+            <td style="text-align: center; font-family: monospace; font-size: 0.75rem;">${escapeHtml(item.tglTanam || '-')}</td>
+            <td style="text-align: center; font-family: monospace; font-size: 0.75rem;">${item.estimasiPanenHst ? item.estimasiPanenHst + ' HST' : '-'}</td>
+            <td style="text-align: center; font-family: monospace; font-size: 0.78rem; font-weight: 600; color: #0f172a;">${escapeHtml(item.tglEstimasiPanen || '-')}</td>
+            <td style="text-align: center;">${statusBadge}</td>
+          </tr>
         `;
       }).join('');
     }
@@ -2757,531 +2736,43 @@
         }
       }
 
-      // 4. Participation Leaderboard Sidebar
-      const partTitle = document.getElementById('commodityParticipationTitle');
-      const partContainer = document.getElementById('cropParticipationList');
-      if (partTitle && partContainer) {
-        const parts = comData.participation || [];
-        partTitle.innerText = `Partisipasi Staf (${parts.length})`;
-        
-        if (parts.length === 0) {
-          partContainer.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.775rem; padding: 1.5rem 0;">Tidak ada staf tercatat pada filter ini.</div>';
-        } else {
-          partContainer.innerHTML = parts.map(p => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.65rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-              <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 600; font-size: 0.8rem; color: #1e293b;">${escapeHtml(p.label)}</span>
-                ${p.sublabel ? `<span style="font-size: 0.7rem; color: #64748b;">${escapeHtml(p.sublabel)}</span>` : ''}
-              </div>
-              <span class="badge badge-normal" style="font-size: 0.725rem; font-weight: 600; white-space: nowrap;">${p.value} ${p.unit || 'Laporan'}</span>
-            </div>
-          `).join('');
-        }
+      // 4. Query Result Summary & Drilldown Metadata Panel
+      const countEl = document.getElementById('explorerMatchingReportsCount');
+      const empCountEl = document.getElementById('explorerUniqueEmployeesCount');
+      const scopeSummaryEl = document.getElementById('explorerScopeSummaryText');
+
+      if (countEl) countEl.innerText = formatNumber(comData.matchedReportCount || comData.totalRows || 0);
+      if (empCountEl) empCountEl.innerText = formatNumber((comData.participation || []).length);
+      if (scopeSummaryEl) {
+        const periodVal = document.getElementById('comLocalPeriod')?.value || 'inherit';
+        scopeSummaryEl.innerText = periodVal === 'inherit' ? 'Scope Mengikuti Halaman' : `Scope: ${comData.period?.label || periodVal}`;
       }
 
       // Update active scope strip
       renderAnalyticsActiveScopeStrip();
     }
 
-    function renderCommodityChart(comData) {
-      const ctx = document.getElementById('commodityTrendChart');
-      if (!ctx) return;
+    function resetExplorerToDefaults() {
+      dashboardState.explorer.isCustomized = false;
+      dashboardState.explorer.filters = [];
+      dashboardState.explorer.sorts = [{ fieldKey: 'value', direction: 'desc' }];
+      currentAnalyticsFilters = [];
+      currentAnalyticsSorts = [{ fieldKey: 'value', direction: 'desc' }];
+      const pSel = document.getElementById('comLocalPeriod');
+      if (pSel) pSel.value = 'inherit';
+      const mSel = document.getElementById('comMeasureSelect');
+      if (mSel) mSel.value = 'jumlahPanen';
+      const dSel = document.getElementById('comDimensionSelect');
+      if (dSel) dSel.value = 'komoditas';
+      const aSel = document.getElementById('comAggregationSelect');
+      if (aSel) aSel.value = 'sum';
+      const iSel = document.getElementById('comLocalInterval');
+      if (iSel) iSel.value = 'day';
+      
+      const customDates = document.getElementById('comCustomDateGroup');
+      if (customDates) customDates.style.display = 'none';
 
-      if (commodityTrendChartInstance) {
-        commodityTrendChartInstance.destroy();
-      }
-
-      const mDesc = comData.field || getCatalogField(comData.measureKey || comData.measure) || { label: 'Nilai', format: 'decimal', unit: '' };
-      const palette = ['#15803D', '#2563EB', '#D97706', '#7C3AED', '#0891B2', '#E11D48', '#059669', '#4B5563', '#CA8A04', '#4338CA'];
-
-      const formatMetricValue = (val) => {
-        if (mDesc.format === 'currency') return formatRupiah(val);
-        if (mDesc.format === 'integer') return `${formatNumber(val)} ${mDesc.unit || ''}`.trim();
-        return `${Number(val).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ${mDesc.unit || ''}`.trim();
-      };
-
-      if (comData.mode === 'breakdown') {
-        const items = comData.breakdown || [];
-        const labels = items.map(it => it.label);
-        const values = items.map(it => it.value);
-
-        commodityTrendChartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels.length ? labels : ['Tidak Ada Data'],
-            datasets: [{
-              label: mDesc.label,
-              data: values.length ? values : [0],
-              backgroundColor: palette.slice(0, Math.max(1, labels.length)),
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    const it = items[context.dataIndex];
-                    const pctText = it && it.percentage !== undefined ? ` (${it.percentage.toFixed(1)}%)` : '';
-                    return ' ' + formatMetricValue(context.raw) + pctText;
-                  }
-                }
-              }
-            },
-            scales: {
-              x: { ticks: { font: { size: 11 } }, grid: { display: false } },
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  font: { size: 11 },
-                  callback: function(val) {
-                    if (mDesc.format === 'currency') {
-                      if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'M';
-                      if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'k';
-                      return 'Rp ' + val;
-                    }
-                    return formatNumber(val);
-                  }
-                },
-                title: { display: true, text: mDesc.unit ? mDesc.unit : 'Nilai', font: { size: 11, weight: 'bold' } }
-              }
-            }
-          }
-        });
-
-      } else {
-        // TREN MODE
-        const trendData = comData.trend || comData.singleTrend;
-        const labels = trendData?.points ? trendData.points.map(p => p.label) : (trendData?.labels || []);
-        const values = trendData?.points ? trendData.points.map(p => p.value) : (trendData?.values || []);
-
-        commodityTrendChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels.length ? labels : ['Tidak Ada Data'],
-            datasets: [{
-              label: mDesc.label,
-              data: values.length ? values : [0],
-              borderColor: '#15803D',
-              backgroundColor: 'rgba(21, 128, 61, 0.12)',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: true,
-              pointRadius: 4,
-              pointHoverRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
-              tooltip: {
-                callbacks: {
-                  label: function(c) {
-                    return ' ' + formatMetricValue(c.raw);
-                  }
-                }
-              }
-            },
-            scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  font: { size: 11 },
-                  callback: function(val) {
-                    if (mDesc.format === 'currency') {
-                      if (val >= 1000000) return 'Rp ' + (val / 1000000).toFixed(1) + 'M';
-                      if (val >= 1000) return 'Rp ' + (val / 1000).toFixed(0) + 'k';
-                      return 'Rp ' + val;
-                    }
-                    return formatNumber(val);
-                  }
-                },
-                title: { display: true, text: mDesc.unit ? mDesc.unit : 'Nilai', font: { size: 11, weight: 'bold' } }
-              }
-            }
-          }
-        });
-      }
-    }
-
-    function renderAnalyticsResultTable(comData) {
-      const tbody = document.getElementById('commodityTableBody');
-      const tfoot = document.getElementById('commodityTableFoot');
-      const thDim = document.getElementById('thDimensionName');
-      const thVal = document.getElementById('thMeasureValue');
-      const thPct = document.getElementById('thPercentage');
-      const countLbl = document.getElementById('tableRecordCountLabel');
-      if (!tbody) return;
-
-      const mDesc = comData.field || getCatalogField(comData.measureKey || comData.measure) || { label: 'Nilai', format: 'decimal', unit: '' };
-      const gDesc = comData.groupBy || getCatalogField(comData.groupByKey || comData.dimension) || { label: 'Kategori' };
-
-      const formatVal = (val) => {
-        if (mDesc.format === 'currency') return formatRupiah(val);
-        if (mDesc.format === 'integer') return `${formatNumber(val)} ${mDesc.unit || ''}`.trim();
-        return `${Number(val).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ${mDesc.unit || ''}`.trim();
-      };
-
-      if (comData.mode === 'breakdown') {
-        if (thDim) thDim.innerText = gDesc.label;
-        if (thVal) thVal.innerText = `${mDesc.label} (${mDesc.unit || 'Nilai'})`;
-        if (thPct) thPct.style.display = '';
-
-        const items = comData.breakdown || [];
-        if (countLbl) countLbl.innerText = `${items.length} kelompok ditemukan`;
-
-        const totalVal = items.reduce((acc, it) => acc + (it.value || 0), 0);
-        const totalCount = items.reduce((acc, it) => acc + (it.count || 0), 0);
-
-        tbody.innerHTML = items.map((it, idx) => `
-          <tr>
-            <td style="text-align: center; color: #64748b; font-family: monospace;">${idx + 1}</td>
-            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(it.label)}</td>
-            <td style="text-align: right; font-weight: 600; color: #1e293b; font-family: monospace;">${formatVal(it.value)}</td>
-            <td style="text-align: center;">
-              <span class="badge badge-normal" style="font-size: 0.725rem;">${(it.percentage || 0).toFixed(1)}%</span>
-            </td>
-            <td style="text-align: center; color: #64748b; font-family: monospace;">${it.count || 0}</td>
-          </tr>
-        `).join('');
-
-        if (tfoot) {
-          tfoot.innerHTML = `
-            <tr>
-              <td colspan="2" style="text-align: left; padding: 0.5rem 0.75rem;">TOTAL KESELURUHAN</td>
-              <td style="text-align: right; font-family: monospace; padding: 0.5rem 0.75rem;">${formatVal(totalVal)}</td>
-              <td style="text-align: center; padding: 0.5rem 0.75rem;">100.0%</td>
-              <td style="text-align: center; font-family: monospace; padding: 0.5rem 0.75rem;">${totalCount}</td>
-            </tr>
-          `;
-        }
-
-      } else {
-        // TREN MODE TABLE
-        if (thDim) thDim.innerText = 'Titik Interval Waktu';
-        if (thVal) thVal.innerText = `${mDesc.label} (${mDesc.unit || 'Nilai'})`;
-        if (thPct) thPct.style.display = 'none';
-
-        const trendData = comData.trend || comData.singleTrend;
-        const points = trendData?.points ? trendData.points : (trendData?.labels || []).map((l, i) => ({
-          label: l,
-          value: trendData?.values[i] || 0,
-          count: 1
-        }));
-
-        if (countLbl) countLbl.innerText = `${points.length} interval waktu`;
-        const totalVal = points.reduce((acc, p) => acc + (p.value || 0), 0);
-        const totalCount = points.reduce((acc, p) => acc + (p.count || 0), 0);
-
-        tbody.innerHTML = points.map((p, idx) => `
-          <tr>
-            <td style="text-align: center; color: #64748b; font-family: monospace;">${idx + 1}</td>
-            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(p.label)}</td>
-            <td style="text-align: right; font-weight: 600; color: #1e293b; font-family: monospace;">${formatVal(p.value)}</td>
-            <td style="display: none;">-</td>
-            <td style="text-align: center; color: #64748b; font-family: monospace;">${p.count || 0}</td>
-          </tr>
-        `).join('');
-
-        if (tfoot) {
-          tfoot.innerHTML = `
-            <tr>
-              <td colspan="2" style="text-align: left; padding: 0.5rem 0.75rem;">TOTAL AKUMULATIF</td>
-              <td style="text-align: right; font-family: monospace; padding: 0.5rem 0.75rem;">${formatVal(totalVal)}</td>
-              <td style="display: none;">100.0%</td>
-              <td style="text-align: center; font-family: monospace; padding: 0.5rem 0.75rem;">${totalCount}</td>
-            </tr>
-          `;
-        }
-      }
-    }
-
-    // ==========================================
-    // SECTION 3: SMART HARVEST SCHEDULE VIA HST
-    // ==========================================
-    function renderHarvestScheduleTable(scheduleList) {
-      const tbody = document.getElementById('harvestScheduleTableBody');
-      if (!tbody) return;
-
-      let filtered = scheduleList || [];
-      if (currentScheduleFilter === 'ready') {
-        filtered = filtered.filter(s => s.status === 'ready');
-      } else if (currentScheduleFilter === 'growing') {
-        filtered = filtered.filter(s => s.status === 'growing');
-      } else if (currentScheduleFilter === 'overdue') {
-        filtered = filtered.filter(s => s.status === 'overdue');
-      }
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada jadwal penanaman aktif pada kategori filter ini.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(item => {
-        let statusBadge = '';
-        if (item.status === 'overdue') {
-          statusBadge = `<span class="badge badge-overdue">Lewat HST (${Math.abs(item.daysRemaining)} hr)</span>`;
-        } else if (item.status === 'ready') {
-          statusBadge = `<span class="badge badge-ready">Siap Panen (H${item.daysRemaining === 0 ? '-0 Hari Ini' : '-' + item.daysRemaining})</span>`;
-        } else {
-          statusBadge = `<span class="badge badge-growing">${item.daysRemaining} hari lagi</span>`;
-        }
-
-        return `
-          <tr>
-            <td>
-              <div style="font-weight: 600; color: #1e293b;">${escapeHtml(item.komoditas)}</div>
-              <div style="font-size: 0.75rem; color: #64748b;">${formatNumber(item.jumlahBenih)} benih &bull; ${formatNumber(item.luasLahanM2)} m²</div>
-            </td>
-            <td>
-              <span class="badge badge-neutral">${escapeHtml(item.lokasiKegiatan || '-')}</span>
-              ${item.lokasiBlok ? `<div style="font-size: 0.725rem; color: #475569; font-weight: 600; margin-top: 3px;">Blok ${escapeHtml(item.lokasiBlok)}</div>` : ''}
-            </td>
-            <td>
-              <div style="font-weight: 500;">${escapeHtml(item.namaPic || item.idKaryawan || '-')}</div>
-              <div style="font-size: 0.725rem; color: #64748b;">ID: ${escapeHtml(item.idKaryawan || '-')}</div>
-            </td>
-            <td style="text-align: center; font-family: monospace; font-size: 0.8rem;">${escapeHtml(item.tglTanam || '-')}</td>
-            <td style="text-align: center;"><span style="font-weight: 600; color: #475569;">${item.estimasiPanenHst} HST</span></td>
-            <td style="text-align: center; font-weight: 600; color: #0f172a; font-family: monospace; font-size: 0.8125rem;">
-              ${escapeHtml(item.tglEstimasiPanen || '-')}
-            </td>
-            <td style="text-align: center;">${statusBadge}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function filterHarvestScheduleTable(filterKey) {
-      currentScheduleFilter = filterKey;
-      ['btnSchedAll', 'btnSchedReady', 'btnSchedGrowing', 'btnSchedOverdue'].forEach(id => {
-        document.getElementById(id)?.classList.remove('active');
-      });
-      if (filterKey === 'all') document.getElementById('btnSchedAll')?.classList.add('active');
-      if (filterKey === 'ready') document.getElementById('btnSchedReady')?.classList.add('active');
-      if (filterKey === 'growing') document.getElementById('btnSchedGrowing')?.classList.add('active');
-      if (filterKey === 'overdue') document.getElementById('btnSchedOverdue')?.classList.add('active');
-
-      if (activeAnalyticsData && activeAnalyticsData.harvestSchedule) {
-        renderHarvestScheduleTable(activeAnalyticsData.harvestSchedule.activeList);
-      }
-    }
-
-    // ==========================================
-    // SECTION 4: COMMERCIAL & INTERNAL UTILIZATION INSIGHTS
-    // ==========================================
-    let currentDistributionMetric = 'value'; // 'value' | 'volume'
-    let distributionChartInstance = null;
-
-    function renderSalesSection(distData) {
-      if (!distData) return;
-
-      // 1. Top 3 Ratio Cards
-      const commRevEl = document.getElementById('distCommercialRevenue');
-      const commSubEl = document.getElementById('distCommercialSub');
-      const intUnitsEl = document.getElementById('distInternalUsageUnits');
-      const intSubEl = document.getElementById('distInternalUsageSub');
-      const rateEl = document.getElementById('distCommercialRate');
-      const rateSubEl = document.getElementById('distRateSub');
-
-      if (commRevEl) commRevEl.innerText = formatRupiah(distData.grandTotalRp || 0);
-      if (commSubEl) commSubEl.innerText = `${formatNumber(distData.totalCommercialUnits || 0)} unit/Kg terjual (${formatNumber(distData.salesCount || 0)} transaksi)`;
-      if (intUnitsEl) intUnitsEl.innerText = `${formatNumber(distData.totalPenggunaanUnits || 0)} unit/Kg`;
-      if (intSubEl) intSubEl.innerText = `Bibit, Pakan & Konsumsi (${formatNumber(distData.usageCount || 0)} kegiatan)`;
-      if (rateEl) rateEl.innerText = `${distData.commercialRate || 0}%`;
-      if (rateSubEl) rateSubEl.innerText = `${distData.internalUsageRate || 0}% Pemanfaatan Mandiri`;
-
-      // 2. Chart & Legend
-      const chartTitleEl = document.getElementById('distributionChartTitle');
-      const isVal = currentDistributionMetric === 'value';
-      if (chartTitleEl) {
-        chartTitleEl.innerText = isVal ? 'Proporsi Nilai Monetisasi Komersial (Rp)' : 'Proporsi Alokasi Volume Panen (Unit/Kg)';
-      }
-
-      const breakdown = isVal ? (distData.valueBreakdown || []) : (distData.volumeBreakdown || []);
-      const legendContainer = document.getElementById('distributionLegendList');
-      if (legendContainer) {
-        if (breakdown.length === 0) {
-          legendContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 0.5rem;">Belum ada data distribusi.</div>';
-        } else {
-          legendContainer.innerHTML = breakdown.map(item => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0.5rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${item.color || '#2563EB'};"></span>
-                <span style="font-weight: 500; color: #1e293b;">${escapeHtml(item.channel)}</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.65rem;">
-                <span style="font-weight: 600; font-family: monospace; font-size: 0.8rem;">
-                  ${isVal ? formatRupiah(item.value || 0) : `${formatNumber(item.units || 0)} unit/Kg`}
-                </span>
-                <span class="badge badge-normal" style="font-size: 0.725rem;">${item.percentage || 0}%</span>
-              </div>
-            </div>
-          `).join('');
-        }
-      }
-
-      renderDistributionChart(breakdown, isVal);
-
-      // 3. Executive Strategic Insights
-      const insightsContainer = document.getElementById('distributionInsightsGrid');
-      if (insightsContainer) {
-        const insights = distData.insights || [];
-        if (insights.length === 0) {
-          insightsContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Belum ada wawasan strategis untuk periode ini.</div>';
-        } else {
-          insightsContainer.innerHTML = insights.map(ins => {
-            let badgeBg = '#ecfdf5';
-            let badgeColor = '#065f46';
-            let iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
-            
-            if (ins.variant === 'primary') {
-              badgeBg = '#eff6ff'; badgeColor = '#1e40af';
-              iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8l-8 8"/><path d="M12 16h4v-4"/></svg>';
-            } else if (ins.variant === 'warning') {
-              badgeBg = '#fffbeb'; badgeColor = '#92400e';
-              iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>';
-            } else if (ins.variant === 'neutral') {
-              badgeBg = '#f1f5f9'; badgeColor = '#334155';
-              iconSvg = '<svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>';
-            }
-
-            return `
-              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.65rem 0.85rem; display: flex; flex-direction: column; gap: 0.2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <span style="font-weight: 600; font-size: 0.825rem; color: #0f172a; display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="color: ${badgeColor}; display: inline-flex;">${iconSvg}</span>
-                    <span>${escapeHtml(ins.title)}</span>
-                  </span>
-                  <span class="badge" style="background: ${badgeBg}; color: ${badgeColor}; font-size: 0.675rem; padding: 1px 6px;">${escapeHtml(ins.tag)}</span>
-                </div>
-                <p style="font-size: 0.775rem; color: #475569; margin: 0; line-height: 1.4;">${escapeHtml(ins.description)}</p>
-              </div>
-            `;
-          }).join('');
-        }
-      }
-    }
-
-    function switchDistributionMetric(metric) {
-      currentDistributionMetric = metric;
-      document.getElementById('btnDistValue')?.classList.toggle('active', metric === 'value');
-      document.getElementById('btnDistVolume')?.classList.toggle('active', metric === 'volume');
-
-      if (activeAnalyticsData && activeAnalyticsData.salesAnalytics) {
-        renderSalesSection(activeAnalyticsData.salesAnalytics);
-      }
-    }
-
-    function renderDistributionChart(breakdown, isValueMetric) {
-      const ctx = document.getElementById('distributionChart');
-      if (!ctx) return;
-
-      if (distributionChartInstance) {
-        distributionChartInstance.destroy();
-      }
-
-      const labels = (breakdown || []).map(b => b.channel);
-      const values = (breakdown || []).map(b => isValueMetric ? (b.value || 0) : (b.units || 0));
-      const colors = (breakdown || []).map(b => b.color || '#2563EB');
-
-      distributionChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels.length ? labels : ['Tidak Ada Data'],
-          datasets: [{
-            data: values.length ? values : [1],
-            backgroundColor: colors.length ? colors : ['#e2e8f0'],
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const it = breakdown[context.dataIndex];
-                  if (!it) return '';
-                  const valStr = isValueMetric ? formatRupiah(it.value || 0) : `${formatNumber(it.units || 0)} unit/Kg`;
-                  return ` ${it.channel}: ${valStr} (${it.percentage || 0}%)`;
-                }
-              }
-            }
-          },
-          cutout: '62%'
-        }
-      });
-    }
-
-    // ==========================================
-    // EMPLOYEE LEADERBOARD MODAL (REQUIREMENT 1)
-    // ==========================================
-    function openEmployeeLeaderboardModal() {
-      const modal = document.getElementById('employeeLeaderboardModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        renderLeaderboardTable();
-      }
-    }
-
-    // openEmployeeLeaderboardModal / closeEmployeeLeaderboardModal removed — section is now inline
-
-    function renderLeaderboardTable() {
-      const tbody = document.getElementById('leaderboardTableBody');
-      const countTag = document.getElementById('leaderboardCountText');
-      if (!tbody || !activeAnalyticsData) return;
-
-      const rawList = activeAnalyticsData.employeeLeaderboard || [];
-      const searchQ = (document.getElementById('leaderboardSearchInput')?.value || '').toLowerCase().trim();
-      const divFilter = document.getElementById('leaderboardDivFilter')?.value || 'all';
-
-      const filtered = rawList.filter(emp => {
-        if (divFilter !== 'all' && (emp.bidangDivisi || '').toLowerCase() !== divFilter.toLowerCase()) {
-          return false;
-        }
-        if (searchQ) {
-          const matchName = (emp.namaPic || '').toLowerCase().includes(searchQ);
-          const matchId = (emp.idKaryawan || '').toLowerCase().includes(searchQ);
-          if (!matchName && !matchId) return false;
-        }
-        return true;
-      });
-
-      if (countTag) countTag.innerText = `Menampilkan ${filtered.length} dari ${rawList.length} karyawan terdaftar`;
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada data karyawan yang cocok dengan filter.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = filtered.map((emp, index) => {
-        let rankClass = 'rank-circle';
-        if (emp.rank === 1) rankClass += ' rank-top1';
-        else if (emp.rank === 2) rankClass += ' rank-top2';
-        else if (emp.rank === 3) rankClass += ' rank-top3';
-
-        return `
-          <tr>
-            <td style="text-align: center;"><span class="${rankClass}">${emp.rank}</span></td>
-            <td><span style="font-weight: 600; color: #0f172a;">${escapeHtml(emp.namaPic)}</span></td>
-            <td><span style="font-family: monospace; font-weight: 600; color: var(--primary); font-size: 0.8rem;">${escapeHtml(emp.idKaryawan)}</span></td>
-            <td><span class="badge badge-neutral">${escapeHtml(emp.bidangDivisi)}</span></td>
-            <td style="text-align: center; font-weight: 600; font-size: 0.85rem; color: #1e293b;">${emp.totalLaporan}</td>
-            <td style="text-align: center;"><span class="badge badge-normal">${emp.percentage}%</span></td>
-            <td style="text-align: right; color: #64748b; font-family: monospace; font-size: 0.8rem;">${escapeHtml(emp.terakhirMelapor)}</td>
-          </tr>
-        `;
-      }).join('');
+      setCommodityMode('tren');
     }
 
     // ==========================================
@@ -3320,6 +2811,7 @@
           totalSalesRp: 15050000,
           totalPanenKg: 110,
           totalBenih: 50,
+          reportedLivestockPopulation: 25,
           activePlantingsCount: 1,
           readyHarvestsCount: 0,
           overdueHarvestsCount: 0,

@@ -554,8 +554,8 @@
               photoUrl2: p2,
               photoUrl3: p3,
               photos: photosList,
-              jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[17] : 0)) || 0,
-              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[22] : 0)) || 0,
+              jumlahPanen: parseFloat(r.jumlahPanen) || 0,
+              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp) || 0,
               kendala: normK,
               upaya: normU,
               fields: r.fields || [],
@@ -874,7 +874,7 @@
 
         let chipsHtml = '';
         if (item.jumlahPanen > 0) {
-          chipsHtml += `<span class="chip-panen">🌾 ${item.jumlahPanen} Kg</span>`;
+          chipsHtml += `<span class="chip-panen">🌾 ${formatNumber(item.jumlahPanen)} Kg</span>`;
         }
         if (item.nilaiPenjualanRp > 0) {
           chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
