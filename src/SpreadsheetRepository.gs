@@ -1627,12 +1627,10 @@ const SpreadsheetRepository = {
             item.ternakKeluarQty = (item.ternakKeluarKematianQty || 0) + (item.ternakKeluarPenjualanQty || 0);
           }
 
-          // Generate unique fingerprint
-          const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;
-          if (seenFingerprints.has(fp)) return;
-          seenFingerprints.add(fp);
-
-          // Date range filter check
+          // Date range filter check must happen before deduplication. Master
+          // and mirror tabs can carry the same report ID with different
+          // timestamps; an out-of-scope Master row must not suppress an
+          // in-scope operational row.
           if (dFrom || dTo) {
             let rowDate = null;
             if (item.timestamp_raw instanceof Date && !isNaN(item.timestamp_raw.getTime())) {
@@ -1645,11 +1643,18 @@ const SpreadsheetRepository = {
               rowDate = item.tglTanam_raw;
             }
 
-            if (rowDate && !isNaN(rowDate.getTime())) {
-              if (dFrom && rowDate < dFrom) return;
-              if (dTo && rowDate > dTo) return;
-            }
+            // A bounded analytical query must not silently include rows with
+            // no valid scope date; surface them through unbounded/admin data
+            // quality views instead.
+            if (!rowDate || isNaN(rowDate.getTime())) return;
+            if (dFrom && rowDate < dFrom) return;
+            if (dTo && rowDate > dTo) return;
           }
+
+          // Generate unique fingerprint after scope filtering.
+          const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;
+          if (seenFingerprints.has(fp)) return;
+          seenFingerprints.add(fp);
 
           allRows.push(item);
         });
@@ -1844,7 +1849,8 @@ const SpreadsheetRepository = {
         }
 
         let role = String(row[1] || 'admin').trim().toLowerCase();
-        if (email === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
+        const primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : ConfigRepository.DEFAULT_ADMIN_EMAIL || '').toLowerCase();
+        if (primaryAdmin && email === primaryAdmin) {
           role = 'both';
         }
 
@@ -1986,8 +1992,9 @@ const SpreadsheetRepository = {
     const sheet = this.getUserRolesSheet_();
     const emailToDelete = email.trim().toLowerCase();
 
-    if (emailToDelete === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
-      throw new Error('Akun Superadmin Utama (' + ConfigRepository.PLACEHOLDER_ADMIN + ') tidak dapat dihapus.');
+    const primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : ConfigRepository.DEFAULT_ADMIN_EMAIL || '').toLowerCase();
+    if (primaryAdmin && emailToDelete === primaryAdmin) {
+      throw new Error('Akun Superadmin Utama (' + primaryAdmin + ') tidak dapat dihapus.');
     }
 
     const lastRow = sheet.getLastRow();

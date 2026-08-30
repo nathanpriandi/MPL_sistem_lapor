@@ -326,14 +326,14 @@ function updateReviewStatus(reportId, newStatus) {
 
 /**
  * Returns aggregated stats and smart analytics for Dashboard Manajer.
- * Protected: Requires Manager, Admin, or Superadmin role.
+ * Protected: Requires Manager or Superadmin role.
  * @param {Object} [params]
  * @returns {Object} JSON dataset for manager dashboard rendering.
  */
 function getAnalyticsDashboardData(params) {
   try {
     SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+    SecurityService.AccessGuard.requireManagerOrSuperadmin();
     return AnalyticsService.getAnalyticsDashboardData(params);
   } catch (err) {
     throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
@@ -342,14 +342,14 @@ function getAnalyticsDashboardData(params) {
 
 /**
  * Returns commodity analysis (trend or breakdown) with card-local independent scoping.
- * Protected: Requires Manager, Admin, or Superadmin role.
+ * Protected: Requires Manager or Superadmin role.
  * @param {Object} [params]
  * @returns {Object}
  */
 function getCommodityAnalysis(params) {
   try {
     SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+    SecurityService.AccessGuard.requireManagerOrSuperadmin();
     return AnalyticsService.getCommodityAnalysis(params);
   } catch (err) {
     throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
@@ -358,14 +358,14 @@ function getCommodityAnalysis(params) {
 
 /**
  * Returns permanent executive decision views.
- * Protected: Requires Manager, Admin, or Superadmin role.
+ * Protected: Requires Manager or Superadmin role.
  * @param {Object} [params]
  * @returns {Object}
  */
 function getDecisionViewsData(params) {
   try {
     SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+    SecurityService.AccessGuard.requireManagerOrSuperadmin();
     return AnalyticsService.getDecisionViewsData(params);
   } catch (err) {
     throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
@@ -380,7 +380,7 @@ function getDecisionViewsData(params) {
 function getAnalyticsFilterOptions(params) {
   try {
     SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+    SecurityService.AccessGuard.requireManagerOrSuperadmin();
     return AnalyticsService.getDynamicFilterOptions(params);
   } catch (err) {
     throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
@@ -394,7 +394,7 @@ function getAnalyticsFilterOptions(params) {
 function getAnalyticsFieldCatalogRPC() {
   try {
     SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+    SecurityService.AccessGuard.requireManagerOrSuperadmin();
     return getAnalyticsFieldCatalog();
   } catch (err) {
     throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
@@ -744,6 +744,23 @@ function recordUserLogout(email) {
     SecurityService.RateLimiter.checkAuthRateLimit();
     const cleanEmail = email ? SecurityService.InputSanitizer.sanitizeEmail(email) : '';
     const res = AuthService.recordUserLogout(cleanEmail);
+    return JSON.parse(JSON.stringify(res || {}));
+  } catch (err) {
+    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
+  }
+}
+
+/**
+ * Seeds comprehensive mock operational data for functional testing.
+ * Protected: Requires Superadmin role & General Rate Limit.
+ * @param {Object} [options]
+ * @returns {Object}
+ */
+function seedMockOperationalData(options) {
+  try {
+    SecurityService.RateLimiter.checkGeneralRateLimit();
+    SecurityService.AccessGuard.requireSuperadmin();
+    const res = seedMockData(options);
     return JSON.parse(JSON.stringify(res || {}));
   } catch (err) {
     throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));

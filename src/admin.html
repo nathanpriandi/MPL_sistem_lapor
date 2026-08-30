@@ -323,6 +323,8 @@
 
   <?!= includeApp(webAppUrl); ?>
   <script>
+    const CURRENT_USER_ROLE = '<?= (typeof userRole !== "undefined" && userRole) ? userRole : "" ?>';
+    const isPrivilegedContactRole = (CURRENT_USER_ROLE === 'manager' || CURRENT_USER_ROLE === 'both');
     let rawQueueData = [];
     let currentFilteredData = [];
     let currentQuickFilter = 'unverified';
@@ -899,18 +901,25 @@
         if (item.nilaiPenjualanRp > 0) {
           chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
         }
-        if (item.anggotaTerlaporText || item.anggotaTerlapor || (String(item.divisi || '').toUpperCase().includes('SGA'))) {
-          const isSga = String(item.divisi || '').toUpperCase().includes('SGA');
-          const rawAng = String(item.anggotaTerlaporText || item.anggotaTerlapor || '');
-          let cnt = 0;
-          if (rawAng) {
-            cnt = rawAng.split(/[;\n\r]+/).filter(s => s.trim().length > 0).length;
-          } else if (isSga) {
-            cnt = 10;
-          }
-          if (cnt > 0) {
-            chipsHtml += `<span class="chip-team" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.725rem; font-weight: 600; padding: 2px 6px; border-radius: 4px;">👥 ${cnt} Anggota</span>`;
-          }
+        // Team member indicator chip
+        let rawAng = String(item.anggotaTerlaporText || item.anggotaTerlapor || '');
+        if (!rawAng && item.fields && Array.isArray(item.fields)) {
+          const fTeam = item.fields.find(f => f && f.label && String(f.label).toLowerCase().replace(/[^a-z0-9]/g, '') === 'anggotaterlapor');
+          if (fTeam && fTeam.value && fTeam.value !== '-') rawAng = String(fTeam.value);
+        }
+        if (!rawAng && Array.isArray(item.raw) && item.raw.length > 60 && item.raw[60] && item.raw[60] !== '-') {
+          rawAng = String(item.raw[60]);
+        }
+
+        const isSga = (String(item.divisi || '').toUpperCase().includes('SGA') || String(item.empId || item.namaPic || '').toUpperCase().includes('SGA') || String(item.kodeKegiatan || '').toUpperCase().startsWith('SGA'));
+        let cnt = 0;
+        if (rawAng) {
+          cnt = rawAng.split(/[;\n\r]+/).filter(s => s.trim().length > 0).length;
+        } else if (isSga) {
+          cnt = 10;
+        }
+        if (cnt > 0) {
+          chipsHtml += `<span class="chip-team" style="background: ${isSga ? '#f0fdf4' : '#eff6ff'}; color: ${isSga ? '#166534' : '#1d4ed8'}; border: 1px solid ${isSga ? '#bbf7d0' : '#bfdbfe'}; font-size: 0.725rem; font-weight: 600; padding: 2px 6px; border-radius: 4px;">👥 ${cnt} Anggota</span>`;
         }
 
         const picInitials = getInitials(item.empId || item.namaPic);
@@ -1072,6 +1081,17 @@
         .replace(/_/g, ' ')
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function maskPhoneNumber(val) {
+      if (!val) return '-';
+      const clean = String(val).trim();
+      if (!clean || clean === '-' || clean === 'null' || clean === 'undefined') return '-';
+      const digits = clean.replace(/\D/g, '');
+      if (digits.length <= 6) return '••••••';
+      const prefix = digits.substring(0, 4);
+      const suffix = digits.substring(digits.length - 4);
+      return `${prefix}••••${suffix}`;
     }
 
     function normalizePhoneNumber(val) {
@@ -1625,26 +1645,52 @@
         // Non-SGA Section: DYNAMICALLY DISPLAYED when team members are reported
         anggotaSectionHtml = `
           <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem; flex-wrap: wrap; gap: 0.4rem;">
-              <div style="font-size: 0.825rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.4rem;">
-                <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.4rem;">
+              <div style="font-size: 0.85rem; font-weight: 700; color: #1e3a8a; display: flex; align-items: center; gap: 0.45rem;">
+                <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>Anggota Tim yang Dilaporkan</span>
               </div>
               <span style="font-size: 0.75rem; font-weight: 700; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 0.15rem 0.55rem; border-radius: 9999px;">
-                ${parsedAnggotaList.length} Orang
+                ${parsedAnggotaList.length} Orang Terlapor
               </span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
-              ${parsedAnggotaList.map((m, idx) => `
-                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
-                  <div style="font-weight: 700; color: #1e293b; margin-bottom: 0.2rem;">
-                    ${idx + 1}. ${escapeHtml(m.name || m.id)} ${m.id ? `<span style="font-size: 0.75rem; color: #64748b; font-weight: 500;">(${escapeHtml(m.id)})</span>` : ''}
+            <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+              ${parsedAnggotaList.map((m, idx) => {
+                const isHadir = (m.kehadiran !== 'Tidak Hadir' && !String(m.deskripsi).toLowerCase().startsWith('tidak hadir'));
+                const cleanDesc = (m.deskripsi && m.deskripsi !== '-') 
+                  ? String(m.deskripsi).replace(/^\[(Hadir|Tidak Hadir)\]\s*/i, '').trim()
+                  : (isHadir ? 'Ditugaskan & terlibat operasional' : 'Tidak Hadir');
+                
+                let roleBadge = '';
+                const idUpper = String(m.id || '').toUpperCase();
+                if (idUpper.startsWith('PKH-')) {
+                  roleBadge = '<span style="font-size: 0.68rem; font-weight: 600; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 0.1rem 0.4rem; border-radius: 4px;">Pekerja Harian</span>';
+                } else if (idUpper.startsWith('BKO-')) {
+                  roleBadge = '<span style="font-size: 0.68rem; font-weight: 600; background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; padding: 0.1rem 0.4rem; border-radius: 4px;">BKO 28</span>';
+                } else if (idUpper.startsWith('MNJ-')) {
+                  roleBadge = '<span style="font-size: 0.68rem; font-weight: 600; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 0.1rem 0.4rem; border-radius: 4px;">Manajemen</span>';
+                } else if (idUpper.startsWith('ALP-')) {
+                  roleBadge = '<span style="font-size: 0.68rem; font-weight: 600; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; padding: 0.1rem 0.4rem; border-radius: 4px;">Alprof</span>';
+                }
+
+                return `
+                  <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+                      <div style="font-size: 0.825rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                        <span>${idx + 1}. ${escapeHtml(m.name || m.id)}</span>
+                        ${m.id ? `<span style="font-size: 0.72rem; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; font-weight: 600; padding: 0.08rem 0.4rem; border-radius: 4px;">(${escapeHtml(m.id)})</span>` : ''}
+                        ${roleBadge}
+                      </div>
+                      <span style="font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; ${isHadir ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' : 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;'}">
+                        ${isHadir ? 'Hadir' : 'Tidak Hadir'}
+                      </span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #475569; padding-left: 0.25rem;">
+                      ${escapeHtml(cleanDesc)}
+                    </div>
                   </div>
-                  <div style="color: #475569;">
-                    ${escapeHtml(m.deskripsi && m.deskripsi !== '-' ? m.deskripsi : 'Ditugaskan')}
-                  </div>
-                </div>
-              `).join('')}
+                `;
+              }).join('')}
             </div>
           </div>
         `;
@@ -1681,13 +1727,13 @@
             <div class="inspector-data-item">
               <span class="inspector-data-label">Nomor Telepon PIC</span>
               <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(noTelp || '-')}</span>
-                ${noTelp && noTelp !== '-' ? `
+                <span class="inspector-data-value" style="font-family: monospace;">${isPrivilegedContactRole ? escapeHtml(noTelp || '-') : maskPhoneNumber(noTelp)}</span>
+                ${isPrivilegedContactRole && noTelp && noTelp !== '-' ? `
                   <a href="${getWhatsAppUrl(noTelp, `Halo Bapak/Ibu ${namaPic || ''}, saya Admin dari PT MPL ingin menindaklanjuti Laporan Kegiatan Lapangan (${kodeKegiatan || '-'}) di lokasi ${lokasi || '-'}.`)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" title="Hubungi PIC via WhatsApp">
                     <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-3.56 3.63c-.2 0-.41.02-.6.08-.23.08-.43.21-.57.4-.33.45-.63 1.05-.63 1.84 0 1.06.63 2.15 1.13 2.84 1.11 1.54 2.68 2.64 4.3 3.32.74.31 1.32.44 1.8.49.56.06 1.15-.02 1.57-.34.34-.26.68-.78.83-1.34.1-.38.08-.66-.02-.8-.1-.13-.3-.22-.61-.37-.32-.15-1.87-.92-2.16-1.03-.29-.1-.5-.15-.71.16-.21.31-.81 1.02-.99 1.23-.18.21-.37.23-.68.08-.32-.15-1.34-.49-2.55-1.57-.94-.84-1.58-1.87-1.76-2.19-.18-.31-.02-.48.13-.63.14-.14.32-.37.48-.55.16-.18.21-.31.32-.52.1-.21.05-.39-.03-.55-.07-.15-.68-1.63-.93-2.24-.24-.59-.49-.51-.67-.52z"/></svg>
                     <span>WhatsApp</span>
                   </a>
-                ` : ''}
+                ` : (!isPrivilegedContactRole && noTelp && noTelp !== '-' ? `<span class="badge badge-neutral" style="font-size: 0.65rem;" title="Kontak disamarkan sesuai UU No. 27 Tahun 2022 (UU PDP)">🔒 UU PDP</span>` : '')}
               </div>
             </div>
             <div class="inspector-data-item">
@@ -1810,13 +1856,13 @@
                 <div class="inspector-data-item">
                   <span class="inspector-data-label">No Telepon Pembeli</span>
                   <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(pembeliTelp || '-')}</span>
-                    ${pembeliTelp && pembeliTelp !== '-' ? `
+                    <span class="inspector-data-value" style="font-family: monospace;">${isPrivilegedContactRole ? escapeHtml(pembeliTelp || '-') : maskPhoneNumber(pembeliTelp)}</span>
+                    ${isPrivilegedContactRole && pembeliTelp && pembeliTelp !== '-' ? `
                       <a href="${getWhatsAppUrl(pembeliTelp, `Halo Bapak/Ibu ${pembeliNama || ''}, kami dari PT MPL mengonfirmasi transaksi penjualan komoditas ${komoditasPanen || komoditasTanam || 'Agro'} terkait laporan ${kodeKegiatan || '-'}.`)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" title="Hubungi Pembeli via WhatsApp">
                         <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-3.56 3.63c-.2 0-.41.02-.6.08-.23.08-.43.21-.57.4-.33.45-.63 1.05-.63 1.84 0 1.06.63 2.15 1.13 2.84 1.11 1.54 2.68 2.64 4.3 3.32.74.31 1.32.44 1.8.49.56.06 1.15-.02 1.57-.34.34-.26.68-.78.83-1.34.1-.38.08-.66-.02-.8-.1-.13-.3-.22-.61-.37-.32-.15-1.87-.92-2.16-1.03-.29-.1-.5-.15-.71.16-.21.31-.81 1.02-.99 1.23-.18.21-.37.23-.68.08-.32-.15-1.34-.49-2.55-1.57-.94-.84-1.58-1.87-1.76-2.19-.18-.31-.02-.48.13-.63.14-.14.32-.37.48-.55.16-.18.21-.31.32-.52.1-.21.05-.39-.03-.55-.07-.15-.68-1.63-.93-2.24-.24-.59-.49-.51-.67-.52z"/></svg>
                         <span>WhatsApp</span>
                       </a>
-                    ` : ''}
+                    ` : (!isPrivilegedContactRole && pembeliTelp && pembeliTelp !== '-' ? `<span class="badge badge-neutral" style="font-size: 0.65rem;" title="Kontak disamarkan sesuai UU No. 27 Tahun 2022 (UU PDP)">🔒 UU PDP</span>` : '')}
                   </div>
                 </div>
                 <div class="inspector-data-item" style="grid-column: 1 / -1;">
@@ -1906,13 +1952,13 @@
                 <div class="inspector-data-item">
                   <span class="inspector-data-label">No Telepon Pembeli</span>
                   <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(pembeliTernakTelp || '-')}</span>
-                    ${pembeliTernakTelp && pembeliTernakTelp !== '-' ? `
+                    <span class="inspector-data-value" style="font-family: monospace;">${isPrivilegedContactRole ? escapeHtml(pembeliTernakTelp || '-') : maskPhoneNumber(pembeliTernakTelp)}</span>
+                    ${isPrivilegedContactRole && pembeliTernakTelp && pembeliTernakTelp !== '-' ? `
                       <a href="${getWhatsAppUrl(pembeliTernakTelp, `Halo Bapak/Ibu ${pembeliTernakNama || pembeliNama || ''}, kami dari PT MPL mengonfirmasi transaksi penjualan ternak ${jenisKomoditasTernak || jenisTernak || 'Ternak'} terkait laporan ${kodeKegiatan || '-'}.`)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" title="Hubungi Pembeli Ternak via WhatsApp">
                         <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-3.56 3.63c-.2 0-.41.02-.6.08-.23.08-.43.21-.57.4-.33.45-.63 1.05-.63 1.84 0 1.06.63 2.15 1.13 2.84 1.11 1.54 2.68 2.64 4.3 3.32.74.31 1.32.44 1.8.49.56.06 1.15-.02 1.57-.34.34-.26.68-.78.83-1.34.1-.38.08-.66-.02-.8-.1-.13-.3-.22-.61-.37-.32-.15-1.87-.92-2.16-1.03-.29-.1-.5-.15-.71.16-.21.31-.81 1.02-.99 1.23-.18.21-.37.23-.68.08-.32-.15-1.34-.49-2.55-1.57-.94-.84-1.58-1.87-1.76-2.19-.18-.31-.02-.48.13-.63.14-.14.32-.37.48-.55.16-.18.21-.31.32-.52.1-.21.05-.39-.03-.55-.07-.15-.68-1.63-.93-2.24-.24-.59-.49-.51-.67-.52z"/></svg>
                         <span>WhatsApp</span>
                       </a>
-                    ` : ''}
+                    ` : (!isPrivilegedContactRole && pembeliTernakTelp && pembeliTernakTelp !== '-' ? `<span class="badge badge-neutral" style="font-size: 0.65rem;" title="Kontak disamarkan sesuai UU No. 27 Tahun 2022 (UU PDP)">🔒 UU PDP</span>` : '')}
                   </div>
                 </div>
                 <div class="inspector-data-item" style="grid-column: 1 / -1;">

@@ -18,7 +18,17 @@ const AnalyticsService = {
   parseDate_: function(val) {
     if (!val) return null;
     if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
-    const d = new Date(val);
+    const text = String(val).trim();
+    // Date inputs arrive as YYYY-MM-DD. Parse those in the script's local
+    // timezone instead of relying on the ECMAScript UTC interpretation.
+    let d;
+    const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) {
+      d = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+      if (d.getFullYear() !== Number(dateOnly[1]) || d.getMonth() !== Number(dateOnly[2]) - 1 || d.getDate() !== Number(dateOnly[3])) return null;
+    } else {
+      d = new Date(val);
+    }
     return isNaN(d.getTime()) ? null : d;
   },
 
@@ -84,10 +94,18 @@ const AnalyticsService = {
    */
   resolvePeriodBounds_: function(params = {}) {
     const period = params.period || 'this_month';
+    const supportedPeriods = ['this_week', 'last_week', 'this_month', 'this_quarter', 'this_year', 'all', 'custom'];
+    const supportedIntervals = ['day', 'week', 'month', 'quarter', 'year'];
+    if (!supportedPeriods.includes(period)) {
+      throw new Error(`Periode analitik tidak didukung: ${period}`);
+    }
     const now = new Date();
     let dFrom = new Date();
     let dTo = new Date();
     let interval = params.interval || 'day';
+    if (!supportedIntervals.includes(interval)) {
+      throw new Error(`Interval analitik tidak didukung: ${interval}`);
+    }
     let periodLabel = 'Bulan Ini';
 
     if (period === 'this_week') {
@@ -126,8 +144,19 @@ const AnalyticsService = {
       if (!params.interval) interval = 'month';
       periodLabel = 'Semua Data';
     } else if (period === 'custom') {
-      if (params.startDate) dFrom = this.parseDate_(params.startDate) || new Date(params.startDate);
-      if (params.endDate) dTo = this.parseDate_(params.endDate) || new Date(params.endDate);
+      if (!params.startDate || !params.endDate) {
+        throw new Error('Periode kustom memerlukan tanggal mulai dan tanggal akhir.');
+      }
+      dFrom = this.parseDate_(params.startDate);
+      dTo = this.parseDate_(params.endDate);
+      if (!dFrom || !dTo) {
+        throw new Error('Tanggal periode kustom tidak valid.');
+      }
+      dFrom.setHours(0, 0, 0, 0);
+      dTo.setHours(23, 59, 59, 999);
+      if (dFrom.getTime() > dTo.getTime()) {
+        throw new Error('Tanggal mulai tidak boleh lebih besar dari tanggal akhir.');
+      }
       const diffDays = Math.round((dTo - dFrom) / (1000 * 60 * 60 * 24));
       if (!params.interval) {
         if (diffDays > 365) interval = 'quarter';
@@ -157,8 +186,15 @@ const AnalyticsService = {
     const mode = (rawQuery.mode === 'breakdown') ? 'breakdown' : 'tren';
     let measureKey = rawQuery.measureKey || rawQuery.measure || (mode === 'breakdown' ? 'jumlahPanen' : 'jumlahBenih');
     let groupByKey = rawQuery.groupByKey || rawQuery.dimension || 'komoditas';
+    const period = rawQuery.period || 'this_month';
     const interval = rawQuery.interval || 'day';
     const aggregation = rawQuery.aggregation || 'sum';
+    const supportedPeriods = ['this_week', 'last_week', 'this_month', 'this_quarter', 'this_year', 'all', 'custom'];
+    const supportedIntervals = ['day', 'week', 'month', 'quarter', 'year'];
+    const supportedAggregations = ['sum', 'avg', 'count', 'count_distinct', 'min', 'max'];
+    if (!supportedPeriods.includes(period)) throw new Error(`Periode analitik tidak didukung: ${period}`);
+    if (!supportedIntervals.includes(interval)) throw new Error(`Interval analitik tidak didukung: ${interval}`);
+    if (!supportedAggregations.includes(aggregation)) throw new Error(`Agregasi analitik tidak didukung: ${aggregation}`);
 
     // 1. Validate / sanitize measureKey
     const measureDesc = (typeof getFieldDescriptor === 'function') ? getFieldDescriptor(measureKey) : null;
@@ -195,6 +231,9 @@ const AnalyticsService = {
       const fieldKey = String(f.fieldKey).trim();
       const op = String(f.operator || 'eq').trim().toLowerCase();
       const val = f.value;
+      const fieldDesc = (typeof getFieldDescriptor === 'function') ? getFieldDescriptor(fieldKey) : null;
+      if (!fieldDesc) return;
+      if (Array.isArray(fieldDesc.operators) && !fieldDesc.operators.includes(op) && !['empty', 'not_empty'].includes(op)) return;
 
       // Skip empty string or undefined values for operators that require values
       if (op !== 'empty' && op !== 'not_empty') {
@@ -244,7 +283,7 @@ const AnalyticsService = {
     }
 
     return {
-      period: rawQuery.period || 'this_month',
+      period: period,
       startDate: rawQuery.startDate || rawQuery.dateFrom || null,
       endDate: rawQuery.endDate || rawQuery.dateTo || null,
       mode: mode,
@@ -334,19 +373,23 @@ const AnalyticsService = {
         }
 
         if (op === 'gte') {
-          return Number(rowVal || 0) >= Number(targetVal || 0);
+          if (rowVal === '' || rowVal === null || rowVal === undefined || isNaN(Number(rowVal))) return false;
+          return Number(rowVal) >= Number(targetVal || 0);
         }
 
         if (op === 'lte') {
-          return Number(rowVal || 0) <= Number(targetVal || 0);
+          if (rowVal === '' || rowVal === null || rowVal === undefined || isNaN(Number(rowVal))) return false;
+          return Number(rowVal) <= Number(targetVal || 0);
         }
 
         if (op === 'gt') {
-          return Number(rowVal || 0) > Number(targetVal || 0);
+          if (rowVal === '' || rowVal === null || rowVal === undefined || isNaN(Number(rowVal))) return false;
+          return Number(rowVal) > Number(targetVal || 0);
         }
 
         if (op === 'lt') {
-          return Number(rowVal || 0) < Number(targetVal || 0);
+          if (rowVal === '' || rowVal === null || rowVal === undefined || isNaN(Number(rowVal))) return false;
+          return Number(rowVal) < Number(targetVal || 0);
         }
 
         if (op === 'between') {
@@ -377,8 +420,9 @@ const AnalyticsService = {
             return true;
           }
 
-          // Numeric comparison
-          const num = Number(rowVal || 0);
+          // Numeric comparison - ignore empty or non-numeric rows
+          if (rowVal === '' || rowVal === null || rowVal === undefined || isNaN(Number(rowVal))) return false;
+          const num = Number(rowVal);
           if (minVal !== '' && minVal !== null && minVal !== undefined && !isNaN(Number(minVal))) {
             if (num < Number(minVal)) return false;
           }
@@ -408,6 +452,7 @@ const AnalyticsService = {
    */
   getDynamicFilterOptions: function(params = {}) {
     const targetFieldKey = params.targetFieldKey || 'komoditas';
+    const normalizedQuery = this.normalizeAnalyticsQuery(params);
     const bounds = this.resolvePeriodBounds_(params);
     const rawRows = SpreadsheetRepository.getAllOperationalRows(bounds.dFrom, bounds.dTo);
 
@@ -420,7 +465,7 @@ const AnalyticsService = {
     });
 
     // Filter by all other filters except targetFieldKey
-    const otherFilters = (Array.isArray(params.filters) ? params.filters : []).filter(f => f && f.fieldKey !== targetFieldKey);
+    const otherFilters = normalizedQuery.filters.filter(f => f && f.fieldKey !== targetFieldKey);
     const filteredRows = this.applyFieldFilters(rawRows, otherFilters);
 
     const counts = {};
@@ -463,6 +508,7 @@ const AnalyticsService = {
           key: key,
           sum: 0,
           count: 0,
+          measureCount: 0,
           min: Infinity,
           max: -Infinity,
           distinctValues: new Set()
@@ -473,6 +519,9 @@ const AnalyticsService = {
       g.count += 1;
 
       let rawVal = row[measureFieldKey];
+      if (measureFieldKey === 'luasLahanPanenM2' && (!rawVal || Number(rawVal) === 0)) {
+        rawVal = row.luasLahanM2;
+      }
       if (measureFieldKey === 'luasLahanM2' && (!rawVal || Number(rawVal) === 0)) {
         rawVal = row.luasLahanPanenM2 || row.luasLahanM2;
       }
@@ -481,6 +530,7 @@ const AnalyticsService = {
         const num = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(/[^0-9.-]/g, ''));
         if (!isNaN(num)) {
           g.sum += num;
+          g.measureCount += 1;
           if (num < g.min) g.min = num;
           if (num > g.max) g.max = num;
         }
@@ -498,7 +548,7 @@ const AnalyticsService = {
           finalVal = g.sum;
           break;
         case 'avg':
-          finalVal = g.count > 0 ? (g.sum / g.count) : 0;
+          finalVal = g.measureCount > 0 ? (g.sum / g.measureCount) : 0;
           break;
         case 'count':
           finalVal = g.count;
@@ -520,6 +570,7 @@ const AnalyticsService = {
         key: k,
         value: Math.round(finalVal * 100) / 100,
         count: g.count,
+        measureCount: g.measureCount,
         distinctCount: g.distinctValues.size
       };
     });
@@ -574,11 +625,15 @@ const AnalyticsService = {
 
     if (measureFieldKey === 'produktivitasPanen' || measureFieldKey === 'kerapatanTanam' || measureFieldKey === 'hargaRataRata') {
       // Derived Ratio Timeseries
+      let targetRows = rows;
+      if (measureFieldKey === 'produktivitasPanen') {
+        targetRows = (rows || []).filter(r => Number(r.jumlahPanen || 0) > 0);
+      }
       const numField = measureFieldKey === 'produktivitasPanen' ? 'jumlahPanen' : (measureFieldKey === 'kerapatanTanam' ? 'jumlahBenih' : 'totalHargaRp');
-      const denField = measureFieldKey === 'produktivitasPanen' ? 'luasLahanM2' : (measureFieldKey === 'kerapatanTanam' ? 'luasLahanM2' : 'jumlahPenjualanUnit');
+      const denField = measureFieldKey === 'produktivitasPanen' ? 'luasLahanPanenM2' : (measureFieldKey === 'kerapatanTanam' ? 'luasLahanM2' : 'jumlahPenjualanUnit');
 
-      const numAgg = this.groupAndAggregate(rows, groupByFn, numField, 'sum');
-      const denAgg = this.groupAndAggregate(rows, groupByFn, denField, 'sum');
+      const numAgg = this.groupAndAggregate(targetRows, groupByFn, numField, 'sum');
+      const denAgg = this.groupAndAggregate(targetRows, groupByFn, denField, 'sum');
       const sortedKeys = Object.keys(numAgg).filter(k => k !== 'Tidak Diketahui').sort();
 
       const labels = [];
@@ -656,11 +711,15 @@ const AnalyticsService = {
 
     // Derived Agronomic & Commercial Measures Handling
     if (measureFieldKey === 'produktivitasPanen' || measureFieldKey === 'kerapatanTanam' || measureFieldKey === 'hargaRataRata') {
+      let targetRows = rows;
+      if (measureFieldKey === 'produktivitasPanen') {
+        targetRows = (rows || []).filter(r => Number(r.jumlahPanen || 0) > 0);
+      }
       const numField = measureFieldKey === 'produktivitasPanen' ? 'jumlahPanen' : (measureFieldKey === 'kerapatanTanam' ? 'jumlahBenih' : 'totalHargaRp');
-      const denField = measureFieldKey === 'produktivitasPanen' ? 'luasLahanM2' : (measureFieldKey === 'kerapatanTanam' ? 'luasLahanM2' : 'jumlahPenjualanUnit');
+      const denField = measureFieldKey === 'produktivitasPanen' ? 'luasLahanPanenM2' : (measureFieldKey === 'kerapatanTanam' ? 'luasLahanM2' : 'jumlahPenjualanUnit');
 
-      const numAgg = this.groupAndAggregate(rows, groupByFn, numField, 'sum');
-      const denAgg = this.groupAndAggregate(rows, groupByFn, denField, 'sum');
+      const numAgg = this.groupAndAggregate(targetRows, groupByFn, numField, 'sum');
+      const denAgg = this.groupAndAggregate(targetRows, groupByFn, denField, 'sum');
       const keys = Object.keys(numAgg);
 
       const items = keys.map(k => {
@@ -774,13 +833,33 @@ const AnalyticsService = {
 
     const schedule = [];
 
+    // Pre-index harvest events for cross-row lifecycle correlation
+    const harvestEvents = [];
+    rows.forEach(r => {
+      const hQty = Number(r.jumlahPanen || 0);
+      if (hQty > 0 || (r.tglPanen && String(r.jenisKegiatan || '').toLowerCase().includes('panen'))) {
+        const sep = resolveSeparatedCommodities(r.komoditas, r.komoditasPanen, r.jenisKegiatan);
+        const hCrop = sep.komoditasPanen || r.komoditasPanen || sep.komoditasTanam || r.komoditasClean || r.komoditas || '';
+        const hBlock = String(r.lokasiBlok || r.lokasiBlokPanen || r.lokasiKegiatan || '').toLowerCase().trim();
+        const hDate = r.tglPanen_raw instanceof Date ? r.tglPanen_raw : (r.tglPanen ? new Date(r.tglPanen) : (r.timestamp_raw instanceof Date ? r.timestamp_raw : (r.timestamp ? new Date(r.timestamp) : null)));
+        harvestEvents.push({
+          crop: hCrop.toLowerCase().trim(),
+          block: hBlock,
+          date: hDate,
+          qty: hQty,
+          reportId: r.reportId || r.id || r.kodeKegiatan || ''
+        });
+      }
+    });
+
     rows.forEach(r => {
       // Resolve clean separated commodity name for planting
       const sep = resolveSeparatedCommodities(r.komoditas, r.komoditasPanen, r.jenisKegiatan);
       const cropName = sep.komoditasTanam || r.komoditasTanam || r.komoditas || 'Tanaman';
       const cleanCropLower = String(cropName).toLowerCase().trim();
+      const plantBlock = String(r.lokasiBlok || r.lokasiBlokTanam || r.lokasiKegiatan || '').toLowerCase().trim();
 
-      const isTanam = (r.jenisKegiatan && r.jenisKegiatan.toLowerCase().includes('tanam')) || 
+      const isTanam = (r.jenisKegiatan && (r.jenisKegiatan.toLowerCase().includes('tanam') || r.jenisKegiatan.toLowerCase().includes('penanaman') || r.jenisKegiatan.toLowerCase().includes('nanam'))) || 
                       Boolean(r.tglTanam) || 
                       Boolean(r.estimasiPanenHst && r.estimasiPanenHst > 0) || 
                       Boolean(r.jumlahBenih && r.jumlahBenih > 0) ||
@@ -793,14 +872,53 @@ const AnalyticsService = {
       if (!tglTanam || hst <= 0) return;
 
       const calc = this.calculateEstimatedHarvestDate(tglTanam, hst);
+      const pDate = r.tglTanam_raw instanceof Date ? r.tglTanam_raw : (r.tglTanam ? new Date(r.tglTanam) : (r.timestamp_raw instanceof Date ? r.timestamp_raw : (r.timestamp ? new Date(r.timestamp) : null)));
 
-      // A planting is only already harvested if a harvest of the SAME crop was explicitly logged with volume
-      const isAlreadyHarvested = Boolean(
+      // 1. Check same-row harvest
+      let isAlreadyHarvested = Boolean(
         r.tglPanen && 
         Number(r.jumlahPanen || 0) > 0 &&
         sep.komoditasPanen && 
         sep.komoditasPanen.toLowerCase().trim() === cleanCropLower
       );
+
+      // 2. Cross-matching: Cross-correlate with subsequent harvest events on same block & commodity
+      if (!isAlreadyHarvested && plantBlock && plantBlock !== '-' && plantBlock !== 'lainnya' && plantBlock !== 'tidak ditentukan') {
+        // A later planting cycle must close the matching window. Without this
+        // boundary, an old planting can be marked harvested by a harvest from
+        // a newer cycle on the same block.
+        let nextPlantingDate = null;
+        if (pDate && !isNaN(pDate.getTime())) {
+          rows.forEach(candidate => {
+            const candidateSep = resolveSeparatedCommodities(candidate.komoditas, candidate.komoditasPanen, candidate.jenisKegiatan);
+            const candidateCrop = String(candidateSep.komoditasTanam || candidate.komoditasTanam || candidate.komoditas || '').toLowerCase().trim();
+            const candidateBlock = String(candidate.lokasiBlok || candidate.lokasiBlokTanam || candidate.lokasiKegiatan || '').toLowerCase().trim();
+            const candidateDate = candidate.tglTanam_raw instanceof Date
+              ? candidate.tglTanam_raw
+              : (candidate.tglTanam ? new Date(candidate.tglTanam) : null);
+            const candidateIsPlanting = candidateDate && !isNaN(candidateDate.getTime()) &&
+              (String(candidate.jenisKegiatan || '').toLowerCase().includes('tanam') || Number(candidate.jumlahBenih || 0) > 0 || Number(candidate.estimasiPanenHst || 0) > 0);
+            const sameCrop = candidateCrop === cleanCropLower || candidateCrop.includes(cleanCropLower) || cleanCropLower.includes(candidateCrop);
+            const sameBlock = candidateBlock === plantBlock || candidateBlock.includes(plantBlock) || plantBlock.includes(candidateBlock);
+            if (candidateIsPlanting && sameCrop && sameBlock && candidateDate.getTime() > pDate.getTime() && (!nextPlantingDate || candidateDate < nextPlantingDate)) {
+              nextPlantingDate = candidateDate;
+            }
+          });
+        }
+
+        const matchingHarvest = harvestEvents.find(h => {
+          if (h.reportId && h.reportId === (r.reportId || r.id || r.kodeKegiatan)) return false; // skip self
+          const isSameCommodity = h.crop === cleanCropLower || h.crop.includes(cleanCropLower) || cleanCropLower.includes(h.crop);
+          const isSameBlock = h.block === plantBlock || h.block.includes(plantBlock) || plantBlock.includes(h.block);
+          const isAfterPlanting = !pDate || !h.date || h.date.getTime() >= (pDate.getTime() - (24 * 60 * 60 * 1000));
+          const isBeforeNextPlanting = !nextPlantingDate || !h.date || h.date.getTime() < nextPlantingDate.getTime();
+          return isSameCommodity && isSameBlock && isAfterPlanting && isBeforeNextPlanting && h.qty > 0;
+        });
+
+        if (matchingHarvest) {
+          isAlreadyHarvested = true;
+        }
+      }
 
       schedule.push({
         id: r.reportId || r.id || r.kodeKegiatan || '',
@@ -817,9 +935,9 @@ const AnalyticsService = {
         estimasiPanenHst: hst,
         tglEstimasiPanen: calc.estimatedDate,
         daysRemaining: calc.daysRemaining,
-        isOverdue: calc.isOverdue,
-        isReady: calc.isReady,
-        status: calc.status,
+        isOverdue: !isAlreadyHarvested && calc.isOverdue,
+        isReady: !isAlreadyHarvested && calc.isReady,
+        status: isAlreadyHarvested ? 'harvested' : calc.status,
         isAlreadyHarvested: isAlreadyHarvested
       });
     });
@@ -953,8 +1071,8 @@ const AnalyticsService = {
       const sep = resolveSeparatedCommodities(r.komoditas, r.komoditasPanen, r.jenisKegiatan);
       const cropName = sep.komoditasPanen || sep.komoditasTanam || r.komoditas || 'Lainnya';
 
-      const isEksternal = dist.includes('eksternal') || (dist === '' && revenue > 0);
       const isInternalSale = dist.includes('internal') && revenue > 0;
+      const isEksternal = !isInternalSale && (dist.includes('eksternal') || dist.includes('penjualan') || (dist === '' && revenue > 0));
 
       // 1. Accounting for Commercial Sales (External & Internal)
       if (isEksternal) {
@@ -1305,7 +1423,9 @@ const AnalyticsService = {
       const rawUpaya = String(r.upaya || '').trim();
       const severity = String(r.severity || 'NORMAL').toUpperCase();
 
-      const hasKendala = rawKendala.length >= 3 && !EMPTY_KENDALA_PATTERNS.test(rawKendala);
+      const hasKendala = typeof isActualKendala === 'function'
+        ? isActualKendala(rawKendala)
+        : rawKendala.length >= 3 && !EMPTY_KENDALA_PATTERNS.test(rawKendala);
       const hasUpaya = rawUpaya.length >= 3 && !EMPTY_UPAYA_PATTERNS.test(rawUpaya);
       const isElevated = (severity === 'URGENT' || severity === 'WARNING') && hasKendala;
 
@@ -1345,7 +1465,11 @@ const AnalyticsService = {
     // Sort by severity priority then date
     obstacleList.sort((a, b) => {
       const score = s => (s === 'URGENT' ? 3 : s === 'WARNING' ? 2 : 1);
-      return score(b.severity) - score(a.severity);
+      const severityDelta = score(b.severity) - score(a.severity);
+      if (severityDelta !== 0) return severityDelta;
+      const bTime = this.parseDate_(b.date)?.getTime() || 0;
+      const aTime = this.parseDate_(a.date)?.getTime() || 0;
+      return bTime - aTime;
     });
 
     const categoryBreakdown = Object.keys(categoryMap).map(cat => ({
@@ -1378,7 +1502,7 @@ const AnalyticsService = {
    * @param {Object} [params]
    * @returns {Object}
    */
-  getCommodityAnalysis: function(params = {}) {
+  getCommodityAnalysis: function(params = {}, preloadedRows = null) {
     const query = this.normalizeAnalyticsQuery(params);
     const bounds = this.resolvePeriodBounds_({
       period: query.period,
@@ -1398,8 +1522,11 @@ const AnalyticsService = {
     const measureDesc = (typeof getFieldDescriptor === 'function') ? getFieldDescriptor(measureKey) : null;
     const groupDesc = (typeof getFieldDescriptor === 'function') ? getFieldDescriptor(groupByKey) : null;
 
-    // 1. Fetch raw operational rows within the decoupled date bounds
-    const rawRows = SpreadsheetRepository.getAllOperationalRows(dFrom, dTo);
+    // 1. Use the orchestrator's already-scoped rowset when available. This
+    // keeps KPI, chart, and explorer totals on one population of reports.
+    const rawRows = Array.isArray(preloadedRows)
+      ? preloadedRows
+      : SpreadsheetRepository.getAllOperationalRows(dFrom, dTo);
 
     // Normalize rows: separate commodities and ensure typed numbers
     rawRows.forEach(r => {
@@ -1456,16 +1583,10 @@ const AnalyticsService = {
       // ==========================================
       // TREN MODE: Time-series Chronological Aggregation
       // ==========================================
-      let dateField = 'timestamp';
-      if (measureKey === 'jumlahBenih' || measureKey === 'luasLahanM2' || measureKey === 'populasiAgro' || measureKey === 'estimasiPanenHst' || measureKey === 'kerapatanTanam') {
-        dateField = 'tglTanam';
-      } else if (measureKey === 'jumlahPanen' || measureKey === 'luasLahanPanenM2' || measureKey === 'produktivitasPanen') {
-        dateField = 'tglPanen';
-      } else if (measureKey === 'totalHargaRp' || measureKey === 'jumlahPenjualanUnit' || measureKey === 'hargaSatuanRp' || measureKey === 'hargaRataRata') {
-        dateField = 'tglPenjualan';
-      }
-
-      trend = this.getTimeseries(filteredRows, measureKey, interval, aggregation, dateField);
+      // The dashboard period is defined by report submission time. Use the
+      // same basis for chart buckets so the visible series reconciles with
+      // the report/KPI population. Event dates remain available as filters.
+      trend = this.getTimeseries(filteredRows, measureKey, interval, aggregation, 'timestamp');
       dataPointCount = trend?.labels?.length || 0;
 
       // Participation panel in Tren mode: Scoped to matching rows
@@ -1585,7 +1706,8 @@ const AnalyticsService = {
         label: periodLabel,
         startDate: this.formatDateKey_(dFrom),
         endDate: this.formatDateKey_(dTo),
-        interval: interval
+        interval: interval,
+        dateBasis: 'Waktu Laporan (Timestamp)'
       },
       query: query,
       field: measureDesc || { key: measureKey, label: measureKey, unit: '', format: 'decimal', module: 'Agro' },
@@ -1617,6 +1739,42 @@ const AnalyticsService = {
   },
 
   /**
+   * Returns the latest livestock population snapshot at or before a cutoff.
+   * Population is a stock, so it must not be recalculated only from the
+   * selected movement period.
+   * @param {Array<Object>} rows
+   * @param {Date} [cutoff]
+   * @returns {{ value: number, hasData: boolean, timestamp: Date|null }}
+   */
+  getLatestLivestockPopulation_: function(rows, cutoff) {
+    let latest = null;
+    (rows || []).forEach(r => {
+      const hasLivestockSignal = Number(r.populasiTernak || 0) > 0 ||
+        Number(r.ternakMasukQty || 0) > 0 ||
+        Number(r.ternakKeluarQty || 0) > 0 ||
+        Number(r.totalHargaTernakRp || 0) > 0 ||
+        Number(r.pakanMasukKg || 0) > 0 ||
+        Number(r.pakanKeluarKg || 0) > 0 ||
+        String(r.jenisTernak || '').trim().length > 0;
+      if (!hasLivestockSignal) return;
+      // Movement-only records do not establish a new stock snapshot. Keep
+      // the last positive population rather than interpreting a blank/zero
+      // movement field as extinction.
+      if (Number(r.populasiTernak || 0) <= 0) return;
+
+      const d = r.timestamp_raw instanceof Date ? r.timestamp_raw : this.parseDate_(r.timestamp);
+      if (!d || (cutoff && d.getTime() > cutoff.getTime())) return;
+      const timestamp = d.getTime();
+      if (!latest || timestamp >= latest.timestamp) {
+        latest = { value: Number(r.populasiTernak || 0), timestamp: timestamp, date: d };
+      }
+    });
+    return latest
+      ? { value: latest.value, hasData: true, timestamp: latest.date }
+      : { value: 0, hasData: false, timestamp: null };
+  },
+
+  /**
    * Main Orchestrator: Assembles complete executive analytics dataset.
    * @param {Object} [params] 
    * @param {string} [params.period='this_month'] 'this_week'|'last_week'|'this_month'|'this_quarter'|'this_year'|'custom'
@@ -1627,6 +1785,7 @@ const AnalyticsService = {
    * @returns {Object}
    */
   getAnalyticsDashboardData: function(params = {}) {
+    const normalizedDashboardQuery = this.normalizeAnalyticsQuery(params);
     const bounds = this.resolvePeriodBounds_(params);
     const dFrom = bounds.dFrom;
     const dTo = bounds.dTo;
@@ -1645,27 +1804,24 @@ const AnalyticsService = {
       r.komoditasClean = sep.komoditasTanam || sep.komoditasPanen || r.komoditas || '';
     });
 
-    // 2. Apply any secondary filters
-    const filteredRows = this.applyFilters(allRows, params.filters);
+    // 2. Apply any secondary filters, including the legacy dashboard crop
+    // filter. The same filtered rowset is reused by every dashboard widget.
+    const dashboardFilters = normalizedDashboardQuery.filters;
+    const filteredRows = this.applyFilters(allRows, dashboardFilters);
 
     // 3. Compute Executive KPIs (Agro, Ternak, and Combined)
     let totalSalesAgroRp = 0;
     let totalSalesTernakRp = 0;
     let totalPanenKg = 0;
     let totalBenih = 0;
-    let latestReportedLivestockPopulation = 0;
-
     filteredRows.forEach(r => {
       totalSalesAgroRp += Number(r.totalHargaRp || 0);
       totalSalesTernakRp += Number(r.totalHargaTernakRp || 0);
       totalPanenKg += Number(r.jumlahPanen || 0);
       totalBenih += Number(r.jumlahBenih || 0);
-      if (Number(r.populasiTernak || 0) > 0) {
-        latestReportedLivestockPopulation = Number(r.populasiTernak);
-      }
     });
 
-    const totalSalesRp = totalSalesAgroRp + totalSalesTernakRp;
+    let totalSalesRp = totalSalesAgroRp + totalSalesTernakRp;
 
     // 4. Employee Leaderboard (Operations Owner)
     const employeeLeaderboard = this.getEmployeeReportingLeaderboard(filteredRows);
@@ -1675,6 +1831,9 @@ const AnalyticsService = {
       new Date(now.getFullYear() - 1, 0, 1),
       new Date(now.getFullYear() + 1, 11, 31)
     );
+    const populationHistoryRows = SpreadsheetRepository.getAllOperationalRows(null, dTo);
+    const populationAsOf = this.getLatestLivestockPopulation_(this.applyFilters(populationHistoryRows, dashboardFilters), dTo);
+    const openingPopulation = this.getLatestLivestockPopulation_(this.applyFilters(populationHistoryRows, dashboardFilters), new Date(dFrom.getTime() - 1));
     const harvestSchedule = this.getHarvestSchedule(fullYearRows);
     const activeHarvests = harvestSchedule.filter(s => !s.isAlreadyHarvested);
     const readyHarvestsCount = activeHarvests.filter(s => s.isReady).length;
@@ -1684,8 +1843,36 @@ const AnalyticsService = {
     const priceTrend = this.getPriceTrendWidgetData(filteredRows, params, bounds);
     const harvestByCommodity = this.getHarvestByCommodityWidgetData(filteredRows);
     const salesByCommodity = this.getSalesByCommodityWidgetData(filteredRows);
-    const livestockMovement = this.getLivestockMovementWidgetData(filteredRows, interval);
+    const livestockMovement = this.getLivestockMovementWidgetData(filteredRows, interval, {
+      openingPopulation: openingPopulation.value,
+      asOfPopulation: populationAsOf.value,
+      hasHistoricalData: populationAsOf.hasData
+    });
     const operationalRisk = this.getOperationalRiskWidgetData(filteredRows);
+
+    // Sales KPI must reconcile to the canonical commercial widget rather than
+    // summing every positive amount, including internal-use records.
+    totalSalesAgroRp = Number(salesByCommodity.totalCommercialAgroRevenueRp || 0);
+    totalSalesTernakRp = Number(salesByCommodity.totalCommercialTernakRevenueRp || 0);
+    totalSalesRp = totalSalesAgroRp + totalSalesTernakRp;
+
+    // 7. Embedded Default Commodity Analysis Payload (Single Round-Trip Optimization)
+    let defaultCommodityAnalysis = null;
+    try {
+      defaultCommodityAnalysis = this.getCommodityAnalysis({
+        period: bounds.periodCode,
+        startDate: this.formatDateKey_(dFrom),
+        endDate: this.formatDateKey_(dTo),
+        interval: interval,
+        mode: 'tren',
+        measureKey: 'jumlahPanen',
+        groupByKey: 'komoditas',
+        aggregation: 'sum',
+        filters: []
+      }, filteredRows);
+    } catch (eCom) {
+      Logger.log('AnalyticsService Notice: Failed to embed default commodityAnalysis: ' + eCom.toString());
+    }
 
     return {
       period: {
@@ -1702,7 +1889,7 @@ const AnalyticsService = {
         totalSalesTernakRp: totalSalesTernakRp,
         totalPanenKg: Math.round(totalPanenKg * 10) / 10,
         totalBenih: totalBenih,
-        reportedLivestockPopulation: latestReportedLivestockPopulation,
+        reportedLivestockPopulation: populationAsOf.value,
         activePlantingsCount: activeHarvests.length,
         readyHarvestsCount: readyHarvestsCount,
         overdueHarvestsCount: overdueHarvestsCount
@@ -1730,6 +1917,7 @@ const AnalyticsService = {
         readyCount: readyHarvestsCount,
         overdueCount: overdueHarvestsCount
       },
+      commodityAnalysis: defaultCommodityAnalysis,
       // Backward-compatibility references for older callers
       employeeLeaderboard: employeeLeaderboard,
       salesAnalytics: salesByCommodity,
@@ -1758,12 +1946,14 @@ const AnalyticsService = {
    * @returns {Object}
    */
   getDecisionViewsData: function(params = {}, preloadedRows = null, preloadedFullYearRows = null) {
+    const normalizedQuery = this.normalizeAnalyticsQuery(params);
     const bounds = this.resolvePeriodBounds_(params);
     const dFrom = bounds.dFrom;
     const dTo = bounds.dTo;
     const interval = bounds.interval;
 
-    const rows = preloadedRows || SpreadsheetRepository.getAllOperationalRows(dFrom, dTo);
+    const rawRows = preloadedRows || SpreadsheetRepository.getAllOperationalRows(dFrom, dTo);
+    const rows = this.applyFieldFilters(rawRows, normalizedQuery.filters);
     const now = new Date();
 
     let fullYearRows = preloadedFullYearRows;
@@ -1774,11 +1964,22 @@ const AnalyticsService = {
       );
     }
 
+    const populationHistoryRows = this.applyFieldFilters(
+      SpreadsheetRepository.getAllOperationalRows(null, dTo),
+      normalizedQuery.filters
+    );
+    const populationAsOf = this.getLatestLivestockPopulation_(populationHistoryRows, dTo);
+    const openingPopulation = this.getLatestLivestockPopulation_(populationHistoryRows, new Date(dFrom.getTime() - 1));
+
     const priceTrend = this.getPriceTrendWidgetData(rows, params, bounds);
     const harvestByCommodity = this.getHarvestByCommodityWidgetData(rows);
     const salesByCommodity = this.getSalesByCommodityWidgetData(rows);
     const harvestPipeline = this.getHarvestPipelineWidgetData(fullYearRows, now);
-    const livestockMovement = this.getLivestockMovementWidgetData(rows, interval);
+    const livestockMovement = this.getLivestockMovementWidgetData(rows, interval, {
+      openingPopulation: openingPopulation.value,
+      asOfPopulation: populationAsOf.value,
+      hasHistoricalData: populationAsOf.hasData
+    });
     const operationalRisk = this.getOperationalRiskWidgetData(rows);
 
     return {
@@ -1787,7 +1988,8 @@ const AnalyticsService = {
         label: bounds.periodLabel,
         startDate: this.formatDateKey_(dFrom),
         endDate: this.formatDateKey_(dTo),
-        interval: interval
+        interval: interval,
+        dateBasis: 'Waktu Laporan (Timestamp)'
       },
       decisionViews: {
         priceTrend: priceTrend,
@@ -1856,7 +2058,9 @@ const AnalyticsService = {
     const effectiveCommodityKey = matchedCom ? matchedCom.key : selCommodity;
 
     // Determine unit & price basis
-    let validBases = isTernak ? ['Rp/ekor', 'Rp/kg', 'Rp/unit'] : ['Rp/unit', 'Rp/kg'];
+    // Livestock records contain animal counts, not weight or generic unit
+    // conversions. Do not offer unsupported price bases.
+    let validBases = isTernak ? ['Rp/ekor'] : ['Rp/unit', 'Rp/kg'];
     let defaultBasis = isTernak ? 'Rp/ekor' : 'Rp/unit';
     let selBasis = params.priceBasis && validBases.includes(params.priceBasis) ? params.priceBasis : defaultBasis;
 
@@ -1880,9 +2084,9 @@ const AnalyticsService = {
 
     matchingRows.forEach(r => {
       let d = null;
-      if (!isTernak && r.tglPenjualan_raw instanceof Date) d = r.tglPenjualan_raw;
-      else if (!isTernak && r.tglPenjualan) d = new Date(r.tglPenjualan);
-      else if (r.timestamp_raw instanceof Date) d = r.timestamp_raw;
+      // Period scope is report timestamp, matching the rowset supplied to
+      // the widget and the dashboard KPI population.
+      if (r.timestamp_raw instanceof Date) d = r.timestamp_raw;
       else if (r.timestamp) d = new Date(r.timestamp);
 
       if (!d || isNaN(d.getTime())) d = bounds.dFrom || new Date();
@@ -1971,6 +2175,9 @@ const AnalyticsService = {
     const warnings = [];
     if (missingQuantityRowsCount > 0) {
       warnings.push(`${missingQuantityRowsCount} transaksi tidak mencantumkan kuantitas riil sehingga menggunakan estimasi.`);
+    }
+    if (isTernak && params.priceBasis && !validBases.includes(params.priceBasis)) {
+      warnings.push('Basis harga ternak selain Rp/ekor tidak tersedia karena tidak ada data konversi berat/unit.');
     }
 
     return {
@@ -2069,13 +2276,16 @@ const AnalyticsService = {
     let totalCommercialAgroRevenueRp = 0;
     let totalCommercialTernakRevenueRp = 0;
     let totalInternalUseUnits = 0;
+    let incompleteCommercialRows = 0;
 
     (rows || []).forEach(r => {
       // 1. Agro Commercial Sales
       const agroRev = Number(r.totalHargaRp || 0);
       const agroQty = Number(r.jumlahPenjualanUnit || 0);
       const agroCom = r.komoditasPanen || r.komoditasClean || r.komoditas || '';
-      if (agroRev > 0 && agroCom && agroCom !== 'Lainnya') {
+      const distribution = String(r.tujuanDistribusi || '').toLowerCase();
+      const isInternalUseOnly = distribution.includes('penggunaan') && !distribution.includes('penjualan');
+      if (agroRev > 0 && agroCom && agroCom !== 'Lainnya' && !isInternalUseOnly) {
         if (!agroSalesMap[agroCom]) {
           agroSalesMap[agroCom] = { commodity: agroCom, module: 'Agro', revenueRp: 0, quantity: 0, quantityUnit: 'unit', reportCount: 0 };
         }
@@ -2084,6 +2294,7 @@ const AnalyticsService = {
         agroSalesMap[agroCom].reportCount += 1;
         totalCommercialRevenueRp += agroRev;
         totalCommercialAgroRevenueRp += agroRev;
+        if (agroQty <= 0) incompleteCommercialRows++;
       }
 
       // 2. Ternak Commercial Sales
@@ -2099,6 +2310,7 @@ const AnalyticsService = {
         ternakSalesMap[ternakCom].reportCount += 1;
         totalCommercialRevenueRp += ternakRev;
         totalCommercialTernakRevenueRp += ternakRev;
+        if (ternakQty <= 0) incompleteCommercialRows++;
       }
 
       // 3. Internal Usage Distribution
@@ -2148,7 +2360,9 @@ const AnalyticsService = {
       totalInternalUseUnits: totalInternalUseUnits,
       commercialPoints: commercialPoints,
       internalUsagePoints: internalUsagePoints,
-      warnings: []
+      warnings: incompleteCommercialRows > 0
+        ? [`${incompleteCommercialRows} transaksi komersial tidak memiliki volume penjualan riil.`]
+        : []
     };
   },
 
@@ -2191,8 +2405,8 @@ const AnalyticsService = {
    * @param {string} interval
    * @returns {Object}
    */
-  getLivestockMovementWidgetData: function(rows, interval = 'day') {
-    const hasTernakData = (rows || []).some(r => {
+  getLivestockMovementWidgetData: function(rows, interval = 'day', options = {}) {
+    const hasLivestockSignal = r => {
       return Number(r.populasiTernak || 0) > 0 ||
         Number(r.ternakMasukQty || 0) > 0 ||
         Number(r.ternakKeluarQty || 0) > 0 ||
@@ -2200,13 +2414,15 @@ const AnalyticsService = {
         Number(r.pakanMasukKg || 0) > 0 ||
         Number(r.pakanKeluarKg || 0) > 0 ||
         String(r.jenisTernak || '').trim().length > 0;
-    });
+    };
+    const livestockRows = (rows || []).filter(hasLivestockSignal);
+    const hasTernakData = livestockRows.length > 0 || Boolean(options.hasHistoricalData);
 
     if (!hasTernakData) {
       return {
         status: 'empty',
         hasData: false,
-        summary: { totalPopulation: 0, totalEntry: 0, totalExit: 0, totalBirth: 0, totalPurchase: 0, totalDeath: 0, totalSale: 0, totalFeedInKg: 0, totalFeedOutKg: 0, totalRevenueRp: 0 },
+        summary: { reportedPopulation: Number(options.asOfPopulation || 0), totalEntry: 0, totalExit: 0, totalBirth: 0, totalPurchase: 0, totalDeath: 0, totalSale: 0, totalFeedInKg: 0, totalFeedOutKg: 0, totalRevenueRp: 0 },
         points: [],
         warnings: []
       };
@@ -2222,10 +2438,11 @@ const AnalyticsService = {
     let totalFeedOut = 0;
     let totalRevenue = 0;
     let latestPopulation = 0;
+    let latestPopTimestamp = -Infinity;
 
     const intervalMap = {};
 
-    (rows || []).forEach(r => {
+    livestockRows.forEach(r => {
       const birth = Number(r.ternakMasukKelahiranQty || 0);
       const buy = Number(r.ternakMasukPembelianQty || 0);
       const entry = Number(r.ternakMasukQty || 0) || (birth + buy);
@@ -2248,7 +2465,13 @@ const AnalyticsService = {
       totalFeedIn += feedIn;
       totalFeedOut += feedOut;
       totalRevenue += rev;
-      if (pop > 0) latestPopulation = pop;
+      if (pop > 0) {
+        const rTime = r.timestamp_raw instanceof Date ? r.timestamp_raw.getTime() : (r.timestamp ? new Date(r.timestamp).getTime() : 0);
+        if (rTime >= latestPopTimestamp) {
+          latestPopTimestamp = rTime;
+          latestPopulation = pop;
+        }
+      }
 
       let d = r.timestamp_raw instanceof Date ? r.timestamp_raw : (r.timestamp ? new Date(r.timestamp) : new Date());
       if (isNaN(d.getTime())) d = new Date();
@@ -2256,6 +2479,8 @@ const AnalyticsService = {
       let k = AnalyticsService.formatDateKey_(d);
       if (interval === 'month') k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       else if (interval === 'week') k = 'Mg ' + AnalyticsService.formatDateKey_(AnalyticsService.getStartOfWeek_(d));
+      else if (interval === 'quarter') k = `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`;
+      else if (interval === 'year') k = String(d.getFullYear());
 
       if (!intervalMap[k]) {
         intervalMap[k] = {
@@ -2273,7 +2498,11 @@ const AnalyticsService = {
         };
       }
 
-      if (pop > 0) intervalMap[k].population = pop;
+      const populationTime = r.timestamp_raw instanceof Date ? r.timestamp_raw.getTime() : (r.timestamp ? new Date(r.timestamp).getTime() : 0);
+      if (pop > 0 && populationTime >= (intervalMap[k].populationTime || -Infinity)) {
+        intervalMap[k].population = pop;
+        intervalMap[k].populationTime = populationTime;
+      }
       intervalMap[k].entryQty += entry;
       intervalMap[k].birthQty += birth;
       intervalMap[k].purchaseQty += buy;
@@ -2285,13 +2514,23 @@ const AnalyticsService = {
       intervalMap[k].revenueRp += rev;
     });
 
-    const points = Object.keys(intervalMap).sort().map(k => intervalMap[k]);
+    let openingPopulation = Number(options.openingPopulation || 0);
+    const points = Object.keys(intervalMap).sort().map(k => {
+      const point = intervalMap[k];
+      if (!(point.population > 0) && openingPopulation > 0) point.population = openingPopulation;
+      if (point.population > 0) openingPopulation = point.population;
+      delete point.populationTime;
+      return point;
+    });
+    const reportedPopulation = options.asOfPopulation !== undefined && options.asOfPopulation !== null
+      ? Number(options.asOfPopulation || 0)
+      : latestPopulation;
 
     return {
       status: 'ok',
       hasData: true,
       summary: {
-        reportedPopulation: latestPopulation,
+        reportedPopulation: reportedPopulation,
         totalEntry: totalEntry,
         totalBirth: totalBirth,
         totalPurchase: totalPurchase,
@@ -2315,23 +2554,11 @@ const AnalyticsService = {
    */
   getOperationalRiskWidgetData: function(rows) {
     const rawRisk = this.getRiskAndObstacleAnalytics(rows);
+    const unresolvedCount = Math.max(0, (rawRisk.reportsWithObstacleCount || 0) - (rawRisk.mitigatedCount || 0));
 
-    let urgentCount = 0;
-    let normalCount = 0;
-    let unresolvedCount = 0;
     const locationMap = {};
-
-    (rows || []).forEach(r => {
-      if (!isActualKendala(r.kendala)) return;
-      const isUrgent = String(r.severity || '').toLowerCase() === 'urgent';
-      if (isUrgent) urgentCount++;
-      else normalCount++;
-
-      if (!r.upaya || String(r.upaya).trim().length === 0) {
-        unresolvedCount++;
-      }
-
-      const loc = r.lokasiKegiatan || 'Lokasi Lain';
+    (rawRisk.activeObstacles || []).forEach(o => {
+      const loc = o.sector || 'Lokasi Lain';
       locationMap[loc] = (locationMap[loc] || 0) + 1;
     });
 
@@ -2340,15 +2567,15 @@ const AnalyticsService = {
       .sort((a, b) => b.count - a.count);
 
     return {
-      status: rawRisk.totalReports > 0 ? 'ok' : 'empty',
+      status: (rawRisk.reportsWithObstacleCount > 0) ? 'ok' : 'empty',
       totalObstacles: rawRisk.reportsWithObstacleCount,
-      urgentCount: urgentCount,
-      normalCount: normalCount,
       unresolvedCount: unresolvedCount,
+      mitigatedCount: rawRisk.mitigatedCount,
       mitigationRate: rawRisk.mitigationRate,
       categoryBreakdown: rawRisk.categoryBreakdown,
       topLocations: topLocations,
-      recentObstacles: rawRisk.activeObstacles.slice(0, 5),
+      recentObstacles: rawRisk.activeObstacles.slice(0, 10),
+      activeObstacles: rawRisk.activeObstacles,
       warnings: []
     };
   }

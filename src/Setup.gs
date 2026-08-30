@@ -64,6 +64,16 @@ function setupReportingSystem() {
   }
   ConfigRepository.setProperties(propUpdates);
 
+  // 6. Install Automated Triggers (Form Submit, Daily/Weekly Digests, Cleanup Expired Daily Tabs & Drive Photo Folders)
+  try {
+    if (typeof createTriggers === 'function') {
+      createTriggers();
+      Logger.log('Provisioned automated time-driven and form submit triggers.');
+    }
+  } catch (eTrig) {
+    Logger.log('Setup notice: Automatic trigger installation deferred: ' + eTrig.toString());
+  }
+
   Logger.log('=== PROVISIONING COMPLETE ===');
   Logger.log('Spreadsheet URL: ' + ss.getUrl());
   Logger.log('Master Sheet Provisioned: ' + SHEET_NAMES.MASTER_LAPORAN);

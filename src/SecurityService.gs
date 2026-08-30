@@ -234,6 +234,23 @@ const SecurityService = {
     },
 
     /**
+     * Masks phone number to protect personal data compliance (UU No. 27 Tahun 2022 PDP).
+     * Example: '081234567890' -> '0812••••7890'.
+     * @param {string|number} phone 
+     * @returns {string} Masked phone number or '-'
+     */
+    maskPhoneNumber: function(phone) {
+      if (!phone) return '-';
+      const clean = String(phone).trim();
+      if (!clean || clean === '-' || clean === 'null' || clean === 'undefined') return '-';
+      const digits = clean.replace(/\D/g, '');
+      if (digits.length <= 6) return '••••••';
+      const prefix = digits.substring(0, 4);
+      const suffix = digits.substring(digits.length - 4);
+      return `${prefix}••••${suffix}`;
+    },
+
+    /**
      * Validates photo attachment metadata and size before upload.
      * @param {string} base64Data 
      * @param {string} mimeType 
