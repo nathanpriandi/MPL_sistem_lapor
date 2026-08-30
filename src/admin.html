@@ -273,7 +273,9 @@
                   <!-- Rendered dynamically -->
                 </div>
               </div>
-              <button type="button" class="modal-close" onclick="closeDetailModal()" aria-label="Tutup Modal">&times;</button>
+              <button type="button" class="modal-close" onclick="closeDetailModal()" aria-label="Tutup Modal" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; color: #94a3b8;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
 
             <div class="modal-body" id="modalBody" style="max-height: 72vh; overflow-y: auto;">
@@ -294,6 +296,24 @@
               <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeDetailModal()">Tutup</button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CUSTOM ENTERPRISE MODAL: KONFIRMASI BERSIHKAN FOTO DRIVE -->
+        <div class="modal-overlay" id="photoCleanupModalOverlay" style="display: none;">
+          <div class="modal-card" style="max-width: 450px; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polyline points="12 11 12 17 8 13"/><polyline points="12 17 16 13"/></svg>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Bersihkan Foto Kadaluarsa (>90 Hari)?</h3>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
+              Sistem akan memindai folder Google Drive dan memindahkan folder dokumentasi foto lapangan harian yang berusia lebih dari 90 hari ke Google Drive Trash sesuai kepatuhan retensi data.
+            </p>
+
+            <div style="display: flex; gap: 0.5rem; justify-content: center;">
+              <button type="button" class="btn btn-secondary" onclick="closePhotoCleanupModal()" style="flex: 1; height: 38px; font-weight: 600; border-radius: 6px;">Batal</button>
+              <button type="button" class="btn btn-primary" id="btnConfirmPhotoCleanup" onclick="executePhotoCleanup()" style="flex: 1; height: 38px; font-weight: 600; border-radius: 6px;">Ya, Bersihkan</button>
             </div>
           </div>
         </div>
@@ -911,7 +931,7 @@
           </td>
           <td data-label="Tingkat Urgensi" class="cell-center">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${isUrgent ? 'Urgent' : 'Normal'}
+              ${isUrgent ? 'Kendala' : 'Normal'}
             </span>
           </td>
           <td data-label="Status Verifikasi" class="cell-center">
@@ -1232,7 +1252,7 @@
         headerMetaEl.innerHTML = `
           <div class="inspector-controls-left">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${isUrgent ? 'Urgent' : 'Normal'}
+              ${isUrgent ? 'Kendala' : 'Normal'}
             </span>
             <select class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" onchange="toggleModalVerification('${item.reportId}', this.value)" aria-label="Status Verifikasi">
               <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
@@ -1254,15 +1274,39 @@
       const fields = item.fields || [];
       const consumedKeys = new Set();
 
-      // Helper to fetch and consume field value
-      function getFieldValue(patterns, fallbackVal) {
+      // Helper to fetch and consume field value with strict module isolation
+      function getFieldValue(patterns, fallbackVal, isTernakSearch) {
         if (!Array.isArray(patterns)) patterns = [patterns];
+        // Pass 1: Exact matches
         for (let i = 0; i < fields.length; i++) {
           const f = fields[i];
+          if (consumedKeys.has(f.label)) continue;
           const normLabel = String(f.label || '').toLowerCase().replace(/[^a-z0-9]/g, '');
           for (let p = 0; p < patterns.length; p++) {
             const pat = String(patterns[p]).toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (normLabel === pat || normLabel.includes(pat)) {
+            if (normLabel === pat) {
+              consumedKeys.add(f.label);
+              return f.value;
+            }
+          }
+        }
+        // Pass 2: Controlled substring matches with anti-collision guards
+        for (let i = 0; i < fields.length; i++) {
+          const f = fields[i];
+          if (consumedKeys.has(f.label)) continue;
+          const normLabel = String(f.label || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const isTernakField = normLabel.includes('ternak');
+
+          for (let p = 0; p < patterns.length; p++) {
+            const pat = String(patterns[p]).toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (pat.length < 4) continue;
+
+            // If search pattern is NOT for Ternak, NEVER match a Ternak column
+            if (!isTernakSearch && !pat.includes('ternak') && isTernakField) continue;
+            // If search pattern IS for Ternak, only match if pattern or label contains ternak
+            if (isTernakSearch && !isTernakField && !pat.includes('ternak')) continue;
+
+            if (normLabel.includes(pat)) {
               consumedKeys.add(f.label);
               return f.value;
             }
@@ -1279,10 +1323,17 @@
       const lokasi = getFieldValue(['lokasikegiatan', 'lokasi'], item.lokasi);
       const jenisKegiatan = getFieldValue(['jeniskegiatan', 'jenis_kegiatan'], item.ringkasan);
 
+      // Context Detection
+      const jenisKegiatanStr = String(jenisKegiatan || item.ringkasan || '').toLowerCase();
+      const isTernakContext = jenisKegiatanStr.includes('ternak');
+      const isOfficeContext = jenisKegiatanStr.includes('office') || jenisKegiatanStr.includes('administrasi');
+      const isPengawasanContext = jenisKegiatanStr.includes('pengawasan');
+      const isAgroContext = jenisKegiatanStr.includes('agro') || (!isTernakContext && !isOfficeContext && !isPengawasanContext);
+
       // 2. Budidaya & Penanaman (Langkah 2: Agro Tanam)
-      const statusPengelolaanTanam = getFieldValue(['statuspengelolaan', 'status_pengelolaan']);
-      const rawKomoditas = getFieldValue(['komoditas', 'komoditastanam']);
-      const rawKomoditasPanen = getFieldValue(['komoditaspanen']);
+      const statusPengelolaanTanam = isAgroContext ? getFieldValue(['statuspengelolaan', 'status_pengelolaan']) : '';
+      const rawKomoditas = isAgroContext ? getFieldValue(['komoditas', 'komoditastanam']) : '';
+      const rawKomoditasPanen = isAgroContext ? getFieldValue(['komoditaspanen']) : '';
       
       // Parse composite commodity strings if present
       let komoditasTanam = rawKomoditas;
@@ -1298,54 +1349,56 @@
         if (mP) komoditasPanen = mP[1].trim();
       }
 
-      const lokasiBlok = getFieldValue(['lokasibloktanam', 'lokasiblok', 'bloktanam', 'blok']);
-      const luasLahanM2 = getFieldValue(['luaslahanm2', 'luaslahan', 'luasarea']);
-      const jumlahBenih = getFieldValue(['jumlahbenih', 'benih', 'bibit']);
-      const tglTanam = getFieldValue(['tgltanam', 'tanggaltanam']);
-      const estimasiPanenHst = getFieldValue(['estimasipanenhst', 'estimasipanen', 'hst', 'tglperkiraanpanen']);
+      const lokasiBlok = isAgroContext ? getFieldValue(['lokasibloktanam', 'lokasiblok', 'bloktanam', 'blok']) : '';
+      const luasLahanM2 = isAgroContext ? getFieldValue(['luaslahanm2', 'luaslahan', 'luasarea']) : '';
+      const jumlahBenih = isAgroContext ? getFieldValue(['jumlahbenih', 'benih', 'bibit']) : '';
+      const tglTanam = isAgroContext ? getFieldValue(['tgltanam', 'tanggaltanam']) : '';
+      const estimasiPanenHst = isAgroContext ? getFieldValue(['estimasipanenhst', 'estimasipanen', 'hst', 'tglperkiraanpanen']) : '';
 
-      const isTanamActive = String(jenisKegiatan).toLowerCase().includes('tanam') || 
-                            Boolean(tglTanam || (jumlahBenih && jumlahBenih != '0') || (luasLahanM2 && luasLahanM2 != '0') || (komoditasTanam && komoditasTanam !== '-' && komoditasTanam !== ''));
+      const isTanamActive = isAgroContext && (jenisKegiatanStr.includes('tanam') || 
+                            Boolean(tglTanam || (jumlahBenih && jumlahBenih != '0') || (luasLahanM2 && luasLahanM2 != '0') || (komoditasTanam && komoditasTanam !== '-' && komoditasTanam !== '')));
 
       // 3. Panen & Penjualan Agro (Langkah 3: Agro Panen)
-      const statusPengelolaanPanen = getFieldValue(['statuspengelolaanpanen']);
-      const lokasiBlokPanen = getFieldValue(['lokasiblokpanen', 'blokpanen']);
-      const luasLahanPanenM2 = getFieldValue(['luaslahanpanenm2', 'luaslahanpanen', 'luaspanen']);
-      const tglPanen = getFieldValue(['tglpanen', 'tanggalpanen']);
-      const jumlahPanenKg = getFieldValue(['jumlahpanenkg', 'jumlahpanen']);
-      const tglPenjualan = getFieldValue(['tglpenjualan', 'tanggalpenjualan']);
-      const tujuanDistribusi = getFieldValue(['tujuandistribusi']);
-      const jumlahPenjualanUnit = getFieldValue(['jumlahpenjualanunit']);
-      const hargaSatuanRp = getFieldValue(['hargasatuanrp', 'hargasatuan']);
-      const totalHargaRp = getFieldValue(['totalhargarp', 'totalharga', 'nilaipenjualanrp']);
-      const pembeliNama = getFieldValue(['pembelinama', 'pembeli_nama']);
-      const pembeliAlamat = getFieldValue(['pembelialamat', 'pembeli_alamat']);
-      const pembeliTelp = normalizePhoneNumber(getFieldValue(['pembelitelp', 'pembeli_notelp', 'pembelitelepon']));
-      const jumlahUnitPenggunaan = getFieldValue(['jumlahunitpenggunaan']);
-      const tujuanPenggunaan = getFieldValue(['tujuanpenggunaan']);
+      const statusPengelolaanPanen = isAgroContext ? getFieldValue(['statuspengelolaanpanen']) : '';
+      const lokasiBlokPanen = isAgroContext ? getFieldValue(['lokasiblokpanen', 'blokpanen']) : '';
+      const luasLahanPanenM2 = isAgroContext ? getFieldValue(['luaslahanpanenm2', 'luaslahanpanen', 'luaspanen']) : '';
+      const tglPanen = isAgroContext ? getFieldValue(['tglpanen', 'tanggalpanen']) : '';
+      const jumlahPanenKg = isAgroContext ? getFieldValue(['jumlahpanenkg', 'jumlahpanen']) : '';
+      const tglPenjualan = isAgroContext ? getFieldValue(['tglpenjualan', 'tanggalpenjualan']) : '';
+      const tujuanDistribusi = isAgroContext ? getFieldValue(['tujuandistribusi', 'tujuandistribusiagro']) : '';
+      const jumlahPenjualanUnit = isAgroContext ? getFieldValue(['jumlahpenjualanunit', 'jumlahpenjualanagro', 'jumlahpenjualankg']) : '';
+      const hargaSatuanRp = isAgroContext ? getFieldValue(['hargasatuanrp', 'hargasatuan', 'hargasatuanagro']) : '';
+      const totalHargaRp = isAgroContext ? getFieldValue(['totalhargarp', 'totalharga', 'nilaipenjualanrp', 'totalpenjualanrp']) : '';
+      const pembeliNama = isAgroContext ? getFieldValue(['pembelinama', 'pembeli_nama', 'pembeliagronama']) : '';
+      const pembeliAlamat = isAgroContext ? getFieldValue(['pembelialamat', 'pembeli_alamat', 'pembeliagroalamat']) : '';
+      const pembeliTelp = isAgroContext ? normalizePhoneNumber(getFieldValue(['pembelitelp', 'pembeli_notelp', 'pembelitelepon', 'pembeliagrotelp'])) : '';
+      const jumlahUnitPenggunaan = isAgroContext ? getFieldValue(['jumlahunitpenggunaan', 'unitpenggunaan']) : '';
+      const tujuanPenggunaan = isAgroContext ? getFieldValue(['tujuanpenggunaan', 'tujuanpenggunaaninternal']) : '';
 
-      const isPanenActive = String(jenisKegiatan).toLowerCase().includes('panen') || 
-                            Boolean(tglPanen || (jumlahPanenKg && jumlahPanenKg != '0') || (totalHargaRp && totalHargaRp != '0') || (komoditasPanen && komoditasPanen !== '-' && komoditasPanen !== ''));
+      const isPanenActive = isAgroContext && (jenisKegiatanStr.includes('panen') || jenisKegiatanStr.includes('jual') || 
+                            Boolean(tglPanen || (jumlahPanenKg && jumlahPanenKg != '0') || (totalHargaRp && totalHargaRp != '0') || (komoditasPanen && komoditasPanen !== '-' && komoditasPanen !== '')));
 
       // 4. Peternakan & Ternak
-      const jenisTernak = getFieldValue(['jenisternak', 'jenis_ternak']);
-      const ternakMasuk = getFieldValue(['ternakmasuk', 'ternak_masuk', 'ternakmasukjenis']);
-      const ternakMasukQty = getFieldValue(['ternakmasukqty', 'ternak_masuk_qty']);
-      const ternakKeluar = getFieldValue(['ternakkeluar', 'ternak_keluar', 'ternakkeluarjenis']);
-      const ternakKeluarQty = getFieldValue(['ternakkeluarqty', 'ternak_keluar_qty']);
-      const populasiTernak = getFieldValue(['populasiternak', 'populasi_ternak']);
-      const pakanMasukKg = getFieldValue(['pakanmasukkg', 'pakan_masuk_kg']);
-      const pakanKeluarKg = getFieldValue(['pakankeluarkg', 'pakan_keluar_kg']);
-      const jenisKomoditasTernak = getFieldValue(['jeniskomoditasternak', 'jenis_komoditas_ternak']);
-      const jumlahPenjualanTernak = getFieldValue(['jumlahpenjualanternak', 'jumlah_penjualan_ternak']);
-      const hargaSatuanTernakRp = getFieldValue(['hargasatuanternakrp', 'harga_satuan_ternak_rp']);
-      const totalHargaTernakRp = getFieldValue(['totalhargaternakrp', 'total_harga_ternak_rp']);
-      const pembeliTernakNama = getFieldValue(['pembeliternaknama', 'pembeli_ternak_nama']);
-      const pembeliTernakAlamat = getFieldValue(['pembeliternakalamat', 'pembeli_ternak_alamat']);
-      const pembeliTernakTelp = normalizePhoneNumber(getFieldValue(['pembeliternaktelp', 'pembeli_ternak_notelp', 'pembeliternaktelepon']));
-      const tujuanPenggunaanTernak = getFieldValue(['tujuanpenggunaanternak', 'tujuan_penggunaan_ternak']);
+      const jenisTernak = getFieldValue(['jenisternak', 'jenis_ternak'], '', true);
+      const ternakMasuk = getFieldValue(['ternakmasuk', 'ternak_masuk', 'ternakmasukjenis'], '', true);
+      const ternakMasukQty = getFieldValue(['ternakmasukqty', 'ternak_masuk_qty'], '', true);
+      const ternakKeluar = getFieldValue(['ternakkeluar', 'ternak_keluar', 'ternakkeluarjenis'], '', true);
+      const ternakKeluarQty = getFieldValue(['ternakkeluarqty', 'ternak_keluar_qty'], '', true);
+      const populasiTernak = getFieldValue(['populasiternak', 'populasi_ternak'], '', true);
+      const pakanMasukKg = getFieldValue(['pakanmasukkg', 'pakan_masuk_kg'], '', true);
+      const pakanKeluarKg = getFieldValue(['pakankeluarkg', 'pakan_keluar_kg'], '', true);
+      const jenisKomoditasTernak = getFieldValue(['jeniskomoditasternak', 'jenis_komoditas_ternak', 'komoditasternak'], '', true);
+      const jumlahPenjualanTernak = getFieldValue(['jumlahpenjualanternak', 'jumlah_penjualan_ternak'], '', true);
+      const hargaSatuanTernakRp = getFieldValue(['hargasatuanternakrp', 'hargasatuanternak', 'harga_satuan_ternak_rp'], '', true);
+      const totalHargaTernakRp = getFieldValue(['totalhargaternakrp', 'totalhargaternak', 'total_harga_ternak_rp', 'nilaiternak'], '', true);
+      const pembeliTernakNama = getFieldValue(['pembeliternaknama', 'pembeli_ternak_nama'], '', true);
+      const pembeliTernakAlamat = getFieldValue(['pembeliternakalamat', 'pembeli_ternak_alamat'], '', true);
+      const pembeliTernakTelp = normalizePhoneNumber(getFieldValue(['pembeliternaktelp', 'pembeli_ternak_notelp', 'pembeliternaktelepon'], '', true));
+      const tujuanDistribusiTernak = getFieldValue(['tujuandistribusiternak', 'tujuan_distribusi_ternak'], '', true) || (isTernakContext ? getFieldValue(['tujuandistribusi'], '', true) : '');
+      const tujuanPenggunaanTernak = getFieldValue(['tujuanpenggunaanternak', 'tujuan_penggunaan_ternak'], '', true) || (isTernakContext ? getFieldValue(['tujuanpenggunaan'], '', true) : '');
+      const jumlahUnitPenggunaanTernak = getFieldValue(['jumlahunitpenggunaanternak', 'jumlah_unit_penggunaan_ternak'], '', true) || (isTernakContext ? getFieldValue(['jumlahunitpenggunaan'], '', true) : '');
 
-      const isTernakActive = String(jenisKegiatan).toLowerCase().includes('ternak') ||
+      const isTernakActive = isTernakContext ||
                             Boolean(jenisTernak || (populasiTernak && populasiTernak != '0') || (totalHargaTernakRp && totalHargaTernakRp != '0') || (pakanMasukKg && pakanMasukKg != '0') || (pakanKeluarKg && pakanKeluarKg != '0') || (ternakMasukQty && ternakMasukQty != '0') || (ternakKeluarQty && ternakKeluarQty != '0') || jenisKomoditasTernak);
 
       // 5. Tindakan Pengawasan & Office / Administrasi
@@ -1386,7 +1439,8 @@
         'jenis_komoditas_ternak', 'jeniskomoditasternak', 'jumlah_penjualan_ternak', 'jumlahpenjualanternak',
         'harga_satuan_ternak_rp', 'hargasatuanternakrp', 'total_harga_ternak_rp', 'totalhargaternakrp',
         'pembeli_ternak_nama', 'pembeliternaknama', 'pembeli_ternak_alamat', 'pembeliternakalamat', 'pembeli_ternak_notelp', 'pembeliternaktelp',
-        'jumlah_unit_penggunaan', 'jumlahunitpenggunaan', 'tujuan_penggunaan', 'tujuanpenggunaan', 'tujuan_penggunaan_ternak', 'tujuanpenggunaanternak',
+        'jumlah_unit_penggunaan', 'jumlahunitpenggunaan', 'jumlah_unit_penggunaan_ternak', 'jumlahunitpenggunaanternak',
+        'tujuan_penggunaan', 'tujuanpenggunaan', 'tujuan_penggunaan_ternak', 'tujuanpenggunaanternak',
         'capaian_kegiatan', 'capaiankegiatan', 'anggota_terlapor', 'anggotaterlapor', 'kendala', 'upaya',
         'pengawasan', 'detail_pengawasan', 'detailpengawasan', 'pengawasan_rincian', 'pengawasanrincian',
         'administrasi', 'detail_administrasi', 'detailadministrasi', 'office_jenis', 'officejenis', 'office_rincian', 'officerincian'
@@ -1662,14 +1716,20 @@
                 <span class="inspector-data-label">Pakan Keluar</span>
                 <span class="inspector-data-value">${pakanKeluarKg ? formatNumber(pakanKeluarKg) + ' Kg' : '-'}</span>
               </div>
-              ${jenisKomoditasTernak ? `
+              ${tujuanDistribusiTernak ? `
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Tujuan Distribusi Ternak</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(tujuanDistribusiTernak)}</span>
+                </div>
+              ` : ''}
+              ${(jenisKomoditasTernak || (jumlahPenjualanTernak && jumlahPenjualanTernak != '0') || (totalHargaTernakRp && totalHargaTernakRp != '0')) ? `
                 <div class="inspector-data-item">
                   <span class="inspector-data-label">Komoditas Ternak Dijual</span>
-                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(jenisKomoditasTernak)}</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(jenisKomoditasTernak || '-')}</span>
                 </div>
                 <div class="inspector-data-item">
                   <span class="inspector-data-label">Jumlah Penjualan Ternak</span>
-                  <span class="inspector-data-value">${jumlahPenjualanTernak ? formatNumber(jumlahPenjualanTernak) : '-'}</span>
+                  <span class="inspector-data-value">${jumlahPenjualanTernak ? formatNumber(jumlahPenjualanTernak) + ' Ekor/Unit' : '-'}</span>
                 </div>
                 <div class="inspector-data-item">
                   <span class="inspector-data-label">Harga Satuan Ternak</span>
@@ -1702,10 +1762,14 @@
                   <span class="inspector-data-value">${escapeHtml(pembeliTernakAlamat || '-')}</span>
                 </div>
               ` : ''}
-              ${tujuanPenggunaanTernak ? `
-                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+              ${(jumlahUnitPenggunaanTernak || tujuanPenggunaanTernak) ? `
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Unit Penggunaan Internal Ternak</span>
+                  <span class="inspector-data-value">${jumlahUnitPenggunaanTernak ? formatNumber(jumlahUnitPenggunaanTernak) + ' Ekor/Unit' : '-'}</span>
+                </div>
+                <div class="inspector-data-item">
                   <span class="inspector-data-label">Tujuan Penggunaan Internal Ternak</span>
-                  <span class="inspector-data-value">${escapeHtml(tujuanPenggunaanTernak)}</span>
+                  <span class="inspector-data-value">${escapeHtml(tujuanPenggunaanTernak || '-')}</span>
                 </div>
               ` : ''}
             </div>
@@ -2011,10 +2075,18 @@
       }
     }
 
-    async function triggerPhotoCleanup() {
-      if (!confirm('Apakah Anda yakin ingin memindahkan folder foto harian yang berusia lebih dari 90 hari ke Google Drive Trash?')) {
-        return;
-      }
+    function triggerPhotoCleanup() {
+      const modal = document.getElementById('photoCleanupModalOverlay');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closePhotoCleanupModal() {
+      const modal = document.getElementById('photoCleanupModalOverlay');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function executePhotoCleanup() {
+      closePhotoCleanupModal();
       try {
         showToast('Memeriksa & membersihkan folder foto kadaluarsa di Google Drive...', 'info');
         let res;

@@ -18,6 +18,8 @@
     .btn-snap { margin-top: 1.25rem; width: 100%; padding: 0.9rem; border-radius: 10px; border: none; background: #0F6B3A; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(15, 107, 58, 0.4); }
     .btn-snap:hover { background: #0B542D; transform: translateY(-1px); }
     .btn-snap:active { transform: translateY(0); }
+    .btn-fallback { margin-top: 1rem; width: 100%; padding: 0.85rem; border-radius: 10px; border: 1px solid #10b981; background: #0F6B3A; color: #fff; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .btn-fallback:hover { background: #0B542D; }
     .status-msg { margin-top: 0.85rem; font-size: 0.85rem; color: #94a3b8; line-height: 1.4; }
   </style>
 </head>
@@ -37,19 +39,19 @@
       <span>Kamera Lapangan</span>
     </div>
 
-    <div class="video-wrapper">
-      <video id="video" autoplay playsinline></video>
+    <div class="video-wrapper" id="videoContainer">
+      <video id="video" autoplay playsinline muted></video>
     </div>
     <canvas id="canvas" style="display: none;"></canvas>
     <input type="file" id="cameraNativeInp" accept="image/*" capture="environment" style="display: none;" onchange="handleNativeCameraSnap(this)">
 
-    <button id="btnSnap" class="btn-snap" onclick="takeSnapshot()">
+    <button id="btnSnap" class="btn-snap" onclick="takeSnapshot()" style="display: none;">
       Ambil Snapshot &amp; Gunakan Foto
     </button>
-    <button type="button" id="btnNativeCamFallback" style="display: none; margin-top: 0.75rem; width: 100%; padding: 0.75rem; border-radius: 10px; border: 1px solid #10b981; background: #0F6B3A; color: #fff; font-weight: 600; font-size: 0.95rem; cursor: pointer;" onclick="document.getElementById('cameraNativeInp').click()">
-      📷 Ambil Foto dari Kamera Perangkat
+    <button type="button" id="btnNativeCamFallback" class="btn-fallback" style="display: none;" onclick="document.getElementById('cameraNativeInp').click()">
+      📷 Ambil / Pilih Foto Dokumentasi
     </button>
-    <div class="status-msg" id="statusMsg">Mengakses izin kamera perangkat...</div>
+    <div class="status-msg" id="statusMsg">Memeriksa kesiapan kamera perangkat...</div>
   </div>
 
   <script>
@@ -64,28 +66,62 @@
       }
     }
 
+    function isRestrictedIframe() {
+      try {
+        // 1. Explicit Permissions Policy check
+        if (typeof document !== 'undefined' && document.permissionsPolicy && typeof document.permissionsPolicy.allowsFeature === 'function') {
+          if (!document.permissionsPolicy.allowsFeature('camera')) return true;
+        }
+        // 2. Feature Policy check (legacy browsers)
+        if (typeof document !== 'undefined' && document.featurePolicy && typeof document.featurePolicy.allowsFeature === 'function') {
+          if (!document.featurePolicy.allowsFeature('camera')) return true;
+        }
+        // 3. Domain check for Google Apps Script HTML Service
+        const host = (window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
+        if (host.includes('googleusercontent.com') || host.includes('script.google.com')) {
+          return true;
+        }
+        // 4. Any nested iframe context
+        if (window.self !== window.top) {
+          return true;
+        }
+      } catch (e) {
+        return true;
+      }
+      return false;
+    }
+
     async function initCamera() {
       const statusEl = document.getElementById('statusMsg');
       const fallbackBtn = document.getElementById('btnNativeCamFallback');
       const snapBtn = document.getElementById('btnSnap');
+      const videoBox = document.getElementById('videoContainer');
+
+      if (isRestrictedIframe() || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        // Sandboxed iframe without camera Permissions Policy -> Direct native/file fallback
+        if (videoBox) videoBox.style.display = 'none';
+        if (snapBtn) snapBtn.style.display = 'none';
+        if (fallbackBtn) fallbackBtn.style.display = 'inline-flex';
+        statusEl.innerHTML = 'Klik tombol di atas untuk mengambil foto dengan kamera perangkat atau memilih berkas dokumentasi.';
+        return;
+      }
 
       try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error('WebRTC Camera API tidak didukung di peramban ini');
-        }
-
         activeStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
         
         const videoEl = document.getElementById('video');
         videoEl.srcObject = activeStream;
+        if (snapBtn) snapBtn.style.display = 'flex';
+        if (fallbackBtn) fallbackBtn.style.display = 'none';
         statusEl.innerHTML = '✅ Kamera aktif. Arahkan ke objek lalu klik <strong>Ambil Snapshot</strong>.';
       } catch (err) {
-        console.warn('Camera init error:', err);
-        statusEl.innerHTML = '<span style="color:#f87171; font-weight:600;">❌ Tidak dapat membuka streaming webcam (' + (err.message || 'Izin kamera ditolak') + ').</span><br><span style="font-size:0.8rem; color:#94a3b8;">Klik tombol di bawah untuk mengambil foto langsung via kamera perangkat.</span>';
-        if (fallbackBtn) fallbackBtn.style.display = 'block';
+        console.warn('WebRTC init notice:', err);
+        if (videoBox) videoBox.style.display = 'none';
         if (snapBtn) snapBtn.style.display = 'none';
+        if (fallbackBtn) fallbackBtn.style.display = 'inline-flex';
+        statusEl.innerHTML = 'Klik tombol di atas untuk mengambil foto langsung via kamera perangkat.';
       }
     }
 
@@ -93,15 +129,30 @@
       const slotVal = getQueryParam('slot');
       const slotIndex = (slotVal !== null && slotVal !== undefined) ? parseInt(slotVal, 10) : 0;
       const payload = { type: 'CAMERA_CAPTURED', base64: base64Data, slotIndex: slotIndex };
-      if (window.opener) {
-        try { window.opener.postMessage(payload, '*'); } catch(e){}
+
+      let sent = false;
+      if (window.opener && !window.opener.closed) {
+        try { window.opener.postMessage(payload, '*'); sent = true; } catch(e){}
       }
       if (window.parent && window.parent !== window) {
-        try { window.parent.postMessage(payload, '*'); } catch(e){}
+        try { window.parent.postMessage(payload, '*'); sent = true; } catch(e){}
       }
       if (window.top && window.top !== window) {
-        try { window.top.postMessage(payload, '*'); } catch(e){}
+        try { window.top.postMessage(payload, '*'); sent = true; } catch(e){}
       }
+
+      const statusEl = document.getElementById('statusMsg');
+      if (statusEl) {
+        statusEl.innerHTML = '<span style="color:#4ade80; font-weight:700;">✅ Foto berhasil diproses! Menutup jendela...</span>';
+      }
+
+      if (activeStream) {
+        try { activeStream.getTracks().forEach(track => track.stop()); } catch(e){}
+      }
+
+      setTimeout(function() {
+        try { window.close(); } catch(e){}
+      }, 400);
     }
 
     function takeSnapshot() {
@@ -118,15 +169,7 @@
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const base64Data = canvas.toDataURL('image/jpeg', 0.85);
-
       sendCapturedPhoto(base64Data);
-
-      if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
-      }
-      setTimeout(function() {
-        window.close();
-      }, 350);
     }
 
     function handleNativeCameraSnap(input) {
@@ -135,9 +178,6 @@
         const reader = new FileReader();
         reader.onload = function(e) {
           sendCapturedPhoto(e.target.result);
-          setTimeout(function() {
-            window.close();
-          }, 350);
         };
         reader.readAsDataURL(file);
       }

@@ -71,6 +71,179 @@
       flex-wrap: nowrap;
       flex-shrink: 0;
     }
+
+    /* Professional Employee Modal Styling */
+    .emp-modal-card {
+      background: #ffffff !important;
+      border-radius: 12px !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+      border: 1px solid #e2e8f0 !important;
+      max-width: 480px !important;
+      width: 100% !important;
+      overflow: hidden !important;
+      animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .emp-modal-header {
+      padding: 1.15rem 1.35rem;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: #ffffff;
+    }
+    .emp-modal-icon-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+      color: #15803d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .emp-btn-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .emp-btn-close:hover {
+      background: #f1f5f9;
+      color: #334155;
+      border-color: #e2e8f0;
+    }
+    .emp-form-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.4rem;
+    }
+    .emp-select-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .emp-custom-select {
+      width: 100% !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      padding: 0 2.5rem 0 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .emp-custom-select:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .emp-select-arrow {
+      position: absolute;
+      right: 12px;
+      pointer-events: none;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emp-input-icon-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .emp-input-lead-icon {
+      position: absolute;
+      left: 12px;
+      pointer-events: none;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emp-custom-input {
+      width: 100% !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      padding: 0 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .emp-custom-input:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .emp-input-with-icon {
+      padding-left: 2.35rem !important;
+    }
+    .emp-suggest-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+      font-size: 0.725rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      line-height: 1.3;
+    }
+    .emp-suggest-pill:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+    .emp-field-hint {
+      display: block;
+      font-size: 0.725rem;
+      color: #64748b;
+      margin-top: 0.35rem;
+      line-height: 1.4;
+    }
+    .emp-role-card {
+      margin-top: 0.5rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.775rem;
+      line-height: 1.45;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
   </style>
 </head>
 <body>
@@ -210,49 +383,90 @@
 
   <!-- MODAL: TAMBAH / EDIT KARYAWAN -->
   <div class="modal-overlay" id="employeeModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 480px;">
-      <div class="modal-header">
-        <h3 class="modal-title" id="employeeModalTitle">Tambah Karyawan Baru</h3>
-        <button class="modal-close-btn" onclick="closeEmployeeModal()">&times;</button>
+    <div class="emp-modal-card">
+      <div class="emp-modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="emp-modal-icon-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title" id="employeeModalTitle" style="margin: 0; font-size: 1.125rem; font-weight: 700; color: #0f172a; line-height: 1.3;">Tambah Karyawan Baru</h3>
+            <p style="margin: 2px 0 0 0; font-size: 0.775rem; color: #64748b;" id="employeeModalSubtitle">Kelola data identitas, penugasan divisi, dan hak akses form.</p>
+          </div>
+        </div>
+        <button type="button" class="emp-btn-close" onclick="closeEmployeeModal()" aria-label="Tutup Dialog">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <form id="employeeFormEl" onsubmit="handleEmployeeFormSubmit(event)">
         <input type="hidden" id="empModalOldId" value="">
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.15rem; padding: 1.35rem;">
           
           <!-- Divisi Selection -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="empModalDivision">Divisi / Peran Karyawan <span class="text-danger">*</span></label>
-            <select id="empModalDivision" class="form-input" onchange="onModalDivisionChange()" required>
-              <option value="" disabled selected>Pilih divisi & peran</option>
-              <option value="Manajemen">Manajemen (Prefix: MNJ-)</option>
-              <option value="BKO 28">BKO 28 (Prefix: BKO-)</option>
-              <option value="Pekerja Harian">Pekerja Harian (Prefix: PKH-)</option>
-              <option value="Alprof">Alprof (Prefix: ALP-)</option>
-              <option value="PIC SGA">PIC SGA (Prefix: SGA- • Dapat Mengisi Form)</option>
-              <option value="SGA">SGA (Prefix: SGA- • Anggota Lapangan)</option>
-            </select>
+            <label class="emp-form-label" for="empModalDivision">
+              <span>Divisi / Peran Karyawan <span style="color: #ef4444;">*</span></span>
+            </label>
+            <div class="emp-select-wrapper">
+              <select id="empModalDivision" class="emp-custom-select" onchange="onModalDivisionChange()" required>
+                <option value="" disabled selected>Pilih divisi &amp; peran penugasan...</option>
+                <option value="Manajemen">Manajemen (Prefix: MNJ-)</option>
+                <option value="BKO 28">BKO 28 (Prefix: BKO-)</option>
+                <option value="Pekerja Harian">Pekerja Harian (Prefix: PKH-)</option>
+                <option value="Alprof">Alprof (Prefix: ALP-)</option>
+                <option value="PIC SGA">PIC SGA (Prefix: SGA- • PIC Pengisi Form)</option>
+                <option value="SGA">SGA (Prefix: SGA- • Anggota Lapangan)</option>
+              </select>
+              <div class="emp-select-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+            <!-- Dynamic Role Capability Card -->
+            <div id="roleCapabilityBox" class="emp-role-card" style="display: none;">
+              <!-- Populated dynamically via JS -->
+            </div>
           </div>
 
           <!-- ID Karyawan -->
           <div class="form-group" style="margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <label class="form-label" for="empModalId" style="margin-bottom: 0;">ID Karyawan <span class="text-danger">*</span></label>
-              <span id="idSuggestHint" style="font-size: 0.725rem; color: #0284c7; cursor: pointer;" onclick="applySuggestedId()"></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <label class="emp-form-label" for="empModalId" style="margin-bottom: 0;">
+                <span>ID Karyawan <span style="color: #ef4444;">*</span></span>
+              </label>
+              <button type="button" id="idSuggestPill" class="emp-suggest-pill" onclick="applySuggestedId()" style="display: none;" title="Klik untuk menerapkan saran ID otomatis">
+                <span>💡</span>
+                <span id="idSuggestHint">Gunakan Saran</span>
+              </button>
             </div>
-            <input type="text" id="empModalId" class="form-input" placeholder="contoh: ALP-08" style="text-transform: uppercase; font-family: monospace; font-weight: 700;" required>
-            <small style="color: var(--text-muted); font-size: 0.75rem;">Format baku: Prefix Divisi + Angka 2 Digit (contoh: ALP-08, MNJ-10, PKH-09, SGA-13).</small>
+            <div class="emp-input-icon-wrapper">
+              <div class="emp-input-lead-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>
+              </div>
+              <input type="text" id="empModalId" class="emp-custom-input emp-input-with-icon" placeholder="Contoh: ALP-08" style="text-transform: uppercase; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; letter-spacing: 0.5px;" required>
+            </div>
+            <span class="emp-field-hint">Format resmi: <strong>Prefix Divisi + 2 Digit Angka</strong> (misal: MNJ-01, ALP-08, PKH-09, SGA-13).</span>
           </div>
 
           <!-- Nama Lengkap -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="empModalName">Nama Lengkap Karyawan <span class="text-danger">*</span></label>
-            <input type="text" id="empModalName" class="form-input" placeholder="contoh: Budi Santoso" required>
+            <label class="emp-form-label" for="empModalName">
+              <span>Nama Lengkap Karyawan <span style="color: #ef4444;">*</span></span>
+            </label>
+            <div class="emp-input-icon-wrapper">
+              <div class="emp-input-lead-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <input type="text" id="empModalName" class="emp-custom-input emp-input-with-icon" placeholder="Contoh: Budi Santoso" required>
+            </div>
           </div>
 
         </div>
-        <div class="modal-footer" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color); background: #f8fafc; border-radius: 0 0 var(--radius-md) var(--radius-md);">
-          <button type="button" class="btn btn-secondary" onclick="closeEmployeeModal()">Batal</button>
-          <button type="submit" class="btn btn-primary" id="btnSubmitEmployee">Simpan Data</button>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.65rem; padding: 1rem 1.35rem; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+          <button type="button" class="btn btn-secondary" onclick="closeEmployeeModal()" style="height: 38px; padding: 0 1rem; font-size: 0.825rem; font-weight: 600; border-radius: 6px;">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitEmployee" style="height: 38px; padding: 0 1.25rem; font-size: 0.825rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 1px 2px rgba(15, 107, 58, 0.15);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span id="btnSubmitEmployeeText">Simpan Data</span>
+          </button>
         </div>
       </form>
     </div>
@@ -260,7 +474,7 @@
 
   <!-- CUSTOM ENTERPRISE MODAL: KONFIRMASI HAPUS KARYAWAN -->
   <div class="modal-overlay" id="deleteEmployeeModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 450px; text-align: center; padding: 1.5rem;">
+    <div class="modal-card" style="max-width: 450px; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
       <div class="custom-modal-danger-icon">
         <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
       </div>
@@ -275,15 +489,15 @@
       </div>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
-        <button type="button" class="btn btn-secondary" onclick="closeDeleteEmployeeModal()" style="flex: 1;">Batal</button>
-        <button type="button" class="btn btn-danger" id="btnConfirmDeleteEmp" onclick="executeDeleteEmployee()" style="flex: 1; background: #dc2626; color: #fff; border: none; font-weight: 600; padding: 0.5rem 1rem; border-radius: 6px;">Ya, Hapus Karyawan</button>
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteEmployeeModal()" style="flex: 1; height: 38px; font-weight: 600; border-radius: 6px;">Batal</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDeleteEmp" onclick="executeDeleteEmployee()" style="flex: 1; height: 38px; background: #dc2626; color: #fff; border: none; font-weight: 600; padding: 0.5rem 1rem; border-radius: 6px;">Ya, Hapus Karyawan</button>
       </div>
     </div>
   </div>
 
   <!-- CUSTOM ENTERPRISE MODAL: KONFIRMASI RESET BAWAAN -->
   <div class="modal-overlay" id="resetEmployeesModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 1.5rem;">
+    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
       <div class="custom-modal-warning-icon">
         <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
@@ -293,8 +507,8 @@
       </p>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
-        <button type="button" class="btn btn-secondary" onclick="closeResetEmployeesModal()" style="flex: 1;">Batal</button>
-        <button type="button" class="btn btn-primary" id="btnConfirmResetEmp" onclick="executeResetDefaultEmployees()" style="flex: 1; font-weight: 600;">Ya, Reset ke Bawaan</button>
+        <button type="button" class="btn btn-secondary" onclick="closeResetEmployeesModal()" style="flex: 1; height: 38px; font-weight: 600; border-radius: 6px;">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmResetEmp" onclick="executeResetDefaultEmployees()" style="flex: 1; height: 38px; font-weight: 600; border-radius: 6px;">Ya, Reset ke Bawaan</button>
       </div>
     </div>
   </div>
@@ -506,12 +720,60 @@
       return `${prefix}${nextNum < 10 ? '0' + nextNum : nextNum}`;
     }
 
+    function updateRoleCapabilityBox(divVal) {
+      const box = document.getElementById('roleCapabilityBox');
+      if (!box) return;
+      if (!divVal) {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'flex';
+      if (divVal === 'PIC SGA') {
+        box.style.background = '#eff6ff';
+        box.style.borderColor = '#bfdbfe';
+        box.style.color = '#1e40af';
+        box.innerHTML = `
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="flex-shrink:0; margin-top: 2px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div><strong>Otorisasi Pengisian Form:</strong> PIC SGA memiliki hak akses penuh untuk mengisi dan mensubmit formulir laporan operasional harian tim SGA.</div>
+        `;
+      } else if (divVal === 'SGA') {
+        box.style.background = '#f8fafc';
+        box.style.borderColor = '#e2e8f0';
+        box.style.color = '#475569';
+        box.innerHTML = `
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" style="flex-shrink:0; margin-top: 2px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div><strong>Anggota Lapangan:</strong> Anggota tim pelaksana lapangan. Data kehadiran dan penugasan dilaporkan melalui PIC SGA pada formulir operasional.</div>
+        `;
+      } else if (divVal === 'Manajemen' || divVal === 'Alprof') {
+        box.style.background = '#f0fdf4';
+        box.style.borderColor = '#bbf7d0';
+        box.style.color = '#15803d';
+        box.innerHTML = `
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" style="flex-shrink:0; margin-top: 2px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div><strong>Penanggung Jawab / Staf Teknis:</strong> Memiliki otorisasi untuk melakukan input laporan kegiatan dan penugasan operasional di sistem.</div>
+        `;
+      } else {
+        box.style.background = '#fffbeb';
+        box.style.borderColor = '#fde68a';
+        box.style.color = '#92400e';
+        box.innerHTML = `
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink:0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div><strong>Pekerja Operasional:</strong> Anggota tim harian / mitra kerja lapangan (dicatat dan dikoordinasikan oleh pimpinan unit/PIC).</div>
+        `;
+      }
+    }
+
     function onModalDivisionChange() {
-      if (isEditingEmployee) return;
       const divSelect = document.getElementById('empModalDivision');
       const idInput = document.getElementById('empModalId');
+      const pill = document.getElementById('idSuggestPill');
       const hintEl = document.getElementById('idSuggestHint');
-      if (!divSelect || !idInput) return;
+      if (!divSelect) return;
+
+      updateRoleCapabilityBox(divSelect.value);
+
+      if (isEditingEmployee) return;
+      if (!idInput) return;
 
       const suggested = calculateNextIdForDivision(divSelect.value);
       if (suggested) {
@@ -519,6 +781,9 @@
           idInput.value = suggested;
         }
         if (hintEl) hintEl.innerText = `Saran: ${suggested}`;
+        if (pill) pill.style.display = 'inline-flex';
+      } else {
+        if (pill) pill.style.display = 'none';
       }
     }
 
@@ -533,11 +798,15 @@
     function openAddEmployeeModal() {
       isEditingEmployee = false;
       document.getElementById('employeeModalTitle').innerText = 'Tambah Karyawan Baru';
+      document.getElementById('employeeModalSubtitle').innerText = 'Kelola data identitas, penugasan divisi, dan hak akses form.';
+      document.getElementById('btnSubmitEmployeeText').innerText = 'Simpan Data';
       document.getElementById('empModalOldId').value = '';
       document.getElementById('empModalDivision').value = '';
       document.getElementById('empModalId').value = '';
       document.getElementById('empModalName').value = '';
-      document.getElementById('idSuggestHint').innerText = '';
+      const pill = document.getElementById('idSuggestPill');
+      if (pill) pill.style.display = 'none';
+      updateRoleCapabilityBox('');
       document.getElementById('employeeModalOverlay').style.display = 'flex';
     }
 
@@ -546,6 +815,8 @@
       try {
         const emp = JSON.parse(decodeURIComponent(encodedEmp));
         document.getElementById('employeeModalTitle').innerText = `Edit Karyawan: ${emp.id}`;
+        document.getElementById('employeeModalSubtitle').innerText = `Perbarui identitas atau peran penugasan untuk ${emp.name || emp.id}.`;
+        document.getElementById('btnSubmitEmployeeText').innerText = 'Perbarui Data';
         document.getElementById('empModalOldId').value = emp.id;
         
         let divVal = emp.division || '';
@@ -556,7 +827,9 @@
         document.getElementById('empModalDivision').value = divVal;
         document.getElementById('empModalId').value = emp.id || '';
         document.getElementById('empModalName').value = emp.name || '';
-        document.getElementById('idSuggestHint').innerText = '';
+        const pill = document.getElementById('idSuggestPill');
+        if (pill) pill.style.display = 'none';
+        updateRoleCapabilityBox(divVal);
         document.getElementById('employeeModalOverlay').style.display = 'flex';
       } catch (e) {
         showToast('Gagal membuka modal edit: ' + e.message, 'error');

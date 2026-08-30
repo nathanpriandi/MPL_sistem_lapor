@@ -36,9 +36,11 @@ Panduan ini ditujukan untuk **Staf Lapangan / Mandor Kebun / Pengawas Peternakan
 ### Bagian 3: Kendala, Upaya & Bukti Foto
 1. **Kendala Kegiatan**: Isi jika ada hambatan (Opsional).
 2. **Upaya Yang Dilakukan**: Isi solusi/tindakan yang telah diambil (Opsional).
-3. **Foto Bukti Kegiatan (WAJIB)**:
-   - Tekan tombol upload foto.
-   - Anda dapat langsung **mengambil foto dengan kamera HP** atau **memilih foto dari galeri HP**.
+3. **Foto Bukti Kegiatan (3 Foto Wajib Dilampirkan)**:
+   - Lampirkan 3 foto bukti dokumentasi: **Foto 1 (Utama)**, **Foto 2 (Detail Aktivitas)**, dan **Foto 3 (Hasil / Kondisi Area)**.
+   - Di ponsel pintar (HP), tekan tombol foto untuk langsung **mengambil foto dengan kamera HP** secara otomatis.
+   - Di peramban komputer/laptop, pilih file foto dokumentasi dari komputer Anda.
+   - Sistem akan otomatis mengompresi foto dan membubuhkan stempel verifikasi (watermark tanggal, waktu, nama pelapor, dan lokasi).
 
 ---
 

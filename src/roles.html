@@ -115,6 +115,93 @@
       gap: 4px;
       white-space: nowrap;
     }
+
+    /* Enterprise Form Controls for Roles */
+    .role-input-icon-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .role-input-lead-icon {
+      position: absolute;
+      left: 12px;
+      pointer-events: none;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .role-custom-input {
+      width: 100% !important;
+      height: 40px !important;
+      min-height: 40px !important;
+      padding: 0 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .role-custom-input:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .role-input-with-icon {
+      padding-left: 2.35rem !important;
+    }
+    .role-select-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .role-custom-select {
+      width: 100% !important;
+      height: 40px !important;
+      min-height: 40px !important;
+      padding: 0 2.25rem 0 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .role-custom-select:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .role-select-arrow {
+      position: absolute;
+      right: 12px;
+      pointer-events: none;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .custom-modal-danger-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #fee2e2;
+      color: #dc2626;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem auto;
+    }
   </style>
 </head>
 <body>
@@ -175,26 +262,38 @@
 
         <!-- FORM CARD: DAFTARKAN / PERBARUI AKUN GOOGLE -->
         <div class="role-form-card">
-          <h2 style="margin: 0 0 0.85rem 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.45rem;">
-            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <h2 style="margin: 0 0 1rem 0; font-size: 0.975rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 28px; height: 28px; border-radius: 6px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            </div>
             <span>Daftarkan / Perbarui Hak Akses Akun Google</span>
           </h2>
           <form id="formRoleRegistration" onsubmit="handleSaveRole(event)">
             <div class="role-input-group">
               <div class="role-input-field">
-                <label style="display: block; font-size: 0.775rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Alamat Email Google *</label>
-                <input type="email" id="inputRoleEmail" required placeholder="contoh: nama.staf@gmail.com" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; font-size: 0.875rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
+                <label style="display: block; font-size: 0.775rem; font-weight: 600; color: #475569; margin-bottom: 0.4rem;">Alamat Email Google <span style="color: #ef4444;">*</span></label>
+                <div class="role-input-icon-wrapper">
+                  <div class="role-input-lead-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  </div>
+                  <input type="email" id="inputRoleEmail" required placeholder="contoh: nama.staf@gmail.com" class="role-custom-input role-input-with-icon">
+                </div>
               </div>
               <div class="role-select-field">
-                <label style="display: block; font-size: 0.775rem; font-weight: 600; color: #475569; margin-bottom: 0.35rem;">Hak Akses / Peran *</label>
-                <select id="selectRoleType" required onchange="updateRoleDescriptionHint()" class="form-select" style="width: 100%; padding: 0.55rem 0.75rem; font-size: 0.875rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff;">
-                  <option value="admin">Admin Operasional</option>
-                  <option value="manager">Manager Eksekutif</option>
-                  <option value="both">Superadmin</option>
-                </select>
+                <label style="display: block; font-size: 0.775rem; font-weight: 600; color: #475569; margin-bottom: 0.4rem;">Hak Akses / Peran <span style="color: #ef4444;">*</span></label>
+                <div class="role-select-wrapper">
+                  <select id="selectRoleType" required onchange="updateRoleDescriptionHint()" class="role-custom-select">
+                    <option value="admin">Admin Operasional</option>
+                    <option value="manager">Manager Eksekutif</option>
+                    <option value="both">Superadmin</option>
+                  </select>
+                  <div class="role-select-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
               </div>
               <div style="flex-shrink: 0;">
-                <button type="submit" id="btnSaveRole" class="btn btn-primary" style="padding: 0.55rem 1.35rem; font-size: 0.875rem; font-weight: 600; white-space: nowrap; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                <button type="submit" id="btnSaveRole" class="btn btn-primary" style="padding: 0 1.35rem; font-size: 0.875rem; font-weight: 600; white-space: nowrap; height: 40px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; box-shadow: 0 1px 2px rgba(15, 107, 58, 0.15);">
                   <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                   <span>Simpan Akun</span>
                 </button>
@@ -202,7 +301,7 @@
             </div>
 
             <!-- DEDICATED DYNAMIC ROLE DESCRIPTION LINE -->
-            <div id="roleDescriptionContainer" style="margin-top: 0.75rem; padding: 0.55rem 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #6366f1; border-radius: 6px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
+            <div id="roleDescriptionContainer" style="margin-top: 0.85rem; padding: 0.65rem 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #6366f1; border-radius: 8px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease;">
               <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               <div id="roleDescriptionText" style="color: #334155; line-height: 1.4;">
                 <strong style="color: #3730a3;">Admin Operasional:</strong> Hak akses mencakup <strong>Antrean Admin</strong>, <strong>Pengaturan Karyawan</strong>, dan <strong>Pengaturan Form</strong> (Dibatasi dari Dashboard Manajer).
@@ -245,6 +344,29 @@
         </div>
 
       </main>
+    </div>
+  </div>
+
+  <!-- CUSTOM ENTERPRISE MODAL: KONFIRMASI CABUT HAK AKSES -->
+  <div class="modal-overlay" id="deleteRoleModalOverlay" style="display: none;">
+    <div class="modal-card" style="max-width: 450px; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+      <div class="custom-modal-danger-icon">
+        <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+      </div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Cabut Hak Akses Akun Google?</h3>
+      <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
+        Pengguna dengan akun Google di bawah ini tidak akan lagi memiliki hak akses ke panel operasional admin, formulir internal, atau dashboard manajer.
+      </p>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 0.35rem;">
+        <strong style="color: #0f172a; font-size: 0.95rem;" id="deleteRoleModalEmail">user@gmail.com</strong>
+        <span id="deleteRoleModalBadge"></span>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; justify-content: center;">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteRoleModal()" style="flex: 1; height: 38px; font-weight: 600; border-radius: 6px;">Batal</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDeleteRole" onclick="executeDeleteRole()" style="flex: 1; height: 38px; background: #dc2626; color: #fff; border: none; font-weight: 600; padding: 0.5rem 1rem; border-radius: 6px;">Ya, Cabut Akses</button>
+      </div>
     </div>
   </div>
 
@@ -427,21 +549,50 @@
       document.getElementById('inputRoleEmail').focus();
     }
 
-    async function deleteRoleConfirm(email) {
+    let pendingDeleteEmail = '';
+
+    function deleteRoleConfirm(email) {
       if ((email || '').toLowerCase() === 'mpl.sisteminformasi@gmail.com') {
         showToast('Akun Superadmin Utama (mpl.sisteminformasi@gmail.com) tidak dapat dihapus.', 'warning');
         return;
       }
 
-      if (!confirm(`Apakah Anda yakin ingin mencabut hak akses akun Google:\n\n${email}?`)) {
-        return;
+      pendingDeleteEmail = email;
+      const targetUser = activeRolesList.find(x => x.email === email);
+      const emailEl = document.getElementById('deleteRoleModalEmail');
+      const badgeEl = document.getElementById('deleteRoleModalBadge');
+      if (emailEl) emailEl.innerText = email;
+      if (badgeEl) {
+        let role = targetUser ? targetUser.role : 'admin';
+        if (role === 'manager') {
+          badgeEl.innerHTML = '<span class="badge-role-manager">Manager Eksekutif</span>';
+        } else if (role === 'both' || role === 'superadmin') {
+          badgeEl.innerHTML = '<span class="badge-role-both">Superadmin</span>';
+        } else {
+          badgeEl.innerHTML = '<span class="badge-role-admin">Admin Operasional</span>';
+        }
       }
+      document.getElementById('deleteRoleModalOverlay').style.display = 'flex';
+    }
+
+    function closeDeleteRoleModal() {
+      pendingDeleteEmail = '';
+      document.getElementById('deleteRoleModalOverlay').style.display = 'none';
+    }
+
+    async function executeDeleteRole() {
+      const email = pendingDeleteEmail;
+      if (!email) return;
+
+      const btn = document.getElementById('btnConfirmDeleteRole');
+      if (btn) { btn.disabled = true; btn.innerText = 'Mencabut...'; }
 
       try {
         if (isLiveServer()) {
           const res = await runServer('deleteUserRoleAccount', email);
           if (res && res.success) {
             showToast(res.message || 'Akses berhasil dicabut.', 'success');
+            closeDeleteRoleModal();
             if (res.list) {
               activeRolesList = res.list.filter(item => !String(item.email || '').toLowerCase().includes('@agri.co.id'));
               renderRolesTable(activeRolesList);
@@ -455,9 +606,12 @@
           activeRolesList = activeRolesList.filter(x => x.email !== email);
           renderRolesTable(activeRolesList);
           showToast(`Akses untuk ${email} dicabut (Simulasi)`, 'success');
+          closeDeleteRoleModal();
         }
       } catch (err) {
         showToast('Gagal menghapus akun: ' + (err.message || err.toString()), 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'Ya, Cabut Akses'; }
       }
     }
   </script>

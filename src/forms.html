@@ -235,6 +235,148 @@
       margin: 0 auto 1rem auto;
     }
 
+    /* Professional Forms Modal Styling */
+    .forms-modal-card {
+      background: #ffffff !important;
+      border-radius: 12px !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+      border: 1px solid #e2e8f0 !important;
+      max-width: 520px !important;
+      width: 100% !important;
+      overflow: hidden !important;
+      animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .forms-modal-header {
+      padding: 1.15rem 1.35rem;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: #ffffff;
+    }
+    .forms-modal-icon-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+      color: #15803d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .forms-btn-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .forms-btn-close:hover {
+      background: #f1f5f9;
+      color: #334155;
+      border-color: #e2e8f0;
+    }
+    .forms-form-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.4rem;
+    }
+    .forms-select-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .forms-custom-select {
+      width: 100% !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      padding: 0 2.5rem 0 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .forms-custom-select:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .forms-select-arrow {
+      position: absolute;
+      right: 12px;
+      pointer-events: none;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .forms-custom-input {
+      width: 100% !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      padding: 0 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .forms-custom-input:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .forms-custom-textarea {
+      width: 100% !important;
+      padding: 0.65rem 0.85rem !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1.5px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      box-sizing: border-box !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    }
+    .forms-custom-textarea:focus {
+      outline: none !important;
+      border-color: var(--primary, #0F6B3A) !important;
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12) !important;
+    }
+    .forms-field-hint {
+      display: block;
+      font-size: 0.725rem;
+      color: #64748b;
+      margin-top: 0.35rem;
+      line-height: 1.4;
+    }
+
     /* Single-line Top Header */
     .forms-header-single-line {
       display: flex;
@@ -696,69 +838,107 @@
 
   <!-- MODAL: TAMBAH / EDIT PERTANYAAN KUSTOM -->
   <div class="modal-overlay" id="questionModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 520px;">
-      <div class="modal-header">
-        <h3 class="modal-title" id="questionModalTitle">Tambah Pertanyaan Lapangan</h3>
-        <button type="button" class="modal-close-btn" onclick="closeQuestionModal()" aria-label="Tutup Formulir Pertanyaan">
-          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <div class="forms-modal-card">
+      <div class="forms-modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="forms-modal-icon-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div>
+            <h3 class="modal-title" id="questionModalTitle" style="margin: 0; font-size: 1.125rem; font-weight: 700; color: #0f172a; line-height: 1.3;">Tambah Pertanyaan Lapangan</h3>
+            <p style="margin: 2px 0 0 0; font-size: 0.775rem; color: #64748b;" id="questionModalSubtitle">Konfigurasi isian kustom, tipe data, dan penempatan langkah form.</p>
+          </div>
+        </div>
+        <button type="button" class="forms-btn-close" onclick="closeQuestionModal()" aria-label="Tutup Formulir Pertanyaan">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <form id="questionFormEl" onsubmit="handleQuestionFormSubmit(event)">
         <input type="hidden" id="qModalFieldId" value="">
         <input type="hidden" id="qModalStep" value="1">
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.1rem; padding: 1.35rem;">
           
           <!-- Label Pertanyaan -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="qModalLabel">Label / Judul Pertanyaan <span class="text-danger">*</span></label>
-            <input type="text" id="qModalLabel" class="form-input" placeholder="contoh: Nomor Telepon, Catatan Cuaca..." required>
+            <label class="forms-form-label" for="qModalLabel">
+              <span>Label / Judul Pertanyaan <span style="color: #ef4444;">*</span></span>
+            </label>
+            <input type="text" id="qModalLabel" class="forms-custom-input" placeholder="contoh: Catatan Cuaca, Nomor WhatsApp..." required>
           </div>
 
           <!-- Tipe Input -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="qModalType">Tipe Isian Jawaban <span class="text-danger">*</span></label>
-            <select id="qModalType" class="form-input" onchange="onQuestionTypeChange()" required>
-              <option value="text">Teks Singkat (Short Text)</option>
-              <option value="number">Angka / Jumlah Numerik (Number)</option>
-              <option value="textarea">Catatan Paragraf Panjang (Textarea)</option>
-              <option value="select">Pilihan Dropdown Tunggal (Dropdown Select)</option>
-              <option value="checkbox">Pilihan Kotak Centang (Multi-Select Checkbox)</option>
-              <option value="date">Tanggal (Date Picker)</option>
-            </select>
+            <label class="forms-form-label" for="qModalType">
+              <span>Tipe Isian Jawaban <span style="color: #ef4444;">*</span></span>
+            </label>
+            <div class="forms-select-wrapper">
+              <select id="qModalType" class="forms-custom-select" onchange="onQuestionTypeChange()" required>
+                <option value="text">Teks Singkat (Short Text)</option>
+                <option value="number">Angka / Jumlah Numerik (Number)</option>
+                <option value="textarea">Catatan Paragraf Panjang (Textarea)</option>
+                <option value="select">Pilihan Dropdown Tunggal (Dropdown Select)</option>
+                <option value="checkbox">Pilihan Kotak Centang (Multi-Select Checkbox)</option>
+                <option value="date">Tanggal (Date Picker)</option>
+              </select>
+              <div class="forms-select-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
           </div>
 
           <!-- Opsi Pilihan (Hanya untuk select / checkbox) -->
           <div class="form-group" id="qModalOptionsGroup" style="display: none; margin-bottom: 0;">
-            <label class="form-label" for="qModalOptions">Pilihan Opsi (Pisahkan dengan koma) <span class="text-danger">*</span></label>
-            <textarea id="qModalOptions" class="form-input" rows="3" placeholder="contoh: Cerah, Berawan, Hujan Ringan, Hujan Deras"></textarea>
-            <small style="color: var(--text-muted); font-size: 0.75rem;">Masukkan daftar pilihan yang dipisahkan dengan tanda koma (,).</small>
+            <label class="forms-form-label" for="qModalOptions">
+              <span>Pilihan Opsi (Pisahkan dengan koma) <span style="color: #ef4444;">*</span></span>
+            </label>
+            <textarea id="qModalOptions" class="forms-custom-textarea" rows="3" placeholder="contoh: Cerah, Berawan, Hujan Ringan, Hujan Deras"></textarea>
+            <span class="forms-field-hint">Masukkan opsi pilihan yang dipisahkan dengan tanda koma (,).</span>
           </div>
 
           <!-- Single Clean Section Placement Dropdown -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="qModalSection">Posisi Penempatan <span class="text-danger">*</span></label>
-            <select id="qModalSection" class="form-input" required></select>
+            <label class="forms-form-label" for="qModalSection">
+              <span>Posisi Penempatan Modul <span style="color: #ef4444;">*</span></span>
+            </label>
+            <div class="forms-select-wrapper">
+              <select id="qModalSection" class="forms-custom-select" required></select>
+              <div class="forms-select-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
           </div>
 
           <!-- Teks Bantuan / Placeholder -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="qModalHelp">Petunjuk Pengisian (Help text / Placeholder)</label>
-            <input type="text" id="qModalHelp" class="form-input" placeholder="contoh: Masukkan nomor telepon aktif / catatan">
+            <label class="forms-form-label" for="qModalHelp">
+              <span>Petunjuk Pengisian (Help text / Placeholder)</span>
+            </label>
+            <input type="text" id="qModalHelp" class="forms-custom-input" placeholder="contoh: Masukkan nomor telepon aktif / catatan">
           </div>
 
           <!-- Required Toggle -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="qModalRequired">Status Keharusan Mengisi</label>
-            <select id="qModalRequired" class="form-input">
-              <option value="false" selected>Opsional (Tidak Wajib)</option>
-              <option value="true">Wajib Diisi (* Required)</option>
-            </select>
+            <label class="forms-form-label" for="qModalRequired">
+              <span>Status Keharusan Mengisi</span>
+            </label>
+            <div class="forms-select-wrapper">
+              <select id="qModalRequired" class="forms-custom-select">
+                <option value="false" selected>Opsional (Tidak Wajib)</option>
+                <option value="true">Wajib Diisi (* Required)</option>
+              </select>
+              <div class="forms-select-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
           </div>
 
         </div>
-        <div class="modal-footer" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color); background: #f8fafc; border-radius: 0 0 var(--radius-md) var(--radius-md);">
-          <button type="button" class="btn btn-secondary" onclick="closeQuestionModal()">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan Pertanyaan</button>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.65rem; padding: 1rem 1.35rem; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+          <button type="button" class="btn btn-secondary" onclick="closeQuestionModal()" style="height: 38px; padding: 0 1rem; font-size: 0.825rem; font-weight: 600; border-radius: 6px;">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitQuestion" style="height: 38px; padding: 0 1.25rem; font-size: 0.825rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 1px 2px rgba(15, 107, 58, 0.15);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span id="btnSubmitQuestionText">Simpan Pertanyaan</span>
+          </button>
         </div>
       </form>
     </div>
@@ -766,7 +946,7 @@
 
   <!-- CUSTOM ENTERPRISE MODAL: KONFIRMASI RESET FORM SCHEMA -->
   <div class="modal-overlay" id="resetSchemaModalOverlay" style="display: none;">
-    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 1.5rem;">
+    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
       <div class="custom-modal-warning-icon">
         <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
@@ -776,8 +956,8 @@
       </p>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
-        <button type="button" class="btn btn-secondary" onclick="closeResetSchemaModal()" style="flex: 1;">Batal</button>
-        <button type="button" class="btn btn-primary" id="btnConfirmResetSchema" onclick="executeResetFormSchema()" style="flex: 1; font-weight: 600;">Ya, Reset ke Awal</button>
+        <button type="button" class="btn btn-secondary" onclick="closeResetSchemaModal()" style="flex: 1; height: 38px; font-size: 0.85rem; font-weight: 600; border-radius: 6px;">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmResetSchema" onclick="executeResetFormSchema()" style="flex: 1; height: 38px; font-size: 0.85rem; font-weight: 600; border-radius: 6px;">Ya, Reset ke Awal</button>
       </div>
     </div>
   </div>

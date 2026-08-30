@@ -174,9 +174,11 @@ To ensure zero friction for field staff on mobile devices while securing interna
 - **Step 5: Hybrid Camera Documentation**: Captures 3 required photos (Activity, Yield/Product, Team Documentation) with client-side JPEG compression, EXIF removal, and date/time watermarks.
 - **Step 6: Review & Final Submission**: Real-time review summary with a 3-column single-row mobile photo grid before submission.
 
-### 2. Hybrid Camera Architecture (Web & Mobile)
-- **Mobile Devices**: Directly invokes the native camera (`capture="environment"`) with zero permission friction.
-- **Desktop/Web Browsers**: Uses a responsive in-page modal (`#cameraModal`) with a live WebRTC viewfinder. If the browser blocks WebRTC, it falls back seamlessly to a local file selector or a standalone camera popup tab (`camera.html`).
+### 2. Hybrid Camera & 3-Photo Verification Architecture
+- **Three Mandatory Photos**: Requires 3 distinct operational photos (Foto 1: Utama, Foto 2: Detail Aktivitas, Foto 3: Hasil / Area). Authoritatively enforced at the backend by `ReportService.submitOperationalReport()`.
+- **Mobile Devices (Smartphones)**: Directly launches the native camera shutter via `<input type="file" accept="image/*" capture="environment">` for seamless 1-tap capture without WebRTC permission friction.
+- **Desktop Browsers (Apps Script Sandboxed Iframe)**: Detects restricted iframe Permissions Policy context and routes directly to the local file selector fallback, preventing `NotAllowedError` violations while applying client-side JPEG compression, EXIF removal, and tamper-evident timestamp watermarking.
+- **Standalone / External WebRTC Camera**: Supports dedicated external HTTPS camera window (`camera.html`) returning captured photos via structured, validated `postMessage` payloads.
 
 ### 3. Employee Master & 2-Tier SGA Role Structure (`employees.html` & `DomainEntities.gs`)
 - **Management (`MNJ-01`..`09`) & Alprof (`ALP-01`..`07`)**: Full direct reporting permissions (`isPic: true`).
