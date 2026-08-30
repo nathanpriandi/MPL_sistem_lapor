@@ -32,9 +32,12 @@ function doGet(e) {
 
   let file = allowed[pageParam];
 
-  // Default landing page when no explicit ?page= parameter is provided.
-  // On Admin Deployment (isInternalDeployment === true), defaults to 'admin' or 'dashboard'.
-  // On Public Deployment, defaults to 'index' (Daily Operational Form).
+  // Default landing page when no explicit ?page= parameter is provided:
+  // - On Public Deployment (isInternalDeployment === false): ALWAYS 'index' (Formulir Laporan Operasional).
+  // - On Internal Admin Deployment (isInternalDeployment === true):
+  //   * If authenticated as manager: 'dashboard'
+  //   * If authenticated as admin/superadmin: 'admin'
+  //   * If unauthenticated: 'admin' (will trigger renderAccessRestricted below)
   if (!file) {
     if (isInternalDeployment) {
       file = (userRole === 'manager') ? 'dashboard' : 'admin';
@@ -44,22 +47,25 @@ function doGet(e) {
   }
 
   // Access control: strict per-role RBAC for internal console pages
+  // 1. If someone accesses internal console pages on the Public Deployment -> Block!
   if ((file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') && !isInternalDeployment) {
     return renderAccessRestricted(
       'Akses Konsol Internal Tidak Tersedia di Deployment Ini',
-      'Halaman Konsol Internal hanya tersedia melalui Deployment Admin internal Sistem Lapor MPL.'
+      'Halaman Konsol Internal (Antrean Admin, Dashboard Manajer, Pengaturan) hanya tersedia melalui <strong>Deployment Admin Internal</strong> Sistem Lapor MPL. Tautan publik ini khusus untuk pengisian formulir laporan operasional.'
     );
   }
 
+  // 2. If someone accesses internal console pages on the Internal Deployment without an authorized Google account -> Block!
   if (file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') {
     if (!userRole) {
+      const adminEmailDisplay = ConfigRepository.getAdminEmail() || 'Superadmin';
       return renderAccessRestricted(
         'Akses Konsol Internal Terbatas',
-        'Akun Google Anda belum terdaftar dalam sistem. Silakan hubungi Superadmin di <code>mpl.sisteminformasi@gmail.com</code> untuk mendaftarkan hak akses akun Anda.'
+        `Akun Google Anda belum terdaftar dalam sistem atau belum masuk (login). Silakan hubungi Superadmin di <code>${adminEmailDisplay}</code> untuk mendaftarkan hak akses akun Anda.`
       );
     }
 
-    // 1. Hak Akses & Role (?page=roles) -> STRICTLY SUPERADMIN ONLY
+    // 2a. Hak Akses & Role (?page=roles) -> STRICTLY SUPERADMIN ONLY
     if (file === 'roles' && userRole !== 'both') {
       return renderAccessRestricted(
         'Akses Ditolak — Khusus Superadmin',
@@ -67,7 +73,7 @@ function doGet(e) {
       );
     }
 
-    // 2. Manager Role -> STRICTLY MANAGER DASHBOARD ONLY
+    // 2b. Manager Role -> STRICTLY MANAGER DASHBOARD ONLY
     if (userRole === 'manager' && (file === 'admin' || file === 'forms' || file === 'employees' || file === 'roles')) {
       return renderAccessRestricted(
         'Akses Ditolak — Hak Akses Tidak Memadai',
@@ -75,7 +81,7 @@ function doGet(e) {
       );
     }
 
-    // 3. Admin Role -> STRICTLY ADMIN MODULES ONLY (Antrean Admin, Karyawan, Form)
+    // 2c. Admin Role -> STRICTLY ADMIN MODULES ONLY (Antrean Admin, Karyawan, Form)
     if (userRole === 'admin' && (file === 'dashboard' || file === 'roles')) {
       return renderAccessRestricted(
         'Akses Ditolak — Hak Akses Tidak Memadai',
@@ -238,4 +244,3 @@ function includeSidebar(userRole, currentPage, webAppUrl) {
 
   return template.evaluate().getContent();
 }
-

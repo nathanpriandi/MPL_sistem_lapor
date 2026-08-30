@@ -924,15 +924,15 @@
             <textarea id="upaya" rows="2" placeholder="Catat solusi atau tindakan penanganan jika ada (opsional)..."></textarea>
           </div>
 
-          <!-- Photo Proofs with Live Camera Only for Non-Pengawasan -->
+          <!-- Photo Proofs for Operational Reports (3 Mandatory Photos) -->
           <div class="form-group">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
-              <label class="form-label" style="margin: 0; font-weight: 700;">Foto Bukti Kegiatan Langsung (3 Foto Wajib Kamera) <span class="required">*</span></label>
-              <span id="photoProgressBadge" class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px;">0 dari 3 foto telah diambil</span>
+              <label class="form-label" style="margin: 0; font-weight: 700;">Foto Bukti Kegiatan (3 Foto Wajib Dilampirkan) <span class="required">*</span></label>
+              <span id="photoProgressBadge" class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px;">0 dari 3 foto telah dilampirkan</span>
             </div>
             
             <p class="form-help" style="margin-bottom: 0.85rem;">
-              Ambil 3 foto bukti dokumentasi langsung di lokasi menggunakan kamera perangkat (Foto 1: Utama, Foto 2: Detail Aktivitas, Foto 3: Hasil / Area). <em>Unggah berkas dari galeri tidak diizinkan untuk kegiatan operasional.</em>
+              Lampirkan 3 foto bukti dokumentasi lapangan: <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>. Ambil langsung menggunakan kamera perangkat atau pilih berkas foto dokumentasi.
             </p>
 
             <div class="photo-slots-grid-3col">
@@ -945,16 +945,16 @@
                     <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   </div>
                   <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(0)">
-                    <span>Ambil Foto 1</span>
+                    <span>Pilih / Ambil Foto 1</span>
                   </button>
-                  <span class="photo-slot-hint">📸 Wajib Kamera Langsung</span>
+                  <span class="photo-slot-hint">📸 3 Foto Bukti Wajib</span>
                 </div>
 
                 <div id="slotPreview_0" class="photo-slot-preview" style="display: none;">
                   <img id="slotImg_0" src="" alt="Pratinjau Foto 1">
                   <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
                     <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(0)">
-                      <span>Foto Ulang</span>
+                      <span>Ganti</span>
                     </button>
                     <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(0)">
                       <span>Hapus</span>
@@ -972,16 +972,16 @@
                     <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   </div>
                   <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(1)">
-                    <span>Ambil Foto 2</span>
+                    <span>Pilih / Ambil Foto 2</span>
                   </button>
-                  <span class="photo-slot-hint">📸 Wajib Kamera Langsung</span>
+                  <span class="photo-slot-hint">📸 3 Foto Bukti Wajib</span>
                 </div>
 
                 <div id="slotPreview_1" class="photo-slot-preview" style="display: none;">
                   <img id="slotImg_1" src="" alt="Pratinjau Foto 2">
                   <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
                     <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(1)">
-                      <span>Foto Ulang</span>
+                      <span>Ganti</span>
                     </button>
                     <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(1)">
                       <span>Hapus</span>
@@ -999,16 +999,16 @@
                     <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   </div>
                   <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(2)">
-                    <span>Ambil Foto 3</span>
+                    <span>Pilih / Ambil Foto 3</span>
                   </button>
-                  <span class="photo-slot-hint">📸 Wajib Kamera Langsung</span>
+                  <span class="photo-slot-hint">📸 3 Foto Bukti Wajib</span>
                 </div>
 
                 <div id="slotPreview_2" class="photo-slot-preview" style="display: none;">
                   <img id="slotImg_2" src="" alt="Pratinjau Foto 3">
                   <div style="display: flex; gap: 0.35rem; justify-content: center; margin-top: 0.5rem;">
                     <button type="button" class="btn btn-secondary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(2)">
-                      <span>Foto Ulang</span>
+                      <span>Ganti</span>
                     </button>
                     <button type="button" class="btn btn-secondary table-btn-sm" style="color: var(--urgent); border-color: var(--urgent-border);" onclick="event.stopPropagation(); removePhoto(2)">
                       <span>Hapus</span>
@@ -2591,11 +2591,11 @@
       const badge = document.getElementById('photoProgressBadge');
       if (badge) {
         if (count === 3) {
-          badge.innerText = '3 dari 3 foto telah diambil (Lengkap)';
+          badge.innerText = '3 dari 3 foto telah dilampirkan (Lengkap)';
           badge.style.background = '#dcfce7';
           badge.style.color = '#15803d';
         } else {
-          badge.innerText = `${count} dari 3 foto telah diambil`;
+          badge.innerText = `${count} dari 3 foto telah dilampirkan`;
           badge.style.background = '#e0f2fe';
           badge.style.color = '#0369a1';
         }
@@ -2623,6 +2623,51 @@
              (window.matchMedia && window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
     }
 
+    /**
+     * Detects if running inside Google Apps Script HTML Service or iframe sandbox where camera permissions are restricted.
+     */
+    function isRestrictedIframeContext() {
+      try {
+        // 1. Explicit Permissions Policy check
+        if (typeof document !== 'undefined' && document.permissionsPolicy && typeof document.permissionsPolicy.allowsFeature === 'function') {
+          if (!document.permissionsPolicy.allowsFeature('camera')) return true;
+        }
+        // 2. Feature Policy check (legacy browsers)
+        if (typeof document !== 'undefined' && document.featurePolicy && typeof document.featurePolicy.allowsFeature === 'function') {
+          if (!document.featurePolicy.allowsFeature('camera')) return true;
+        }
+        // 3. Domain check for Google Apps Script HTML Service
+        const host = (window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
+        if (host.includes('googleusercontent.com') || host.includes('script.google.com')) {
+          return true;
+        }
+        // 4. Injected Apps Script server URL check
+        if (typeof SERVER_WEB_APP_URL === 'string' && (SERVER_WEB_APP_URL.includes('script.google.com') || SERVER_WEB_APP_URL.includes('googleusercontent.com'))) {
+          return true;
+        }
+        // 5. Any nested iframe context
+        if (window.self !== window.top) {
+          return true;
+        }
+      } catch (e) {
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Evaluates if WebRTC live video streaming is genuinely supported and permitted in current context.
+     */
+    function isWebRtcCameraAvailable() {
+      if (isRestrictedIframeContext()) {
+        return false;
+      }
+      if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        return false;
+      }
+      return true;
+    }
+
     function getCameraPageUrl() {
       var base = (typeof SERVER_WEB_APP_URL !== 'undefined' && SERVER_WEB_APP_URL) 
         ? SERVER_WEB_APP_URL 
@@ -2634,7 +2679,7 @@
     function triggerCameraCapture(slotIndex) {
       currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
 
-      // On mobile smartphones (Android/iOS), launch the native camera viewfinder directly in 1 tap
+      // On mobile smartphones (Android/iOS), launch the native camera viewfinder directly via capture="environment"
       if (isMobileDevice()) {
         const hiddenInp = document.getElementById('photoInput');
         if (hiddenInp) {
@@ -2644,8 +2689,14 @@
         return;
       }
 
-      // On desktop / web browser, open the in-page camera modal
-      openInPageCameraModal(slotIndex);
+      // On desktop / web browser:
+      if (isWebRtcCameraAvailable()) {
+        openInPageCameraModal(slotIndex);
+      } else {
+        // In Google Apps Script HTML Service or restricted sandbox,
+        // route directly to file input fallback to prevent NotAllowedError console spam
+        triggerFileUploadFallback(slotIndex);
+      }
     }
 
     function openInPageCameraModal(slotIndex) {
@@ -2654,11 +2705,22 @@
       const title = document.getElementById('cameraModalTitle');
       const streamBox = document.getElementById('cameraModalStreamBox');
       const fallbackBox = document.getElementById('cameraModalFallbackBox');
+      const liveActions = document.getElementById('cameraModalLiveActions');
       const slotLabels = ['Foto 1: Utama', 'Foto 2: Detail Aktivitas', 'Foto 3: Hasil / Area'];
 
       if (title) title.innerText = `Ambil ${slotLabels[currentCameraSlot] || ('Foto ' + (currentCameraSlot + 1))}`;
+
+      if (!isWebRtcCameraAvailable()) {
+        if (streamBox) streamBox.style.display = 'none';
+        if (fallbackBox) fallbackBox.style.display = 'block';
+        if (liveActions) liveActions.style.display = 'none';
+        if (modal) modal.style.display = 'flex';
+        return;
+      }
+
       if (streamBox) streamBox.style.display = 'flex';
       if (fallbackBox) fallbackBox.style.display = 'none';
+      if (liveActions) liveActions.style.display = 'flex';
 
       const timeEl = document.getElementById('cameraModalLiveTime');
       if (timeEl) {
@@ -2676,7 +2738,18 @@
       const loading = document.getElementById('cameraModalLoading');
       const streamBox = document.getElementById('cameraModalStreamBox');
       const fallbackBox = document.getElementById('cameraModalFallbackBox');
+      const liveActions = document.getElementById('cameraModalLiveActions');
       const snapBtn = document.getElementById('btnSnapModal');
+
+      // Hard guard against calling getUserMedia when restricted by Permissions Policy
+      if (!isWebRtcCameraAvailable()) {
+        if (loading) loading.style.display = 'none';
+        if (streamBox) streamBox.style.display = 'none';
+        if (fallbackBox) fallbackBox.style.display = 'block';
+        if (liveActions) liveActions.style.display = 'none';
+        if (snapBtn) snapBtn.disabled = true;
+        return;
+      }
 
       if (loading) {
         loading.style.display = 'flex';
@@ -2684,6 +2757,7 @@
       }
       if (streamBox) streamBox.style.display = 'flex';
       if (fallbackBox) fallbackBox.style.display = 'none';
+      if (liveActions) liveActions.style.display = 'flex';
       if (snapBtn) snapBtn.disabled = true;
 
       const constraintSets = [
@@ -2722,6 +2796,7 @@
         if (loading) loading.style.display = 'none';
         if (streamBox) streamBox.style.display = 'none';
         if (fallbackBox) fallbackBox.style.display = 'block';
+        if (liveActions) liveActions.style.display = 'none';
       }
     }
 
@@ -2737,6 +2812,7 @@
     }
 
     function toggleCameraFacingMode() {
+      if (!isWebRtcCameraAvailable()) return;
       currentFacingMode = (currentFacingMode === 'environment' ? 'user' : 'environment');
       startCameraStream();
     }
@@ -2797,25 +2873,33 @@
     }
 
     window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'CAMERA_CAPTURED') {
-        if (typeof event.data.slotIndex === 'number' && event.data.slotIndex >= 0 && event.data.slotIndex <= 2) {
-          currentCameraSlot = event.data.slotIndex;
-        }
-        const meta = getPhotoMetadata(currentCameraSlot);
-        compressAndWatermarkImage(event.data.base64, 1280, 0.75, meta).then(compressedBase64 => {
-          capturedPhotos[currentCameraSlot] = compressedBase64;
-          photoBase64Data = capturedPhotos[0];
-          photoMimeTypeData = 'image/jpeg';
-          photoIsSuspiciousTimestamp = false;
-          updatePhotoSlotsUI();
-          closeInPageCameraModal();
-          showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan & diverifikasi.`, 'success');
-        });
+      if (!event.data || event.data.type !== 'CAMERA_CAPTURED') return;
+
+      let targetSlot = currentCameraSlot;
+      if (typeof event.data.slotIndex === 'number' && event.data.slotIndex >= 0 && event.data.slotIndex <= 2) {
+        targetSlot = event.data.slotIndex;
       }
+
+      const rawBase64 = event.data.base64;
+      if (!rawBase64 || typeof rawBase64 !== 'string' || !rawBase64.startsWith('data:image/')) {
+        console.warn('Received invalid photo payload from postMessage');
+        return;
+      }
+
+      const meta = getPhotoMetadata(targetSlot);
+      compressAndWatermarkImage(rawBase64, 1280, 0.75, meta).then(compressedBase64 => {
+        capturedPhotos[targetSlot] = compressedBase64;
+        photoBase64Data = capturedPhotos[0];
+        photoMimeTypeData = 'image/jpeg';
+        photoIsSuspiciousTimestamp = false;
+        updatePhotoSlotsUI();
+        closeInPageCameraModal();
+        showToast(`Foto ${targetSlot + 1} berhasil disimpan & diverifikasi.`, 'success');
+      });
     });
 
     window.onCameraCaptured = function(base64Data) {
-      if (!base64Data) return;
+      if (!base64Data || typeof base64Data !== 'string' || !base64Data.startsWith('data:image/')) return;
       const meta = getPhotoMetadata(currentCameraSlot);
       compressAndWatermarkImage(base64Data, 1280, 0.75, meta).then(compressedBase64 => {
         capturedPhotos[currentCameraSlot] = compressedBase64;
@@ -3201,7 +3285,7 @@
         if (!capturedPhotos[1]) missingSlots.push('Foto 2 (Detail Aktivitas)');
         if (!capturedPhotos[2]) missingSlots.push('Foto 3 (Hasil / Area)');
         if (missingSlots.length > 0) {
-          errors.push({ id: 'photoSlotCard_0', text: `Wajib melampirkan 3 foto bukti kegiatan: ${missingSlots.join(', ')} belum diambil/diunggah.` });
+          errors.push({ id: 'photoSlotCard_0', text: `Wajib melampirkan 3 foto bukti kegiatan: ${missingSlots.join(', ')} belum dilampirkan.` });
         }
       }
 

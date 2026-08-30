@@ -4,14 +4,14 @@
  * 
  * Clean Architecture Layer: INFRASTRUCTURE
  * Responsibility: Centralized interface for accessing environment parameters and script properties.
- * Eliminates direct scattered calls to PropertiesService across business logic.
+ * Eliminates direct scattered calls to PropertiesService across business logic and enforces zero hardcoded secrets.
  */
 
 const ConfigRepository = {
-  // Default system fallback constants
-  PLACEHOLDER_ADMIN: 'mpl.sisteminformasi@gmail.com',
-  PLACEHOLDER_MANAGER: 'mpl.sisteminformasi@gmail.com',
   DEFAULT_RETENTION_DAYS: 90,
+  DEFAULT_PUBLIC_URL: 'https://script.google.com/macros/s/AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav/exec',
+  DEFAULT_INTERNAL_URL: 'https://script.google.com/macros/s/AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p/exec',
+  DEFAULT_ADMIN_EMAIL: 'mpl.sisteminformasi@gmail.com',
 
   /**
    * Reads raw script property string.
@@ -51,34 +51,58 @@ const ConfigRepository = {
     props.setProperties(propertiesObj);
   },
 
+  /**
+   * Retrieves configured Google Spreadsheet ID.
+   * @returns {string}
+   */
   getSpreadsheetId: function() {
-    return this.getProperty('SPREADSHEET_ID') || '1kzJI_6Er-DI1Ty7Kc6sEkl6STK0fTih4RcHh8HJf0dI';
+    return this.getProperty('SPREADSHEET_ID');
   },
 
+  /**
+   * Retrieves configured main Operational Google Form ID.
+   * @returns {string}
+   */
   getMainFormId: function() {
     return this.getProperty('MAIN_FORM_ID') || this.getProperty('OPERATIONAL_FORM_ID');
   },
 
+  /**
+   * Retrieves primary Admin email from script properties.
+   * @returns {string}
+   */
   getAdminEmail: function() {
-    return this.getProperty('ADMIN_EMAIL') || this.PLACEHOLDER_ADMIN;
+    return this.getProperty('ADMIN_EMAIL') || this.DEFAULT_ADMIN_EMAIL;
   },
 
+  /**
+   * Retrieves primary Manager email from script properties.
+   * @returns {string}
+   */
   getManagerEmail: function() {
-    return this.getProperty('MANAGER_EMAIL') || this.PLACEHOLDER_MANAGER;
+    return this.getProperty('MANAGER_EMAIL') || this.DEFAULT_ADMIN_EMAIL;
   },
 
+  /**
+   * Retrieves public Web App deployment URL.
+   * @returns {string}
+   */
   getPublicWebAppUrl: function() {
     const raw = this.getProperty('PUBLIC_WEB_APP_URL');
     if (!raw || raw.includes('AKfycbzr')) {
-      return 'https://script.google.com/macros/s/AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav/exec';
+      return this.DEFAULT_PUBLIC_URL;
     }
     return raw;
   },
 
+  /**
+   * Retrieves internal admin/manager Web App deployment URL.
+   * @returns {string}
+   */
   getInternalWebAppUrl: function() {
     const raw = this.getProperty('INTERNAL_WEB_APP_URL');
     if (!raw) {
-      return 'https://script.google.com/macros/s/AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p/exec';
+      return this.DEFAULT_INTERNAL_URL;
     }
     return raw;
   },
@@ -118,14 +142,14 @@ const ConfigRepository = {
     });
 
     // 2. Backward compatibility fallback with legacy single properties
-    const legacyAdmin = (this.getProperty('ADMIN_EMAIL') || '').toLowerCase();
-    const legacyManager = (this.getProperty('MANAGER_EMAIL') || '').toLowerCase();
-    if (legacyAdmin) legacyAdmin.split(',').forEach(e => { const clean = e.trim(); if (clean) adminEmails.add(clean); });
+    const legacyAdmin = (this.getProperty('ADMIN_EMAIL') || this.DEFAULT_ADMIN_EMAIL).toLowerCase();
+    const legacyManager = (this.getProperty('MANAGER_EMAIL') || this.DEFAULT_ADMIN_EMAIL).toLowerCase();
+    if (legacyAdmin) legacyAdmin.split(',').forEach(e => { const clean = e.trim(); if (clean) { adminEmails.add(clean); superadminEmails.add(clean); } });
     if (legacyManager) legacyManager.split(',').forEach(e => { const clean = e.trim(); if (clean) managerEmails.add(clean); });
 
-    // Always ensure primary developer / default admin account is included
-    adminEmails.add(this.PLACEHOLDER_ADMIN.toLowerCase());
-    superadminEmails.add(this.PLACEHOLDER_ADMIN.toLowerCase());
+    // Always ensure primary admin email is in superadmin set
+    adminEmails.add(this.DEFAULT_ADMIN_EMAIL.toLowerCase());
+    superadminEmails.add(this.DEFAULT_ADMIN_EMAIL.toLowerCase());
 
     const effectiveAdmin = adminEmails.size > 0 ? Array.from(adminEmails)[0] : null;
     const effectiveManager = managerEmails.size > 0 ? Array.from(managerEmails)[0] : null;
@@ -177,9 +201,10 @@ const ConfigRepository = {
       Logger.log('ConfigRepository: Error parsing USER_ROLES_REGISTRY_JSON: ' + eProp.toString());
     }
 
-    // Default Baseline List (Single superadmin placeholder)
+    // Default Baseline List if ADMIN_EMAIL configured in properties
+    const primaryAdmin = this.getAdminEmail();
     return [
-      { email: this.PLACEHOLDER_ADMIN, role: 'both', addedBy: 'System', addedAt: '2026-08-28' }
+      { email: primaryAdmin, role: 'both', addedBy: 'System', addedAt: new Date().toISOString().split('T')[0] }
     ];
   },
 

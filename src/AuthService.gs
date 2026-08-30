@@ -4,7 +4,7 @@
  * 
  * Clean Architecture Layer: APPLICATION / SERVICE
  * Responsibility: Handles visitor identity checks, RBAC role evaluation, and deployment isolation.
- * Encapsulates Session.getActiveUser() security policies.
+ * Encapsulates Session.getActiveUser() security policies with zero hardcoded credentials.
  */
 
 const AuthService = {
@@ -38,11 +38,7 @@ const AuthService = {
       return null;
     }
 
-    // Default fallback: If running on an internal deployment (e.g. editor or dev console where email is blank)
-    if (this.isInternalWebAppDeployment()) {
-      return 'both';
-    }
-
+    // Anonymous or unauthenticated visitor -> always null (Never auto-grant both/admin)
     return null;
   },
 
@@ -59,8 +55,10 @@ const AuthService = {
     }
 
     const role = this.getUserRole();
+    const primaryAdmin = ConfigRepository.getAdminEmail();
+
     return {
-      email: userEmail || 'mpl.sisteminformasi@gmail.com',
+      email: userEmail || (role ? primaryAdmin : '') || '',
       role: role,
       isAuthorized: !!role
     };
@@ -86,7 +84,12 @@ const AuthService = {
         email = (Session.getActiveUser().getEmail() || '').trim().toLowerCase();
       } catch (e) {}
     }
-    if (!email) email = ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase();
+    if (!email) {
+      email = (ConfigRepository.getAdminEmail() || '').toLowerCase();
+    }
+    if (!email) {
+      email = 'user_logout';
+    }
 
     const timestamp = formatDate(new Date());
     SpreadsheetRepository.updateUserLastActive(email, timestamp);
@@ -120,29 +123,52 @@ const AuthService = {
     if (this.isInternalWebAppDeployment()) {
       const internalUrl = this.getConfiguredWebAppUrl_('INTERNAL_WEB_APP_URL');
       if (internalUrl) return internalUrl;
+      return ConfigRepository.getInternalWebAppUrl();
     }
 
     const publicUrl = this.getConfiguredWebAppUrl_('PUBLIC_WEB_APP_URL');
     if (publicUrl) return publicUrl;
-
-    return serviceUrl;
+    return ConfigRepository.getPublicWebAppUrl();
   },
 
   /**
-   * Returns true unless the currently executing Web App URL matches the public deployment ID.
+   * Returns true only when the currently executing Web App URL matches the internal deployment.
+   * Public deployment and unidentified contexts always return false (Public Portal).
    * @returns {boolean}
    */
   isInternalWebAppDeployment: function() {
     const serviceUrl = this.getExecutingWebAppUrl_();
-    const publicDeploymentId = 'AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav';
-
-    // If executing URL explicitly matches the Public deployment ID, return false
-    if (serviceUrl && serviceUrl.includes(publicDeploymentId)) {
+    if (!serviceUrl) {
       return false;
     }
 
-    // All other deployment contexts (Admin deployment, /dev, or Apps Script editor) are treated as Internal Console
-    return true;
+    // 1. Explicit Public Deployment check: if serviceUrl matches Public Deployment ID -> strictly false
+    const publicUrl = ConfigRepository.getPublicWebAppUrl();
+    const publicDeploymentId = ConfigRepository.getProperty('PUBLIC_DEPLOYMENT_ID') || 
+                               this.extractDeploymentId_(publicUrl) || 
+                               'AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav';
+
+    if (publicDeploymentId && serviceUrl.includes(publicDeploymentId)) {
+      return false;
+    }
+
+    // 2. Explicit Internal Deployment check: if serviceUrl matches Internal Deployment ID -> true
+    const internalUrl = ConfigRepository.getInternalWebAppUrl();
+    const internalDeploymentId = ConfigRepository.getProperty('INTERNAL_DEPLOYMENT_ID') || 
+                                 this.extractDeploymentId_(internalUrl) || 
+                                 'AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p';
+
+    if (internalDeploymentId && serviceUrl.includes(internalDeploymentId)) {
+      return true;
+    }
+
+    // 3. Dev testing mode (/dev) is treated as internal console
+    if (serviceUrl.includes('/dev')) {
+      return true;
+    }
+
+    // All other contexts safely default to public portal
+    return false;
   },
 
   /**

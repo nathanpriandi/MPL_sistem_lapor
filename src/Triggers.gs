@@ -11,6 +11,9 @@
  * Run once after running setupReportingSystem().
  */
 function createTriggers() {
+  if (typeof SecurityService !== 'undefined') {
+    SecurityService.AccessGuard.requireSuperadmin();
+  }
   Logger.log('Registering system triggers...');
   
   // Clear any pre-existing triggers to avoid duplicates
@@ -70,6 +73,9 @@ function createTriggers() {
  * Removes all project triggers. Useful for reset or maintenance.
  */
 function removeTriggers() {
+  if (typeof SecurityService !== 'undefined') {
+    SecurityService.AccessGuard.requireSuperadmin();
+  }
   const triggers = ScriptApp.getProjectTriggers();
   Logger.log(`Clearing ${triggers.length} existing trigger(s)...`);
   for (let i = 0; i < triggers.length; i++) {

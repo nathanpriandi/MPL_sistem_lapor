@@ -533,7 +533,13 @@ const ReportService = {
       flag.severity, ReviewStatus.UNVERIFIED
     ];
 
-    targetSheet.appendRow(rowData);
+    const sanitizedRowData = rowData.map(val => {
+      return (typeof SecurityService !== 'undefined' && SecurityService.InputSanitizer)
+        ? SecurityService.InputSanitizer.sanitizeForSpreadsheet(val)
+        : val;
+    });
+
+    targetSheet.appendRow(sanitizedRowData);
     if (flag.severity === ReportSeverity.URGENT) {
       NotificationAdapter.sendUrgentAlert(form.title || 'Form Kustom', targetSheet.getLastRow(), rowData, flag);
     }

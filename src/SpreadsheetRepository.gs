@@ -341,7 +341,11 @@ const SpreadsheetRepository = {
       return Array.isArray(val) ? val.join(', ') : String(val);
     });
 
-    const fullRowData = baseRowData.concat(customRowData);
+    const fullRowData = baseRowData.concat(customRowData).map(val => {
+      return (typeof SecurityService !== 'undefined' && SecurityService.InputSanitizer)
+        ? SecurityService.InputSanitizer.sanitizeForSpreadsheet(val)
+        : val;
+    });
 
     // 1. Permanent Master Sheet Tab: Master_Laporan (Contains every single data ever submitted)
     let masterSheet = ss.getSheetByName('Master_Laporan');
@@ -534,6 +538,9 @@ const SpreadsheetRepository = {
       }
 
       // Specific field alias matching
+      if (fieldKey === 'anggotaTerlapor' && (normH === 'anggotaterlapor' || normH.includes('anggotaterlapor') || normH.includes('anggotatim') || normH.includes('anggotatimsga') || normH === 'tim' || normH === 'anggota')) {
+        return row[idx];
+      }
       if (fieldKey === 'estimasiPanenHst' && (normH.includes('estimasipanen') || normH.includes('hst') || normH.includes('perkiraanpanen') || normH.includes('umurpanen'))) {
         return row[idx];
       }
@@ -876,6 +883,7 @@ const SpreadsheetRepository = {
               nilaiPenjualanRp: nilaiPenjualan,
               kendala: kendalaVal,
               upaya: upayaVal,
+              anggotaTerlapor: anggotaTerlaporVal,
               anggotaTerlaporText: anggotaTerlaporVal,
               fields: fields,
               raw: safeRaw
@@ -1619,12 +1627,10 @@ const SpreadsheetRepository = {
             item.ternakKeluarQty = (item.ternakKeluarKematianQty || 0) + (item.ternakKeluarPenjualanQty || 0);
           }
 
-          // Generate unique fingerprint
-          const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;
-          if (seenFingerprints.has(fp)) return;
-          seenFingerprints.add(fp);
-
-          // Date range filter check
+          // Date range filter check must happen before deduplication. Master
+          // and mirror tabs can carry the same report ID with different
+          // timestamps; an out-of-scope Master row must not suppress an
+          // in-scope operational row.
           if (dFrom || dTo) {
             let rowDate = null;
             if (item.timestamp_raw instanceof Date && !isNaN(item.timestamp_raw.getTime())) {
@@ -1637,11 +1643,18 @@ const SpreadsheetRepository = {
               rowDate = item.tglTanam_raw;
             }
 
-            if (rowDate && !isNaN(rowDate.getTime())) {
-              if (dFrom && rowDate < dFrom) return;
-              if (dTo && rowDate > dTo) return;
-            }
+            // A bounded analytical query must not silently include rows with
+            // no valid scope date; surface them through unbounded/admin data
+            // quality views instead.
+            if (!rowDate || isNaN(rowDate.getTime())) return;
+            if (dFrom && rowDate < dFrom) return;
+            if (dTo && rowDate > dTo) return;
           }
+
+          // Generate unique fingerprint after scope filtering.
+          const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;
+          if (seenFingerprints.has(fp)) return;
+          seenFingerprints.add(fp);
 
           allRows.push(item);
         });
@@ -1788,8 +1801,9 @@ const SpreadsheetRepository = {
       sheet.setFrozenRows(1);
       
       // Default Initial Accounts Seed (Single superadmin placeholder)
+      const primaryAdminEmail = ConfigRepository.getAdminEmail() || 'admin@domain.local';
       const initialRows = [
-        ['mpl.sisteminformasi@gmail.com', 'both', '', 'System Initializer', formatDate(new Date()).split(' ')[0]]
+        [primaryAdminEmail, 'both', '', 'System Initializer', formatDate(new Date()).split(' ')[0]]
       ];
       sheet.getRange(2, 1, initialRows.length, headers.length).setValues(initialRows);
       try { sheet.autoResizeColumns(1, headers.length); } catch (e) {}
@@ -1835,7 +1849,8 @@ const SpreadsheetRepository = {
         }
 
         let role = String(row[1] || 'admin').trim().toLowerCase();
-        if (email === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
+        const primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : ConfigRepository.DEFAULT_ADMIN_EMAIL || '').toLowerCase();
+        if (primaryAdmin && email === primaryAdmin) {
           role = 'both';
         }
 
@@ -1874,8 +1889,9 @@ const SpreadsheetRepository = {
 
       // If sheet becomes empty after purging, ensure default superadmin row exists
       if (list.length === 0) {
+        const primaryAdminEmail = ConfigRepository.getAdminEmail() || 'admin@domain.local';
         const defaultSuperadmin = UserRoleItem({
-          email: ConfigRepository.PLACEHOLDER_ADMIN,
+          email: primaryAdminEmail,
           role: 'both',
           terakhirAktif: '',
           addedBy: 'System Initializer',
@@ -1976,8 +1992,9 @@ const SpreadsheetRepository = {
     const sheet = this.getUserRolesSheet_();
     const emailToDelete = email.trim().toLowerCase();
 
-    if (emailToDelete === ConfigRepository.PLACEHOLDER_ADMIN.toLowerCase()) {
-      throw new Error('Akun Superadmin Utama (' + ConfigRepository.PLACEHOLDER_ADMIN + ') tidak dapat dihapus.');
+    const primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : ConfigRepository.DEFAULT_ADMIN_EMAIL || '').toLowerCase();
+    if (primaryAdmin && emailToDelete === primaryAdmin) {
+      throw new Error('Akun Superadmin Utama (' + primaryAdmin + ') tidak dapat dihapus.');
     }
 
     const lastRow = sheet.getLastRow();
