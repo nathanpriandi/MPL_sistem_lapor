@@ -341,7 +341,11 @@ const SpreadsheetRepository = {
       return Array.isArray(val) ? val.join(', ') : String(val);
     });
 
-    const fullRowData = baseRowData.concat(customRowData);
+    const fullRowData = baseRowData.concat(customRowData).map(val => {
+      return (typeof SecurityService !== 'undefined' && SecurityService.InputSanitizer)
+        ? SecurityService.InputSanitizer.sanitizeForSpreadsheet(val)
+        : val;
+    });
 
     // 1. Permanent Master Sheet Tab: Master_Laporan (Contains every single data ever submitted)
     let masterSheet = ss.getSheetByName('Master_Laporan');
@@ -534,6 +538,9 @@ const SpreadsheetRepository = {
       }
 
       // Specific field alias matching
+      if (fieldKey === 'anggotaTerlapor' && (normH === 'anggotaterlapor' || normH.includes('anggotaterlapor') || normH.includes('anggotatim') || normH.includes('anggotatimsga') || normH === 'tim' || normH === 'anggota')) {
+        return row[idx];
+      }
       if (fieldKey === 'estimasiPanenHst' && (normH.includes('estimasipanen') || normH.includes('hst') || normH.includes('perkiraanpanen') || normH.includes('umurpanen'))) {
         return row[idx];
       }
@@ -876,6 +883,7 @@ const SpreadsheetRepository = {
               nilaiPenjualanRp: nilaiPenjualan,
               kendala: kendalaVal,
               upaya: upayaVal,
+              anggotaTerlapor: anggotaTerlaporVal,
               anggotaTerlaporText: anggotaTerlaporVal,
               fields: fields,
               raw: safeRaw
@@ -1788,8 +1796,9 @@ const SpreadsheetRepository = {
       sheet.setFrozenRows(1);
       
       // Default Initial Accounts Seed (Single superadmin placeholder)
+      const primaryAdminEmail = ConfigRepository.getAdminEmail() || 'admin@domain.local';
       const initialRows = [
-        ['mpl.sisteminformasi@gmail.com', 'both', '', 'System Initializer', formatDate(new Date()).split(' ')[0]]
+        [primaryAdminEmail, 'both', '', 'System Initializer', formatDate(new Date()).split(' ')[0]]
       ];
       sheet.getRange(2, 1, initialRows.length, headers.length).setValues(initialRows);
       try { sheet.autoResizeColumns(1, headers.length); } catch (e) {}
@@ -1874,8 +1883,9 @@ const SpreadsheetRepository = {
 
       // If sheet becomes empty after purging, ensure default superadmin row exists
       if (list.length === 0) {
+        const primaryAdminEmail = ConfigRepository.getAdminEmail() || 'admin@domain.local';
         const defaultSuperadmin = UserRoleItem({
-          email: ConfigRepository.PLACEHOLDER_ADMIN,
+          email: primaryAdminEmail,
           role: 'both',
           terakhirAktif: '',
           addedBy: 'System Initializer',

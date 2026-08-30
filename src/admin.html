@@ -39,7 +39,7 @@
             </div>
             <div class="user-info">
               <span class="user-email">
-                <?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'mpl.sisteminformasi@gmail.com' ?>
+                <?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'Admin Operasional' ?>
               </span>
               <? if (userRole === 'both') { ?>
               <span class="badge badge-primary">Admin &amp; Manager</span>
@@ -899,6 +899,19 @@
         if (item.nilaiPenjualanRp > 0) {
           chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
         }
+        if (item.anggotaTerlaporText || item.anggotaTerlapor || (String(item.divisi || '').toUpperCase().includes('SGA'))) {
+          const isSga = String(item.divisi || '').toUpperCase().includes('SGA');
+          const rawAng = String(item.anggotaTerlaporText || item.anggotaTerlapor || '');
+          let cnt = 0;
+          if (rawAng) {
+            cnt = rawAng.split(/[;\n\r]+/).filter(s => s.trim().length > 0).length;
+          } else if (isSga) {
+            cnt = 10;
+          }
+          if (cnt > 0) {
+            chipsHtml += `<span class="chip-team" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.725rem; font-weight: 600; padding: 2px 6px; border-radius: 4px;">👥 ${cnt} Anggota</span>`;
+          }
+        }
 
         const picInitials = getInitials(item.empId || item.namaPic);
 
@@ -1441,7 +1454,7 @@
         'pembeli_ternak_nama', 'pembeliternaknama', 'pembeli_ternak_alamat', 'pembeliternakalamat', 'pembeli_ternak_notelp', 'pembeliternaktelp',
         'jumlah_unit_penggunaan', 'jumlahunitpenggunaan', 'jumlah_unit_penggunaan_ternak', 'jumlahunitpenggunaanternak',
         'tujuan_penggunaan', 'tujuanpenggunaan', 'tujuan_penggunaan_ternak', 'tujuanpenggunaanternak',
-        'capaian_kegiatan', 'capaiankegiatan', 'anggota_terlapor', 'anggotaterlapor', 'kendala', 'upaya',
+        'capaian_kegiatan', 'capaiankegiatan', 'kendala', 'upaya',
         'pengawasan', 'detail_pengawasan', 'detailpengawasan', 'pengawasan_rincian', 'pengawasanrincian',
         'administrasi', 'detail_administrasi', 'detailadministrasi', 'office_jenis', 'officejenis', 'office_rincian', 'officerincian'
       ];
@@ -1453,41 +1466,186 @@
         });
       });
 
-      // Anggota Terlapor
-      const rawAnggota = getFieldValue(['anggotaterlapor', 'anggota_terlapor', 'anggotatim'], item.anggotaTerlapor);
-      let anggotaList = [];
-      if (Array.isArray(rawAnggota)) {
-        anggotaList = rawAnggota;
-      } else if (typeof rawAnggota === 'string' && rawAnggota.trim().startsWith('[')) {
-        try {
-          anggotaList = JSON.parse(rawAnggota);
-        } catch (e) {
-          anggotaList = [];
+      // Helper function to parse anggota terlapor array or string format
+      function parseAnggotaTerlapor(raw, itemDivisi) {
+        if (!raw) return [];
+        if (Array.isArray(raw)) {
+          return raw.map(m => {
+            if (typeof m === 'object' && m !== null) {
+              let att = m.kehadiran || (String(m.deskripsi || '').toLowerCase().includes('tidak hadir') ? 'Tidak Hadir' : 'Hadir');
+              return {
+                name: m.name || m.nama || m.id || 'Anggota',
+                id: m.id || '',
+                division: m.division || itemDivisi || '',
+                kehadiran: att,
+                deskripsi: m.deskripsi || m.tugas || m.catatan || '-'
+              };
+            }
+            return { name: String(m), id: '', division: itemDivisi || '', kehadiran: 'Hadir', deskripsi: '-' };
+          });
+        }
+        if (typeof raw !== 'string') return [];
+
+        const trimmed = raw.trim();
+        if (!trimmed || trimmed === '-' || trimmed === '[]') return [];
+
+        if (trimmed.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) return parseAnggotaTerlapor(parsed, itemDivisi);
+          } catch (e) {}
+        }
+
+        const parts = trimmed.split(/[;\n\r]+/).map(s => s.trim()).filter(Boolean);
+        const result = [];
+
+        parts.forEach(part => {
+          let name = '';
+          let id = '';
+          let kehadiran = 'Hadir';
+          let deskripsi = '';
+
+          const matchNameId = part.match(/^([^(:]+?)(?:\s*\(([^)]+)\))?\s*:\s*(.*)$/);
+          if (matchNameId) {
+            name = matchNameId[1].trim();
+            id = (matchNameId[2] || '').trim();
+            let rest = (matchNameId[3] || '').trim();
+
+            const matchAtt = rest.match(/^\[(Hadir|Tidak Hadir)\]\s*(.*)$/i);
+            if (matchAtt) {
+              kehadiran = matchAtt[1].trim();
+              deskripsi = matchAtt[2].trim() || (kehadiran === 'Tidak Hadir' ? 'Tidak Hadir' : '-');
+            } else {
+              deskripsi = rest || '-';
+              if (deskripsi.toLowerCase().startsWith('tidak hadir')) {
+                kehadiran = 'Tidak Hadir';
+              }
+            }
+          } else {
+            name = part;
+            deskripsi = '-';
+          }
+
+          if (name) {
+            result.push({
+              name: name,
+              id: id,
+              division: itemDivisi || '',
+              kehadiran: kehadiran,
+              deskripsi: deskripsi
+            });
+          }
+        });
+
+        return result;
+      }
+
+      // Anggota Terlapor Resolution
+      const isSgaDivision = (String(divisi || item.divisi || '').toUpperCase().includes('SGA') || String(namaPic || item.namaPic || '').toUpperCase().includes('SGA') || String(kodeKegiatan || item.kodeKegiatan || '').toUpperCase().startsWith('SGA'));
+      
+      // 1. Check item direct fields
+      let rawAnggota = item.anggotaTerlapor || item.anggotaTerlaporText || '';
+
+      // 2. Search in item.fields array
+      if (!rawAnggota || rawAnggota === '-' || rawAnggota === '[]') {
+        const foundField = fields.find(f => {
+          if (!f || !f.label) return false;
+          const nl = String(f.label).toLowerCase().replace(/[^a-z0-9]/g, '');
+          return nl === 'anggotaterlapor' || nl.includes('anggotaterlapor') || nl.includes('anggotatim') || nl === 'tim';
+        });
+        if (foundField && foundField.value && foundField.value !== '-') {
+          rawAnggota = String(foundField.value).trim();
+          consumedKeys.add(foundField.label);
         }
       }
 
+      // 3. Fallback to raw row index at column 61 (index 60)
+      if ((!rawAnggota || rawAnggota === '-' || rawAnggota === '[]') && Array.isArray(item.raw) && item.raw.length > 60) {
+        const rawCell = item.raw[60];
+        if (rawCell && rawCell !== '-') {
+          rawAnggota = String(rawCell).trim();
+        }
+      }
+
+      const parsedAnggotaList = parseAnggotaTerlapor(rawAnggota, divisi);
+      consumedKeys.add('Anggota_Terlapor');
+      consumedKeys.add('Anggota Terlapor');
+
       let anggotaSectionHtml = '';
-      if (anggotaList && anggotaList.length > 0) {
-        anggotaSectionHtml = `
-          <div style="grid-column: 1 / -1; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem;">
-            <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.4rem;">
-              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span>Anggota Tim yang Dilaporkan (${anggotaList.length} Orang)</span>
+      if (isSgaDivision) {
+        // SGA Section: Prominently displayed with attendance badges and individual task breakdown
+        if (parsedAnggotaList.length > 0) {
+          anggotaSectionHtml = `
+            <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.85rem 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.4rem;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 0.45rem;">
+                  <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <span>Laporan Aktivitas Seluruh Anggota Tim SGA</span>
+                </div>
+                <span style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 0.15rem 0.55rem; border-radius: 9999px;">
+                  ${parsedAnggotaList.length} Anggota Tim
+                </span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+                ${parsedAnggotaList.map((m, idx) => {
+                  const isHadir = (m.kehadiran !== 'Tidak Hadir' && !String(m.deskripsi).toLowerCase().startsWith('tidak hadir'));
+                  const cleanDesc = (m.deskripsi && m.deskripsi !== '-') 
+                    ? String(m.deskripsi).replace(/^\[(Hadir|Tidak Hadir)\]\s*/i, '').trim()
+                    : (isHadir ? 'Hadir & melaksanakan tugas operasional' : 'Tidak Hadir');
+                  return `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.55rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+                        <div style="font-size: 0.825rem; font-weight: 700; color: #1e293b;">
+                          ${idx + 1}. ${escapeHtml(m.name || m.id)} ${m.id ? `<span style="font-size: 0.75rem; color: #64748b; font-weight: 500;">(${escapeHtml(m.id)})</span>` : ''}
+                        </div>
+                        <span style="font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; ${isHadir ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' : 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;'}">
+                          ${isHadir ? 'Hadir' : 'Tidak Hadir'}
+                        </span>
+                      </div>
+                      <div style="font-size: 0.8rem; color: #475569; padding-left: 0.25rem;">
+                        ${escapeHtml(cleanDesc)}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-              ${anggotaList.map((m, idx) => `
-                <div style="font-size: 0.8rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 5px; padding: 0.4rem 0.6rem;">
-                  <strong style="color: #1e293b;">${idx + 1}. ${escapeHtml(m.name || m.id)} (${escapeHtml(m.id)}):</strong> <span style="color: #475569;">${escapeHtml(m.deskripsi || '-')}</span>
+          `;
+        } else {
+          anggotaSectionHtml = `
+            <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 0.75rem 0.95rem;">
+              <div style="font-size: 0.825rem; font-weight: 700; color: #92400e; margin-bottom: 0.2rem;">Laporan Anggota Tim SGA:</div>
+              <div style="font-size: 0.8rem; color: #b45309;">
+                ${rawAnggota ? escapeHtml(rawAnggota) : 'Tidak ada rincian anggota tim tambahan yang tercatat pada pengiriman laporan ini.'}
+              </div>
+            </div>
+          `;
+        }
+      } else if (parsedAnggotaList.length > 0) {
+        // Non-SGA Section: DYNAMICALLY DISPLAYED when team members are reported
+        anggotaSectionHtml = `
+          <div style="grid-column: 1 / -1; margin-top: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem; flex-wrap: wrap; gap: 0.4rem;">
+              <div style="font-size: 0.825rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.4rem;">
+                <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Anggota Tim yang Dilaporkan</span>
+              </div>
+              <span style="font-size: 0.75rem; font-weight: 700; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 0.15rem 0.55rem; border-radius: 9999px;">
+                ${parsedAnggotaList.length} Orang
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              ${parsedAnggotaList.map((m, idx) => `
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                  <div style="font-weight: 700; color: #1e293b; margin-bottom: 0.2rem;">
+                    ${idx + 1}. ${escapeHtml(m.name || m.id)} ${m.id ? `<span style="font-size: 0.75rem; color: #64748b; font-weight: 500;">(${escapeHtml(m.id)})</span>` : ''}
+                  </div>
+                  <div style="color: #475569;">
+                    ${escapeHtml(m.deskripsi && m.deskripsi !== '-' ? m.deskripsi : 'Ditugaskan')}
+                  </div>
                 </div>
               `).join('')}
             </div>
-          </div>
-        `;
-      } else if (typeof rawAnggota === 'string' && rawAnggota.trim() && rawAnggota !== '-') {
-        anggotaSectionHtml = `
-          <div style="grid-column: 1 / -1; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem;">
-            <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">Anggota Tim yang Dilaporkan:</div>
-            <div style="font-size: 0.8rem; color: #475569;">${escapeHtml(rawAnggota)}</div>
           </div>
         `;
       }

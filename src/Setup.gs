@@ -48,12 +48,21 @@ function setupReportingSystem() {
   cleanupIrrelevantSpreadsheetTabs(ssId);
 
   // 5. Store Properties via ConfigRepository
-  ConfigRepository.setProperties({
+  let currentAdmin = ConfigRepository.getAdminEmail();
+  if (!currentAdmin) {
+    try {
+      currentAdmin = Session.getActiveUser().getEmail();
+    } catch (e) {}
+  }
+  const propUpdates = {
     'SPREADSHEET_ID': ssId,
-    'MAIN_FORM_ID': mainFormId,
-    'ADMIN_EMAIL': ConfigRepository.PLACEHOLDER_ADMIN,
-    'MANAGER_EMAIL': ConfigRepository.PLACEHOLDER_MANAGER
-  });
+    'MAIN_FORM_ID': mainFormId
+  };
+  if (currentAdmin) {
+    propUpdates['ADMIN_EMAIL'] = currentAdmin;
+    propUpdates['MANAGER_EMAIL'] = currentAdmin;
+  }
+  ConfigRepository.setProperties(propUpdates);
 
   Logger.log('=== PROVISIONING COMPLETE ===');
   Logger.log('Spreadsheet URL: ' + ss.getUrl());
@@ -443,7 +452,10 @@ function syncLiveGoogleFormItems() {
  * @returns {{ success: boolean, deletedTabs: Array<string>, keptTabs: Array<string> }}
  */
 function cleanupIrrelevantSpreadsheetTabs(targetSsId) {
-  const ssId = targetSsId || ConfigRepository.getSpreadsheetId() || '1kzJI_6Er-DI1Ty7Kc6sEkl6STK0fTih4RcHh8HJf0dI';
+  const ssId = targetSsId || ConfigRepository.getSpreadsheetId();
+  if (!ssId) {
+    return { success: false, message: 'Spreadsheet ID belum terkonfigurasi di Script Properties.' };
+  }
   let ss;
   try {
     ss = SpreadsheetApp.openById(ssId);

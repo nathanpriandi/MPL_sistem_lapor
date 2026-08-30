@@ -11,6 +11,9 @@
  * Useful for reviewing system behavior, triggers, and Looker Studio views without manual entry.
  */
 function seedMockData() {
+  if (typeof SecurityService !== 'undefined') {
+    SecurityService.AccessGuard.requireSuperadmin();
+  }
   Logger.log('Seeding mock operational data...');
   const ss = SpreadsheetRepository.getSpreadsheet();
 

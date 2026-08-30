@@ -1,42 +1,61 @@
-# Operational Configuration & Placeholders Guide
+# Operational Configuration, Environment & Security Guide
 
-This document lists all system environment settings, script properties, and operational parameters for the **Digital Reporting System**.
+This document lists all system environment settings, script properties, security controls, and operational parameters for the **Digital Reporting System (Sistem Lapor MPL)**.
 
 ---
 
 ## 1. Google Script Properties (Required Setup)
 
-After running `setupReportingSystem()`, you must set the following properties in Apps Script (**Project Settings -> Script Properties** or via `Setup.gs` update):
+After running `setupReportingSystem()`, you must set the following properties in Apps Script (**Project Settings -> Script Properties** or via `Setup.gs` initialization):
 
 | Property Name | Example / Expected Value | Description |
 |---|---|---|
-| `ADMIN_EMAIL` | `mpl.sisteminformasi@gmail.com` | Receives urgent incident alerts and daily 17:00 WIB digests |
-| `MANAGER_EMAIL` | `mpl.sisteminformasi@gmail.com` | Receives weekly Monday 08:00 WIB executive summary digests |
-| `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` |
-| `MAIN_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` for the unified Operational Form |
-| `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment A URL for the public field-staff portal. Set manually after Deployment A is created. |
-| `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment B URL for Admin Queue and Manager Dashboard. Set manually after Deployment B is created. |
-
-`WEB_APP_URL`, `DAILY_FORM_ID`, and `GENERAL_FORM_ID` are retired. Use `MAIN_FORM_ID` alongside explicit `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` properties instead.
-
-## 1.1 Google Script Properties (Optional Operational Tuning)
-
-| Property Name | Example / Expected Value | Description |
-|---|---|---|
-| `RETENTION_DAYS` | `90` | Optional retention threshold in days for daily spreadsheet tabs (`Laporan_YYYY-MM-DD`) and Google Drive photo folders (`MPL_Dokumentasi_Foto/YYYY-MM-DD`). Default: 90 days. |
+| `ADMIN_EMAIL` | `admin.operasional@perusahaan.co.id` | Primary Admin Google email. Receives urgent incident alerts and daily 17:00 WIB digests. |
+| `MANAGER_EMAIL` | `manager.eksekutif@perusahaan.co.id` | Primary Manager Google email. Receives weekly Monday 08:00 WIB executive summary digests. |
+| `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` or linked to your central operational Google Sheet. |
+| `MAIN_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` for the unified Operational Google Form. |
+| `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment URL for public field-staff portal (`?page=index`). |
+| `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment URL for Admin Queue and Manager Dashboard console. |
+| `PUBLIC_DEPLOYMENT_ID` | `AKfycb...` | Explicit Deployment ID for the public portal to enforce isolation from internal console routes. |
 
 ---
 
-## 2. Integrated Agriculture Site Locations (Indonesia Context)
+## 1.1 Google Script Properties (Optional Operational & Storage Tuning)
 
-The default form site dropdown options represent an integrated agriculture supply chain:
+| Property Name | Example / Expected Value | Description |
+|---|---|---|
+| `RETENTION_DAYS` | `90` | Retention threshold in days for daily spreadsheet tabs (`Laporan_YYYY-MM-DD`) and Google Drive photo folders (`MPL_Dokumentasi_Foto/YYYY-MM-DD`). Default: 90 days. |
+| `DRIVE_PHOTO_FOLDER_ID` | `1A2b3C4d5E...` | Optional root Google Drive folder ID for field photo uploads. If unset, automatically creates `MPL_Dokumentasi_Foto`. |
 
-1. **Site A — Kebun & Lahan Pertanian** (Crops / Agricultural Land)
-2. **Site B — Peternakan & Kandang** (Livestock / Poultry / Dairy)
-3. **Site C — Pabrik Pengolahan & Pakan** (Processing Plant / Feed Mill / End-Product Unit)
-4. **Site D — Logistik & Gudang Distribution** (Warehouse & Transport Hub)
+---
 
-*To customize these site names, edit `src/Setup.gs` in `setupOperationalForm()` before running provision.*
+## 2. Enterprise Cybersecurity Controls
+
+The application enforces end-to-end multi-layer defense managed by `SecurityService.gs`:
+
+### 2.1 Rate Limiting Architecture
+Implemented using `CacheService.getScriptCache()` token buckets:
+- **Authentication & Identity Routes**: Max **5 attempts per 15 minutes (900 seconds)** per caller identity. Protects against brute-force and role spoofing.
+- **Report & Form Submissions**: Max **30 submissions per minute (60 seconds)**. Protects against spam flood and denial-of-service.
+- **Read & Analytics Queries**: Max **120 queries per minute (60 seconds)**.
+- **General Administrative Actions**: Max **60 operations per minute (60 seconds)**.
+
+### 2.2 Input Sanitization & Formula Injection Neutralization (CWE-1236)
+- Any cell value written to Google Sheets starting with dangerous formula characters (`=`, `+`, `-`, `@`, `\t`, `\r`, `|`) is automatically neutralized (prefixed with `'`) to prevent malicious formula execution or data exfiltration.
+- HTML output is sanitized to prevent Stored / Reflected Cross-Site Scripting (XSS / CWE-79).
+
+### 2.3 Payload Size & MIME Type Whitelisting
+- Maximum total JSON request payload: **15 MB**.
+- Maximum single photo attachment: **5 MB**.
+- Allowed image MIME types: `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/heic`, `image/heif`.
+- Malformed payloads and non-whitelisted binary uploads are immediately rejected with HTTP status errors.
+
+### 2.4 Strict RBAC Function-Level Access Control (BFLA/IDOR Mitigation)
+Every client-callable RPC method in `ClientAPI.gs` asserts user roles via `SecurityService.AccessGuard`:
+- `requireSuperadmin()`: Strictly limits account provisioning, trigger registration, and database purges to Superadmin.
+- `requireAdminOrSuperadmin()`: Protects operational queues, form configurations, and employee rosters.
+- `requireManagerOrSuperadmin()`: Protects executive dashboards and decision metrics.
+- `requireAuthorizedStaff()`: Blocks unauthenticated callers from reading internal company datasets.
 
 ---
 
@@ -56,14 +75,3 @@ The triage engine in `src/Automation.gs` categorizes incoming field reports into
 
 ### Normal Keywords (`normal` severity):
 - All routine reports passing standard operations.
-
----
-
-## 4. Key Architecture & Policy Decisions
-
-- **Attachment Handling (Option A)**:
-  Forms do not enforce Google Login to keep friction zero for non-tech-savvy field staff. Photo evidence for operational reports can be attached directly via Web App or submitted to the operational admin.
-- **Sensitive Data Isolation**:
-  Sensitive reports are routed exclusively to the restricted tab / access layer.
-- **Looker Studio & Analytics Integration**:
-  Looker Studio or external BI tools connect directly to the operational raw tab (`Laporan_Operasional_Raw`) for granular drill-downs, while executive metrics are computed in real-time by the Manager Web Dashboard and weekly email trigger.

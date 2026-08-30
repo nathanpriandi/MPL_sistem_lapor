@@ -227,7 +227,7 @@
           <div class="user-identity-menu" style="display: flex; align-items: center; gap: 0.65rem;">
             <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'A' ?></div>
             <div class="user-info">
-              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'mpl.sisteminformasi@gmail.com' ?></span>
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'Superadmin' ?></span>
               <? if (userRole === 'both') { ?>
                 <span class="badge badge-primary">Admin &amp; Manager</span>
               <? } else if (userRole === 'admin') { ?>
@@ -422,7 +422,7 @@
           list = await runServer('getUserRolesList');
         } else {
           list = [
-            { email: 'mpl.sisteminformasi@gmail.com', role: 'both', terakhirAktif: '', addedBy: 'System', addedAt: '2026-08-28' }
+            { email: 'superadmin@perusahaan.local', role: 'both', terakhirAktif: '', addedBy: 'System', addedAt: '2026-08-28' }
           ];
         }
 
@@ -453,12 +453,12 @@
       }
 
       tbody.innerHTML = list.map((item, idx) => {
-        const isPrimarySuperadmin = (item.email || '').toLowerCase() === 'mpl.sisteminformasi@gmail.com';
+        const isPrimarySuperadmin = (idx === 0 && (item.role === 'both' || item.role === 'superadmin'));
         
         let roleBadge = '<span class="badge-role-admin">Admin Operasional</span>';
         if (item.role === 'manager') {
           roleBadge = '<span class="badge-role-manager">Manager Eksekutif</span>';
-        } else if (item.role === 'both' || item.role === 'superadmin' || isPrimarySuperadmin) {
+        } else if (item.role === 'both' || item.role === 'superadmin') {
           roleBadge = '<span class="badge-role-both">Superadmin</span>';
         }
 
@@ -552,8 +552,8 @@
     let pendingDeleteEmail = '';
 
     function deleteRoleConfirm(email) {
-      if ((email || '').toLowerCase() === 'mpl.sisteminformasi@gmail.com') {
-        showToast('Akun Superadmin Utama (mpl.sisteminformasi@gmail.com) tidak dapat dihapus.', 'warning');
+      if (activeRolesList.length <= 1) {
+        showToast('Minimal satu akun Superadmin harus tetap terdaftar dalam sistem.', 'warning');
         return;
       }
 

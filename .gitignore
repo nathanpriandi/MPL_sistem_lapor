@@ -1,13 +1,34 @@
-# Node dependencies
+# Node & Package dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
 
-# Clasp / Apps Script local credentials and settings
+# Google Apps Script / Clasp credentials & project settings
 .clasp.json
 .clasprc.json
+clasp.json
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+!.env.template
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# Credentials & Certificate files
+*credential*.json
+*secret*.json
+*.key
+*.pem
+*.p12
+*.pfx
+client_secret*.json
 
 # Specific planning / scratch files
 implementation_plan.md
@@ -17,5 +38,3 @@ fixes.md
 .DS_Store
 Thumbs.db
 *.log
-.env
-.env.local

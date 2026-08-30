@@ -445,7 +445,7 @@
           <div class="user-identity-menu" style="display: flex; align-items: center; gap: 0.65rem;">
             <div class="user-avatar"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail.charAt(0).toUpperCase() : 'A' ?></div>
             <div class="user-info">
-              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'mpl.sisteminformasi@gmail.com' ?></span>
+              <span class="user-email"><?= (typeof userEmail !== 'undefined' && userEmail) ? userEmail : 'Pengguna Terautentikasi' ?></span>
               <? if (userRole === 'both') { ?>
                 <span class="badge badge-primary">Admin &amp; Manager</span>
               <? } else if (userRole === 'admin') { ?>

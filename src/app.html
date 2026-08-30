@@ -117,6 +117,10 @@ function runServer(fnName, ...args) {
           if (!isSettled) {
             isSettled = true;
             clearTimeout(timeoutTimer);
+            const errStr = (err && (err.message || err.toString())) || '';
+            if (errStr.includes('429 Too Many Requests') || errStr.includes('Batas laju')) {
+              showToast('Batas permintaan terlampaui. Mohon tunggu beberapa saat sebelum mencoba lagi.', 'warning', 6000);
+            }
             reject(err);
           }
         })
@@ -258,10 +262,10 @@ async function renderIdentityStrip() {
   // Fallback for local preview mode
   stripEl.innerHTML = `
     <div class="user-identity-menu" style="display: flex; align-items: center; gap: 0.65rem;">
-      <div class="user-avatar">L</div>
+      <div class="user-avatar">U</div>
       <div class="user-info">
-        <span class="user-email">mpl.sisteminformasi@gmail.com</span>
-        <span class="badge badge-neutral">Local Preview</span>
+        <span class="user-email">Pengguna Konsol</span>
+        <span class="badge badge-neutral">Pratinjau Lokal</span>
       </div>
       <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
         <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -437,11 +441,11 @@ async function loadQuickLinks() {
     container.innerHTML = linksHtml;
   };
 
-  // Instant fallback while fetching live server data
+  // Dynamic resolution from server or runtime config
   let fallbackPublic = (window.SERVER_WEB_APP_URL && window.SERVER_WEB_APP_URL.includes('script.google.com'))
     ? `${window.SERVER_WEB_APP_URL.split('?')[0]}?page=index`
-    : 'https://script.google.com/macros/s/AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav/exec?page=index';
-  let fallbackSpreadsheet = 'https://docs.google.com/spreadsheets/d/1kzJI_6Er-DI1Ty7Kc6sEkl6STK0fTih4RcHh8HJf0dI/edit';
+    : '?page=index';
+  let fallbackSpreadsheet = '';
   
   renderLinks(fallbackPublic, fallbackSpreadsheet, '');
 
