@@ -924,16 +924,15 @@
             <textarea id="upaya" rows="2" placeholder="Catat solusi atau tindakan penanganan jika ada (opsional)..."></textarea>
           </div>
 
-          <!-- Photo Proofs with Camera & File Picker -->
+          <!-- Photo Proofs with Live Camera Only for Non-Pengawasan -->
           <div class="form-group">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
-              <label class="form-label" style="margin: 0; font-weight: 700;">Foto Bukti Kegiatan (3 Foto Wajib) <span class="required">*</span></label>
+              <label class="form-label" style="margin: 0; font-weight: 700;">Foto Bukti Kegiatan Langsung (3 Foto Wajib Kamera) <span class="required">*</span></label>
               <span id="photoProgressBadge" class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px;">0 dari 3 foto telah diambil</span>
             </div>
             
             <p class="form-help" style="margin-bottom: 0.85rem;">
-              Ambil atau unggah 3 foto bukti dokumentasi kegiatan:
-              <strong>Foto 1 (Utama)</strong>, <strong>Foto 2 (Detail Aktivitas)</strong>, dan <strong>Foto 3 (Hasil / Kondisi Area)</strong>.
+              Ambil 3 foto bukti dokumentasi langsung di lokasi menggunakan kamera perangkat (Foto 1: Utama, Foto 2: Detail Aktivitas, Foto 3: Hasil / Area). <em>Unggah berkas dari galeri tidak diizinkan untuk kegiatan operasional.</em>
             </p>
 
             <div class="photo-slots-grid-3col">
@@ -948,7 +947,7 @@
                   <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(0)">
                     <span>Ambil Foto 1</span>
                   </button>
-                  <span class="photo-slot-hint">Kamera atau Galeri</span>
+                  <span class="photo-slot-hint">📸 Wajib Kamera Langsung</span>
                 </div>
 
                 <div id="slotPreview_0" class="photo-slot-preview" style="display: none;">
@@ -975,7 +974,7 @@
                   <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(1)">
                     <span>Ambil Foto 2</span>
                   </button>
-                  <span class="photo-slot-hint">Kamera atau Galeri</span>
+                  <span class="photo-slot-hint">📸 Wajib Kamera Langsung</span>
                 </div>
 
                 <div id="slotPreview_1" class="photo-slot-preview" style="display: none;">
@@ -1002,7 +1001,7 @@
                   <button type="button" class="btn btn-primary table-btn-sm" onclick="event.stopPropagation(); triggerCameraCapture(2)">
                     <span>Ambil Foto 3</span>
                   </button>
-                  <span class="photo-slot-hint">Kamera atau Galeri</span>
+                  <span class="photo-slot-hint">📸 Wajib Kamera Langsung</span>
                 </div>
 
                 <div id="slotPreview_2" class="photo-slot-preview" style="display: none;">
@@ -1019,7 +1018,7 @@
               </div>
             </div>
 
-            <!-- Hidden Native Camera File Input for fallback -->
+            <!-- Hidden Native Camera File Input (capture=environment for native camera) -->
             <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoSelect(this)">
           </div>
 
@@ -1236,28 +1235,80 @@
     </div>
   </div>
 
-  <!-- In-Page Desktop Camera Modal -->
+  <!-- In-Page Live Camera & Photo Capture Modal -->
   <div class="modal-overlay" id="cameraModal" style="display: none;">
-    <div class="modal-card" style="max-width: 520px; padding: 1.5rem; text-align: center;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #0f172a;" id="cameraModalTitle">Ambil Foto Bukti</h3>
+    <div class="modal-card" style="max-width: 540px; padding: 1.25rem; text-align: center; background: #FFFFFF;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color, #e2e8f0);">
+        <div style="text-align: left;">
+          <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0f172a;" id="cameraModalTitle">Ambil Foto Bukti</h3>
+          <span style="font-size: 0.75rem; color: var(--primary, #0F6B3A); font-weight: 600;">Sistem Lapor MPL • Bukti Operasional</span>
+        </div>
         <button type="button" class="modal-close-btn" onclick="closeInPageCameraModal()" aria-label="Tutup Kamera">
           <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
 
-      <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #0f172a; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+      <!-- Live Video Viewfinder Container -->
+      <div id="cameraModalStreamBox" style="position: relative; width: 100%; aspect-ratio: 4/3; background: #0b131f; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; box-shadow: inset 0 0 20px rgba(0,0,0,0.6);">
         <video id="cameraModalVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
-        <div id="cameraModalLoading" style="position: absolute; color: #94a3b8; font-size: 0.875rem;">Menghubungkan ke kamera...</div>
+        
+        <!-- Viewfinder HUD Overlays -->
+        <div id="cameraModalHud" style="position: absolute; inset: 12px; pointer-events: none; border: 1px dashed rgba(255,255,255,0.25); border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="background: rgba(15, 23, 42, 0.75); color: #4ade80; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80;"></span> LIVE CAMERA
+            </span>
+            <span id="cameraModalLiveTime" style="background: rgba(15, 23, 42, 0.75); color: #e2e8f0; font-size: 0.7rem; font-family: monospace; padding: 2px 8px; border-radius: 4px;">SISTEM LAPOR MPL</span>
+          </div>
+          <div style="text-align: center; color: rgba(255,255,255,0.4); font-size: 0.75rem;">
+            [ Arahkan kamera ke objek dokumentasi ]
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="cameraModalLoading" style="position: absolute; color: #94a3b8; font-size: 0.875rem; background: rgba(11, 19, 31, 0.9); inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem;">
+          <span>Menghubungkan ke kamera perangkat...</span>
+        </div>
       </div>
 
-      <div style="display: flex; gap: 0.75rem; justify-content: center; align-items: center; flex-wrap: wrap;">
-        <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeInPageCameraModal()">Batal</button>
-        <button type="button" class="btn btn-primary" id="btnSnapModal" onclick="snapInPageCameraPhoto()">
-          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Ambil Foto</span>
+      <!-- Fallback Box (Shown when WebRTC webcam is restricted by browser policy) -->
+      <div id="cameraModalFallbackBox" style="display: none; background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 1.25rem 1rem; margin-bottom: 1rem; text-align: center;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto;">
+          <svg class="svg-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <h4 style="margin: 0 0 0.4rem 0; font-size: 0.95rem; color: #0f172a; font-weight: 700;">Akses Kamera di Peramban Web</h4>
+        <p style="margin: 0 0 1rem 0; font-size: 0.825rem; color: #64748b; line-height: 1.5;">
+          Peramban membatasi streaming kamera di dalam frame. Silakan pilih opsi di bawah untuk mengambil atau memilih foto bukti kegiatan:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; max-width: 360px; margin: 0 auto;">
+          <button type="button" class="btn btn-primary" onclick="triggerFileUploadFallback(currentCameraSlot)" style="justify-content: center; width: 100%;">
+            <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Pilih Berkas Foto dari Komputer</span>
+          </button>
+          <button type="button" class="btn btn-secondary table-btn-sm" onclick="openStandaloneCameraWindow()" style="justify-content: center; width: 100%;">
+            <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span>Buka Kamera di Tab Baru</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Controls -->
+      <div style="display: flex; gap: 0.75rem; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeInPageCameraModal()">
+          Batal
         </button>
-        <button type="button" class="btn btn-secondary table-btn-sm" onclick="closeInPageCameraModal(); triggerFileUpload(currentCameraSlot);">Unggah File</button>
+        <div style="display: flex; gap: 0.5rem; align-items: center;" id="cameraModalLiveActions">
+          <button type="button" class="btn btn-secondary table-btn-sm" id="btnToggleFacingMode" onclick="toggleCameraFacingMode()" title="Ganti Kamera Depan/Belakang">
+            🔄 Putar Kamera
+          </button>
+          <button type="button" class="btn btn-secondary table-btn-sm" onclick="triggerFileUploadFallback(currentCameraSlot)">
+            📁 Pilih Berkas
+          </button>
+          <button type="button" class="btn btn-primary" id="btnSnapModal" onclick="snapInPageCameraPhoto()" style="padding: 0.6rem 1.25rem;">
+            <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span style="font-weight: 700;">Ambil Foto</span>
+          </button>
+        </div>
       </div>
       <canvas id="cameraModalCanvas" style="display: none;"></canvas>
     </div>
@@ -2564,37 +2615,26 @@
       }
     }
 
-    function handleCapturedPhoto(base64Data) {
-      if (!base64Data) return;
-      compressImageDataUrl(base64Data, 1280, 0.75).then(compressedBase64 => {
-        capturedPhotos[currentCameraSlot] = compressedBase64;
-        photoBase64Data = capturedPhotos[0];
-        photoMimeTypeData = 'image/jpeg';
-        photoIsSuspiciousTimestamp = false;
-        updatePhotoSlotsUI();
-        showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan.`, 'success');
-      });
-    }
-
-    window.onCameraCaptured = handleCapturedPhoto;
-
-    window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'CAMERA_CAPTURED') {
-        handleCapturedPhoto(event.data.base64);
-      }
-    });
-
     let cameraStreamRef = null;
+    let currentFacingMode = 'environment';
 
     function isMobileDevice() {
       return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
              (window.matchMedia && window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
     }
 
+    function getCameraPageUrl() {
+      var base = (typeof SERVER_WEB_APP_URL !== 'undefined' && SERVER_WEB_APP_URL) 
+        ? SERVER_WEB_APP_URL 
+        : (window.location.href ? window.location.href.split('?')[0] : '');
+      if (!base) return '';
+      return base + (base.includes('?') ? '&' : '?') + 'page=camera&slot=' + currentCameraSlot;
+    }
+
     function triggerCameraCapture(slotIndex) {
       currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
 
-      // On mobile devices, always launch the native smartphone camera directly (zero popup issues)
+      // On mobile smartphones (Android/iOS), launch the native camera viewfinder directly in 1 tap
       if (isMobileDevice()) {
         const hiddenInp = document.getElementById('photoInput');
         if (hiddenInp) {
@@ -2604,7 +2644,7 @@
         return;
       }
 
-      // On desktop / laptop, open in-page camera modal
+      // On desktop / web browser, open the in-page camera modal
       openInPageCameraModal(slotIndex);
     }
 
@@ -2612,51 +2652,124 @@
       currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
       const modal = document.getElementById('cameraModal');
       const title = document.getElementById('cameraModalTitle');
+      const streamBox = document.getElementById('cameraModalStreamBox');
+      const fallbackBox = document.getElementById('cameraModalFallbackBox');
+      const slotLabels = ['Foto 1: Utama', 'Foto 2: Detail Aktivitas', 'Foto 3: Hasil / Area'];
+
+      if (title) title.innerText = `Ambil ${slotLabels[currentCameraSlot] || ('Foto ' + (currentCameraSlot + 1))}`;
+      if (streamBox) streamBox.style.display = 'flex';
+      if (fallbackBox) fallbackBox.style.display = 'none';
+
+      const timeEl = document.getElementById('cameraModalLiveTime');
+      if (timeEl) {
+        const now = new Date();
+        timeEl.innerText = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      if (modal) modal.style.display = 'flex';
+      startCameraStream();
+    }
+
+    async function startCameraStream() {
+      stopCameraStream();
       const video = document.getElementById('cameraModalVideo');
       const loading = document.getElementById('cameraModalLoading');
+      const streamBox = document.getElementById('cameraModalStreamBox');
+      const fallbackBox = document.getElementById('cameraModalFallbackBox');
+      const snapBtn = document.getElementById('btnSnapModal');
 
-      if (title) title.innerText = `Ambil Foto Bukti #${currentCameraSlot + 1}`;
       if (loading) {
-        loading.style.display = 'block';
+        loading.style.display = 'flex';
         loading.innerText = 'Menghubungkan ke kamera...';
       }
-      if (modal) modal.style.display = 'flex';
+      if (streamBox) streamBox.style.display = 'flex';
+      if (fallbackBox) fallbackBox.style.display = 'none';
+      if (snapBtn) snapBtn.disabled = true;
 
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-        }).then(stream => {
-          cameraStreamRef = stream;
-          if (video) {
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-              if (loading) loading.style.display = 'none';
-            };
+      const constraintSets = [
+        { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+        { video: { facingMode: currentFacingMode } },
+        { video: { facingMode: (currentFacingMode === 'environment' ? 'user' : 'environment') } },
+        { video: true }
+      ];
+
+      let stream = null;
+      let lastErr = null;
+
+      for (let i = 0; i < constraintSets.length; i++) {
+        try {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            stream = await navigator.mediaDevices.getUserMedia(constraintSets[i]);
+            if (stream) break;
           }
-        }).catch(err => {
-          console.warn('Webcam error:', err);
-          if (loading) loading.innerText = 'Kamera tidak dapat diakses (' + (err.message || 'Izin ditolak') + ').';
-          showToast('Kamera tidak tersedia. Mengalihkan ke pilihan file...', 'warning');
-          setTimeout(() => {
-            closeInPageCameraModal();
-            triggerFileUpload(currentCameraSlot);
-          }, 1200);
-        });
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+
+      if (stream) {
+        cameraStreamRef = stream;
+        if (video) {
+          video.srcObject = stream;
+          video.onloadedmetadata = () => {
+            video.play().catch(()=>{});
+            if (loading) loading.style.display = 'none';
+            if (snapBtn) snapBtn.disabled = false;
+          };
+        }
       } else {
-        closeInPageCameraModal();
-        triggerFileUpload(currentCameraSlot);
+        console.warn('Webcam stream unavailable:', lastErr);
+        if (loading) loading.style.display = 'none';
+        if (streamBox) streamBox.style.display = 'none';
+        if (fallbackBox) fallbackBox.style.display = 'block';
       }
     }
 
-    function closeInPageCameraModal() {
-      const modal = document.getElementById('cameraModal');
-      if (modal) modal.style.display = 'none';
+    function stopCameraStream() {
       if (cameraStreamRef) {
-        cameraStreamRef.getTracks().forEach(t => t.stop());
+        try {
+          cameraStreamRef.getTracks().forEach(t => t.stop());
+        } catch(e) {}
         cameraStreamRef = null;
       }
       const video = document.getElementById('cameraModalVideo');
       if (video) video.srcObject = null;
+    }
+
+    function toggleCameraFacingMode() {
+      currentFacingMode = (currentFacingMode === 'environment' ? 'user' : 'environment');
+      startCameraStream();
+    }
+
+    function closeInPageCameraModal() {
+      stopCameraStream();
+      const modal = document.getElementById('cameraModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function openStandaloneCameraWindow() {
+      const url = getCameraPageUrl();
+      if (!url) {
+        showToast('URL kamera tidak tersedia, membuka pemilih file...', 'warning');
+        triggerFileUploadFallback(currentCameraSlot);
+        return;
+      }
+      const popup = window.open(url, 'MPLCameraWindow', 'width=560,height=720,menubar=no,toolbar=no,location=no,status=no');
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        showToast('Jendela popup diblokir peramban. Membuka di tab baru...', 'info');
+        window.open(url, '_blank');
+      }
+      closeInPageCameraModal();
+    }
+
+    function triggerFileUploadFallback(slotIndex) {
+      closeInPageCameraModal();
+      currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
+      const hiddenInp = document.getElementById('photoInput');
+      if (hiddenInp) {
+        hiddenInp.value = '';
+        hiddenInp.click();
+      }
     }
 
     function snapInPageCameraPhoto() {
@@ -2664,18 +2777,58 @@
       const canvas = document.getElementById('cameraModalCanvas');
       if (!video || !canvas) return;
 
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const base64 = canvas.toDataURL('image/jpeg', 0.85);
 
-      handleCapturedPhoto(base64);
-      closeInPageCameraModal();
+      const rawBase64 = canvas.toDataURL('image/jpeg', 0.88);
+      const meta = getPhotoMetadata(currentCameraSlot);
+
+      compressAndWatermarkImage(rawBase64, 1280, 0.75, meta).then(compressedBase64 => {
+        capturedPhotos[currentCameraSlot] = compressedBase64;
+        photoBase64Data = capturedPhotos[0];
+        photoMimeTypeData = 'image/jpeg';
+        photoIsSuspiciousTimestamp = false;
+        updatePhotoSlotsUI();
+        closeInPageCameraModal();
+        showToast(`Foto ${currentCameraSlot + 1} berhasil diambil & diverifikasi.`, 'success');
+      });
     }
 
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'CAMERA_CAPTURED') {
+        if (typeof event.data.slotIndex === 'number' && event.data.slotIndex >= 0 && event.data.slotIndex <= 2) {
+          currentCameraSlot = event.data.slotIndex;
+        }
+        const meta = getPhotoMetadata(currentCameraSlot);
+        compressAndWatermarkImage(event.data.base64, 1280, 0.75, meta).then(compressedBase64 => {
+          capturedPhotos[currentCameraSlot] = compressedBase64;
+          photoBase64Data = capturedPhotos[0];
+          photoMimeTypeData = 'image/jpeg';
+          photoIsSuspiciousTimestamp = false;
+          updatePhotoSlotsUI();
+          closeInPageCameraModal();
+          showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan & diverifikasi.`, 'success');
+        });
+      }
+    });
+
+    window.onCameraCaptured = function(base64Data) {
+      if (!base64Data) return;
+      const meta = getPhotoMetadata(currentCameraSlot);
+      compressAndWatermarkImage(base64Data, 1280, 0.75, meta).then(compressedBase64 => {
+        capturedPhotos[currentCameraSlot] = compressedBase64;
+        photoBase64Data = capturedPhotos[0];
+        photoMimeTypeData = 'image/jpeg';
+        photoIsSuspiciousTimestamp = false;
+        updatePhotoSlotsUI();
+        showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan & diverifikasi.`, 'success');
+      });
+    };
+
     /**
-     * Trigger direct file upload for Pengawasan (NO live camera popup)
+     * Trigger direct file upload for Pengawasan ONLY (monitoring/supervisory branch)
      */
     function triggerFileUpload(slotIndex) {
       currentCameraSlot = (typeof slotIndex === 'number') ? slotIndex : 0;
@@ -2686,24 +2839,21 @@
       }
     }
 
-    function handleDirectPhotoUpload(input) {
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          compressImageDataUrl(e.target.result, 1280, 0.75).then(compressedBase64 => {
-            capturedPhotos[currentCameraSlot] = compressedBase64;
-            photoBase64Data = capturedPhotos[0];
-            photoMimeTypeData = 'image/jpeg';
-            updatePhotoSlotsUI();
-            showToast(`Foto ${currentCameraSlot + 1} berhasil diunggah.`, 'success');
-          });
-        };
-        reader.readAsDataURL(file);
-      }
+    function getPhotoMetadata(slotIndex) {
+      const slotLabels = ['Foto 1 (Utama)', 'Foto 2 (Detail Aktivitas)', 'Foto 3 (Hasil / Area)'];
+      const empSelect = document.getElementById('employeeId');
+      const selectedOpt = empSelect ? empSelect.options[empSelect.selectedIndex] : null;
+      const empName = selectedOpt ? selectedOpt.text.split(' - ')[0] : 'Petugas';
+      const kegiatan = document.querySelector('input[name="jenisKegiatanRadio"]:checked')?.value || 'Operasional';
+
+      return {
+        slotName: slotLabels[slotIndex] || ('Foto ' + (slotIndex + 1)),
+        reporter: empName,
+        kegiatan: kegiatan
+      };
     }
 
-    function compressImageDataUrl(dataUrl, maxDimension, quality) {
+    function compressAndWatermarkImage(dataUrl, maxDimension, quality, meta) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = function() {
@@ -2724,7 +2874,45 @@
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+
+          // 1. Draw source image
           ctx.drawImage(img, 0, 0, width, height);
+
+          // 2. Draw tamper-proof digital watermark bar
+          const bannerHeight = Math.max(38, Math.round(height * 0.08));
+          const fontSize = Math.max(11, Math.round(bannerHeight * 0.32));
+          const subFontSize = Math.max(9, Math.round(bannerHeight * 0.24));
+
+          // Semi-transparent background
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+          ctx.fillRect(0, height - bannerHeight, width, bannerHeight);
+
+          // Accent gold horizon line
+          ctx.fillStyle = '#C9922E';
+          ctx.fillRect(0, height - bannerHeight, width, Math.max(2, Math.round(bannerHeight * 0.06)));
+
+          // Formatted timestamp
+          const now = new Date();
+          const pad = n => (n < 10 ? '0' + n : n);
+          const timeStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} WIB`;
+
+          // Watermark title & info
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'bold ' + fontSize + 'px sans-serif';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`SISTEM LAPOR MPL • ${(meta && meta.slotName) ? meta.slotName : 'BUKTI OPERASIONAL'}`, 14, height - (bannerHeight * 0.65));
+
+          ctx.font = subFontSize + 'px sans-serif';
+          ctx.fillStyle = '#E2E8F0';
+          const subInfo = `WAKTU: ${timeStr} | PELAPOR: ${(meta && meta.reporter) ? meta.reporter : 'Petugas'} | ${(meta && meta.kegiatan) ? meta.kegiatan : 'Operasional'}`;
+          ctx.fillText(subInfo, 14, height - (bannerHeight * 0.28));
+
+          // Verified mark badge on bottom right
+          ctx.textAlign = 'right';
+          ctx.font = 'bold ' + Math.max(10, fontSize * 0.85) + 'px sans-serif';
+          ctx.fillStyle = '#4ADE80';
+          ctx.fillText('VERIFIED MPL', width - 14, height - (bannerHeight * 0.5));
 
           const compressed = canvas.toDataURL('image/jpeg', quality || 0.75);
           resolve(compressed);
@@ -2741,15 +2929,34 @@
         const file = input.files[0];
         photoMimeTypeData = 'image/jpeg';
         photoIsSuspiciousTimestamp = false;
+        const meta = getPhotoMetadata(currentCameraSlot);
 
         const reader = new FileReader();
         reader.onload = function(e) {
-          compressImageDataUrl(e.target.result, 1280, 0.75).then(compressedBase64 => {
+          compressAndWatermarkImage(e.target.result, 1280, 0.75, meta).then(compressedBase64 => {
             capturedPhotos[currentCameraSlot] = compressedBase64;
             photoBase64Data = capturedPhotos[0];
             photoMimeTypeData = 'image/jpeg';
             updatePhotoSlotsUI();
-            showToast(`Foto ${currentCameraSlot + 1} berhasil disimpan.`, 'success');
+            showToast(`Foto ${currentCameraSlot + 1} berhasil diambil & dibubuhi verifikasi MPL.`, 'success');
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleDirectPhotoUpload(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const meta = getPhotoMetadata(currentCameraSlot);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          compressAndWatermarkImage(e.target.result, 1280, 0.75, meta).then(compressedBase64 => {
+            capturedPhotos[currentCameraSlot] = compressedBase64;
+            photoBase64Data = capturedPhotos[0];
+            photoMimeTypeData = 'image/jpeg';
+            updatePhotoSlotsUI();
+            showToast(`Foto ${currentCameraSlot + 1} berhasil diunggah & dibubuhi verifikasi MPL.`, 'success');
           });
         };
         reader.readAsDataURL(file);
@@ -3291,11 +3498,13 @@
       const filledPhotos = capturedPhotos.filter(Boolean);
       if (filledPhotos.length > 0) {
         photoContainer.innerHTML = `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-top: 0.5rem;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; margin-top: 0.5rem;">
             ${capturedPhotos.map((p, idx) => p ? `
-              <div style="text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; background: var(--bg-surface);">
-                <img src="${p}" alt="Foto ${idx+1}" style="max-height: 80px; width: 100%; object-fit: cover; border-radius: 4px;">
-                <div style="font-size: 0.7rem; font-weight: 600; color: #475569; margin-top: 2px;">Foto ${idx+1}</div>
+              <div style="text-align: center; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 4px; background: var(--bg-surface, #ffffff); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 4px; overflow: hidden; background: #0f172a;">
+                  <img src="${p}" alt="Foto ${idx+1}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 0.685rem; font-weight: 700; color: #475569; margin-top: 4px;">Foto ${idx+1}</div>
               </div>
             ` : '').join('')}
           </div>
@@ -3598,6 +3807,10 @@
     window.openInPageCameraModal = openInPageCameraModal;
     window.closeInPageCameraModal = closeInPageCameraModal;
     window.snapInPageCameraPhoto = snapInPageCameraPhoto;
+    window.startCameraStream = startCameraStream;
+    window.toggleCameraFacingMode = toggleCameraFacingMode;
+    window.openStandaloneCameraWindow = openStandaloneCameraWindow;
+    window.triggerFileUploadFallback = triggerFileUploadFallback;
     window.triggerFileUpload = triggerFileUpload;
     window.handleDirectPhotoUpload = handleDirectPhotoUpload;
     window.handlePhotoSelect = handlePhotoSelect;

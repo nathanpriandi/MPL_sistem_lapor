@@ -210,18 +210,18 @@ const EMPLOYEE_REGISTRY = Object.freeze([
   { id: 'ALP-07', name: 'Mislan', division: 'Alprof', isPic: true },
 
   // SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Ketut (SGA-01) & Amas S (SGA-02)
-  { id: 'SGA-01', name: 'Ketut', division: 'SGA', isPic: true },
-  { id: 'SGA-02', name: 'Amas S', division: 'SGA', isPic: true },
-  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-06', name: 'Rukman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-07', name: 'Subandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-08', name: 'Suganda', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-09', name: 'Dede', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-10', name: 'Wafa', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-11', name: 'Rafi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
+  { id: 'SGA-01', name: 'Ketut', division: 'SGA', role: 'PIC SGA', isPic: true },
+  { id: 'SGA-02', name: 'Amas S', division: 'SGA', role: 'PIC SGA', isPic: true },
+  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-06', name: 'Rukman', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-07', name: 'Subandi', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-08', name: 'Suganda', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-09', name: 'Dede', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-10', name: 'Wafa', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-11', name: 'Rafi', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
 ]);
 
 /**
@@ -301,7 +301,7 @@ function isAlprofSubordinate(empId) {
 /**
  * Returns active employee registry, preferring customized script property if present,
  * falling back to default EMPLOYEE_REGISTRY.
- * @returns {Array<{ id: string, name: string, division: string, isPic?: boolean }>}
+ * @returns {Array<{ id: string, name: string, division: string, role?: string, isPic?: boolean }>}
  */
 function getActiveEmployeeRegistry() {
   let list = [];
@@ -312,23 +312,26 @@ function getActiveEmployeeRegistry() {
     }
   }
   if (!list || list.length === 0) {
-    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division, isPic: !!e.isPic }));
+    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division, role: e.role || e.division, isPic: !!e.isPic }));
   }
 
   // Ensure isPic is always properly normalized based on ID rules:
   list = list.map(e => {
     const cleanId = String(e.id || '').toUpperCase().replace(/[\s\-_]/g, '');
-    let isPic = true;
+    let isPic = (e.isPic !== undefined) ? !!e.isPic : true;
     if (cleanId.startsWith('SGA')) {
-      isPic = (cleanId === 'SGA01' || cleanId === 'SGA02');
+      isPic = (e.role === 'PIC SGA' || cleanId === 'SGA01' || cleanId === 'SGA02');
     } else if (cleanId.startsWith('BKO') || cleanId.startsWith('PKH')) {
       isPic = false;
     }
+    const role = (cleanId.startsWith('SGA') && isPic) ? 'PIC SGA' : (e.role || e.division);
     return {
       id: e.id,
       name: e.name,
       division: e.division,
-      isPic: isPic
+      role: role,
+      isPic: isPic,
+      delegatedTo: e.delegatedTo || ''
     };
   });
 

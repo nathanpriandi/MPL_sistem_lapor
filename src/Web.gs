@@ -46,15 +46,15 @@ function doGet(e) {
   // Access control: strict per-role RBAC for internal console pages
   if ((file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') && !isInternalDeployment) {
     return renderAccessRestricted(
-      'Akses Internal Console Tidak Tersedia di Deployment Ini',
-      'Halaman Internal Console hanya tersedia melalui Deployment Admin internal.'
+      'Akses Konsol Internal Tidak Tersedia di Deployment Ini',
+      'Halaman Konsol Internal hanya tersedia melalui Deployment Admin internal Sistem Lapor MPL.'
     );
   }
 
   if (file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') {
     if (!userRole) {
       return renderAccessRestricted(
-        '🔒 Akses Internal Console Terbatas',
+        'Akses Konsol Internal Terbatas',
         'Akun Google Anda belum terdaftar dalam sistem. Silakan hubungi Superadmin di <code>mpl.sisteminformasi@gmail.com</code> untuk mendaftarkan hak akses akun Anda.'
       );
     }
@@ -62,7 +62,7 @@ function doGet(e) {
     // 1. Hak Akses & Role (?page=roles) -> STRICTLY SUPERADMIN ONLY
     if (file === 'roles' && userRole !== 'both') {
       return renderAccessRestricted(
-        '🔒 Akses Ditolak — Khusus Superadmin',
+        'Akses Ditolak — Khusus Superadmin',
         'Halaman <strong>Manajemen Hak Akses & Role</strong> hanya dapat diakses oleh <strong>Superadmin</strong> sistem.'
       );
     }
@@ -70,7 +70,7 @@ function doGet(e) {
     // 2. Manager Role -> STRICTLY MANAGER DASHBOARD ONLY
     if (userRole === 'manager' && (file === 'admin' || file === 'forms' || file === 'employees' || file === 'roles')) {
       return renderAccessRestricted(
-        '🔒 Akses Ditolak — Hak Akses Tidak Memadai',
+        'Akses Ditolak — Hak Akses Tidak Memadai',
         'Peran Anda (<strong>Manager Eksekutif</strong>) hanya memiliki izin untuk mengakses <strong>Dashboard Manajer</strong>. Silakan hubungi Superadmin jika Anda membutuhkan wewenang lain.'
       );
     }
@@ -78,7 +78,7 @@ function doGet(e) {
     // 3. Admin Role -> STRICTLY ADMIN MODULES ONLY (Antrean Admin, Karyawan, Form)
     if (userRole === 'admin' && (file === 'dashboard' || file === 'roles')) {
       return renderAccessRestricted(
-        '🔒 Akses Ditolak — Hak Akses Tidak Memadai',
+        'Akses Ditolak — Hak Akses Tidak Memadai',
         'Peran Anda (<strong>Admin Operasional</strong>) hanya memiliki izin untuk mengakses modul operasional (<strong>Antrean Admin</strong>, <strong>Pengaturan Karyawan</strong>, dan <strong>Pengaturan Form</strong>).'
       );
     }
@@ -101,20 +101,20 @@ function doGet(e) {
   template.userEmail = userEmail;
   template.currentPage = file;
 
-  const pageTitleMap = {
-    'index': 'Sistem Lapor MPL | Laporan Operasional',
-    'dynamicform': 'Sistem Lapor MPL | Laporan Operasional',
-    'dashboard': 'Sistem Lapor MPL | Dashboard Manajer',
-    'admin': 'Sistem Lapor MPL | Antrean Admin',
-    'forms': 'Sistem Lapor MPL | Pengaturan Form',
-    'employees': 'Sistem Lapor MPL | Pengaturan Karyawan',
-    'roles': 'Sistem Lapor MPL | Hak Akses & Role',
-    'camera': 'Sistem Lapor MPL | Kamera Lapangan'
+  const pageTitles = {
+    index: 'Sistem Lapor MPL | Laporan Operasional',
+    dynamicform: 'Sistem Lapor MPL | Laporan Operasional',
+    admin: 'Sistem Lapor MPL | Antrean Admin',
+    dashboard: 'Sistem Lapor MPL | Dashboard Manajer',
+    forms: 'Sistem Lapor MPL | Pengaturan Form',
+    employees: 'Sistem Lapor MPL | Pengaturan Karyawan',
+    roles: 'Sistem Lapor MPL | Hak Akses & Role',
+    camera: 'Sistem Lapor MPL | Kamera Lapangan'
   };
-  const finalTitle = pageTitleMap[file] || 'Sistem Lapor MPL';
+  const docTitle = pageTitles[file] || 'Sistem Lapor MPL';
 
   return template.evaluate()
-    .setTitle(finalTitle)
+    .setTitle(docTitle)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -142,28 +142,27 @@ function renderAccessRestricted(title, reason) {
     </div>`;
   }
 
-  const screenTitle = title ? `Sistem Lapor MPL | ${title}` : 'Sistem Lapor MPL | Akses Terbatas';
+  const cleanTitle = title.replace(/^[🔒\s]+/, '');
 
   return HtmlService.createHtmlOutput(
     '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     '<style>' +
     'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F8FAFC; color: #0F172A; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1rem; }' +
-    '.card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 2.25rem; max-width: 480px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); text-align: center; }' +
-    '.brand-logo { margin-bottom: 1.25rem; color: #0F6B3A; }' +
-    '.icon-wrap { width: 56px; height: 56px; margin: 0 auto 1.25rem; background: #FEF2F2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #B91C1C; }' +
-    'h2 { font-size: 1.35rem; color: #0F172A; margin-bottom: 0.75rem; font-weight: 700; }' +
-    'p { color: #475569; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem; }' +
-    '.btn { display: inline-block; background: #0F6B3A; color: #FFFFFF; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: background 0.15s; }' +
+    '.card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 2.25rem 2rem; max-width: 480px; width: 100%; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07); text-align: center; }' +
+    '.icon-wrap { width: 52px; height: 52px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; border: 1px solid #FEE2E2; }' +
+    'h2 { font-size: 1.25rem; color: #991B1B; margin-bottom: 0.75rem; font-weight: 700; }' +
+    'p { color: #475569; font-size: 0.925rem; line-height: 1.6; margin-bottom: 1.5rem; }' +
+    '.btn { display: inline-block; background: #0F6B3A; color: #FFFFFF; text-decoration: none; padding: 0.65rem 1.25rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: background 0.15s ease; }' +
     '.btn:hover { background: #0B542D; }' +
     '</style></head><body>' +
     '<div class="card">' +
-    '<div class="icon-wrap"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>' +
-    '<h2>' + (title || 'Akses Terbatas') + '</h2>' +
+    '<div class="icon-wrap"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>' +
+    '<h2>' + cleanTitle + '</h2>' +
     emailBanner +
     '<p>' + reason + '</p>' +
-    '<button onclick="' + backAction + '" class="btn">Kembali ke Form Laporan</button>' +
+    '<button onclick="' + backAction + '" class="btn">Kembali ke Form Laporan Operasional</button>' +
     '</div></body></html>'
-  ).setTitle(screenTitle);
+  ).setTitle('Sistem Lapor MPL | ' + cleanTitle);
 }
 
 /**
@@ -173,29 +172,21 @@ function renderAccessRestricted(title, reason) {
  * @returns {string}
  */
 function include(filename) {
-  try {
-    return HtmlService.createHtmlOutputFromFile(filename).getContent();
-  } catch (err) {
-    Logger.log('include error for ' + filename + ': ' + err.toString());
-    return '';
-  }
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 /**
  * Injects client configuration variables into a script tag preceding app.html contents.
  * @param {string} webAppUrl 
+ * @param {string} urgentKeywordsJson 
+ * @param {string} warningKeywordsJson 
  * @returns {string}
  */
 function includeApp(webAppUrl) {
   const scriptTag = '<script>\n' +
     '  window.SERVER_WEB_APP_URL = ' + JSON.stringify(webAppUrl || '') + ';\n' +
     '</script>\n';
-  try {
-    return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
-  } catch (err) {
-    Logger.log('includeApp error: ' + err.toString());
-    return scriptTag;
-  }
+  return scriptTag + HtmlService.createHtmlOutputFromFile('app').getContent();
 }
 
 /**
@@ -206,27 +197,22 @@ function includeApp(webAppUrl) {
  * @returns {string}
  */
 function includeHeader(userRole, currentPage, webAppUrl) {
-  try {
-    const template = HtmlService.createTemplateFromFile('header');
-    template.userRole = userRole || null;
-    template.currentPage = currentPage || 'index';
-    template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
+  const template = HtmlService.createTemplateFromFile('header');
+  template.userRole = userRole;
+  template.currentPage = currentPage;
+  template.webAppUrl = webAppUrl;
 
-    let userEmail = '';
-    if (userRole) {
-      try {
-        userEmail = (Session.getActiveUser().getEmail() || '').trim();
-      } catch (e) {
-        userEmail = '';
-      }
+  let userEmail = '';
+  if (userRole) {
+    try {
+      userEmail = (Session.getActiveUser().getEmail() || '').trim();
+    } catch (e) {
+      userEmail = '';
     }
-    template.userEmail = userEmail;
-
-    return template.evaluate().getContent();
-  } catch (err) {
-    Logger.log('includeHeader error: ' + err.toString());
-    return '';
   }
+  template.userEmail = userEmail;
+
+  return template.evaluate().getContent();
 }
 
 /**
@@ -237,24 +223,19 @@ function includeHeader(userRole, currentPage, webAppUrl) {
  * @returns {string}
  */
 function includeSidebar(userRole, currentPage, webAppUrl) {
+  const template = HtmlService.createTemplateFromFile('sidebar');
+  template.userRole = userRole || '';
+  template.currentPage = currentPage || '';
+  template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
+
+  let userEmail = '';
   try {
-    const template = HtmlService.createTemplateFromFile('sidebar');
-    template.userRole = userRole || '';
-    template.currentPage = currentPage || '';
-    template.webAppUrl = webAppUrl || AuthService.getCanonicalWebAppUrl();
-
-    let userEmail = '';
-    try {
-      userEmail = (Session.getActiveUser().getEmail() || '').trim();
-    } catch (e) {
-      userEmail = '';
-    }
-    template.userEmail = userEmail;
-
-    return template.evaluate().getContent();
-  } catch (err) {
-    Logger.log('includeSidebar error: ' + err.toString());
-    return '';
+    userEmail = (Session.getActiveUser().getEmail() || '').trim();
+  } catch (e) {
+    userEmail = '';
   }
+  template.userEmail = userEmail;
+
+  return template.evaluate().getContent();
 }
 

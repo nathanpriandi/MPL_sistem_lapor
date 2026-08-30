@@ -107,8 +107,53 @@
     }
     .add-chip-group {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.45rem;
       max-width: 480px;
+      align-items: center;
+      margin-top: 0.45rem;
+    }
+    .add-chip-input {
+      flex: 1;
+      height: 34px;
+      padding: 0 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-sm, 6px);
+      font-size: 0.815rem;
+      background: #FFFFFF;
+      color: #1e293b;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+    .add-chip-input:focus {
+      outline: none;
+      border-color: var(--primary, #0F6B3A);
+      box-shadow: 0 0 0 3px rgba(15, 107, 58, 0.12);
+    }
+    .add-chip-btn {
+      height: 34px;
+      padding: 0 0.85rem;
+      border-radius: var(--radius-sm, 6px);
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+    .add-chip-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+    .add-chip-btn:active {
+      transform: translateY(1px);
     }
 
     .static-field-pill {
@@ -264,7 +309,7 @@
               <? } else if (userRole === 'admin') { ?>
                 <span class="badge badge-primary">Admin Operasional</span>
               <? } else if (userRole === 'manager') { ?>
-                <span class="badge badge-normal">Executive Manager</span>
+                <span class="badge badge-normal">Manager Eksekutif</span>
               <? } ?>
             </div>
             <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">
@@ -351,9 +396,10 @@
             <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Daftar lokasi penugasan kegiatan yang dapat dipilih oleh staf:</p>
             <div class="chip-container" id="lokasiChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newLokasiInput" class="form-input" placeholder="Nama lokasi baru (contoh: Jonggol, Cikalong...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLokasiOption();}" style="height: 34px; font-size: 0.825rem;">
-              <button type="button" class="btn btn-secondary" onclick="addLokasiOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Lokasi</span>
+              <input type="text" id="newLokasiInput" class="add-chip-input" placeholder="Nama lokasi baru (contoh: Jonggol, Cikalong...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addLokasiOption();}">
+              <button type="button" class="add-chip-btn" onclick="addLokasiOption()">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Tambah Lokasi</span>
               </button>
             </div>
           </div>
@@ -387,9 +433,10 @@
             <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Opsi dropdown saat staf mencentang kegiatan "Pengawasan":</p>
             <div class="chip-container" id="pengawasanChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newPengawasanInput" class="form-input" placeholder="Tindakan baru (contoh: Pengecekan Hama & Penyakit, Audit Bibit...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPengawasanOption();}" style="height: 34px; font-size: 0.825rem;">
-              <button type="button" class="btn btn-secondary" onclick="addPengawasanOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Tindakan</span>
+              <input type="text" id="newPengawasanInput" class="add-chip-input" placeholder="Tindakan baru (contoh: Pengecekan Hama & Penyakit, Audit Bibit...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPengawasanOption();}">
+              <button type="button" class="add-chip-btn" onclick="addPengawasanOption()">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Tambah Tindakan</span>
               </button>
             </div>
           </div>
@@ -427,9 +474,10 @@
             <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Daftar komoditas aktif yang muncul pada dropdown Langkah 2 (Tanam) dan Langkah 3 (Panen):</p>
             <div class="chip-container" id="komoditasChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newKomoditasInput" class="form-input" placeholder="Komoditas baru (contoh: Semangka, Melon, Jahe Merah...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKomoditasOption();}" style="height: 34px; font-size: 0.825rem;">
-              <button type="button" class="btn btn-secondary" onclick="addKomoditasOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Komoditas</span>
+              <input type="text" id="newKomoditasInput" class="add-chip-input" placeholder="Komoditas baru (contoh: Semangka, Melon, Jahe Merah...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKomoditasOption();}">
+              <button type="button" class="add-chip-btn" onclick="addKomoditasOption()">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Tambah Komoditas</span>
               </button>
             </div>
           </div>
@@ -439,9 +487,10 @@
             <label style="font-weight: 700; font-size: 0.85rem; color: #334155; margin-bottom: 0.35rem; display: block;">2.2 Status Pengelolaan Lahan</label>
             <div class="chip-container" id="statusChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newStatusInput" class="form-input" placeholder="Status baru..." onkeydown="if(event.key==='Enter'){event.preventDefault();addStatusOption();}" style="height: 34px; font-size: 0.825rem;">
-              <button type="button" class="btn btn-secondary" onclick="addStatusOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Status</span>
+              <input type="text" id="newStatusInput" class="add-chip-input" placeholder="Status baru..." onkeydown="if(event.key==='Enter'){event.preventDefault();addStatusOption();}">
+              <button type="button" class="add-chip-btn" onclick="addStatusOption()">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Tambah Status</span>
               </button>
             </div>
           </div>
@@ -561,9 +610,10 @@
             <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">Pilihan kotak centang tujuan distribusi internal hasil panen:</p>
             <div class="chip-container" id="penggunaanChipsContainer"></div>
             <div class="add-chip-group">
-              <input type="text" id="newPenggunaanInput" class="form-input" placeholder="Lokasi baru (contoh: Gudang Pusat, Villa Quiling...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPenggunaanOption();}" style="height: 34px; font-size: 0.825rem;">
-              <button type="button" class="btn btn-secondary" onclick="addPenggunaanOption()" style="height: 34px; padding: 0 0.75rem; font-size: 0.78rem; white-space: nowrap;">
-                <span>+ Tambah Lokasi</span>
+              <input type="text" id="newPenggunaanInput" class="add-chip-input" placeholder="Lokasi baru (contoh: Gudang Pusat, Villa Quiling...)" onkeydown="if(event.key==='Enter'){event.preventDefault();addPenggunaanOption();}">
+              <button type="button" class="add-chip-btn" onclick="addPenggunaanOption()">
+                <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Tambah Lokasi</span>
               </button>
             </div>
           </div>

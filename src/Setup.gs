@@ -27,7 +27,7 @@ function setupReportingSystem() {
   } catch (e) {}
   
   // 1. Create Central Spreadsheet
-  const ss = SpreadsheetApp.create('Sistem Lapor MPL — Master Database');
+  const ss = SpreadsheetApp.create('Sistem Lapor MPL — Database Operasional');
   const ssId = ss.getId();
   Logger.log('Created Spreadsheet ID: ' + ssId);
 

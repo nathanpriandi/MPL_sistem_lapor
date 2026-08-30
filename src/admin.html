@@ -46,7 +46,7 @@
               <? } else if (userRole === 'admin') { ?>
               <span class="badge badge-primary">Admin Operasional</span>
               <? } else if (userRole === 'manager') { ?>
-              <span class="badge badge-normal">Executive Manager</span>
+              <span class="badge badge-normal">Manager Eksekutif</span>
               <? } ?>
             </div>
             <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">
@@ -352,22 +352,6 @@
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
 
-    function extractDriveId(url) {
-      if (!url) return '';
-      const s = String(url).trim();
-      const match = s.match(/[-\w]{25,}/);
-      return match ? match[0] : '';
-    }
-
-    function getDriveThumbnail(url) {
-      if (!url) return '';
-      const fileId = extractDriveId(url);
-      if (fileId) {
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
-      }
-      return String(url).trim();
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const initialFilter = urlParams.get('filter');
@@ -378,6 +362,8 @@
       }
 
       setQuickFilter(currentQuickFilter);
+      loadQuickLinks();
+      loadDiagnostics();
       fetchAndRenderQueue();
 
       const container = document.getElementById('tableContainer');
@@ -474,7 +460,7 @@
 
     function updateSortIcons() {
       ['timestamp', 'severity', 'reviewStatus'].forEach(col => {
-        const el = document.getElementById('sort-' + col);
+        const el = document.getElementById(`sort-${col}`);
         if (!el) return;
         if (currentSortCol === col) {
           el.innerText = (currentSortDir === 'asc') ? '▲' : '▼';
@@ -538,57 +524,64 @@
 
       try {
         if (isLiveServer()) {
-          try {
-            const queueRows = await runServer('getAdminQueueData');
-            rawQueueData = [];
-            (queueRows || []).forEach(r => {
-              const rawK = (r.kendala && r.kendala !== 'urgent' && r.kendala !== 'normal') ? r.kendala : '';
-              const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawK) : String(rawK || '').trim();
-              const normU = normK ? (r.upaya || '') : '';
-              const p1 = r.photoUrl || '';
-              const p2 = r.photoUrl2 || '';
-              const p3 = r.photoUrl3 || '';
-              const photosList = Array.isArray(r.photos) && r.photos.length > 0
-                ? r.photos
-                : [p1, p2, p3].filter(Boolean);
+          const queueRows = await runServer('getAdminQueueData');
+          rawQueueData = [];
+          (queueRows || []).forEach(r => {
+            const normK = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(r.kendala || (r.raw ? String(r.raw[26] || '') : '')) : (r.kendala || '');
+            const normU = normK ? (r.upaya || (r.raw ? String(r.raw[27] || '') : '')) : '';
+            const p1 = r.photoUrl || (r.raw ? String(r.raw[28] || '') : '');
+            const p2 = r.photoUrl2 || (r.raw ? String(r.raw[29] || '') : '');
+            const p3 = r.photoUrl3 || (r.raw ? String(r.raw[30] || '') : '');
+            const photosList = Array.isArray(r.photos) && r.photos.length > 0
+              ? r.photos
+              : [p1, p2, p3].filter(Boolean);
 
-              rawQueueData.push({
-                source: r.source || 'Laporan Operasional',
-                reportId: r.reportId || '',
-                kodeKegiatan: r.kodeKegiatan || '-',
-                timestamp: r.timestamp || '-',
-                namaPic: r.namaPic || '-',
-                empId: r.empId || r.namaPic || '-',
-                divisi: r.divisi || '-',
-                lokasi: r.lokasi || '-',
-                ringkasan: r.ringkasan || '-',
-                severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
-                rank: r.rank || (normK ? 1 : 2),
-                category: r.category,
-                reviewStatus: normalizeReviewStatus(r.reviewStatus),
-                photoUrl: p1,
-                photoUrl2: p2,
-                photoUrl3: p3,
-                photos: photosList,
-                jumlahPanen: parseFloat(r.jumlahPanen) || 0,
-                nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp) || 0,
-                luasLahanM2: parseFloat(r.luasLahanM2) || 0,
-                jumlahBenih: parseFloat(r.jumlahBenih) || 0,
-                populasiTernak: parseFloat(r.populasiTernak) || 0,
-                ternakMasukQty: parseFloat(r.ternakMasukQty) || 0,
-                ternakKeluarQty: parseFloat(r.ternakKeluarQty) || 0,
-                kendala: normK,
-                upaya: normU,
-                fields: r.fields || [],
-                raw: r.raw || null,
-                isSensitive: String(r.source).includes('Sensitive')
-              });
+            rawQueueData.push({
+              source: r.source || 'Laporan Operasional',
+              reportId: r.reportId || (r.raw ? String(r.raw[0] || '') : ''),
+              kodeKegiatan: r.kodeKegiatan || (r.raw ? String(r.raw[1] || '') : '-'),
+              timestamp: r.timestamp || (r.raw ? String(r.raw[3] || '') : '-'),
+              namaPic: r.namaPic || (r.raw ? String(r.raw[4] || '') : '-'),
+              empId: r.empId || r.namaPic || (r.raw ? String(r.raw[4] || '') : '-'),
+              divisi: r.divisi || (r.raw ? String(r.raw[5] || '') : '-'),
+              lokasi: r.lokasi || (r.raw ? String(r.raw[6] || '') : '-'),
+              ringkasan: r.ringkasan || (r.raw ? String(r.raw[7] || '') : '-'),
+              severity: (r.severity || (normK ? 'urgent' : 'normal')).toLowerCase(),
+              rank: r.rank || (normK ? 1 : 2),
+              category: r.category,
+              reviewStatus: normalizeReviewStatus(r.reviewStatus),
+              photoUrl: p1,
+              photoUrl2: p2,
+              photoUrl3: p3,
+              photos: photosList,
+              jumlahPanen: parseFloat(r.jumlahPanen) || 0,
+              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp) || 0,
+              kendala: normK,
+              upaya: normU,
+              fields: r.fields || [],
+              raw: r.raw || null,
+              isSensitive: String(r.source).includes('Sensitive')
             });
-          } catch (eQueue) {
-            console.error('Error fetching admin queue RPC from server:', eQueue);
-            rawQueueData = [];
-            showToast('Gagal memuat data antrean dari server. Silakan coba muat ulang.', 'error');
+          });
+
+          // Fetch expiring daily tabs & Drive photo storage status
+          try {
+            const [expiringTabs, photoStatus] = await Promise.all([
+              runServer('getExpiringDailyTabs'),
+              runServer('getPhotoStorageStatus')
+            ]);
+            renderRetentionWarnings(expiringTabs, photoStatus);
+            if (photoStatus && photoStatus.rootFolderUrl) {
+              const driveBtn = document.getElementById('btnOpenDriveFolder');
+              if (driveBtn) {
+                driveBtn.href = photoStatus.rootFolderUrl;
+                driveBtn.style.display = 'inline-flex';
+              }
+            }
+          } catch (eExp) {
+            console.warn('Could not check expiring retention status:', eExp);
           }
+
         } else {
           rawQueueData = [];
           const db = getDB();
@@ -630,35 +623,11 @@
         if (manualRefresh) {
           showToast('Data antrean berhasil diperbarui', 'info');
         }
-
-        setTimeout(fetchRetentionStatusAsync, 150);
       } catch (err) {
         console.error('Server error getting admin queue:', err);
         showToast('Gagal memuat data dari server', 'error');
-        updateKpiCards(rawQueueData);
-        applyFilters();
       } finally {
         isFetchingQueue = false;
-      }
-    }
-
-    async function fetchRetentionStatusAsync() {
-      if (!isLiveServer()) return;
-      try {
-        const [expiringTabs, photoStatus] = await Promise.all([
-          runServer('getExpiringDailyTabs').catch(() => []),
-          runServer('getPhotoStorageStatus').catch(() => null)
-        ]);
-        renderRetentionWarnings(expiringTabs, photoStatus);
-        if (photoStatus && photoStatus.rootFolderUrl) {
-          const driveBtn = document.getElementById('btnOpenDriveFolder');
-          if (driveBtn) {
-            driveBtn.href = photoStatus.rootFolderUrl;
-            driveBtn.style.display = 'inline-flex';
-          }
-        }
-      } catch (eExp) {
-        console.warn('Could not check expiring retention status:', eExp);
       }
     }
 
@@ -910,21 +879,6 @@
         if (item.nilaiPenjualanRp > 0) {
           chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
         }
-        if (item.luasLahanM2 > 0) {
-          chipsHtml += `<span class="chip-panen" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">🌱 ${formatNumber(item.luasLahanM2)} m²</span>`;
-        }
-        if (item.jumlahBenih > 0) {
-          chipsHtml += `<span class="chip-panen" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">🌰 ${formatNumber(item.jumlahBenih)} Bibit</span>`;
-        }
-        if (item.populasiTernak > 0) {
-          chipsHtml += `<span class="chip-panen" style="background: #fefce8; color: #854d0e; border-color: #fef08a;">🐮 ${formatNumber(item.populasiTernak)} Ekor</span>`;
-        }
-        if (item.ternakMasukQty > 0) {
-          chipsHtml += `<span class="chip-panen" style="background: #fefce8; color: #854d0e; border-color: #fef08a;">+${formatNumber(item.ternakMasukQty)} Masuk</span>`;
-        }
-        if (item.ternakKeluarQty > 0) {
-          chipsHtml += `<span class="chip-panen" style="background: #fefce8; color: #854d0e; border-color: #fef08a;">-${formatNumber(item.ternakKeluarQty)} Keluar</span>`;
-        }
 
         const picInitials = getInitials(item.empId || item.namaPic);
 
@@ -955,9 +909,9 @@
             ${subtextHtml}
             ${chipsHtml ? `<div class="summary-chips">${chipsHtml}</div>` : ''}
           </td>
-          <td data-label="Tingkat Keparahan" class="cell-center">
+          <td data-label="Tingkat Urgensi" class="cell-center">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${item.severity === 'urgent' ? 'Kendala' : 'Normal'}
+              ${isUrgent ? 'Urgent' : 'Normal'}
             </span>
           </td>
           <td data-label="Status Verifikasi" class="cell-center">
@@ -1278,7 +1232,7 @@
         headerMetaEl.innerHTML = `
           <div class="inspector-controls-left">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${isUrgent ? 'Kendala' : 'Normal'}
+              ${isUrgent ? 'Urgent' : 'Normal'}
             </span>
             <select class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" onchange="toggleModalVerification('${item.reportId}', this.value)" aria-label="Status Verifikasi">
               <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
@@ -1406,13 +1360,8 @@
 
       // 6. Evaluasi, Kendala & Capaian (Langkah 6)
       const capaianKegiatan = getFieldValue(['capaiankegiatan', 'capaian']);
-      const rawKendalaVal = getFieldValue(['kendala', 'keterangan_kendala', 'deskripsi_kendala', 'status_kendala'], item.kendala);
-      let kendala = String(rawKendalaVal || '').trim();
-      if (kendala.toLowerCase() === 'urgent' || kendala.toLowerCase() === 'normal') {
-        const descriptiveK = getFieldValue(['rincian_kendala', 'deskripsi_kendala', 'keterangan_kendala', 'masalah']);
-        kendala = (descriptiveK && descriptiveK.toLowerCase() !== 'urgent' && descriptiveK.toLowerCase() !== 'normal') ? descriptiveK : '';
-      }
-      const upaya = getFieldValue(['upaya', 'upayapenanganan', 'tindaklanjut'], item.upaya);
+      const kendala = getFieldValue(['kendala'], item.kendala);
+      const upaya = getFieldValue(['upaya'], item.upaya);
       const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(kendala) : (kendala && kendala !== '-' && String(kendala).trim() !== '');
 
       // Mark all standard & internal technical keys as consumed to prevent leakage into Custom Questions
@@ -1489,35 +1438,12 @@
         `;
       }
 
-      // Find and collect all photo links from fields so they don't leak into custom questions
-      const photoLinksSet = new Set();
-      if (Array.isArray(item.photos)) {
-        item.photos.forEach(p => { if (p && String(p).startsWith('http')) photoLinksSet.add(String(p).trim()); });
-      }
-      [item.photoUrl, item.photoUrl2, item.photoUrl3].forEach(p => {
-        if (p && String(p).startsWith('http')) photoLinksSet.add(String(p).trim());
-      });
-      fields.forEach(f => {
-        const val = String(f.value || '').trim();
-        const lbl = String(f.label || '').toLowerCase();
-        if (val.startsWith('http') && (lbl.includes('foto') || lbl.includes('photo') || lbl.includes('lampiran') || lbl.includes('gambar') || val.includes('drive.google') || val.includes('googleusercontent') || val.includes('lh3.googleusercontent'))) {
-          photoLinksSet.add(val);
-          consumedKeys.add(f.label);
-        }
-      });
-      const photosToRender = Array.from(photoLinksSet);
-
       // Find unconsumed custom questions added dynamically by admin
       const unconsumedCustomFields = fields.filter(f => {
-        if (!f || !f.label || consumedKeys.has(f.label) || isStandardReportKey(f.label)) return false;
+        if (!f || consumedKeys.has(f.label) || isStandardReportKey(f.label)) return false;
         if (f.value === undefined || f.value === null) return false;
         const valStr = String(f.value).trim();
-        if (valStr === '' || valStr === '-') return false;
-        const normLabel = String(f.label).toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (valStr.startsWith('http') && (normLabel.includes('foto') || normLabel.includes('photo') || normLabel.includes('lampiran') || valStr.includes('drive.google') || valStr.includes('googleusercontent'))) {
-          return false;
-        }
-        return true;
+        return valStr !== '' && valStr !== '-';
       });
 
       let html = '';
@@ -1878,6 +1804,10 @@
       // ==========================================
       // SECTION 8: FOTO BUKTI LAPANGAN
       // ==========================================
+      const photosToRender = (Array.isArray(item.photos) && item.photos.length > 0)
+        ? item.photos.filter(p => p && String(p).startsWith('http'))
+        : [item.photoUrl, item.photoUrl2, item.photoUrl3].filter(p => p && String(p).startsWith('http'));
+
       html += `
         <div class="inspector-section">
           <div class="inspector-section-heading">
@@ -1889,23 +1819,19 @@
       if (photosToRender.length > 0) {
         html += `
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-top: 0.5rem;">
-            ${photosToRender.map((pUrl, pIdx) => {
-              const driveId = extractDriveId(pUrl);
-              const fallbackSrc = driveId ? ('https://drive.google.com/uc?export=view&id=' + driveId) : pUrl;
-              return `
-                <div class="inspector-photo-card" style="border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; background: #f8fafc; text-align: center;">
-                  <div style="font-weight: 600; font-size: 0.75rem; color: #475569; margin-bottom: 0.35rem;">Foto #${pIdx + 1}</div>
-                  <a href="${pUrl}" target="_blank" title="Buka Foto di Tab Baru" style="display: block;">
-                    <img src="${getDriveThumbnail(pUrl)}" class="inspector-photo-preview" alt="Foto #${pIdx + 1}" style="max-height: 180px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" onerror="this.onerror=null; this.src='${fallbackSrc}';" />
+            ${photosToRender.map((pUrl, pIdx) => `
+              <div class="inspector-photo-card" style="border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; background: #f8fafc; text-align: center;">
+                <div style="font-weight: 600; font-size: 0.75rem; color: #475569; margin-bottom: 0.35rem;">Foto #${pIdx + 1}</div>
+                <a href="${pUrl}" target="_blank" title="Buka di Google Drive" style="display: block;">
+                  <img src="${getDriveThumbnail(pUrl)}" class="inspector-photo-preview" alt="Foto #${pIdx + 1}" style="max-height: 150px; width: 100%; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;" onerror="this.src='${pUrl}'; this.onerror=null;" />
+                </a>
+                <div style="margin-top: 0.4rem;">
+                  <a href="${pUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.725rem; padding: 3px 8px;">
+                    <span>Lihat di Drive</span>
                   </a>
-                  <div style="margin-top: 0.4rem;">
-                    <a href="${pUrl}" target="_blank" class="btn btn-secondary table-btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.725rem; padding: 3px 8px;">
-                      <span>Buka Foto</span>
-                    </a>
-                  </div>
                 </div>
-              `;
-            }).join('')}
+              </div>
+            `).join('')}
           </div>
         `;
       } else {

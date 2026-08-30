@@ -180,29 +180,17 @@ function submitDynamicFormResponse(formId, payload) {
  * @returns {Array} Array of QueueItem objects.
  */
 function getAdminQueueData() {
-  try {
-    const res = AdminService.getAdminQueueData();
-    return JSON.parse(JSON.stringify(res || []));
-  } catch (e) {
-    Logger.log('ClientAPI Error in getAdminQueueData: ' + e.toString());
-    return [];
-  }
+  return AdminService.getAdminQueueData();
 }
 
 /**
  * Updates Review_Status of a report by matching Report_ID.
  * @param {string} reportId - Unique UUID of report.
  * @param {string} newStatus - Target status ('Unreviewed', 'In Review', 'Action Needed', 'Closed').
- * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string, error?: string }}
+ * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string }}
  */
 function updateReviewStatus(reportId, newStatus) {
-  try {
-    const res = AdminService.updateReviewStatus(reportId, newStatus);
-    return JSON.parse(JSON.stringify(res || { success: true }));
-  } catch (e) {
-    Logger.log('ClientAPI Error in updateReviewStatus: ' + e.toString());
-    return { success: false, error: e.message || e.toString() };
-  }
+  return AdminService.updateReviewStatus(reportId, newStatus);
 }
 
 /**
@@ -363,13 +351,7 @@ function getFormSheetUrl(formId) {
  * @returns {Array}
  */
 function getExpiringDailyTabs() {
-  try {
-    const res = AdminService.getExpiringDailyTabs();
-    return JSON.parse(JSON.stringify(res || []));
-  } catch (e) {
-    Logger.log('ClientAPI Error in getExpiringDailyTabs: ' + e.toString());
-    return [];
-  }
+  return AdminService.getExpiringDailyTabs();
 }
 
 /**

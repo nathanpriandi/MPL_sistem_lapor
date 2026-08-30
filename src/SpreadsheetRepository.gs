@@ -59,11 +59,48 @@ const SpreadsheetRepository = {
    * @returns {Spreadsheet}
    */
   getSpreadsheet: function() {
-    const ssId = ConfigRepository.getSpreadsheetId();
-    if (!ssId) {
-      throw new Error('Spreadsheet ID belum dikonfigurasi di Script Properties.');
+    let ssId = ConfigRepository.getSpreadsheetId();
+    if (ssId) {
+      try {
+        const ss = SpreadsheetApp.openById(ssId);
+        if (ss) return ss;
+      } catch (e) {
+        Logger.log('SpreadsheetRepository: Configured SPREADSHEET_ID unavailable (' + ssId + '): ' + e.toString());
+      }
     }
-    return SpreadsheetApp.openById(ssId);
+    
+    // Auto-discovery from Drive if SPREADSHEET_ID is missing/invalid
+    try {
+      if (typeof DriveApp !== 'undefined') {
+        const files = DriveApp.getFilesByName('Sistem Lapor MPL — Database Operasional');
+        while (files.hasNext()) {
+          const file = files.next();
+          if (!file.isTrashed()) {
+            ssId = file.getId();
+            ConfigRepository.setProperty('SPREADSHEET_ID', ssId);
+            return SpreadsheetApp.openById(ssId);
+          }
+        }
+      }
+    } catch (eDrive) {
+      Logger.log('SpreadsheetRepository auto-discovery notice: ' + eDrive.toString());
+    }
+
+    // Auto-create central database spreadsheet if none exists
+    try {
+      const newSs = SpreadsheetApp.create('Sistem Lapor MPL — Database Operasional');
+      ssId = newSs.getId();
+      ConfigRepository.setProperty('SPREADSHEET_ID', ssId);
+      let masterSheet = newSs.getSheets()[0];
+      masterSheet.setName('Master_Laporan');
+      const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
+      this.applyHeaderStyle(masterSheet, opHeaders);
+      Logger.log('SpreadsheetRepository: Auto-created new central spreadsheet: ' + ssId);
+      return newSs;
+    } catch (eCreate) {
+      Logger.log('SpreadsheetRepository Fatal Error creating spreadsheet: ' + eCreate.toString());
+      throw new Error('Spreadsheet database tidak dapat diakses atau dibuat: ' + eCreate.toString());
+    }
   },
 
   /**
@@ -587,24 +624,6 @@ const SpreadsheetRepository = {
       if (fieldKey === 'ternakKeluarQty' && (normH.includes('ternakkeluarqty') || normH.includes('keluarekor'))) {
         return row[idx];
       }
-      if ((fieldKey === 'photoUrl' || fieldKey === 'photoUrl1') && (normH === 'fotourl' || normH === 'fotolampiran' || normH === 'foto' || normH.includes('fotolapangan') || normH.includes('photourl') || normH.includes('uploadfoto'))) {
-        return row[idx];
-      }
-      if (fieldKey === 'photoUrl2' && (normH === 'fotourl2' || normH === 'foto2' || normH.includes('fotolampiran2') || normH.includes('photo2'))) {
-        return row[idx];
-      }
-      if (fieldKey === 'photoUrl3' && (normH === 'fotourl3' || normH === 'foto3' || normH.includes('fotolampiran3') || normH.includes('photo3'))) {
-        return row[idx];
-      }
-      if (fieldKey === 'kendala' && (normH === 'kendala' || normH.includes('kendalakegiatan') || normH.includes('kendalalapangan') || normH.includes('statuskendala') || normH === 'masalah')) {
-        return row[idx];
-      }
-      if (fieldKey === 'upaya' && (normH === 'upaya' || normH.includes('upayapenanganan') || normH.includes('tindaklanjut') || normH.includes('penanganan'))) {
-        return row[idx];
-      }
-      if (fieldKey === 'capaianKegiatan' && (normH === 'capaiankegiatan' || normH === 'capaian' || normH.includes('hasilkegiatan'))) {
-        return row[idx];
-      }
     }
 
     return '';
@@ -617,31 +636,41 @@ const SpreadsheetRepository = {
    */
   getAllReportSheets_: function(ss) {
     if (!ss) ss = this.getSpreadsheet();
-    if (!ss) return [];
-
     const allSheets = ss.getSheets();
     const matched = [];
     const seenIds = new Set();
 
-    // 0. Include Master_Laporan or Master Laporan if present
-    const masterSheet = ss.getSheetByName('Master_Laporan') || ss.getSheetByName('Master Laporan');
+    // 0. Include Master_Laporan if present
+    const masterSheet = ss.getSheetByName('Master_Laporan');
     if (masterSheet && !seenIds.has(masterSheet.getSheetId())) {
       matched.push(masterSheet);
       seenIds.add(masterSheet.getSheetId());
     }
 
-    // 1. Find all sheets directly from spreadsheet with rows > 1
+    // 1. Find all daily tabs matching Laporan_YYYY-MM-DD
     allSheets.forEach(s => {
       const name = s.getName();
-      const norm = name.toLowerCase().trim();
-      if (norm === 'user_roles' || norm === 'config' || norm === 'roles' || norm === 'pengaturan') {
-        return; // Skip system config sheets
-      }
-      if (!seenIds.has(s.getSheetId()) && s.getLastRow() > 1) {
-        matched.push(s);
-        seenIds.add(s.getSheetId());
+      if (/^Laporan_\d{4}-\d{2}-\d{2}$/.test(name)) {
+        if (!seenIds.has(s.getSheetId())) {
+          matched.push(s);
+          seenIds.add(s.getSheetId());
+        }
       }
     });
+
+    // 2. Also include canonical form tabs for backward compatibility
+    try {
+      const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+      forms.forEach(f => {
+        try {
+          const s = FormManagementService.resolveFormTab_(ss, f);
+          if (s && !seenIds.has(s.getSheetId())) {
+            seenIds.add(s.getSheetId());
+            matched.push(s);
+          }
+        } catch (e) {}
+      });
+    } catch (e) {}
 
     return matched;
   },
@@ -652,14 +681,33 @@ const SpreadsheetRepository = {
    * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
+    let ss;
     try {
-      const mainSsId = ConfigRepository.getSpreadsheetId();
-      if (!mainSsId) return [];
+      ss = this.getSpreadsheet();
+    } catch (e) {
+      Logger.log('SpreadsheetRepository.getAdminQueueData: ' + e.toString());
+      return [];
+    }
+    if (!ss) return [];
 
-      const ss = SpreadsheetApp.openById(mainSsId);
-      const sheets = this.getAllReportSheets_(ss);
-      const mergedQueue = [];
-      const seenFingerprints = new Set();
+    // Auto-cleanup irrelevant/duplicate tabs if any stale legacy tabs are detected
+    try {
+      if (typeof cleanupIrrelevantSpreadsheetTabs === 'function') {
+        const hasIrrelevant = ss.getSheets().some(s => {
+          const n = s.getName().toLowerCase().trim();
+          return n === 'admin_queue' || n === 'laporan_operasional_raw' || n === 'laporan operasional' || n === 'sensitive' || n === 'photo_log' || n.startsWith('form responses') || n.startsWith('jawaban formulir');
+        });
+        if (hasIrrelevant) {
+          cleanupIrrelevantSpreadsheetTabs();
+        }
+      }
+    } catch (eClean) {
+      Logger.log('SpreadsheetRepository Notice: Stale tab auto-cleanup: ' + eClean.toString());
+    }
+
+    const sheets = this.getAllReportSheets_(ss);
+    const mergedQueue = [];
+    const seenFingerprints = new Set();
 
     sheets.forEach(sheet => {
       if (!sheet) return;
@@ -755,9 +803,9 @@ const SpreadsheetRepository = {
               return s;
             }
 
-            let p1 = normalizePhotoLink(this.findRowValueByField_(row, headerMap, 'photoUrl', 'Foto_URL') || this.findRowValueByField_(row, headerMap, 'photoUrl', 'Foto_Lampiran'));
-            let p2 = normalizePhotoLink(this.findRowValueByField_(row, headerMap, 'photoUrl2', 'Foto_URL_2'));
-            let p3 = normalizePhotoLink(this.findRowValueByField_(row, headerMap, 'photoUrl3', 'Foto_URL_3'));
+            let p1 = normalizePhotoLink(this.getCellValue_(row, headerMap, 'Foto_URL') || this.getCellValue_(row, headerMap, 'Foto_Lampiran'));
+            let p2 = normalizePhotoLink(this.getCellValue_(row, headerMap, 'Foto_URL_2'));
+            let p3 = normalizePhotoLink(this.getCellValue_(row, headerMap, 'Foto_URL_3'));
             const photosList = [p1, p2, p3].filter(Boolean);
 
             let severityVal = (kendalaVal && kendalaVal !== '-') ? ReportSeverity.URGENT : ReportSeverity.NORMAL;
@@ -841,11 +889,7 @@ const SpreadsheetRepository = {
 
     mergedQueue.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
     return mergedQueue;
-  } catch (e) {
-    Logger.log('SpreadsheetRepository Error in getAdminQueueData: ' + e.toString());
-    return [];
-  }
-},
+  },
 
   /**
    * Updates Review_Status of a report by matching Report_ID or Kode_Kegiatan or synthetic row index
@@ -857,13 +901,9 @@ const SpreadsheetRepository = {
    */
   updateReviewStatus: function(reportId, newStatus) {
     const normalized = normalizeReviewStatus(newStatus);
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) {
-      throw new Error('Spreadsheet ID belum dikonfigurasi.');
-    }
-
     try {
-      const ss = SpreadsheetApp.openById(mainSsId);
+      const ss = this.getSpreadsheet();
+      if (!ss) throw new Error('Spreadsheet database tidak tersedia.');
       
       // Check if reportId is in synthetic format ROW_SheetName_RowNum
       let directSheetName = null;
@@ -976,10 +1016,14 @@ const SpreadsheetRepository = {
    * @returns {Object} Comprehensive dashboard stats payload.
    */
   getDashboardStatsData: function(options = {}) {
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return {};
-
-    const ss = SpreadsheetApp.openById(mainSsId);
+    let ss;
+    try {
+      ss = this.getSpreadsheet();
+    } catch (e) {
+      Logger.log('SpreadsheetRepository.getDashboardStatsData: ' + e.toString());
+      return {};
+    }
+    if (!ss) return {};
     const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
 
     const now = new Date();
@@ -1498,10 +1542,14 @@ const SpreadsheetRepository = {
    * @returns {Array<Object>}
    */
   getAllOperationalRows: function(dateFrom, dateTo) {
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return [];
-
-    const ss = SpreadsheetApp.openById(mainSsId);
+    let ss;
+    try {
+      ss = this.getSpreadsheet();
+    } catch (e) {
+      Logger.log('SpreadsheetRepository.getAllOperationalRows: ' + e.toString());
+      return [];
+    }
+    if (!ss) return [];
     const sheets = this.getAllReportSheets_(ss);
     const allRows = [];
     const seenFingerprints = new Set();

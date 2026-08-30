@@ -4,15 +4,6 @@
   :root {
     --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-    /* Sistem Lapor MPL — Master Brand Tokens */
-    --brand-primary: #0F6B3A;
-    --brand-primary-hover: #0B542D;
-    --brand-primary-strong: #064E2A;
-    --brand-primary-tint: #EEF8F1;
-    --brand-accent: #C9922E;
-    --brand-accent-tint: #FBF4E5;
-    --brand-ink: #14231D;
-
     /* Neutrals (light theme) */
     --bg-app: #F8FAFC;
     --bg-surface: #FFFFFF;
@@ -26,9 +17,18 @@
     --text-muted: #64748B;
     --text-on-primary: #FFFFFF;
 
-    /* Brand */
+    /* Brand Tokens — Sistem Lapor MPL */
+    --brand-primary: #0F6B3A;
+    --brand-primary-hover: #0B542D;
+    --brand-primary-strong: #064E2A;
+    --brand-primary-tint: #EEF8F1;
+    --brand-accent: #C9922E;
+    --brand-accent-tint: #FBF4E5;
+    --brand-ink: #14231D;
+
+    /* Core Action & Theme Colors (Mapped to Brand Palette) */
     --primary: #0F6B3A;
-    /* green-800 — WCAG AAA contrast */
+    /* MPL Forest Green — AA contrast (>4.5:1) on white text */
     --primary-hover: #0B542D;
     --primary-active: #064E2A;
     --primary-tint: #EEF8F1;
@@ -147,6 +147,63 @@
   }
 
   /* Header & Nav */
+  /* Clean Public Header (Display-Only) */
+  .public-app-header {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border-color, #E2E8F0);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .public-header-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .public-brand-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: default;
+    user-select: none;
+  }
+
+  .header-divider-dot {
+    color: #cbd5e1;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .header-portal-tag {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--primary, #0F6B3A);
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    letter-spacing: 0.2px;
+  }
+
+  @media (max-width: 540px) {
+    .public-header-container {
+      padding: 0.65rem 1rem;
+    }
+    .header-divider-dot {
+      display: none;
+    }
+    .header-portal-tag {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+    }
+  }
+
   header {
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-color);
@@ -167,49 +224,35 @@
   }
 
   /* ==========================================================================
-     Sistem Lapor MPL — Master Brand Identity & Logo Components
+     Sistem Lapor MPL — Master Brand Component & Logo Typography System
      ========================================================================== */
-  .mpl-brand-component {
-    display: inline-flex;
-    align-items: center;
-    cursor: default;
-    user-select: none;
-  }
-
-  .mpl-brand-link {
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-    color: inherit;
-    border-radius: var(--radius-sm);
-    transition: opacity 0.15s ease;
-    min-height: 44px;
-  }
-
-  .mpl-brand-link:focus-visible {
-    outline: 2px solid var(--brand-accent);
-    outline-offset: 3px;
-  }
-
   .mpl-brand {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    user-select: none;
     color: var(--brand-ink, #14231D);
+    text-decoration: none;
+    user-select: none;
+    vertical-align: middle;
+    line-height: 1;
   }
 
   .mpl-brand__mark {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
+    display: block;
     color: var(--brand-primary, #0F6B3A);
     pointer-events: none;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.2s ease;
   }
 
-  .mpl-brand-link:hover .mpl-brand__mark {
-    transform: scale(1.05);
+  .mpl-brand__text-col {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
   }
 
   .mpl-brand__wordmark {
@@ -217,114 +260,124 @@
     align-items: baseline;
     gap: 5px;
     line-height: 1.15;
+    font-family: var(--font-base);
     white-space: nowrap;
   }
 
+  .mpl-brand__name,
   .mpl-brand__prefix {
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: -0.2px;
-    color: var(--text-secondary, #475569);
+    font-size: 1.125rem;
+    font-weight: 650;
+    color: var(--brand-ink, #14231D);
+    letter-spacing: -0.015em;
   }
 
+  .mpl-brand__suffix,
   .mpl-brand__focus {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 800;
-    letter-spacing: 0.5px;
     color: var(--brand-primary, #0F6B3A);
+    letter-spacing: 0.02em;
   }
 
-  /* Tagline / Subtitle */
   .mpl-brand__tagline {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--text-muted, #64748B);
-    letter-spacing: 0.3px;
-    margin-top: 2px;
+    font-size: 0.725rem;
+    color: var(--text-muted, #64748b);
+    font-weight: 500;
+    letter-spacing: 0.15px;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
-  /* Compact variant (mark only) */
-  .mpl-brand--compact .mpl-brand__wordmark,
-  .mpl-brand--compact .mpl-brand__tagline {
-    display: none !important;
+  .public-brand-display .mpl-brand__tagline {
+    display: none;
+  }
+
+  .mpl-brand__stroke-primary {
+    stroke: currentColor;
+  }
+
+  .mpl-brand__stroke-secondary {
+    stroke: currentColor;
+  }
+
+  .mpl-brand__node {
+    fill: var(--brand-accent, #C9922E);
+  }
+
+  /* Variants */
+  .mpl-brand--compact .mpl-brand__wordmark {
+    display: none;
   }
 
   .mpl-brand--compact .mpl-brand__mark {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
-  /* Dark variant (sidebar/night mode) */
-  .mpl-brand--dark {
-    color: #FFFFFF;
+  .mpl-brand--sidebar .mpl-brand__mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .mpl-brand--sidebar .mpl-brand__name,
+  .mpl-brand--sidebar .mpl-brand__prefix {
+    font-size: 1.05rem;
+  }
+
+  .mpl-brand--sidebar .mpl-brand__suffix,
+  .mpl-brand--sidebar .mpl-brand__focus {
+    font-size: 1.05rem;
+  }
+
+  .mpl-brand--public .mpl-brand__mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .mpl-brand--public .mpl-brand__name,
+  .mpl-brand--public .mpl-brand__prefix {
+    font-size: 1.25rem;
+  }
+
+  .mpl-brand--public .mpl-brand__suffix,
+  .mpl-brand--public .mpl-brand__focus {
+    font-size: 1.25rem;
   }
 
   .mpl-brand--dark .mpl-brand__mark {
     color: #FFFFFF;
   }
 
+  .mpl-brand--dark .mpl-brand__name,
   .mpl-brand--dark .mpl-brand__prefix {
-    color: #CBD5E1;
+    color: #F8FAFC;
   }
 
+  .mpl-brand--dark .mpl-brand__suffix,
   .mpl-brand--dark .mpl-brand__focus {
-    color: #22C55E;
+    color: #4ADE80;
   }
 
-  .mpl-brand--dark .mpl-brand__tagline {
-    color: #94A3B8;
-  }
-
-  /* Sidebar brand layout */
-  .sidebar-brand-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .mpl-brand--sidebar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .mpl-brand--sidebar .mpl-brand__mark {
-    width: 34px;
-    height: 34px;
-  }
-
-  .mpl-brand--sidebar .mpl-brand__wordmark-block {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  .mpl-brand--sidebar .mpl-brand__prefix {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-secondary, #475569);
-    letter-spacing: 0.2px;
-    text-transform: uppercase;
-  }
-
-  .mpl-brand--sidebar .mpl-brand__focus {
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: var(--brand-primary, #0F6B3A);
-    line-height: 1;
-  }
-
-  /* Legacy compatibility aliases */
   .logo {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
     text-decoration: none;
-    color: var(--text-primary);
+    min-height: var(--min-touch-target, 44px);
+    border-radius: var(--radius-sm);
+    transition: opacity 0.15s ease;
   }
 
+  .logo:hover {
+    opacity: 0.92;
+  }
+
+  .logo:focus-visible {
+    outline: 2px solid var(--brand-primary, #0F6B3A);
+    outline-offset: 3px;
+  }
+
+  /* Legacy alias during migration */
   .logo-badge {
     display: none;
   }
@@ -2085,30 +2138,36 @@
     margin-bottom: var(--space-1);
   }
 
-  /* Privacy Consent & PDP Notice (Clean Single-Line Footer) */
+  /* Privacy Consent & PDP Notice (Responsive Text Footer) */
   .privacy-consent-note {
     font-size: 0.775rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #64748b);
     text-align: center;
     margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    white-space: nowrap;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+    padding: 0 0.5rem;
+    display: block;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  .privacy-consent-note .svg-icon {
+    display: inline-block;
+    vertical-align: -2px;
+    margin-right: 3px;
   }
 
   .privacy-consent-note a {
-    color: var(--primary);
+    color: var(--primary, #0F6B3A);
     text-decoration: underline;
     font-weight: 500;
     cursor: pointer;
   }
 
   .privacy-consent-note a:hover {
-    color: var(--primary-hover);
+    color: var(--primary-hover, #0B542D);
   }
 
   /* Activity Tags & Badges in Admin Table */
@@ -3102,21 +3161,32 @@
   }
 
   .sidebar-header {
-    padding: 1.25rem 1.25rem 1rem;
+    padding: 1.15rem 1.15rem 1rem;
     border-bottom: 1px solid var(--border-color);
   }
 
+  .sidebar-brand-display {
+    display: flex;
+    align-items: center;
+    cursor: default;
+    user-select: none;
+  }
+
   .sidebar-logo {
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.35rem;
+    gap: 0.25rem;
     text-decoration: none;
+    padding: 0.15rem 0;
+  }
+
+  .sidebar-descriptor {
+    display: none;
   }
 
   .sidebar-logo-text {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-weight: 600;
+    display: none;
   }
 
   .sidebar-nav {

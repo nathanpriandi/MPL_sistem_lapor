@@ -12,13 +12,7 @@ const AdminService = {
    * @returns {Array} Array of QueueItem objects.
    */
   getAdminQueueData: function() {
-    try {
-      const list = SpreadsheetRepository.getAdminQueueData();
-      return JSON.parse(JSON.stringify(list || []));
-    } catch (e) {
-      Logger.log('AdminService Error in getAdminQueueData: ' + e.toString());
-      return [];
-    }
+    return SpreadsheetRepository.getAdminQueueData();
   },
 
   /**
@@ -36,7 +30,6 @@ const AdminService = {
 
   /**
    * Returns aggregated stats for Dashboard Manajer.
-   * @param {string|Object} [filterParam]
    * @returns {Object|null}
    */
   getDashboardStats: function(options) {
@@ -369,6 +362,9 @@ const AdminService = {
     if (!cleanDiv) throw new Error('Divisi Karyawan wajib dipilih.');
 
     let list = getActiveEmployeeRegistry();
+    const isPic = (empData.isPic !== undefined) ? !!empData.isPic : (cleanDiv !== 'BKO 28' && cleanDiv !== 'Pekerja Harian');
+    const role = empData.role || (cleanDiv.includes('SGA') && isPic ? 'PIC SGA' : cleanDiv);
+    const newEmp = { id: cleanId, name: cleanName, division: cleanDiv, role: role, isPic: isPic };
 
     if (oldId && oldId !== cleanId) {
       // Renaming ID: check if new ID already exists
@@ -378,13 +374,13 @@ const AdminService = {
       }
       // Remove old entry
       list = list.filter(e => String(e.id).toUpperCase() !== oldId);
-      list.push({ id: cleanId, name: cleanName, division: cleanDiv });
+      list.push(newEmp);
     } else {
       const existingIdx = list.findIndex(e => String(e.id).toUpperCase() === cleanId);
       if (existingIdx >= 0) {
-        list[existingIdx] = { id: cleanId, name: cleanName, division: cleanDiv };
+        list[existingIdx] = newEmp;
       } else {
-        list.push({ id: cleanId, name: cleanName, division: cleanDiv });
+        list.push(newEmp);
       }
     }
 
