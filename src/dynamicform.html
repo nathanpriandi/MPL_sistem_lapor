@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Pelaporan Digital Lapangan</title>
+  <title>Sistem Lapor MPL | Laporan Operasional</title>
   <?!= include('style'); ?>
 </head>
 <body class="public-form-body">
 
   <div class="public-form-container">
     <header class="public-header">
-      <div class="header-badge">Formulir Pelaporan Digital</div>
+      <div style="display: inline-flex; justify-content: center; margin-bottom: 0.85rem;">
+        <?!= include('brand'); ?>
+      </div>
+      <div><span class="header-badge">Pelaporan Lapangan</span></div>
       <h1 class="header-title" id="formHeaderTitle">Memuat Formulir...</h1>
       <p class="header-subtitle" id="formHeaderDesc">Silakan tunggu sebentar...</p>
     </header>
@@ -27,16 +30,16 @@
 
         <!-- Standard Required Fields -->
         <div class="form-group">
-          <label class="form-label" for="empId">ID Karyawan / Employee ID <span class="text-danger">*</span></label>
+          <label class="form-label" for="empId">ID Karyawan <span class="text-danger">*</span></label>
           <div class="emp-id-input-group">
             <div class="emp-id-input-wrapper">
-              <input type="text" id="empId" name="empId" class="form-input" placeholder="contoh: ALP-01, SGA-05, MNJ-02, PKH-03, BKO-01..." oninput="handleDynEmpIdInput(this.value)" required>
+              <input type="text" id="empId" name="empId" class="form-input" placeholder="Masukkan ID Anda" oninput="handleDynEmpIdInput(this.value)" required>
               <div class="emp-id-status-icon" id="dynEmpIdStatusIcon">
                 <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </div>
             </div>
           </div>
-          <span class="form-help">Masukkan ID resmi karyawan Anda (contoh: ALP-01).</span>
+          <span class="form-help">Masukkan ID karyawan Anda.</span>
 
           <!-- Auto-filled Verified Employee Card -->
           <div class="emp-verified-card" id="dynEmpVerifiedCard">
@@ -52,10 +55,9 @@
                 <span class="emp-field-label">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   <span>Nama Karyawan</span>
-                  <span class="emp-field-readonly-tag">(View Only)</span>
                 </span>
                 <div class="emp-field-value" id="dynDisplayNama">
-                  <span style="color: #94a3b8; font-weight: normal; font-style: italic;">Otomatis dari ID</span>
+                  <span style="color: #94a3b8; font-weight: normal;">Otomatis dari ID</span>
                 </div>
                 <input type="hidden" id="dynNamaPic" name="namaPic">
               </div>
@@ -64,10 +66,9 @@
                 <span class="emp-field-label">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                   <span>Divisi</span>
-                  <span class="emp-field-readonly-tag">(View Only)</span>
                 </span>
                 <div class="emp-field-value" id="dynDisplayDivisi">
-                  <span style="color: #94a3b8; font-weight: normal; font-style: italic;">Otomatis dari ID</span>
+                  <span style="color: #94a3b8; font-weight: normal;">Otomatis dari ID</span>
                 </div>
                 <input type="hidden" id="dynDivisi" name="divisi">
               </div>
@@ -78,17 +79,16 @@
         <div class="form-group">
           <label class="form-label" for="site">Lokasi Kegiatan <span class="text-danger">*</span></label>
           <select id="site" name="site" class="form-input" required>
-            <option value="" disabled selected>-- Pilih Lokasi Kegiatan --</option>
-            <option value="Sektor 1 + Ciomas">Sektor 1 + Ciomas</option>
-            <option value="Sektor 2">Sektor 2</option>
-            <option value="Sektor 3">Sektor 3</option>
-            <option value="Sektor 4">Sektor 4</option>
-            <option value="Gunung Batu">Gunung Batu</option>
+            <option value="" disabled selected>Pilih lokasi kegiatan</option>
+            <option value="Jonggol">Jonggol</option>
+            <option value="Cikalong">Cikalong</option>
+            <option value="Quilling">Quilling</option>
+            <option value="Jakarta">Jakarta</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="date">Tanggal Pelaporan / Date <span class="text-danger">*</span></label>
+          <label class="form-label" for="date">Tanggal Pelaporan <span class="text-danger">*</span></label>
           <input type="date" id="date" name="date" class="form-input" required>
         </div>
       </div>
@@ -118,7 +118,9 @@
     <div class="modal-card" style="max-width: 580px;">
       <div class="modal-header">
         <h3 class="modal-title">Pemberitahuan Privasi Data (UU PDP)</h3>
-        <button type="button" class="modal-close-btn" onclick="closePrivacyModal()">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="closePrivacyModal()" aria-label="Tutup Pemberitahuan Privasi">
+          <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <div class="modal-body" style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; display: flex; flex-direction: column; gap: 0.85rem; max-height: 65vh; overflow-y: auto; padding: 1.25rem;">
         <p style="margin: 0; font-size: 0.825rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
@@ -150,44 +152,53 @@
   <?!= includeApp(webAppUrl); ?>
   <script>
     const DYN_EMPLOYEE_REGISTRY = [
-      { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
-      { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
-      { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen' },
-      { id: 'MNJ-04', name: 'Martati', division: 'Manajemen' },
-      { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen' },
-      { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen' },
-      { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen' },
-      { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen' },
-      { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen' },
-      { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
-      { id: 'BKO-02', name: 'Gultom', division: 'BKO 28' },
-      { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
-      { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian' },
-      { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian' },
-      { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian' },
-      { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian' },
-      { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian' },
-      { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian' },
-      { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian' },
-      { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
-      { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof' },
-      { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof' },
-      { id: 'ALP-04', name: 'M Aris', division: 'Alprof' },
-      { id: 'ALP-05', name: 'Mursito', division: 'Alprof' },
-      { id: 'ALP-06', name: 'Jatniko', division: 'Alprof' },
-      { id: 'ALP-07', name: 'Mislan', division: 'Alprof' },
-      { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
-      { id: 'SGA-02', name: 'Amas S', division: 'SGA' },
-      { id: 'SGA-03', name: 'M Yusuf', division: 'SGA' },
-      { id: 'SGA-04', name: 'Hasanudin', division: 'SGA' },
-      { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA' },
-      { id: 'SGA-06', name: 'Rukman', division: 'SGA' },
-      { id: 'SGA-07', name: 'Subandi', division: 'SGA' },
-      { id: 'SGA-08', name: 'Suganda', division: 'SGA' },
-      { id: 'SGA-09', name: 'Dede', division: 'SGA' },
-      { id: 'SGA-10', name: 'Wafa', division: 'SGA' },
-      { id: 'SGA-11', name: 'Rafi', division: 'SGA' },
-      { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
+      // Manajemen (9 Orang) — Bebas mengisi form langsung
+      { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-04', name: 'Martaty', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen', isPic: true },
+
+      // BKO 28 (2 Orang) — Pelaporan via Manajemen
+      { id: 'BKO-01', name: 'Didi', division: 'BKO 28', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'BKO-02', name: 'Gultom', division: 'BKO 28', isPic: false, delegatedTo: 'Manajemen' },
+
+      // Pekerja Harian (8 Orang) — Pelaporan via Manajemen
+      { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+
+      // Alprof (7 Orang) — Bebas mengisi form langsung
+      { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', isPic: true },
+      { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof', isPic: true },
+      { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof', isPic: true },
+      { id: 'ALP-04', name: 'M Aris', division: 'Alprof', isPic: true },
+      { id: 'ALP-05', name: 'Mursito', division: 'Alprof', isPic: true },
+      { id: 'ALP-06', name: 'Jatniko', division: 'Alprof', isPic: true },
+      { id: 'ALP-07', name: 'Mislan', division: 'Alprof', isPic: true },
+
+      // SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Ketut (SGA-01) & Amas S (SGA-02)
+      { id: 'SGA-01', name: 'Ketut', division: 'SGA', isPic: true },
+      { id: 'SGA-02', name: 'Amas S', division: 'SGA', isPic: true },
+      { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-06', name: 'Rukman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-07', name: 'Subandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-08', name: 'Suganda', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-09', name: 'Dede', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-10', name: 'Wafa', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-11', name: 'Rafi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
     ];
 
     function handleDynEmpIdInput(val) {
@@ -221,13 +232,63 @@
       });
 
       if (emp) {
+        const cleanEmpId = String(emp.id || '').toUpperCase().replace(/[\s\-_]/g, '');
+        const isSgaPicDyn = (cleanEmpId === 'SGA01' || cleanEmpId === 'SGA02');
+        const isSgaJuniorDyn = cleanEmpId.startsWith('SGA') && !isSgaPicDyn;
+        const isBkoDyn = cleanEmpId.startsWith('BKO');
+        const isPkhDyn = cleanEmpId.startsWith('PKH');
+
+        if (isSgaJuniorDyn) {
+          card.className = 'emp-verified-card active-invalid';
+          badge.className = 'emp-verified-badge emp-badge-invalid';
+          badge.style.background = '#fef3c7';
+          badge.style.color = '#92400e';
+          badge.style.borderColor = '#fde68a';
+          statusText.innerText = 'Pengisian Didelegasikan ke PIC';
+          statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+          displayNama.innerHTML = `<span style="color: #92400e;">${emp.name} (Pelaporan via PIC SGA)</span>`;
+          displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-sga">SGA</span>`;
+          hiddenNama.value = '';
+          hiddenDivisi.value = '';
+          return;
+        }
+
+        if (isBkoDyn) {
+          card.className = 'emp-verified-card active-invalid';
+          badge.className = 'emp-verified-badge emp-badge-invalid';
+          badge.style.background = '#e0e7ff';
+          badge.style.color = '#3730a3';
+          badge.style.borderColor = '#c7d2fe';
+          statusText.innerText = 'Pelaporan Melalui Alprof';
+          statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+          displayNama.innerHTML = `<span style="color: #3730a3;">${emp.name} (Pelaporan via Alprof)</span>`;
+          displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-bko">BKO 28</span>`;
+          hiddenNama.value = '';
+          hiddenDivisi.value = '';
+          return;
+        }
+
+        if (isPkhDyn) {
+          card.className = 'emp-verified-card active-invalid';
+          badge.className = 'emp-verified-badge emp-badge-invalid';
+          badge.style.background = '#e0f2fe';
+          badge.style.color = '#0369a1';
+          badge.style.borderColor = '#bae6fd';
+          statusText.innerText = 'Pelaporan Melalui Manajemen';
+          statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+          displayNama.innerHTML = `<span style="color: #0369a1;">${emp.name} (Pelaporan via Manajemen)</span>`;
+          displayDivisi.innerHTML = `<span>Pekerja Harian</span>`;
+          hiddenNama.value = '';
+          hiddenDivisi.value = '';
+          return;
+        }
+
         card.className = 'emp-verified-card active-valid';
         badge.className = 'emp-verified-badge emp-badge-valid';
         statusText.innerText = 'Terverifikasi';
         statusIcon.innerHTML = '<svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
         displayNama.innerText = emp.name;
-        const divSlug = emp.division.toLowerCase().replace(/[\s\-_]/g, '-');
-        displayDivisi.innerHTML = `<span class="badge-divisi badge-divisi-${divSlug}">${emp.division}</span>`;
+        displayDivisi.innerHTML = `<span>${emp.division}</span>`;
         hiddenNama.value = emp.name;
         hiddenDivisi.value = emp.division;
       } else {
@@ -301,7 +362,7 @@
 
     function renderSchema(schema) {
       document.getElementById('formHeaderTitle').innerText = schema.title || 'Form Laporan Lapangan';
-      document.getElementById('formHeaderDesc').innerText = schema.description || 'Isi data formulir pelaporan digital di bawah ini.';
+      document.getElementById('formHeaderDesc').innerText = schema.description || 'Isi data formulir pelaporan operasional di bawah ini.';
 
       var container = document.getElementById('dynamicFieldsContainer');
       if (!container) return;
@@ -345,10 +406,10 @@
         html += '<label class="form-label" for="' + fieldId + '">' + label + reqMark + '</label>';
 
         if (f.type === 'textarea') {
-          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" placeholder="Tuliskan rincian..." ' + reqAttr + '></textarea>';
+          html += '<textarea id="' + fieldId + '" name="' + f.key + '" class="form-input" rows="3" ' + reqAttr + '></textarea>';
         } else if (f.type === 'select') {
           html += '<select id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
-          html += '<option value="" disabled selected>-- Pilih Opsi --</option>';
+          html += '<option value="" disabled selected>Pilih opsi</option>';
           (f.options || []).forEach(function(opt) {
             html += '<option value="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</option>';
           });
@@ -364,12 +425,12 @@
         } else if (f.type === 'date') {
           html += '<input type="date" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
         } else if (f.type === 'photo') {
-          html += '<div class="photo-upload-zone" onclick="document.getElementById(\'' + fieldId + '\').click()">' +
+          html += '<label for="' + fieldId + '" class="photo-upload-zone" tabindex="0" role="button" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();document.getElementById(\'' + fieldId + '\').click();}">' +
             '<svg class="svg-icon photo-upload-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>' +
-            '<div class="photo-upload-title">Ketuk untuk mengambil / memilih foto</div>' +
-            '<div class="photo-upload-hint">Format JPEG/PNG, maksimal 5MB</div>' +
+            '<div class="photo-upload-title">Pilih / Ambil Foto</div>' +
+            '<div class="photo-upload-hint">Format JPEG atau PNG, maksimal 5MB</div>' +
             '<input type="file" id="' + fieldId + '" data-photofield="' + f.key + '" class="form-input" accept="image/*" style="display: none;" ' + reqAttr + ' onchange="handlePhotoSelect(this, \'' + fieldId + '\')">' +
-          '</div>' +
+          '</label>' +
           '<div id="' + fieldId + '_preview" class="photo-preview-container" style="display: none;">' +
             '<img id="' + fieldId + '_img" class="photo-thumbnail" src="" alt="Pratinjau Foto">' +
             '<div class="photo-preview-details">' +
@@ -381,7 +442,7 @@
             '</div>' +
           '</div>';
         } else {
-          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" placeholder="Masukkan jawaban..." ' + reqAttr + '>';
+          html += '<input type="text" id="' + fieldId + '" name="' + f.key + '" class="form-input" ' + reqAttr + '>';
         }
 
         html += '</div>';
@@ -591,7 +652,7 @@
     function showSuccessBanner(msg) {
       var banner = document.getElementById('formAlertBanner');
       banner.className = 'alert-banner alert-success';
-      banner.innerText = '✅ ' + msg;
+      banner.innerText = msg;
       banner.hidden = false;
       banner.scrollIntoView({ behavior: 'smooth' });
     }
@@ -599,7 +660,7 @@
     function showErrorBanner(msg) {
       var banner = document.getElementById('formAlertBanner');
       banner.className = 'alert-banner alert-warning';
-      banner.innerText = '⚠️ ' + msg;
+      banner.innerText = msg;
       banner.hidden = false;
       banner.scrollIntoView({ behavior: 'smooth' });
     }

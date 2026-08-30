@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manajemen Hak Akses &amp; Role — Sistem Pelaporan Digital</title>
+  <title>Sistem Lapor MPL | Hak Akses &amp; Role</title>
   <?!= include('style'); ?>
   <style>
     .role-form-card {
@@ -130,7 +130,7 @@
             <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div class="topbar-breadcrumb">
-            <span class="breadcrumb-root">Konsol Internal</span>
+            <span class="breadcrumb-root">Sistem Lapor MPL</span>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">Hak Akses &amp; Role</span>
           </div>
@@ -146,7 +146,7 @@
               <? } else if (userRole === 'admin') { ?>
                 <span class="badge badge-primary">Admin Operasional</span>
               <? } else if (userRole === 'manager') { ?>
-                <span class="badge badge-normal">Executive Manager</span>
+                <span class="badge badge-normal">Manager Eksekutif</span>
               <? } ?>
             </div>
             <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">

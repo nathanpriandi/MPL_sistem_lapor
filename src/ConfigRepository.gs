@@ -244,11 +244,10 @@ const ConfigRepository = {
       title: 'Formulir Laporan Operasional',
       subtitle: 'Sistem Pencatatan & Pelaporan Harian Terpadu',
       lokasiOptions: [
-        'Sektor 1 + Ciomas',
-        'Sektor 2',
-        'Sektor 3',
-        'Sektor 4',
-        'Gunung Batu'
+        'Jonggol',
+        'Cikalong',
+        'Quilling',
+        'Jakarta'
       ],
       kegiatanList: [
         { key: 'tanam', title: 'Tanam atau tebar', desc: 'Penanaman bibit atau tebar benih', enabled: true },
@@ -267,6 +266,7 @@ const ConfigRepository = {
         'Kemitraan'
       ],
       komoditasOptions: [
+        'Alpukat',
         'Pisang',
         'Jagung Manis',
         'Terong',
@@ -299,11 +299,23 @@ const ConfigRepository = {
         if (parsed && typeof parsed === 'object') {
           const merged = Object.assign(this.getDefaultReportingFormSchema(), parsed);
           // Auto-migrate legacy 'Penyemaian' to 'Pembibitan Kopi' & 'Pembibitan Pala'
-          if (Array.isArray(merged.komoditasOptions) && merged.komoditasOptions.includes('Penyemaian')) {
-            merged.komoditasOptions = merged.komoditasOptions
-              .filter(k => k !== 'Penyemaian')
-              .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
+          if (Array.isArray(merged.komoditasOptions)) {
+            if (merged.komoditasOptions.includes('Penyemaian')) {
+              merged.komoditasOptions = merged.komoditasOptions
+                .filter(k => k !== 'Penyemaian')
+                .concat(['Pembibitan Kopi', 'Pembibitan Pala']);
+            }
+            if (!merged.komoditasOptions.includes('Alpukat')) {
+              merged.komoditasOptions.unshift('Alpukat');
+            }
             merged.komoditasOptions = Array.from(new Set(merged.komoditasOptions));
+          }
+          // Auto-migrate legacy Sektor locations to 'Jonggol', 'Cikalong', 'Quilling', 'Jakarta'
+          if (Array.isArray(merged.lokasiOptions)) {
+            const hasLegacySektor = merged.lokasiOptions.some(loc => loc.startsWith('Sektor') || loc === 'Gunung Batu');
+            if (hasLegacySektor) {
+              merged.lokasiOptions = ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'];
+            }
           }
           return merged;
         }

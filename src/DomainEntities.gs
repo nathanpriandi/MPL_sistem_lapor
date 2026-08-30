@@ -170,62 +170,138 @@ function isActualKendala(text) {
 
 /**
  * Master Employee Registry (38 Karyawan, 5 Divisi)
- * Mudah diingat untuk kelompok usia lanjut (Prefix Divisi + 2 Digit)
+ * - Manajemen (9 Orang) & Alprof (7 Orang): Bebas mengisi form langsung & dapat mewakili staf/rekan
+ * - BKO 28 (2 Orang) & Pekerja Harian (8 Orang): Diwakili & dilaporkan melalui tim Manajemen
+ * - SGA (12 Orang): Laporan wajib diisi oleh PIC resmi Ketut (SGA-01) atau Amas S (SGA-02)
  */
 const EMPLOYEE_REGISTRY = Object.freeze([
-  // Manajemen (9 Orang)
-  { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' },
-  { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen' },
-  { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen' },
-  { id: 'MNJ-04', name: 'Martati', division: 'Manajemen' },
-  { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen' },
-  { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen' },
-  { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen' },
-  { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen' },
-  { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen' },
+  // Manajemen (9 Orang) — Bebas mengisi form langsung
+  { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-04', name: 'Martaty', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen', isPic: true },
+  { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen', isPic: true },
 
-  // BKO 28 (2 Orang)
-  { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
-  { id: 'BKO-02', name: 'Gultom', division: 'BKO 28' },
+  // BKO 28 (2 Orang) — Pelaporan via Alprof
+  { id: 'BKO-01', name: 'Didi', division: 'BKO 28', isPic: false, delegatedTo: 'Alprof' },
+  { id: 'BKO-02', name: 'Gultom', division: 'BKO 28', isPic: false, delegatedTo: 'Alprof' },
 
-  // Pekerja Harian (8 Orang)
-  { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
-  { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian' },
-  { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian' },
-  { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian' },
-  { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian' },
-  { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian' },
-  { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian' },
-  { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian' },
+  // Pekerja Harian (8 Orang) — Pelaporan via Manajemen
+  { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+  { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
 
-  // Alprof (7 Orang)
-  { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
-  { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof' },
-  { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof' },
-  { id: 'ALP-04', name: 'M Aris', division: 'Alprof' },
-  { id: 'ALP-05', name: 'Mursito', division: 'Alprof' },
-  { id: 'ALP-06', name: 'Jatniko', division: 'Alprof' },
-  { id: 'ALP-07', name: 'Mislan', division: 'Alprof' },
+  // Alprof (7 Orang) — Bebas mengisi form langsung
+  { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', isPic: true },
+  { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof', isPic: true },
+  { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof', isPic: true },
+  { id: 'ALP-04', name: 'M Aris', division: 'Alprof', isPic: true },
+  { id: 'ALP-05', name: 'Mursito', division: 'Alprof', isPic: true },
+  { id: 'ALP-06', name: 'Jatniko', division: 'Alprof', isPic: true },
+  { id: 'ALP-07', name: 'Mislan', division: 'Alprof', isPic: true },
 
-  // SGA (12 Orang)
-  { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
-  { id: 'SGA-02', name: 'Amas S', division: 'SGA' },
-  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA' },
-  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA' },
-  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA' },
-  { id: 'SGA-06', name: 'Rukman', division: 'SGA' },
-  { id: 'SGA-07', name: 'Subandi', division: 'SGA' },
-  { id: 'SGA-08', name: 'Suganda', division: 'SGA' },
-  { id: 'SGA-09', name: 'Dede', division: 'SGA' },
-  { id: 'SGA-10', name: 'Wafa', division: 'SGA' },
-  { id: 'SGA-11', name: 'Rafi', division: 'SGA' },
-  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA' }
+  // SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Ketut (SGA-01) & Amas S (SGA-02)
+  { id: 'SGA-01', name: 'Ketut', division: 'SGA', role: 'PIC SGA', isPic: true },
+  { id: 'SGA-02', name: 'Amas S', division: 'SGA', role: 'PIC SGA', isPic: true },
+  { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-06', name: 'Rukman', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-07', name: 'Subandi', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-08', name: 'Suganda', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-09', name: 'Dede', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-10', name: 'Wafa', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-11', name: 'Rafi', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+  { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
 ]);
+
+/**
+ * Checks if an employee ID is an authorized primary form submitter.
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isAuthorizedFiller(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  if (clean.startsWith('MNJ') || clean.startsWith('ALP')) return true;
+  return clean === 'SGA01' || clean === 'SGA02';
+}
+
+/**
+ * Checks if an employee ID is an authorized SGA PIC.
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isSgaPic(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean === 'SGA01' || clean === 'SGA02';
+}
+
+/**
+ * Checks if an employee ID is an SGA junior member (non-PIC).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isSgaJunior(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean.startsWith('SGA') && clean !== 'SGA01' && clean !== 'SGA02';
+}
+
+/**
+ * Checks if an employee ID is BKO 28 worker (delegated to Alprof).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isBkoSubordinate(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean.startsWith('BKO');
+}
+
+/**
+ * Checks if an employee ID is Pekerja Harian worker (delegated to Management).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isPkhSubordinate(empId) {
+  if (!empId) return false;
+  const clean = String(empId).trim().toUpperCase().replace(/[\s\-_]/g, '');
+  return clean.startsWith('PKH');
+}
+
+/**
+ * Checks if an employee ID is a subordinate/worker represented by Management (PKH) or legacy check.
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isManagementSubordinate(empId) {
+  return isPkhSubordinate(empId);
+}
+
+/**
+ * Checks if an employee ID is a subordinate/worker represented by Alprof (BKO 28).
+ * @param {string} empId 
+ * @returns {boolean}
+ */
+function isAlprofSubordinate(empId) {
+  return isBkoSubordinate(empId);
+}
 
 /**
  * Returns active employee registry, preferring customized script property if present,
  * falling back to default EMPLOYEE_REGISTRY.
- * @returns {Array<{ id: string, name: string, division: string }>}
+ * @returns {Array<{ id: string, name: string, division: string, role?: string, isPic?: boolean }>}
  */
 function getActiveEmployeeRegistry() {
   let list = [];
@@ -236,8 +312,28 @@ function getActiveEmployeeRegistry() {
     }
   }
   if (!list || list.length === 0) {
-    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division }));
+    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division, role: e.role || e.division, isPic: !!e.isPic }));
   }
+
+  // Ensure isPic is always properly normalized based on ID rules:
+  list = list.map(e => {
+    const cleanId = String(e.id || '').toUpperCase().replace(/[\s\-_]/g, '');
+    let isPic = (e.isPic !== undefined) ? !!e.isPic : true;
+    if (cleanId.startsWith('SGA')) {
+      isPic = (e.role === 'PIC SGA' || cleanId === 'SGA01' || cleanId === 'SGA02');
+    } else if (cleanId.startsWith('BKO') || cleanId.startsWith('PKH')) {
+      isPic = false;
+    }
+    const role = (cleanId.startsWith('SGA') && isPic) ? 'PIC SGA' : (e.role || e.division);
+    return {
+      id: e.id,
+      name: e.name,
+      division: e.division,
+      role: role,
+      isPic: isPic,
+      delegatedTo: e.delegatedTo || ''
+    };
+  });
 
   return JSON.parse(JSON.stringify(list));
 }
@@ -299,21 +395,23 @@ function resolveSeparatedCommodities(rawKomoditas, rawKomoditasPanen, jenisKegia
     panen = panenStr.replace(/\s*\(Panen\)/i, '').trim();
   }
 
-  // 3. If str is a single plain crop name without markers
+  // 3. Resolve tanam if panen was populated but tanam is still empty and distinct str exists
+  if (!tanam && str && str !== panen && !matchPanen) {
+    tanam = str.replace(/\s*\(Tanam\)/i, '').trim();
+  }
+
+  // 4. If str is a single plain crop name without markers and no separate panenStr
   if (!tanam && !panen && str) {
-    if (jk.includes('tanam') && !jk.includes('panen')) {
+    if ((jk.includes('tanam') || jk.includes('tebar')) && !jk.includes('panen')) {
       tanam = str;
-    } else if (jk.includes('panen') && !jk.includes('tanam')) {
+      panen = '';
+    } else if (jk.includes('panen') && !jk.includes('tanam') && !jk.includes('tebar')) {
       panen = str;
+      tanam = '';
     } else {
-      // If both activities or unmarked, assign to both
       tanam = str;
-      panen = panenStr || str;
+      panen = str;
     }
-  } else if (!tanam && str && jk.includes('tanam')) {
-    tanam = str.replace(/\s*\(Tanam\)/i, '').replace(/\s*\(Panen\)/i, '').trim();
-  } else if (!panen && str && jk.includes('panen')) {
-    panen = str.replace(/\s*\(Tanam\)/i, '').replace(/\s*\(Panen\)/i, '').trim();
   }
 
   return {
@@ -332,12 +430,15 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'timestamp', header: 'Timestamp', type: 'date', getValue: (r) => r.timestamp || '' },
   { key: 'namaPic', header: 'Nama_PIC', type: 'text', getValue: (r) => r.namaPic || '' },
   { key: 'bidangDivisi', header: 'Bidang_Divisi', type: 'select', groupable: true, getValue: (r) => r.bidangDivisi || '' },
-  { key: 'nomorTelepon', header: 'Nomor_Telepon', type: 'text', getValue: (r) => r.nomorTelepon || r.noTelepon || r.telepon || '' },
+  { key: 'nomorTelepon', header: 'Nomor_Telepon', type: 'text', getValue: (r) => typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(r.nomorTelepon || r.noTelepon || r.telepon || '') : String(r.nomorTelepon || r.noTelepon || r.telepon || '') },
   { key: 'lokasiKegiatan', header: 'Lokasi_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.lokasiKegiatan || '' },
   { key: 'jenisKegiatan', header: 'Jenis_Kegiatan', type: 'select', groupable: true, getValue: (r) => r.jenisKegiatan || '' },
   { key: 'kegiatanTambahan', header: 'Kegiatan_Tambahan', type: 'text', getValue: (r) => r.kegiatanTambahan || '' },
   { key: 'pengawasan', header: 'Pengawasan', type: 'select', groupable: true, getValue: (r) => r.pengawasan ? (r.pengawasan + (r.detailPengawasan ? ` — ${r.detailPengawasan}` : '')) : '' },
+  { key: 'pengawasanRincian', header: 'Pengawasan_Rincian', type: 'text', getValue: (r) => r.pengawasanRincian || r.detailPengawasan || '' },
   { key: 'administrasi', header: 'Administrasi', type: 'text', getValue: (r) => r.detailAdministrasi || r.administrasi || '' },
+  { key: 'officeJenis', header: 'Office_Jenis', type: 'select', groupable: true, getValue: (r) => r.officeJenis || '' },
+  { key: 'officeRincian', header: 'Office_Rincian', type: 'text', getValue: (r) => r.officeRincian || r.detailAdministrasi || '' },
   { key: 'statusPengelolaan', header: 'Status_Pengelolaan', type: 'select', groupable: true, getValue: (r) => r.statusPengelolaan || '' },
   { key: 'komoditas', header: 'Komoditas', type: 'select', groupable: true, getValue: (r) => r.komoditas || '' },
   { key: 'lokasiBlok', header: 'Lokasi_Blok_Tanam', type: 'text', getValue: (r) => r.lokasiBlok || r.lokasiBlokTanam || '' },
@@ -345,6 +446,8 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'jumlahBenih', header: 'Jumlah_Benih', type: 'number', summable: true, getValue: (r) => r.jumlahBenih || '' },
   { key: 'tglTanam', header: 'Tgl_Tanam', type: 'date', getValue: (r) => r.tglTanam || '' },
   { key: 'estimasiPanenHst', header: 'Estimasi_Panen_HST', type: 'number', summable: true, getValue: (r) => r.estimasiPanenHst || r.tglPerkiraanPanen || '' },
+  { key: 'populasiAgro', header: 'Populasi_Agro', type: 'number', summable: true, getValue: (r) => r.populasiAgro || 0 },
+  { key: 'rincianPerawatanAgro', header: 'Rincian_Perawatan_Agro', type: 'text', getValue: (r) => r.rincianPerawatanAgro || '' },
   { key: 'lokasiBlokPanen', header: 'Lokasi_Blok_Panen', type: 'text', getValue: (r) => r.lokasiBlokPanen || '' },
   { key: 'luasLahanPanenM2', header: 'Luas_Lahan_Panen_M2', type: 'number', summable: true, getValue: (r) => r.luasLahanPanenM2 || r.luasLahanPanen || '' },
   { key: 'tglPanen', header: 'Tgl_Panen', type: 'date', getValue: (r) => r.tglPanen || '' },
@@ -354,9 +457,82 @@ const OPERATIONAL_REPORT_FIELDS = Object.freeze([
   { key: 'jumlahPenjualanUnit', header: 'Jumlah_Penjualan_Unit', type: 'number', summable: true, getValue: (r) => r.jumlahPenjualanUnit || '' },
   { key: 'hargaSatuanRp', header: 'Harga_Satuan_Rp', type: 'number', summable: true, getValue: (r) => r.hargaSatuanRp || r.hargaJual || '' },
   { key: 'totalHargaRp', header: 'Total_Harga_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaRp || r.nilaiPenjualanRp || '' },
+  { key: 'pembeliNama', header: 'Pembeli_Nama', type: 'text', getValue: (r) => r.pembeliNama || '' },
+  { key: 'pembeliAlamat', header: 'Pembeli_Alamat', type: 'text', getValue: (r) => r.pembeliAlamat || '' },
+  { key: 'pembeliTelp', header: 'Pembeli_NoTelp', type: 'text', getValue: (r) => typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(r.pembeliTelp || '') : String(r.pembeliTelp || '') },
+  { key: 'jenisTernak', header: 'Jenis_Ternak', type: 'select', groupable: true, getValue: (r) => r.jenisTernak || '' },
+  { 
+    key: 'ternakMasuk', 
+    header: 'Ternak_Masuk', 
+    type: 'select', 
+    groupable: true, 
+    getValue: (r) => {
+      const qty = parseInt(r.ternakMasukQty, 10) || 0;
+      let txt = String(r.ternakMasuk || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      const isNone = !txt || txt === '-' || txt.toLowerCase().startsWith('tidak ada') || txt.toLowerCase() === 'none' || txt.toLowerCase() === 'nihil';
+      if (qty <= 0 && isNone) return 'Tidak Ada';
+      if (qty > 0 && isNone) return `${qty} ekor`;
+      if (qty > 0) return `${txt} (${qty} ekor)`;
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { 
+    key: 'ternakMasukJenis', 
+    header: 'Ternak_Masuk_Jenis', 
+    type: 'select', 
+    getValue: (r) => {
+      let txt = String(r.ternakMasukJenis || r.ternakMasuk || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { key: 'ternakMasukKelahiranQty', header: 'Ternak_Masuk_Kelahiran_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakMasukKelahiranQty) || 0 },
+  { key: 'ternakMasukPembelianQty', header: 'Ternak_Masuk_Pembelian_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakMasukPembelianQty) || 0 },
+  { key: 'ternakMasukQty', header: 'Ternak_Masuk_Qty', type: 'number', summable: true, getValue: (r) => parseInt(r.ternakMasukQty, 10) || 0 },
+  { 
+    key: 'ternakKeluar', 
+    header: 'Ternak_Keluar', 
+    type: 'select', 
+    groupable: true, 
+    getValue: (r) => {
+      const qty = parseInt(r.ternakKeluarQty, 10) || 0;
+      let txt = String(r.ternakKeluar || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      const isNone = !txt || txt === '-' || txt.toLowerCase().startsWith('tidak ada') || txt.toLowerCase() === 'none' || txt.toLowerCase() === 'nihil';
+      if (qty <= 0 && isNone) return 'Tidak Ada';
+      if (qty > 0 && isNone) return `${qty} ekor`;
+      if (qty > 0) return `${txt} (${qty} ekor)`;
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { 
+    key: 'ternakKeluarJenis', 
+    header: 'Ternak_Keluar_Jenis', 
+    type: 'select', 
+    getValue: (r) => {
+      let txt = String(r.ternakKeluarJenis || r.ternakKeluar || '').trim();
+      txt = txt.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      return txt || 'Tidak Ada';
+    } 
+  },
+  { key: 'ternakKeluarKematianQty', header: 'Ternak_Keluar_Kematian_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakKeluarKematianQty) || 0 },
+  { key: 'ternakKeluarPenjualanQty', header: 'Ternak_Keluar_Penjualan_Qty', type: 'number', summable: true, getValue: (r) => parseFloat(r.ternakKeluarPenjualanQty) || 0 },
+  { key: 'ternakKeluarQty', header: 'Ternak_Keluar_Qty', type: 'number', summable: true, getValue: (r) => parseInt(r.ternakKeluarQty, 10) || 0 },
+  { key: 'populasiTernak', header: 'Populasi_Ternak', type: 'number', summable: true, getValue: (r) => r.populasiTernak || 0 },
+  { key: 'pakanMasukKg', header: 'Pakan_Masuk_Kg', type: 'number', summable: true, getValue: (r) => r.pakanMasukKg || 0 },
+  { key: 'pakanKeluarKg', header: 'Pakan_Keluar_Kg', type: 'number', summable: true, getValue: (r) => r.pakanKeluarKg || 0 },
+  { key: 'jenisKomoditasTernak', header: 'Jenis_Komoditas_Ternak', type: 'select', groupable: true, getValue: (r) => r.jenisKomoditasTernak || '' },
+  { key: 'jumlahPenjualanTernak', header: 'Jumlah_Penjualan_Ternak', type: 'number', summable: true, getValue: (r) => r.jumlahPenjualanTernak || 0 },
+  { key: 'hargaSatuanTernakRp', header: 'Harga_Satuan_Ternak_Rp', type: 'number', summable: true, getValue: (r) => r.hargaSatuanTernakRp || 0 },
+  { key: 'totalHargaTernakRp', header: 'Total_Harga_Ternak_Rp', type: 'number', summable: true, getValue: (r) => r.totalHargaTernakRp || 0 },
+  { key: 'pembeliTernakNama', header: 'Pembeli_Ternak_Nama', type: 'text', getValue: (r) => r.pembeliTernakNama || r.pembeliNama || '' },
+  { key: 'pembeliTernakAlamat', header: 'Pembeli_Ternak_Alamat', type: 'text', getValue: (r) => r.pembeliTernakAlamat || r.pembeliAlamat || '' },
+  { key: 'pembeliTernakTelp', header: 'Pembeli_Ternak_NoTelp', type: 'text', getValue: (r) => typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(r.pembeliTernakTelp || r.pembeliTelp || '') : String(r.pembeliTernakTelp || r.pembeliTelp || '') },
   { key: 'jumlahUnitPenggunaan', header: 'Jumlah_Unit_Penggunaan', type: 'number', summable: true, getValue: (r) => r.jumlahUnitPenggunaan || '' },
   { key: 'tujuanPenggunaan', header: 'Tujuan_Penggunaan', type: 'select', groupable: true, getValue: (r) => r.tujuanPenggunaan || '' },
   { key: 'capaianKegiatan', header: 'Capaian_Kegiatan', type: 'text', getValue: (r) => r.capaianKegiatan || '' },
+  { key: 'anggotaTerlapor', header: 'Anggota_Terlapor', type: 'text', getValue: (r) => r.anggotaTerlaporText || (Array.isArray(r.anggotaTerlapor) ? r.anggotaTerlapor.map(a => `${a.name || a.id} (${a.id}): ${a.deskripsi || '-'}`).join('; ') : (r.anggotaTerlapor || '')) },
   { key: 'kendala', header: 'Kendala', type: 'text', getValue: (r) => r.kendala || '' },
   { key: 'upaya', header: 'Upaya', type: 'text', getValue: (r) => r.upaya || '' },
   { key: 'fotoUrl', header: 'Foto_URL', type: 'url', getValue: (r) => extractStringUrl(r.fotoUrl || r.photoUrl || (Array.isArray(r.photos) && r.photos[0])) },
@@ -375,7 +551,14 @@ function OperationalReport(data) {
   let bidangDivisi = data.bidangDivisi || data.site || '';
 
   // Auto-resolve from registry if ID or name is provided
-  if (idKaryawan && (!namaPic || !bidangDivisi)) {
+  if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getEmployee) {
+    const emp = ConfigRepository.getEmployee(idKaryawan || namaPic);
+    if (emp) {
+      idKaryawan = emp.id;
+      namaPic = emp.name;
+      bidangDivisi = bidangDivisi || emp.division;
+    }
+  } else if (idKaryawan && (!namaPic || !bidangDivisi)) {
     const emp = lookupEmployee(idKaryawan);
     if (emp) {
       idKaryawan = emp.id;
@@ -391,6 +574,22 @@ function OperationalReport(data) {
     }
   }
 
+  let anggotaTerlapor = [];
+  if (Array.isArray(data.anggotaTerlapor)) {
+    anggotaTerlapor = data.anggotaTerlapor;
+  } else if (typeof data.anggotaTerlapor === 'string' && data.anggotaTerlapor.trim()) {
+    try {
+      const parsed = JSON.parse(data.anggotaTerlapor);
+      if (Array.isArray(parsed)) anggotaTerlapor = parsed;
+    } catch(e) {
+      anggotaTerlapor = data.anggotaTerlapor;
+    }
+  }
+
+  const anggotaTerlaporText = Array.isArray(anggotaTerlapor)
+    ? anggotaTerlapor.map(a => `${a.name || a.id} (${a.id}): ${a.deskripsi || '-'}`).join('; ')
+    : String(anggotaTerlapor || data.anggotaTerlaporText || '');
+
   return {
     reportId: data.reportId || '',
     idKaryawan: idKaryawan,
@@ -399,14 +598,17 @@ function OperationalReport(data) {
     timestamp: data.timestamp || '',
     namaPic: namaPic || idKaryawan || '',
     bidangDivisi: bidangDivisi || '',
-    nomorTelepon: data.nomorTelepon || data.noTelepon || data.telepon || '',
+    nomorTelepon: typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(data.nomorTelepon || data.noTelepon || data.telepon || '') : (data.nomorTelepon || data.noTelepon || data.telepon || ''),
     lokasiKegiatan: data.lokasiKegiatan || '',
     jenisKegiatan: data.jenisKegiatan || '',
     kegiatanTambahan: Array.isArray(data.kegiatanTambahan) ? data.kegiatanTambahan.join(', ') : (data.kegiatanTambahan || ''),
     pengawasan: data.pengawasan || '',
-    detailPengawasan: data.detailPengawasan || '',
-    administrasi: data.administrasi || data.detailAdministrasi || '',
-    detailAdministrasi: data.detailAdministrasi || data.administrasi || '',
+    detailPengawasan: data.detailPengawasan || data.pengawasanRincian || '',
+    pengawasanRincian: data.pengawasanRincian || data.detailPengawasan || '',
+    administrasi: data.administrasi || data.detailAdministrasi || data.officeRincian || '',
+    detailAdministrasi: data.detailAdministrasi || data.administrasi || data.officeRincian || '',
+    officeJenis: data.officeJenis || '',
+    officeRincian: data.officeRincian || data.detailAdministrasi || '',
     statusPengelolaan: data.statusPengelolaan || '',
     statusPengelolaanPanen: data.statusPengelolaanPanen || '',
     komoditas: (() => {
@@ -425,6 +627,8 @@ function OperationalReport(data) {
     jumlahBenih: parseFloat(data.jumlahBenih) || 0,
     tglTanam: data.tglTanam || '',
     estimasiPanenHst: parseFloat(data.estimasiPanenHst) || 0,
+    populasiAgro: parseFloat(data.populasiAgro) || parseFloat(data.populasi) || 0,
+    rincianPerawatanAgro: data.rincianPerawatanAgro || '',
     tglPanen: data.tglPanen || '',
     jumlahPanen: parseFloat(data.jumlahPanen) || 0,
     tglPenjualan: data.tglPenjualan || '',
@@ -434,9 +638,47 @@ function OperationalReport(data) {
     tujuanDistribusi: Array.isArray(data.tujuanDistribusi) ? data.tujuanDistribusi.join(', ') : (data.tujuanDistribusi || ''),
     hargaSatuanRp: parseFloat(data.hargaSatuanRp) || 0,
     totalHargaRp: parseFloat(data.totalHargaRp) || 0,
+    pembeliNama: data.pembeliNama || '',
+    pembeliAlamat: data.pembeliAlamat || '',
+    pembeliTelp: typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(data.pembeliTelp || '') : (data.pembeliTelp || ''),
+    jenisTernak: data.jenisTernak || '',
+    ternakMasuk: data.ternakMasuk || '',
+    ternakMasukJenis: data.ternakMasukJenis || data.ternakMasuk || '',
+    ternakMasukKelahiranQty: parseFloat(data.ternakMasukKelahiranQty) || 0,
+    ternakMasukPembelianQty: parseFloat(data.ternakMasukPembelianQty) || 0,
+    ternakMasukQty: (() => {
+      const explicit = parseFloat(data.ternakMasukQty);
+      if (!isNaN(explicit) && explicit > 0) return explicit;
+      const k = parseFloat(data.ternakMasukKelahiranQty) || 0;
+      const p = parseFloat(data.ternakMasukPembelianQty) || 0;
+      return (k + p) || (isNaN(explicit) ? 0 : explicit);
+    })(),
+    ternakKeluar: data.ternakKeluar || '',
+    ternakKeluarJenis: data.ternakKeluarJenis || data.ternakKeluar || '',
+    ternakKeluarKematianQty: parseFloat(data.ternakKeluarKematianQty) || 0,
+    ternakKeluarPenjualanQty: parseFloat(data.ternakKeluarPenjualanQty) || 0,
+    ternakKeluarQty: (() => {
+      const explicit = parseFloat(data.ternakKeluarQty);
+      if (!isNaN(explicit) && explicit > 0) return explicit;
+      const d = parseFloat(data.ternakKeluarKematianQty) || 0;
+      const s = parseFloat(data.ternakKeluarPenjualanQty) || 0;
+      return (d + s) || (isNaN(explicit) ? 0 : explicit);
+    })(),
+    populasiTernak: parseFloat(data.populasiTernak) || 0,
+    pakanMasukKg: parseFloat(data.pakanMasukKg) || 0,
+    pakanKeluarKg: parseFloat(data.pakanKeluarKg) || 0,
+    jenisKomoditasTernak: data.jenisKomoditasTernak || '',
+    jumlahPenjualanTernak: parseFloat(data.jumlahPenjualanTernak) || 0,
+    hargaSatuanTernakRp: parseFloat(data.hargaSatuanTernakRp) || 0,
+    totalHargaTernakRp: parseFloat(data.totalHargaTernakRp) || 0,
+    pembeliTernakNama: data.pembeliTernakNama || data.pembeliNama || '',
+    pembeliTernakAlamat: data.pembeliTernakAlamat || data.pembeliAlamat || '',
+    pembeliTernakTelp: typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(data.pembeliTernakTelp || data.pembeliTelp || '') : (data.pembeliTernakTelp || data.pembeliTelp || ''),
     jumlahUnitPenggunaan: parseFloat(data.jumlahUnitPenggunaan) || 0,
     tujuanPenggunaan: Array.isArray(data.tujuanPenggunaan) ? data.tujuanPenggunaan.join(', ') : (data.tujuanPenggunaan || ''),
     capaianKegiatan: data.capaianKegiatan || '',
+    anggotaTerlapor: anggotaTerlapor,
+    anggotaTerlaporText: anggotaTerlaporText,
     kendala: normalizeKendalaText(data.kendala),
     upaya: normalizeKendalaText(data.kendala) ? (data.upaya || '') : '',
     fotoUrl: resolvedPhotoUrl,
@@ -461,7 +703,7 @@ function formatCustomFieldHeader(label) {
 
 /**
  * Returns the effective header list for operational reports:
- * 34 standard headers + any dynamic custom field headers.
+ * standard headers + any dynamic custom field headers.
  * @param {Array<Object>} customFields 
  * @returns {Array<string>}
  */
@@ -486,6 +728,22 @@ function QueueItem(data) {
     ? data.photos.map(p => extractStringUrl(p)).filter(Boolean)
     : [p1, p2, p3].filter(Boolean);
 
+  let anggotaTerlapor = [];
+  if (Array.isArray(data.anggotaTerlapor)) {
+    anggotaTerlapor = data.anggotaTerlapor;
+  } else if (typeof data.anggotaTerlapor === 'string' && data.anggotaTerlapor.trim()) {
+    try {
+      const parsed = JSON.parse(data.anggotaTerlapor);
+      if (Array.isArray(parsed)) anggotaTerlapor = parsed;
+    } catch(e) {
+      anggotaTerlapor = data.anggotaTerlapor;
+    }
+  }
+
+  const anggotaTerlaporText = Array.isArray(anggotaTerlapor)
+    ? anggotaTerlapor.map(a => `${a.name || a.id} (${a.id}): ${a.deskripsi || '-'}`).join('; ')
+    : String(anggotaTerlapor || data.anggotaTerlaporText || '');
+
   return {
     source: data.source || 'Laporan Operasional',
     reportId: data.reportId || '',
@@ -509,6 +767,8 @@ function QueueItem(data) {
     nilaiPenjualanRp: parseFloat(data.nilaiPenjualanRp) || 0,
     kendala: normKendala,
     upaya: normKendala ? (data.upaya || '') : '',
+    anggotaTerlapor: anggotaTerlapor,
+    anggotaTerlaporText: anggotaTerlaporText,
     fields: Array.isArray(data.fields) ? data.fields : [],
     raw: data.raw || null
   };
@@ -552,3 +812,604 @@ function UserRoleItem(data) {
     addedAt: data.addedAt ? String(data.addedAt) : (new Date()).toISOString().split('T')[0]
   };
 }
+
+/**
+ * =========================================================================
+ * CANONICAL ANALYTICS FIELD CATALOG
+ * Defines all searchable dimensions, filterable attributes, aggregatable
+ * measures, units, operators, and metadata across Agro, Ternak, Office, etc.
+ * =========================================================================
+ */
+const ANALYTICS_FIELD_CATALOG = Object.freeze([
+  // --- KONTEKS & IDENTITAS UMUM ---
+  {
+    key: 'idKaryawan',
+    label: 'ID Karyawan',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'namaPic',
+    label: 'Nama PIC / Karyawan',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'bidangDivisi',
+    label: 'Bidang / Divisi',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Manajemen', 'Agro', 'Peternakan', 'Alprof', 'BKO 28', 'Pekerja Harian'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'lokasiKegiatan',
+    label: 'Lokasi / Sektor',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Jonggol', 'Cikalong', 'Quilling', 'Jakarta'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'jenisKegiatan',
+    label: 'Jenis Kegiatan Utama',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Agro', 'Ternak', 'Office', 'Pengawasan'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'timestamp',
+    label: 'Waktu Laporan',
+    type: 'date',
+    unit: '',
+    module: 'Umum',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'kodeKegiatan',
+    label: 'Kode Kegiatan',
+    type: 'string',
+    unit: '',
+    module: 'Umum',
+    roles: ['filter', 'sort'],
+    operators: ['eq', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'severity',
+    label: 'Status Urgensi (Triage)',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['urgent', 'normal'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'reviewed',
+    label: 'Status Verifikasi',
+    type: 'select',
+    unit: '',
+    module: 'Umum',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Belum Terverifikasi', 'Terverifikasi'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+
+  // --- MODUL AGRO: TANAM, PERAWATAN, PANEN & DISTRIBUSI ---
+  {
+    key: 'komoditas',
+    label: 'Komoditas Agro',
+    type: 'select',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Alpukat', 'Pisang', 'Jagung Manis', 'Terong', 'Cabe', 'Jagung Tebon', 'Jagung Hibrida', 'Edamame', 'Pembibitan Kopi', 'Pembibitan Pala'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'statusPengelolaan',
+    label: 'Status Pengelolaan Agro',
+    type: 'select',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Swakelola', 'Petani binaan', 'Kemitraan'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'lokasiBlok',
+    label: 'Blok Lahan Tanam',
+    type: 'string',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'luasLahanM2',
+    label: 'Luas Lahan Tanam',
+    type: 'number',
+    unit: 'm²',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'jumlahBenih',
+    label: 'Populasi Benih Tanam',
+    type: 'number',
+    unit: 'benih',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'tglTanam',
+    label: 'Tanggal Tanam',
+    type: 'date',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'estimasiPanenHst',
+    label: 'Estimasi Panen HST',
+    type: 'number',
+    unit: 'HST',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'populasiAgro',
+    label: 'Populasi Tanaman Aktif',
+    type: 'number',
+    unit: 'tanaman',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'rincianPerawatanAgro',
+    label: 'Rincian Perawatan Agro',
+    type: 'string',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['eq', 'neq', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'lokasiBlokPanen',
+    label: 'Blok Panen',
+    type: 'string',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'luasLahanPanenM2',
+    label: 'Luas Lahan Panen',
+    type: 'number',
+    unit: 'm²',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'tglPanen',
+    label: 'Tanggal Panen',
+    type: 'date',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'jumlahPanen',
+    label: 'Hasil Panen Agro',
+    type: 'number',
+    unit: 'kg',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'tglPenjualan',
+    label: 'Tanggal Penjualan Agro',
+    type: 'date',
+    unit: '',
+    module: 'Agro',
+    roles: ['filter', 'sort'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'date'
+  },
+  {
+    key: 'tujuanDistribusi',
+    label: 'Tujuan Distribusi Agro',
+    type: 'multiselect',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Penjualan', 'Penggunaan Internal'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'jumlahPenjualanUnit',
+    label: 'Volume Penjualan Agro',
+    type: 'number',
+    unit: 'unit',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'hargaSatuanRp',
+    label: 'Harga Satuan Agro',
+    type: 'number',
+    unit: 'Rp/unit',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+  {
+    key: 'totalHargaRp',
+    label: 'Nilai Penjualan Agro',
+    type: 'number',
+    unit: 'Rp',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+  {
+    key: 'jumlahUnitPenggunaan',
+    label: 'Volume Penggunaan Internal Agro',
+    type: 'number',
+    unit: 'unit',
+    module: 'Agro',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'tujuanPenggunaan',
+    label: 'Lokasi Penggunaan Internal',
+    type: 'multiselect',
+    unit: '',
+    module: 'Agro',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['MPL Jonggol', 'MPL Cikalong', 'Villa Quiling', 'Pasir Putih'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+
+  // --- MODUL PETERNAKAN (TERNAK) ---
+  {
+    key: 'jenisTernak',
+    label: 'Jenis Ternak',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Sapi', 'Kambing', 'Domba', 'Ayam Broiler', 'Ayam KUB', 'Ayam KUB Petelur'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'ternakMasukJenis',
+    label: 'Jenis Mutasi Masuk',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Kelahiran', 'Pembelian'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'ternakMasukKelahiranQty',
+    label: 'Ternak Lahir',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakMasukPembelianQty',
+    label: 'Ternak Beli',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakMasukQty',
+    label: 'Total Ternak Masuk',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakKeluarJenis',
+    label: 'Jenis Mutasi Keluar',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Kematian', 'Penjualan'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'ternakKeluarKematianQty',
+    label: 'Ternak Mati',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakKeluarPenjualanQty',
+    label: 'Ternak Terjual',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'ternakKeluarQty',
+    label: 'Total Ternak Keluar',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'populasiTernak',
+    label: 'Populasi Ternak',
+    type: 'number',
+    unit: 'ekor',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'integer'
+  },
+  {
+    key: 'pakanMasukKg',
+    label: 'Pakan Masuk',
+    type: 'number',
+    unit: 'kg',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'pakanKeluarKg',
+    label: 'Pakan Keluar (Konsumsi)',
+    type: 'number',
+    unit: 'kg',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'jenisKomoditasTernak',
+    label: 'Komoditas Ternak',
+    type: 'select',
+    unit: '',
+    module: 'Ternak',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Daging Sapi', 'Susu Sapi', 'Kambing Hidup', 'Domba Hidup', 'Ayam Hidup', 'Telur Ayam', 'Karkas Ayam', 'Pupuk Kandang / Kohe', 'Lainnya'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+  {
+    key: 'jumlahPenjualanTernak',
+    label: 'Volume Penjualan Ternak',
+    type: 'number',
+    unit: 'ekor/kg/unit',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'decimal'
+  },
+  {
+    key: 'hargaSatuanTernakRp',
+    label: 'Harga Satuan Ternak',
+    type: 'number',
+    unit: 'Rp/unit',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+  {
+    key: 'totalHargaTernakRp',
+    label: 'Nilai Penjualan Ternak',
+    type: 'number',
+    unit: 'Rp',
+    module: 'Ternak',
+    roles: ['measure', 'filter', 'sort'],
+    aggregations: ['sum', 'avg', 'min', 'max'],
+    operators: ['between', 'gt', 'gte', 'lt', 'lte'],
+    format: 'currency'
+  },
+
+  // --- MODUL OFFICE & PENGAWASAN ---
+  {
+    key: 'officeJenis',
+    label: 'Kategori Office',
+    type: 'select',
+    unit: '',
+    module: 'Office',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Administrasi Umum', 'Keuangan & Pembukuan', 'SDM / HRD', 'Pengadaan / Logistik'],
+    operators: ['eq', 'neq', 'in'],
+    format: 'text'
+  },
+  {
+    key: 'pengawasan',
+    label: 'Tindakan Pengawasan',
+    type: 'select',
+    unit: '',
+    module: 'Pengawasan',
+    roles: ['dimension', 'filter', 'sort'],
+    options: ['Komoditas pertanian / perkebunan', 'Komoditas peternakan', 'Petani binaan'],
+    operators: ['eq', 'neq', 'in', 'contains'],
+    format: 'text'
+  },
+
+  // --- METRIK DERIVATIF & AGREGASI UNIVERSAL ---
+  {
+    key: 'count',
+    label: 'Frekuensi Laporan',
+    type: 'number',
+    unit: 'laporan',
+    module: 'Umum',
+    roles: ['measure', 'sort'],
+    aggregations: ['count'],
+    format: 'integer',
+    isDerived: true
+  },
+  {
+    key: 'distinctEmployees',
+    label: 'Jumlah Karyawan Unik',
+    type: 'number',
+    unit: 'orang',
+    module: 'Umum',
+    roles: ['measure', 'sort'],
+    aggregations: ['count_distinct'],
+    format: 'integer',
+    isDerived: true
+  },
+  {
+    key: 'produktivitasPanen',
+    label: 'Produktivitas Panen',
+    type: 'number',
+    unit: 'kg/m²',
+    module: 'Agro',
+    roles: ['measure', 'sort'],
+    aggregations: ['avg'],
+    format: 'decimal',
+    isDerived: true
+  },
+  {
+    key: 'kerapatanTanam',
+    label: 'Kerapatan Tanam',
+    type: 'number',
+    unit: 'benih/m²',
+    module: 'Agro',
+    roles: ['measure', 'sort'],
+    aggregations: ['avg'],
+    format: 'decimal',
+    isDerived: true
+  },
+  {
+    key: 'hargaRataRata',
+    label: 'Harga Rata-Rata Penjualan',
+    type: 'number',
+    unit: 'Rp/unit',
+    module: 'Agro',
+    roles: ['measure', 'sort'],
+    aggregations: ['avg'],
+    format: 'currency',
+    isDerived: true
+  }
+]);
+
+/**
+ * Retrieves the canonical analytics field catalog.
+ * @returns {Array<Object>}
+ */
+function getAnalyticsFieldCatalog() {
+  return ANALYTICS_FIELD_CATALOG;
+}
+
+/**
+ * Looks up a single field descriptor from the catalog by key.
+ * @param {string} key
+ * @returns {Object|null}
+ */
+function getFieldDescriptor(key) {
+  if (!key) return null;
+  const cleanKey = String(key).trim();
+  return ANALYTICS_FIELD_CATALOG.find(f => f.key === cleanKey) || null;
+}
+

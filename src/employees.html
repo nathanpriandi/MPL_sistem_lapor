@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pengaturan Karyawan — Sistem Pelaporan Digital</title>
+  <title>Sistem Lapor MPL | Pengaturan Karyawan</title>
   <?!= include('style'); ?>
   <style>
     .badge-id {
@@ -19,7 +19,8 @@
       border: 1px solid #cbd5e1;
     }
     .badge-div-alp { background: #e0e7ff; color: #3730a3; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; }
-    .badge-div-sga { background: #dbeafe; color: #1d4ed8; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; }
+    .badge-div-pic-sga { background: #dbeafe; color: #1e40af; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; border: 1px solid #93c5fd; }
+    .badge-div-sga { background: #f1f5f9; color: #475569; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; }
     .badge-div-pkh { background: #ccfbf1; color: #0f766e; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; }
     .badge-div-bko { background: #ffedd5; color: #c2410c; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; }
     .badge-div-mnj { background: #f3e8ff; color: #7e22ce; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; }
@@ -85,7 +86,7 @@
             <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div class="topbar-breadcrumb">
-            <span class="breadcrumb-root">Konsol Internal</span>
+            <span class="breadcrumb-root">Sistem Lapor MPL</span>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">Pengaturan Karyawan</span>
           </div>
@@ -101,7 +102,7 @@
               <? } else if (userRole === 'admin') { ?>
                 <span class="badge badge-primary">Admin Operasional</span>
               <? } else if (userRole === 'manager') { ?>
-                <span class="badge badge-normal">Executive Manager</span>
+                <span class="badge badge-normal">Manager Eksekutif</span>
               <? } ?>
             </div>
             <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">
@@ -143,9 +144,7 @@
                 <div style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0 0.75rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); height: 32px; box-sizing: border-box; white-space: nowrap;">
                   <span style="color: var(--text-muted);">Total Karyawan:</span>
                   <strong id="metricTotalEmployees" style="color: var(--text-primary); font-weight: 700;">0</strong>
-                </div>
-
-                <!-- Reset Bawaan Button -->
+                </div>                <!-- Reset Bawaan Button -->
                 <button class="btn btn-secondary table-btn-sm" onclick="openResetEmployeesModal()" title="Reset ke 38 Karyawan Bawaan" style="height: 32px; padding: 0 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; width: auto;">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                   <span>Reset Bawaan</span>
@@ -169,11 +168,12 @@
             <div class="enterprise-toolbar-filters" style="margin-top: 0.65rem;">
               <div class="segmented-filter-pills" role="tablist" aria-label="Filter Divisi">
                 <button class="filter-pill active" onclick="setDivisionFilter('ALL', this)" id="divPill-ALL">Semua Divisi</button>
-                <button class="filter-pill" onclick="setDivisionFilter('Alprof', this)" id="divPill-Alprof">Alprof</button>
-                <button class="filter-pill" onclick="setDivisionFilter('SGA', this)" id="divPill-SGA">SGA</button>
-                <button class="filter-pill" onclick="setDivisionFilter('Pekerja Harian', this)" id="divPill-PKH">Pekerja Harian</button>
-                <button class="filter-pill" onclick="setDivisionFilter('BKO 28', this)" id="divPill-BKO">BKO 28</button>
                 <button class="filter-pill" onclick="setDivisionFilter('Manajemen', this)" id="divPill-MNJ">Manajemen</button>
+                <button class="filter-pill" onclick="setDivisionFilter('BKO 28', this)" id="divPill-BKO">BKO 28</button>
+                <button class="filter-pill" onclick="setDivisionFilter('Pekerja Harian', this)" id="divPill-PKH">Pekerja Harian</button>
+                <button class="filter-pill" onclick="setDivisionFilter('Alprof', this)" id="divPill-Alprof">Alprof</button>
+                <button class="filter-pill" onclick="setDivisionFilter('PIC SGA', this)" id="divPill-PICSGA">PIC SGA</button>
+                <button class="filter-pill" onclick="setDivisionFilter('SGA', this)" id="divPill-SGA">SGA (Semua)</button>
               </div>
             </div>
           </div>
@@ -186,7 +186,7 @@
                   <th style="width: 45px; text-align: center;">#</th>
                   <th style="width: 140px;">ID Karyawan</th>
                   <th>Nama Lengkap Karyawan</th>
-                  <th style="width: 180px;">Divisi / Bidang</th>
+                  <th style="width: 180px;">Divisi / Peran</th>
                   <th style="width: 140px; text-align: center;">Aksi</th>
                 </tr>
               </thead>
@@ -221,14 +221,15 @@
           
           <!-- Divisi Selection -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" for="empModalDivision">Divisi / Bidang <span class="text-danger">*</span></label>
+            <label class="form-label" for="empModalDivision">Divisi / Peran Karyawan <span class="text-danger">*</span></label>
             <select id="empModalDivision" class="form-input" onchange="onModalDivisionChange()" required>
-              <option value="" disabled selected>-- Pilih Divisi --</option>
+              <option value="" disabled selected>Pilih divisi & peran</option>
               <option value="Manajemen">Manajemen (Prefix: MNJ-)</option>
               <option value="BKO 28">BKO 28 (Prefix: BKO-)</option>
               <option value="Pekerja Harian">Pekerja Harian (Prefix: PKH-)</option>
               <option value="Alprof">Alprof (Prefix: ALP-)</option>
-              <option value="SGA">SGA (Prefix: SGA-)</option>
+              <option value="PIC SGA">PIC SGA (Prefix: SGA- • Dapat Mengisi Form)</option>
+              <option value="SGA">SGA (Prefix: SGA- • Anggota Lapangan)</option>
             </select>
           </div>
 
@@ -239,7 +240,7 @@
               <span id="idSuggestHint" style="font-size: 0.725rem; color: #0284c7; cursor: pointer;" onclick="applySuggestedId()"></span>
             </div>
             <input type="text" id="empModalId" class="form-input" placeholder="contoh: ALP-08" style="text-transform: uppercase; font-family: monospace; font-weight: 700;" required>
-            <small style="color: var(--text-muted); font-size: 0.75rem;">Format baku: Prefix Divisi + Angka 2 Digit (contoh: ALP-08, MNJ-10).</small>
+            <small style="color: var(--text-muted); font-size: 0.75rem;">Format baku: Prefix Divisi + Angka 2 Digit (contoh: ALP-08, MNJ-10, PKH-09, SGA-13).</small>
           </div>
 
           <!-- Nama Lengkap -->
@@ -288,7 +289,7 @@
       </div>
       <h3 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0 0 0.5rem 0;">Reset ke 38 Karyawan Bawaan?</h3>
       <p style="font-size: 0.85rem; color: #64748b; line-height: 1.45; margin: 0 0 1.25rem 0;">
-        Tindakan ini akan mengembalikan seluruh daftar ID karyawan ke <strong>38 Karyawan Standar Bawaan</strong>. Seluruh data kustom baru yang pernah ditambahkan akan diatur ulang.
+        Tindakan ini akan mengembalikan seluruh daftar ID karyawan ke <strong>38 Karyawan Standar Bawaan</strong> (Manajemen, BKO 28, Pekerja Harian, Alprof, dan SGA). Seluruh data kustom baru yang pernah ditambahkan akan diatur ulang.
       </p>
 
       <div style="display: flex; gap: 0.5rem; justify-content: center;">
@@ -299,7 +300,6 @@
   </div>
 
   <?!= includeApp(webAppUrl); ?>
-
   <script>
     let allEmployees = [];
     let isEditingEmployee = false;
@@ -312,8 +312,16 @@
       'BKO 28': 'BKO-',
       'Pekerja Harian': 'PKH-',
       'Alprof': 'ALP-',
+      'PIC SGA': 'SGA-',
       'SGA': 'SGA-'
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchAndRenderEmployees();
+      if (typeof loadQuickLinks === 'function') {
+        loadQuickLinks();
+      }
+    });
 
     function toggleSidebar() {
       const sidebar = document.getElementById('appSidebar');
@@ -330,14 +338,23 @@
         .replace(/'/g, '&#039;');
     }
 
-    function getDivBadgeClass(divStr) {
-      const s = String(divStr || '').toLowerCase();
-      if (s.includes('alprof') || s.includes('alp')) return 'badge-div-alp';
-      if (s.includes('sga')) return 'badge-div-sga';
-      if (s.includes('pekerja') || s.includes('harian') || s.includes('pkh')) return 'badge-div-pkh';
-      if (s.includes('bko')) return 'badge-div-bko';
-      if (s.includes('manajemen') || s.includes('mnj')) return 'badge-div-mnj';
-      return 'badge-div-def';
+    function getDivBadgeInfo(emp) {
+      const div = emp.division || '';
+      const role = emp.role || '';
+      const isPic = (emp.isPic !== undefined) ? !!emp.isPic : (emp.id === 'SGA-01' || emp.id === 'SGA-02');
+      const s = div.toLowerCase();
+
+      if (s.includes('sga')) {
+        if (role === 'PIC SGA' || isPic || emp.id === 'SGA-01' || emp.id === 'SGA-02') {
+          return { cssClass: 'badge-div-pic-sga', label: 'PIC SGA' };
+        }
+        return { cssClass: 'badge-div-sga', label: 'SGA' };
+      }
+      if (s.includes('alprof') || s.includes('alp')) return { cssClass: 'badge-div-alp', label: 'Alprof' };
+      if (s.includes('manajemen') || s.includes('mnj')) return { cssClass: 'badge-div-mnj', label: 'Manajemen' };
+      if (s.includes('bko')) return { cssClass: 'badge-div-bko', label: 'BKO 28' };
+      if (s.includes('pekerja') || s.includes('pkh')) return { cssClass: 'badge-div-pkh', label: 'Pekerja Harian' };
+      return { cssClass: 'badge-div-def', label: div || 'Lainnya' };
     }
 
     async function fetchAndRenderEmployees(isManual) {
@@ -347,11 +364,11 @@
           allEmployees = Array.isArray(list) ? list : [];
         } else {
           allEmployees = (typeof EMPLOYEE_REGISTRY !== 'undefined') ? EMPLOYEE_REGISTRY.map(e => ({ ...e })) : [
-            { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof' },
-            { id: 'SGA-01', name: 'Ketut', division: 'SGA' },
-            { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian' },
-            { id: 'BKO-01', name: 'Didi', division: 'BKO 28' },
-            { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen' }
+            { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', role: 'Manajemen', isPic: true },
+            { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', role: 'Alprof', isPic: true },
+            { id: 'SGA-01', name: 'Ketut', division: 'SGA', role: 'PIC SGA', isPic: true },
+            { id: 'SGA-02', name: 'Amas S', division: 'SGA', role: 'PIC SGA', isPic: true },
+            { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', role: 'SGA', isPic: false }
           ];
         }
 
@@ -399,11 +416,19 @@
           const idMatch = String(emp.id || '').toLowerCase().includes(q);
           const nameMatch = String(emp.name || '').toLowerCase().includes(q);
           const divMatch = String(emp.division || '').toLowerCase().includes(q);
-          if (!idMatch && !nameMatch && !divMatch) return false;
+          const roleMatch = String(emp.role || '').toLowerCase().includes(q);
+          if (!idMatch && !nameMatch && !divMatch && !roleMatch) return false;
         }
 
-        if (currentDivisionFilter !== 'ALL' && emp.division !== currentDivisionFilter) {
-          return false;
+        if (currentDivisionFilter !== 'ALL') {
+          if (currentDivisionFilter === 'PIC SGA') {
+            const isPic = (emp.isPic !== undefined) ? !!emp.isPic : (emp.id === 'SGA-01' || emp.id === 'SGA-02');
+            if (!String(emp.division || '').includes('SGA') || (!isPic && emp.role !== 'PIC SGA')) return false;
+          } else if (currentDivisionFilter === 'SGA') {
+            if (!String(emp.division || '').includes('SGA')) return false;
+          } else if (emp.division !== currentDivisionFilter) {
+            return false;
+          }
         }
 
         return true;
@@ -432,7 +457,7 @@
       }
 
       tbody.innerHTML = list.map((emp, idx) => {
-        const divBadge = getDivBadgeClass(emp.division);
+        const badgeInfo = getDivBadgeInfo(emp);
         const encodedEmp = encodeURIComponent(JSON.stringify(emp));
 
         return `
@@ -443,7 +468,7 @@
               <strong style="color: var(--text-primary); font-size: 0.9rem;">${escapeHtml(emp.name)}</strong>
             </td>
             <td>
-              <span class="${divBadge}">${escapeHtml(emp.division)}</span>
+              <span class="${badgeInfo.cssClass}">${escapeHtml(badgeInfo.label)}</span>
             </td>
             <td style="text-align: center;">
               <div style="display: inline-flex; gap: 0.35rem; align-items: center;">
@@ -522,7 +547,13 @@
         const emp = JSON.parse(decodeURIComponent(encodedEmp));
         document.getElementById('employeeModalTitle').innerText = `Edit Karyawan: ${emp.id}`;
         document.getElementById('empModalOldId').value = emp.id;
-        document.getElementById('empModalDivision').value = emp.division || '';
+        
+        let divVal = emp.division || '';
+        const isPic = (emp.isPic !== undefined) ? !!emp.isPic : (emp.id === 'SGA-01' || emp.id === 'SGA-02');
+        if (divVal === 'SGA') {
+          divVal = (emp.role === 'PIC SGA' || isPic) ? 'PIC SGA' : 'SGA';
+        }
+        document.getElementById('empModalDivision').value = divVal;
         document.getElementById('empModalId').value = emp.id || '';
         document.getElementById('empModalName').value = emp.name || '';
         document.getElementById('idSuggestHint').innerText = '';
@@ -539,16 +570,31 @@
     async function handleEmployeeFormSubmit(e) {
       e.preventDefault();
       const oldId = document.getElementById('empModalOldId').value;
-      const division = document.getElementById('empModalDivision').value;
+      const divisionSelectVal = document.getElementById('empModalDivision').value;
       const id = document.getElementById('empModalId').value.trim().toUpperCase();
       const name = document.getElementById('empModalName').value.trim();
 
-      if (!id || !name || !division) {
+      if (!id || !name || !divisionSelectVal) {
         showToast('Mohon lengkapi seluruh isian wajib.', 'warning');
         return;
       }
 
-      const payload = { id, name, division, oldId };
+      let division = divisionSelectVal;
+      let role = divisionSelectVal;
+      let isPic = true;
+      if (divisionSelectVal === 'PIC SGA') {
+        division = 'SGA';
+        role = 'PIC SGA';
+        isPic = true;
+      } else if (divisionSelectVal === 'SGA') {
+        division = 'SGA';
+        role = 'SGA';
+        isPic = false;
+      } else if (divisionSelectVal === 'BKO 28' || divisionSelectVal === 'Pekerja Harian') {
+        isPic = false;
+      }
+
+      const payload = { id, name, division, role, isPic, oldId };
       const btn = document.getElementById('btnSubmitEmployee');
       if (btn) {
         btn.disabled = true;

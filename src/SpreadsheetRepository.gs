@@ -59,11 +59,48 @@ const SpreadsheetRepository = {
    * @returns {Spreadsheet}
    */
   getSpreadsheet: function() {
-    const ssId = ConfigRepository.getSpreadsheetId();
-    if (!ssId) {
-      throw new Error('Spreadsheet ID belum dikonfigurasi di Script Properties.');
+    let ssId = ConfigRepository.getSpreadsheetId();
+    if (ssId) {
+      try {
+        const ss = SpreadsheetApp.openById(ssId);
+        if (ss) return ss;
+      } catch (e) {
+        Logger.log('SpreadsheetRepository: Configured SPREADSHEET_ID unavailable (' + ssId + '): ' + e.toString());
+      }
     }
-    return SpreadsheetApp.openById(ssId);
+    
+    // Auto-discovery from Drive if SPREADSHEET_ID is missing/invalid
+    try {
+      if (typeof DriveApp !== 'undefined') {
+        const files = DriveApp.getFilesByName('Sistem Lapor MPL — Database Operasional');
+        while (files.hasNext()) {
+          const file = files.next();
+          if (!file.isTrashed()) {
+            ssId = file.getId();
+            ConfigRepository.setProperty('SPREADSHEET_ID', ssId);
+            return SpreadsheetApp.openById(ssId);
+          }
+        }
+      }
+    } catch (eDrive) {
+      Logger.log('SpreadsheetRepository auto-discovery notice: ' + eDrive.toString());
+    }
+
+    // Auto-create central database spreadsheet if none exists
+    try {
+      const newSs = SpreadsheetApp.create('Sistem Lapor MPL — Database Operasional');
+      ssId = newSs.getId();
+      ConfigRepository.setProperty('SPREADSHEET_ID', ssId);
+      let masterSheet = newSs.getSheets()[0];
+      masterSheet.setName('Master_Laporan');
+      const opHeaders = OPERATIONAL_REPORT_FIELDS.map(f => f.header);
+      this.applyHeaderStyle(masterSheet, opHeaders);
+      Logger.log('SpreadsheetRepository: Auto-created new central spreadsheet: ' + ssId);
+      return newSs;
+    } catch (eCreate) {
+      Logger.log('SpreadsheetRepository Fatal Error creating spreadsheet: ' + eCreate.toString());
+      throw new Error('Spreadsheet database tidak dapat diakses atau dibuat: ' + eCreate.toString());
+    }
   },
 
   /**
@@ -172,7 +209,7 @@ const SpreadsheetRepository = {
       photoUrl,
       ReportSeverity.WARNING,
       'SENSITIVE',
-      ReviewStatus.UNREVIEWED_SENSITIVE
+      ReviewStatus.UNVERIFIED
     ];
 
     sensitiveSheet.appendRow(sensitiveRow);
@@ -524,6 +561,69 @@ const SpreadsheetRepository = {
       if (fieldKey === 'komoditasPanen' && (normH.includes('komoditaspanen') || normH.includes('hasilpanen'))) {
         return row[idx];
       }
+      if (fieldKey === 'jumlahPanen' && (normH.includes('jumlahpanen') || normH.includes('volumepanen') || normH.includes('hasilpanenkg') || normH === 'panenkg')) {
+        return row[idx];
+      }
+      if (fieldKey === 'totalHargaRp' && (normH.includes('totalharga') || normH.includes('nilaipenjualan') || normH.includes('hargatotal'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'jumlahPenjualanUnit' && (normH.includes('jumlahpenjualanunit') || normH.includes('unitpenjualan') || normH.includes('jumlahpenjualan'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'jumlahUnitPenggunaan' && (normH.includes('jumlahunitpenggunaan') || normH.includes('unitpenggunaan'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'tujuanPenggunaan' && (normH.includes('tujuanpenggunaan') || normH.includes('penggunaaninternal'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'tujuanDistribusi' && (normH.includes('tujuandistribusi') || normH.includes('distribusi'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'jenisTernak' && (normH.includes('jenisternak') || normH === 'ternak')) {
+        return row[idx];
+      }
+      if (fieldKey === 'populasiTernak' && (normH.includes('populasiternak') || normH === 'populasi')) {
+        return row[idx];
+      }
+      if (fieldKey === 'pakanMasukKg' && (normH.includes('pakanmasuk') || normH.includes('pakanmasukkg'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'pakanKeluarKg' && (normH.includes('pakankeluar') || normH.includes('pakankeluarkg'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'jenisKomoditasTernak' && (normH.includes('jeniskomoditasternak') || normH.includes('komoditasternak'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'jumlahPenjualanTernak' && (normH.includes('jumlahpenjualanternak') || normH.includes('penjualanternak'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'hargaSatuanTernakRp' && (normH.includes('hargasatuanternak'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'totalHargaTernakRp' && (normH.includes('totalhargaternak') || normH.includes('nilaiternak'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'rincianPerawatanAgro' && (normH.includes('rincianperawatan') || normH.includes('perawatanagro'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakMasukKelahiranQty' && (normH.includes('kelahiran') || normH.includes('masukkelahiran'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakMasukPembelianQty' && (normH.includes('pembelian') || normH.includes('masukpembelian'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakKeluarKematianQty' && (normH.includes('kematian') || normH.includes('keluarkematian'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakKeluarPenjualanQty' && (normH.includes('keluarpenjualan') || normH.includes('ternakkeluarpenjualan'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakMasukQty' && (normH.includes('ternakmasukqty') || normH.includes('masukekor'))) {
+        return row[idx];
+      }
+      if (fieldKey === 'ternakKeluarQty' && (normH.includes('ternakkeluarqty') || normH.includes('keluarekor'))) {
+        return row[idx];
+      }
     }
 
     return '';
@@ -581,10 +681,14 @@ const SpreadsheetRepository = {
    * @returns {Array<Object>} List of QueueItem objects.
    */
   getAdminQueueData: function() {
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return [];
-
-    const ss = SpreadsheetApp.openById(mainSsId);
+    let ss;
+    try {
+      ss = this.getSpreadsheet();
+    } catch (e) {
+      Logger.log('SpreadsheetRepository.getAdminQueueData: ' + e.toString());
+      return [];
+    }
+    if (!ss) return [];
 
     // Auto-cleanup irrelevant/duplicate tabs if any stale legacy tabs are detected
     try {
@@ -624,56 +728,52 @@ const SpreadsheetRepository = {
             }
 
             let kodeKegiatan = String(
-              this.getCellValue_(row, headerMap, 'Kode_Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Kode Kegiatan', 1) || 
+              this.findRowValueByField_(row, headerMap, 'kodeKegiatan', 'Kode_Kegiatan') || 
               ''
             ).trim();
 
-            let rawTime = this.getCellValue_(row, headerMap, 'Timestamp', 3) || this.getCellValue_(row, headerMap, 'Waktu', 0);
+            let rawTime = this.findRowValueByField_(row, headerMap, 'timestamp', 'Timestamp') || this.findRowValueByField_(row, headerMap, 'waktu', 'Waktu');
             let timestamp = formatDate(rawTime || new Date());
             
             let namaPic = String(
-              this.getCellValue_(row, headerMap, 'Nama_PIC') || 
-              this.getCellValue_(row, headerMap, 'Nama') || 
-              this.getCellValue_(row, headerMap, 'Nama PIC') || 
-              this.getCellValue_(row, headerMap, 'Emp_ID', 4) || 
+              this.findRowValueByField_(row, headerMap, 'namaPic', 'Nama_PIC') || 
+              this.findRowValueByField_(row, headerMap, 'empId', 'Emp_ID') || 
               ''
             ).trim();
 
             let divisi = String(
-              this.getCellValue_(row, headerMap, 'Bidang_Divisi') || 
-              this.getCellValue_(row, headerMap, 'Divisi') || 
-              this.getCellValue_(row, headerMap, 'Site', 5) || 
+              this.findRowValueByField_(row, headerMap, 'bidangDivisi', 'Bidang_Divisi') || 
+              this.findRowValueByField_(row, headerMap, 'divisi', 'Divisi') || 
               ''
             ).trim();
 
-            let nomorTelepon = String(
-              this.getCellValue_(row, headerMap, 'Nomor_Telepon') || 
-              this.getCellValue_(row, headerMap, 'Nomor Telepon') || 
-              this.getCellValue_(row, headerMap, 'No_Telepon') || 
-              this.getCellValue_(row, headerMap, 'Telepon') || 
-              this.getCellValue_(row, headerMap, 'No. Telepon / WhatsApp') || 
+            let nomorTelepon = typeof normalizePhoneNumber === 'function' ? normalizePhoneNumber(
+              this.findRowValueByField_(row, headerMap, 'nomorTelepon', 'Nomor_Telepon') || 
+              ''
+            ) : String(
+              this.findRowValueByField_(row, headerMap, 'nomorTelepon', 'Nomor_Telepon') || 
               ''
             ).trim();
 
             let lokasi = String(
-              this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Lokasi Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Lokasi', 6) || 
+              this.findRowValueByField_(row, headerMap, 'lokasiKegiatan', 'Lokasi_Kegiatan') || 
+              this.findRowValueByField_(row, headerMap, 'lokasi', 'Lokasi') || 
               ''
             ).trim();
 
             let jenis = String(
-              this.getCellValue_(row, headerMap, 'Jenis_Kegiatan') || 
-              this.getCellValue_(row, headerMap, 'Jenis Kegiatan', 7) || 
+              this.findRowValueByField_(row, headerMap, 'jenisKegiatan', 'Jenis_Kegiatan') || 
               ''
             ).trim();
 
-            let jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
-            let nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
-            let rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
+            let jumlahPanen = parseFloat(this.findRowValueByField_(row, headerMap, 'jumlahPanen', 'Jumlah_Panen_Kg') || 0) || 0;
+            let totalHargaAgro = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaRp', 'Total_Harga_Rp') || 0) || 0;
+            let totalHargaTernak = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaTernakRp', 'Total_Harga_Ternak_Rp') || 0) || 0;
+            let nilaiPenjualan = totalHargaAgro + totalHargaTernak;
+            let rawKendala = this.findRowValueByField_(row, headerMap, 'kendala', 'Kendala');
             let kendalaVal = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
-            let upayaVal = kendalaVal ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
+            let upayaVal = kendalaVal ? String(this.findRowValueByField_(row, headerMap, 'upaya', 'Upaya') || '').trim() : '';
+            let anggotaTerlaporVal = this.findRowValueByField_(row, headerMap, 'anggotaTerlapor', 'Anggota_Terlapor') || this.findRowValueByField_(row, headerMap, 'tim', 'Tim') || '';
             let ringkasan = jenis || `Laporan ${sheetName}`;
 
             // Multi-criteria robust deduplication across synced/response sheets
@@ -742,8 +842,14 @@ const SpreadsheetRepository = {
             const fields = [];
             for (let c = 0; c < headerNames.length; c++) {
               const h = String(headerNames[c] || '').trim();
-              const v = safeRaw[c];
+              let v = safeRaw[c];
               if (h && v !== undefined && v !== null && String(v).trim() !== '') {
+                if (typeof v === 'string' && /tidak ada/i.test(v)) {
+                  v = v.replace(/\s*\(\d+\s*ekor\)/gi, '').trim() || 'Tidak Ada';
+                }
+                if (/telepon|telp|phone|whatsapp/i.test(h) && typeof normalizePhoneNumber === 'function') {
+                  v = normalizePhoneNumber(v);
+                }
                 fields.push({ label: h, value: v });
               }
             }
@@ -770,6 +876,7 @@ const SpreadsheetRepository = {
               nilaiPenjualanRp: nilaiPenjualan,
               kendala: kendalaVal,
               upaya: upayaVal,
+              anggotaTerlaporText: anggotaTerlaporVal,
               fields: fields,
               raw: safeRaw
             }));
@@ -794,14 +901,9 @@ const SpreadsheetRepository = {
    */
   updateReviewStatus: function(reportId, newStatus) {
     const normalized = normalizeReviewStatus(newStatus);
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) {
-      throw new Error('Spreadsheet ID belum dikonfigurasi.');
-    }
-
     try {
-      const ss = SpreadsheetApp.openById(mainSsId);
-      const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
+      const ss = this.getSpreadsheet();
+      if (!ss) throw new Error('Spreadsheet database tidak tersedia.');
       
       // Check if reportId is in synthetic format ROW_SheetName_RowNum
       let directSheetName = null;
@@ -814,12 +916,16 @@ const SpreadsheetRepository = {
         }
       }
 
-      // Collect target sheets (both dynamic daily tabs and canonical form tabs)
+      // Collect target sheets (both dynamic daily tabs, Master_Laporan, and canonical form tabs)
       const targetSheets = this.getAllReportSheets_(ss);
       if (directSheetName && !targetSheets.some(s => s.getName() === directSheetName)) {
         const directSheet = ss.getSheetByName(directSheetName);
         if (directSheet) targetSheets.unshift(directSheet);
       }
+
+      const updatedSheets = [];
+      let resolvedReportId = reportId;
+      let resolvedKodeKegiatan = '';
 
       for (let s = 0; s < targetSheets.length; s++) {
         const sheet = targetSheets[s];
@@ -845,43 +951,55 @@ const SpreadsheetRepository = {
           reviewColIdx = newCol - 1;
         }
 
-        // 1. Direct row match if synthetic row ID matches this sheet
-        if (directSheetName && directSheetName === sheetName && directRowNum && directRowNum <= sheet.getLastRow()) {
-          sheet.getRange(directRowNum, reviewColIdx + 1).setValue(normalized);
-          Logger.log(`SpreadsheetRepository: Updated direct row ${directRowNum} status to ${normalized} in ${sheetName}`);
-          return {
-            success: true,
-            reportId: reportId,
-            sheet: sheetName,
-            updatedStatus: normalized
-          };
-        }
-
-        // 2. Scan rows strictly by Report_ID or Kode_Kegiatan
         const reportIdCol = headers.indexOf('report_id') !== -1 ? headers.indexOf('report_id') : headers.indexOf('report id');
         const kodeCol = headers.indexOf('kode_kegiatan') !== -1 ? headers.indexOf('kode_kegiatan') : headers.indexOf('kode kegiatan');
 
+        // 1. Direct row match if synthetic row ID matches this sheet
+        if (directSheetName && directSheetName === sheetName && directRowNum && directRowNum <= sheet.getLastRow()) {
+          sheet.getRange(directRowNum, reviewColIdx + 1).setValue(normalized);
+          updatedSheets.push(sheetName);
+          Logger.log(`SpreadsheetRepository: Updated direct row ${directRowNum} status to ${normalized} in ${sheetName}`);
+          
+          // Extract actual reportId or kodeKegiatan from direct row to propagate to mirrored sheets
+          const directRow = data[directRowNum - 1];
+          if (directRow) {
+            if (reportIdCol !== -1 && directRow[reportIdCol]) resolvedReportId = String(directRow[reportIdCol]).trim();
+            if (kodeCol !== -1 && directRow[kodeCol]) resolvedKodeKegiatan = String(directRow[kodeCol]).trim();
+          }
+          continue;
+        }
+
+        // 2. Scan rows by Report_ID, Kode_Kegiatan, or resolved IDs
         for (let r = 1; r < data.length; r++) {
           const row = data[r];
           let isMatch = false;
 
-          if (reportIdCol !== -1 && String(row[reportIdCol] || '').trim() === String(reportId).trim()) {
+          const rowReportId = reportIdCol !== -1 ? String(row[reportIdCol] || '').trim() : '';
+          const rowKode = kodeCol !== -1 ? String(row[kodeCol] || '').trim() : '';
+
+          if (rowReportId && (rowReportId === String(reportId).trim() || (resolvedReportId && rowReportId === resolvedReportId))) {
             isMatch = true;
-          } else if (kodeCol !== -1 && String(row[kodeCol] || '').trim() === String(reportId).trim()) {
+          } else if (rowKode && (rowKode === String(reportId).trim() || (resolvedKodeKegiatan && rowKode === resolvedKodeKegiatan))) {
             isMatch = true;
           }
 
           if (isMatch) {
             sheet.getRange(r + 1, reviewColIdx + 1).setValue(normalized);
+            updatedSheets.push(sheetName);
             Logger.log(`SpreadsheetRepository: Updated row ${r + 1} (${reportId}) status to ${normalized} in ${sheetName}`);
-            return {
-              success: true,
-              reportId: reportId,
-              sheet: sheetName,
-              updatedStatus: normalized
-            };
+            break; // Move to next sheet once updated in this sheet
           }
         }
+      }
+
+      if (updatedSheets.length > 0) {
+        return {
+          success: true,
+          reportId: reportId,
+          sheet: updatedSheets.join(', '),
+          updatedSheets: updatedSheets,
+          updatedStatus: normalized
+        };
       }
     } catch (err) {
       Logger.log(`SpreadsheetRepository Error updating review status: ${err.toString()}`);
@@ -898,10 +1016,14 @@ const SpreadsheetRepository = {
    * @returns {Object} Comprehensive dashboard stats payload.
    */
   getDashboardStatsData: function(options = {}) {
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return {};
-
-    const ss = SpreadsheetApp.openById(mainSsId);
+    let ss;
+    try {
+      ss = this.getSpreadsheet();
+    } catch (e) {
+      Logger.log('SpreadsheetRepository.getDashboardStatsData: ' + e.toString());
+      return {};
+    }
+    if (!ss) return {};
     const forms = FormManagementService.getRegisteredFormsRaw_ ? FormManagementService.getRegisteredFormsRaw_() : FormManagementService.getFormList({ lightweight: true });
 
     const now = new Date();
@@ -1061,23 +1183,25 @@ const SpreadsheetRepository = {
           const values = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, rawSheet.getLastColumn()).getValues();
 
           values.forEach(row => {
-            const reportId = String(this.getCellValue_(row, headerMap, 'Report_ID', 0) || '').trim();
-            const kodeKegiatan = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan', 1) || '').trim();
-            const kodeKegiatanRef = String(this.getCellValue_(row, headerMap, 'Kode_Kegiatan_Ref', 2) || '').trim();
-            const rawTimestamp = this.getCellValue_(row, headerMap, 'Timestamp', 3);
-            const namaPic = String(this.getCellValue_(row, headerMap, 'Nama_PIC', 4) || '').trim();
-            const divisiRaw = String(this.getCellValue_(row, headerMap, 'Bidang_Divisi', 5) || '').trim();
-            const lokasi = String(this.getCellValue_(row, headerMap, 'Lokasi_Kegiatan', 6) || '').trim();
-            const jenis = String(this.getCellValue_(row, headerMap, 'Jenis_Kegiatan', 7) || '').trim();
+            const reportId = String(this.findRowValueByField_(row, headerMap, 'reportId', 'Report_ID') || '').trim();
+            const kodeKegiatan = String(this.findRowValueByField_(row, headerMap, 'kodeKegiatan', 'Kode_Kegiatan') || '').trim();
+            const kodeKegiatanRef = String(this.findRowValueByField_(row, headerMap, 'kodeKegiatanRef', 'Kode_Kegiatan_Ref') || '').trim();
+            const rawTimestamp = this.findRowValueByField_(row, headerMap, 'timestamp', 'Timestamp') || this.findRowValueByField_(row, headerMap, 'waktu', 'Waktu');
+            const namaPic = String(this.findRowValueByField_(row, headerMap, 'namaPic', 'Nama_PIC') || this.findRowValueByField_(row, headerMap, 'empId', 'Emp_ID') || '').trim();
+            const divisiRaw = String(this.findRowValueByField_(row, headerMap, 'bidangDivisi', 'Bidang_Divisi') || this.findRowValueByField_(row, headerMap, 'divisi', 'Divisi') || '').trim();
+            const lokasi = String(this.findRowValueByField_(row, headerMap, 'lokasiKegiatan', 'Lokasi_Kegiatan') || this.findRowValueByField_(row, headerMap, 'lokasi', 'Lokasi') || '').trim();
+            const jenis = String(this.findRowValueByField_(row, headerMap, 'jenisKegiatan', 'Jenis_Kegiatan') || '').trim();
 
-            const tglPerkiraanPanen = this.getCellValue_(row, headerMap, 'Tgl_Perkiraan_Panen', 15) || this.getCellValue_(row, headerMap, 'Estimasi_Panen_HST');
-            const tglPanen = this.getCellValue_(row, headerMap, 'Tgl_Panen', 16);
-            const jumlahPanen = parseFloat(this.getCellValue_(row, headerMap, 'Jumlah_Panen_Kg') || this.getCellValue_(row, headerMap, 'Jumlah_Panen', 17)) || 0;
-            const nilaiPenjualan = parseFloat(this.getCellValue_(row, headerMap, 'Total_Harga_Rp') || this.getCellValue_(row, headerMap, 'Nilai_Penjualan_Rp', 22)) || 0;
-            const rawKendala = this.getCellValue_(row, headerMap, 'Kendala', 26);
+            const tglPerkiraanPanen = this.findRowValueByField_(row, headerMap, 'estimasiPanenHst', 'Estimasi_Panen_HST') || this.findRowValueByField_(row, headerMap, 'tglPerkiraanPanen', 'Tgl_Perkiraan_Panen');
+            const tglPanen = this.findRowValueByField_(row, headerMap, 'tglPanen', 'Tgl_Panen');
+            const jumlahPanen = parseFloat(this.findRowValueByField_(row, headerMap, 'jumlahPanen', 'Jumlah_Panen_Kg') || 0) || 0;
+            const totalHargaAgro = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaRp', 'Total_Harga_Rp') || 0) || 0;
+            const totalHargaTernak = parseFloat(this.findRowValueByField_(row, headerMap, 'totalHargaTernakRp', 'Total_Harga_Ternak_Rp') || 0) || 0;
+            const nilaiPenjualan = totalHargaAgro + totalHargaTernak;
+            const rawKendala = this.findRowValueByField_(row, headerMap, 'kendala', 'Kendala');
             const kendala = typeof normalizeKendalaText === 'function' ? normalizeKendalaText(rawKendala) : String(rawKendala || '').trim();
-            const upaya = kendala ? String(this.getCellValue_(row, headerMap, 'Upaya', 27) || '').trim() : '';
-            const severity = String(this.getCellValue_(row, headerMap, 'Severity', 29) || (kendala ? 'urgent' : 'normal')).toLowerCase();
+            const upaya = kendala ? String(this.findRowValueByField_(row, headerMap, 'upaya', 'Upaya') || '').trim() : '';
+            const severity = String(this.findRowValueByField_(row, headerMap, 'severity', 'Severity') || (kendala ? 'urgent' : 'normal')).toLowerCase();
             const rawReviewStatus = 
               this.getCellValue_(row, headerMap, 'Status Verifikasi') || 
               this.getCellValue_(row, headerMap, 'Status_Verifikasi') || 
@@ -1418,10 +1542,14 @@ const SpreadsheetRepository = {
    * @returns {Array<Object>}
    */
   getAllOperationalRows: function(dateFrom, dateTo) {
-    const mainSsId = ConfigRepository.getSpreadsheetId();
-    if (!mainSsId) return [];
-
-    const ss = SpreadsheetApp.openById(mainSsId);
+    let ss;
+    try {
+      ss = this.getSpreadsheet();
+    } catch (e) {
+      Logger.log('SpreadsheetRepository.getAllOperationalRows: ' + e.toString());
+      return [];
+    }
+    if (!ss) return [];
     const sheets = this.getAllReportSheets_(ss);
     const allRows = [];
     const seenFingerprints = new Set();
@@ -1466,7 +1594,14 @@ const SpreadsheetRepository = {
                 item[f.key + '_raw'] = s ? new Date(s) : null;
               }
             } else {
-              item[f.key] = String(rawVal).trim();
+              let s = String(rawVal).trim();
+              if ((f.key === 'ternakMasuk' || f.key === 'ternakKeluar' || f.key === 'ternakMasukJenis' || f.key === 'ternakKeluarJenis') && /tidak ada/i.test(s)) {
+                s = s.replace(/\s*\(\d+\s*ekor\)/gi, '').trim() || 'Tidak Ada';
+              }
+              if ((f.key === 'nomorTelepon' || f.key === 'pembeliTelp' || f.key === 'pembeliTernakTelp') && typeof normalizePhoneNumber === 'function') {
+                s = normalizePhoneNumber(s);
+              }
+              item[f.key] = s;
             }
           });
 
@@ -1475,6 +1610,14 @@ const SpreadsheetRepository = {
           item.komoditasTanam = sep.komoditasTanam;
           item.komoditasPanen = sep.komoditasPanen;
           item.komoditas = sep.komoditasTanam || sep.komoditasPanen || item.komoditas || '';
+
+          // Reconcile livestock numeric totals
+          if (!item.ternakMasukQty && (item.ternakMasukKelahiranQty || item.ternakMasukPembelianQty)) {
+            item.ternakMasukQty = (item.ternakMasukKelahiranQty || 0) + (item.ternakMasukPembelianQty || 0);
+          }
+          if (!item.ternakKeluarQty && (item.ternakKeluarKematianQty || item.ternakKeluarPenjualanQty)) {
+            item.ternakKeluarQty = (item.ternakKeluarKematianQty || 0) + (item.ternakKeluarPenjualanQty || 0);
+          }
 
           // Generate unique fingerprint
           const fp = item.reportId || `${item.kodeKegiatan || ''}_${item.idKaryawan || ''}_${item.timestamp || ''}_${item.komoditas || ''}_${item.totalHargaRp || 0}`;

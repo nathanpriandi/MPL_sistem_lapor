@@ -1,9 +1,8 @@
 <aside class="sidebar" id="appSidebar">
   <div class="sidebar-header">
-    <a href="<?= (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl + '?page=' + ((typeof userRole !== 'undefined' && userRole === 'manager') ? 'dashboard' : ((typeof userRole !== 'undefined' && userRole) ? 'admin' : 'index')) : '#' ?>" data-page="<?= (typeof userRole !== 'undefined' && userRole === 'manager') ? 'dashboard' : ((typeof userRole !== 'undefined' && userRole) ? 'admin' : 'index') ?>" onclick="navigateToPage(this.getAttribute('data-page'), this); return false;" class="logo sidebar-logo">
-      <span class="logo-badge logo-badge-internal">KONSOL INTERNAL</span>
-      <span class="sidebar-logo-text">Portal Operasional</span>
-    </a>
+    <div class="sidebar-brand-display" aria-label="Sistem Lapor MPL">
+      <?!= include('brand'); ?>
+    </div>
   </div>
 
   <nav class="sidebar-nav">

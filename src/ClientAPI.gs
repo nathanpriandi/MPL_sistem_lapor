@@ -194,7 +194,7 @@ function updateReviewStatus(reportId, newStatus) {
 }
 
 /**
- * Returns aggregated stats and smart analytics for Executive Manager Dashboard.
+ * Returns aggregated stats and smart analytics for Dashboard Manajer.
  * @param {Object} [params]
  * @returns {Object} JSON dataset for manager dashboard rendering.
  */
@@ -209,6 +209,32 @@ function getAnalyticsDashboardData(params) {
  */
 function getCommodityAnalysis(params) {
   return AnalyticsService.getCommodityAnalysis(params);
+}
+
+/**
+ * Returns permanent executive decision views (price trend, harvest yield, revenue/sales volume, harvest pipeline, livestock movement, operational risk).
+ * @param {Object} [params]
+ * @returns {Object}
+ */
+function getDecisionViewsData(params) {
+  return AnalyticsService.getDecisionViewsData(params);
+}
+
+/**
+ * Returns dynamic distinct options for any filterable field based on active filters.
+ * @param {Object} [params]
+ * @returns {Array<{ value: string, count: number }>}
+ */
+function getAnalyticsFilterOptions(params) {
+  return AnalyticsService.getDynamicFilterOptions(params);
+}
+
+/**
+ * Returns canonical field catalog metadata for analytics builders.
+ * @returns {Array<Object>}
+ */
+function getAnalyticsFieldCatalogRPC() {
+  return getAnalyticsFieldCatalog();
 }
 
 /**

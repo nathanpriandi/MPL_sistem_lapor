@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Queue — Sistem Pelaporan Digital</title>
+  <title>Sistem Lapor MPL | Antrean Admin</title>
   <?!= include('style'); ?>
 </head>
 
@@ -26,7 +26,7 @@
             </svg>
           </button>
           <div class="topbar-breadcrumb">
-            <span class="breadcrumb-root">Konsol Internal</span>
+            <span class="breadcrumb-root">Sistem Lapor MPL</span>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">Antrean Admin</span>
           </div>
@@ -46,7 +46,7 @@
               <? } else if (userRole === 'admin') { ?>
               <span class="badge badge-primary">Admin Operasional</span>
               <? } else if (userRole === 'manager') { ?>
-              <span class="badge badge-normal">Executive Manager</span>
+              <span class="badge badge-normal">Manager Eksekutif</span>
               <? } ?>
             </div>
             <button type="button" class="btn-logout" onclick="handleUserLogout()" title="Keluar dari sistem" style="background: none; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#ef4444'; this.style.color='#ef4444';" onmouseout="this.style.borderColor='var(--border-color, #e2e8f0)'; this.style.color='#64748b';">
@@ -554,8 +554,8 @@
               photoUrl2: p2,
               photoUrl3: p3,
               photos: photosList,
-              jumlahPanen: parseFloat(r.jumlahPanen || (r.raw ? r.raw[17] : 0)) || 0,
-              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp || (r.raw ? r.raw[22] : 0)) || 0,
+              jumlahPanen: parseFloat(r.jumlahPanen) || 0,
+              nilaiPenjualanRp: parseFloat(r.nilaiPenjualanRp) || 0,
               kendala: normK,
               upaya: normU,
               fields: r.fields || [],
@@ -874,13 +874,10 @@
 
         let chipsHtml = '';
         if (item.jumlahPanen > 0) {
-          chipsHtml += `<span class="chip-panen">🌾 ${item.jumlahPanen} Kg</span>`;
+          chipsHtml += `<span class="chip-panen">🌾 ${formatNumber(item.jumlahPanen)} Kg</span>`;
         }
         if (item.nilaiPenjualanRp > 0) {
           chipsHtml += `<span class="chip-jual">💰 Rp ${formatRupiah(item.nilaiPenjualanRp)}</span>`;
-        }
-        if (typeof isActualKendala === 'function' ? isActualKendala(item.kendala) : (item.kendala && item.kendala !== '-')) {
-          chipsHtml += `<span class="chip-kendala" title="${escapeHtml(item.kendala)}">⚠️ Kendala</span>`;
         }
 
         const picInitials = getInitials(item.empId || item.namaPic);
@@ -912,9 +909,9 @@
             ${subtextHtml}
             ${chipsHtml ? `<div class="summary-chips">${chipsHtml}</div>` : ''}
           </td>
-          <td data-label="Tingkat Keparahan" class="cell-center">
+          <td data-label="Tingkat Urgensi" class="cell-center">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${item.severity === 'urgent' ? 'Kendala' : 'Normal'}
+              ${isUrgent ? 'Urgent' : 'Normal'}
             </span>
           </td>
           <td data-label="Status Verifikasi" class="cell-center">
@@ -1044,10 +1041,75 @@
         .replace(/\b\w/g, c => c.toUpperCase());
     }
 
+    function normalizePhoneNumber(val) {
+      if (val === null || val === undefined) return '';
+      let s = String(val).trim();
+      if (!s || s === '-' || s === 'null' || s === 'undefined') return '';
+
+      // Handle exponential notation from Google Sheets raw numeric reading
+      if (/^[0-9.]+[eE]\+?[0-9]+$/.test(s)) {
+        try {
+          const num = Number(s);
+          if (!isNaN(num)) {
+            s = num.toLocaleString('fullwide', { useGrouping: false });
+          }
+        } catch (e) {}
+      }
+
+      // Extract all digits
+      const digits = s.replace(/\D/g, '');
+      if (!digits) return s;
+
+      // Convert international 628... to Indonesian local 08...
+      if (digits.startsWith('628') && digits.length >= 10) {
+        return '0' + digits.substring(2);
+      }
+
+      // If leading 0 was stripped by spreadsheet (e.g. 812..., 857..., 896... with 9 to 13 digits)
+      if (digits.startsWith('8') && digits.length >= 9 && digits.length <= 13) {
+        return '0' + digits;
+      }
+
+      // If already starts with 0 (e.g. 0812..., 021...)
+      if (digits.startsWith('0')) {
+        return digits;
+      }
+
+      if (s.startsWith('+')) {
+        return '+' + digits;
+      }
+
+      return digits;
+    }
+
+    function getWhatsAppUrl(phone, message) {
+      if (!phone) return '';
+      let digits = String(phone).replace(/\D/g, '');
+      if (!digits) return '';
+      if (digits.startsWith('0')) {
+        digits = '62' + digits.substring(1);
+      } else if (digits.startsWith('8')) {
+        digits = '62' + digits;
+      }
+      const textParam = message ? `?text=${encodeURIComponent(message)}` : '';
+      return `https://wa.me/${digits}${textParam}`;
+    }
+
     function formatFieldValue(val, label) {
       if (val === undefined || val === null) return '-';
       let str = String(val).trim();
       if (!str || str === '-') return '-';
+
+      // Clean duplicate '(0 ekor)' or '(0 Ekor)' when text is 'Tidak Ada'
+      if (/tidak ada/i.test(str)) {
+        str = str.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+        if (!str || str.toLowerCase() === 'tidak ada') return 'Tidak Ada';
+      }
+
+      // Normalize telephone / whatsapp numbers
+      if (label && /telepon|telp|phone|whatsapp/i.test(label)) {
+        return normalizePhoneNumber(str);
+      }
 
       // Strip clock if it is midnight 00:00 or ISO midnight
       str = str.replace(/^(\d{4}-\d{2}-\d{2})\s+00:00(:00)?$/, '$1');
@@ -1060,6 +1122,74 @@
       }
 
       return str;
+    }
+
+    function formatTernakMutationDisplay(rawType, rawQty) {
+      const qty = parseInt(rawQty, 10) || 0;
+      let typeStr = String(rawType || '').trim();
+      
+      // Clean any nested '(0 ekor)' or duplicate suffixes
+      typeStr = typeStr.replace(/\s*\(\d+\s*ekor\)/gi, '').trim();
+      
+      const isNone = !typeStr || typeStr === '-' || typeStr.toLowerCase().startsWith('tidak ada') || typeStr.toLowerCase() === 'none' || typeStr.toLowerCase() === 'nihil';
+      
+      if (qty <= 0 && isNone) {
+        return 'Tidak Ada';
+      }
+      if (qty <= 0 && !isNone) {
+        return escapeHtml(typeStr);
+      }
+      if (qty > 0 && isNone) {
+        return `${formatNumber(qty)} Ekor`;
+      }
+      return `${formatNumber(qty)} Ekor (${escapeHtml(typeStr)})`;
+    }
+
+    function isStandardReportKey(label) {
+      const norm = String(label || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      const standardPatterns = [
+        // Identitas & Umum
+        'reportid', 'kodekegiatan', 'timestamp', 'waktusubmit', 'waktu', 'namapic', 'nama', 'idkaryawan', 'empid',
+        'bidangdivisi', 'divisi', 'site', 'nomortelepon', 'notelepon', 'telepon', 'nowhatsapp', 'lokasikegiatan', 'lokasi',
+        'jeniskegiatan', 'ringkasan', 'kegiatantambahan', 'anggotaterlapor', 'anggotatim', 'tim',
+        // Agro Tanam
+        'statuspengelolaan', 'komoditas', 'komoditastanam', 'lokasibloktanam', 'lokasiblok', 'bloktanam', 'blok', 'petak',
+        'luaslahanm2', 'luaslahan', 'luasarea', 'luaslahantanam', 'jumlahbenih', 'benih', 'bibit', 'tgltanam', 'tanggaltanam',
+        'estimasipanenhst', 'estimasipanen', 'hst', 'perkiraanpanen', 'populasiagro',
+        // Agro Panen & Penjualan
+        'statuspengelolaanpanen', 'komoditaspanen', 'lokasiblokpanen', 'blokpanen', 'luaslahanpanenm2', 'luaslahanpanen', 'luaspanen',
+        'tglpanen', 'tanggalpanen', 'jumlahpanenkg', 'jumlahpanen', 'volumepanen', 'hasilpanen', 'tglpenjualan', 'tanggalpenjualan',
+        'tujuandistribusi', 'jumlahpenjualanunit', 'jumlahpenjualan', 'unitpenjualan', 'hargasatuanrp', 'hargasatuan',
+        'totalhargarp', 'totalharga', 'nilaipenjualanrp', 'nilaipenjualan', 'pembelinama', 'pembelialamat', 'pembelitelp', 'pembelinotelp',
+        'jumlahunitpenggunaan', 'unitpenggunaan', 'tujuanpenggunaan', 'penggunaaninternal',
+        // Peternakan & Kandang
+        'jenisternak', 'ternak', 'populasiternak', 'populasiternaksaatiniekor', 'populasi',
+        'ternakmasuk', 'ternakmasukjenis', 'ternakmasukqty', 'ternakmasukkelahiranekor', 'ternakmasukpembelianekor',
+        'masukkelahiran', 'masukpembelian', 'kelahiranekor', 'pembelianekor', 'kelahiran', 'pembelian',
+        'ternakkeluar', 'ternakkeluarjenis', 'ternakkeluarqty', 'ternakkeluarkematianekor', 'ternakkeluarpenjualanekor',
+        'keluarkematian', 'keluarpenjualan', 'kematianekor', 'penjualanekor', 'kematian',
+        'pakanmasukkg', 'pakanmasuk', 'pakankeluarkg', 'pakankeluar',
+        'jeniskomoditasternak', 'komoditasternak', 'jumlahpenjualanternak', 'penjualanternak',
+        'hargasatuanternakrp', 'hargasatuanternak', 'totalhargaternakrp', 'totalhargaternak', 'nilaiternak',
+        'pembeliternaknama', 'pembeliternakalamat', 'pembeliternaktelp', 'pembeliternaknotelp', 'tujuanpenggunaanternak',
+        // Pengawasan & Office
+        'pengawasan', 'tindakanpengawasan', 'detailpengawasan', 'pengawasanrincian',
+        'administrasi', 'detailadministrasi', 'officejenis', 'officerincian',
+        // Evaluasi & Foto
+        'capaiankegiatan', 'capaian', 'kendala', 'kendalakegiatan', 'upaya', 'upayayangdilakukan',
+        'severity', 'reviewed', 'statusverifikasi', 'statuspeninjauan', 'reviewstatus', 'status',
+        'fotourl', 'fotourl2', 'fotourl3', 'fotolampiran', 'photourl', 'photos', 'foto1', 'foto2', 'foto3'
+      ];
+
+      if (standardPatterns.includes(norm)) return true;
+      for (let i = 0; i < standardPatterns.length; i++) {
+        const pat = standardPatterns[i];
+        if (pat.length >= 6 && norm.includes(pat)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     function openDetailModal(itemIndex) {
@@ -1102,7 +1232,7 @@
         headerMetaEl.innerHTML = `
           <div class="inspector-controls-left">
             <span class="${isUrgent ? 'badge-severity-urgent' : 'badge-severity-normal'}">
-              ${isUrgent ? 'Kendala' : 'Normal'}
+              ${isUrgent ? 'Urgent' : 'Normal'}
             </span>
             <select class="table-status-select ${isVerified ? 'is-verified' : 'is-unverified'}" onchange="toggleModalVerification('${item.reportId}', this.value)" aria-label="Status Verifikasi">
               <option value="Belum Terverifikasi" ${!isVerified ? 'selected' : ''}>Belum Terverifikasi</option>
@@ -1142,13 +1272,14 @@
       }
 
       // 1. Identitas & Informasi Umum
+      const kodeKegiatan = item.kodeKegiatan || getFieldValue(['kodekegiatan', 'kode_kegiatan'], item.kodeKegiatan || '-');
       const namaPic = getFieldValue(['namapic', 'nama_pic', 'nama'], item.empId || item.namaPic);
       const divisi = getFieldValue(['bidangdivisi', 'divisi', 'bidang_divisi'], item.divisi);
-      const noTelp = getFieldValue(['nomortelepon', 'notelepon', 'telepon'], item.nomorTelepon);
+      const noTelp = normalizePhoneNumber(getFieldValue(['nomortelepon', 'notelepon', 'telepon', 'nowhatsapp'], item.nomorTelepon));
       const lokasi = getFieldValue(['lokasikegiatan', 'lokasi'], item.lokasi);
       const jenisKegiatan = getFieldValue(['jeniskegiatan', 'jenis_kegiatan'], item.ringkasan);
 
-      // 2. Budidaya & Penanaman (Langkah 2)
+      // 2. Budidaya & Penanaman (Langkah 2: Agro Tanam)
       const statusPengelolaanTanam = getFieldValue(['statuspengelolaan', 'status_pengelolaan']);
       const rawKomoditas = getFieldValue(['komoditas', 'komoditastanam']);
       const rawKomoditasPanen = getFieldValue(['komoditaspanen']);
@@ -1176,7 +1307,7 @@
       const isTanamActive = String(jenisKegiatan).toLowerCase().includes('tanam') || 
                             Boolean(tglTanam || (jumlahBenih && jumlahBenih != '0') || (luasLahanM2 && luasLahanM2 != '0') || (komoditasTanam && komoditasTanam !== '-' && komoditasTanam !== ''));
 
-      // 3. Panen & Penjualan (Langkah 3)
+      // 3. Panen & Penjualan Agro (Langkah 3: Agro Panen)
       const statusPengelolaanPanen = getFieldValue(['statuspengelolaanpanen']);
       const lokasiBlokPanen = getFieldValue(['lokasiblokpanen', 'blokpanen']);
       const luasLahanPanenM2 = getFieldValue(['luaslahanpanenm2', 'luaslahanpanen', 'luaspanen']);
@@ -1187,33 +1318,78 @@
       const jumlahPenjualanUnit = getFieldValue(['jumlahpenjualanunit']);
       const hargaSatuanRp = getFieldValue(['hargasatuanrp', 'hargasatuan']);
       const totalHargaRp = getFieldValue(['totalhargarp', 'totalharga', 'nilaipenjualanrp']);
+      const pembeliNama = getFieldValue(['pembelinama', 'pembeli_nama']);
+      const pembeliAlamat = getFieldValue(['pembelialamat', 'pembeli_alamat']);
+      const pembeliTelp = normalizePhoneNumber(getFieldValue(['pembelitelp', 'pembeli_notelp', 'pembelitelepon']));
       const jumlahUnitPenggunaan = getFieldValue(['jumlahunitpenggunaan']);
       const tujuanPenggunaan = getFieldValue(['tujuanpenggunaan']);
 
       const isPanenActive = String(jenisKegiatan).toLowerCase().includes('panen') || 
                             Boolean(tglPanen || (jumlahPanenKg && jumlahPanenKg != '0') || (totalHargaRp && totalHargaRp != '0') || (komoditasPanen && komoditasPanen !== '-' && komoditasPanen !== ''));
 
-      // 4. Tindakan Pengawasan & Administrasi (Langkah 4 & 5)
+      // 4. Peternakan & Ternak
+      const jenisTernak = getFieldValue(['jenisternak', 'jenis_ternak']);
+      const ternakMasuk = getFieldValue(['ternakmasuk', 'ternak_masuk', 'ternakmasukjenis']);
+      const ternakMasukQty = getFieldValue(['ternakmasukqty', 'ternak_masuk_qty']);
+      const ternakKeluar = getFieldValue(['ternakkeluar', 'ternak_keluar', 'ternakkeluarjenis']);
+      const ternakKeluarQty = getFieldValue(['ternakkeluarqty', 'ternak_keluar_qty']);
+      const populasiTernak = getFieldValue(['populasiternak', 'populasi_ternak']);
+      const pakanMasukKg = getFieldValue(['pakanmasukkg', 'pakan_masuk_kg']);
+      const pakanKeluarKg = getFieldValue(['pakankeluarkg', 'pakan_keluar_kg']);
+      const jenisKomoditasTernak = getFieldValue(['jeniskomoditasternak', 'jenis_komoditas_ternak']);
+      const jumlahPenjualanTernak = getFieldValue(['jumlahpenjualanternak', 'jumlah_penjualan_ternak']);
+      const hargaSatuanTernakRp = getFieldValue(['hargasatuanternakrp', 'harga_satuan_ternak_rp']);
+      const totalHargaTernakRp = getFieldValue(['totalhargaternakrp', 'total_harga_ternak_rp']);
+      const pembeliTernakNama = getFieldValue(['pembeliternaknama', 'pembeli_ternak_nama']);
+      const pembeliTernakAlamat = getFieldValue(['pembeliternakalamat', 'pembeli_ternak_alamat']);
+      const pembeliTernakTelp = normalizePhoneNumber(getFieldValue(['pembeliternaktelp', 'pembeli_ternak_notelp', 'pembeliternaktelepon']));
+      const tujuanPenggunaanTernak = getFieldValue(['tujuanpenggunaanternak', 'tujuan_penggunaan_ternak']);
+
+      const isTernakActive = String(jenisKegiatan).toLowerCase().includes('ternak') ||
+                            Boolean(jenisTernak || (populasiTernak && populasiTernak != '0') || (totalHargaTernakRp && totalHargaTernakRp != '0') || (pakanMasukKg && pakanMasukKg != '0') || (pakanKeluarKg && pakanKeluarKg != '0') || (ternakMasukQty && ternakMasukQty != '0') || (ternakKeluarQty && ternakKeluarQty != '0') || jenisKomoditasTernak);
+
+      // 5. Tindakan Pengawasan & Office / Administrasi
       const pengawasan = getFieldValue(['pengawasan']);
-      const detailPengawasan = getFieldValue(['detailpengawasan']);
-      const administrasi = getFieldValue(['administrasi']);
-      const detailAdministrasi = getFieldValue(['detailadministrasi']);
+      const detailPengawasan = getFieldValue(['detailpengawasan', 'pengawasanrincian', 'pengawasan_rincian']);
+      const administrasi = getFieldValue(['administrasi', 'detailadministrasi']);
+      const officeJenis = getFieldValue(['officejenis', 'office_jenis']);
+      const officeRincian = getFieldValue(['officerincian', 'office_rincian']);
 
       const isPengawasanActive = String(jenisKegiatan).toLowerCase().includes('pengawasan') || Boolean(pengawasan || detailPengawasan);
-      const isAdministrasiActive = String(jenisKegiatan).toLowerCase().includes('administrasi') || Boolean(administrasi || detailAdministrasi);
+      const isOfficeActive = String(jenisKegiatan).toLowerCase().includes('office') || String(jenisKegiatan).toLowerCase().includes('administrasi') || Boolean(officeJenis || officeRincian || administrasi);
 
-      // 5. Evaluasi, Kendala & Capaian (Langkah 6)
+      // 6. Evaluasi, Kendala & Capaian (Langkah 6)
       const capaianKegiatan = getFieldValue(['capaiankegiatan', 'capaian']);
       const kendala = getFieldValue(['kendala'], item.kendala);
       const upaya = getFieldValue(['upaya'], item.upaya);
       const isKendalaReal = typeof isActualKendala === 'function' ? isActualKendala(kendala) : (kendala && kendala !== '-' && String(kendala).trim() !== '');
 
-      // Mark internal technical keys as consumed
+      // Mark all standard & internal technical keys as consumed to prevent leakage into Custom Questions
       const internalKeys = [
         'report_id', 'reportid', 'kode_kegiatan', 'kodekegiatan', 'timestamp', 'waktu_submit',
         'severity', 'reviewed', 'status_verifikasi', 'status verifikasi', 'status_peninjauan',
         'foto_url', 'foto_url_2', 'foto_url_3', 'foto_lampiran', 'photourl', 'photos',
-        'id_karyawan', 'idkaryawan', 'emp_id', 'empid'
+        'id_karyawan', 'idkaryawan', 'emp_id', 'empid', 'nama_pic', 'namapic', 'bidang_divisi', 'bidangdivisi',
+        'nomor_telepon', 'nomortelepon', 'no_telepon', 'notelepon', 'telepon', 'lokasi_kegiatan', 'lokasikegiatan', 'lokasi',
+        'jenis_kegiatan', 'jeniskegiatan', 'kegiatan_tambahan', 'kegiatantambahan',
+        'status_pengelolaan', 'statuspengelolaan', 'status_pengelolaan_panen', 'statuspengelolaanpanen',
+        'komoditas', 'komoditas_panen', 'komoditaspanen', 'lokasi_blok_tanam', 'lokasibloktanam', 'lokasi_blok', 'lokasiblok',
+        'luas_lahan_m2', 'luaslahanm2', 'jumlah_benih', 'jumlahbenih', 'tgl_tanam', 'tgltanam', 'estimasi_panen_hst', 'estimasipanenhst',
+        'populasi_agro', 'populasiagro', 'lokasi_blok_panen', 'lokasiblokpanen', 'luas_lahan_panen_m2', 'luaslahanpanenm2',
+        'tgl_panen', 'tglpanen', 'jumlah_panen_kg', 'jumlahpanenkg', 'tgl_penjualan', 'tglpenjualan',
+        'tujuan_distribusi', 'tujuandistribusi', 'jumlah_penjualan_unit', 'jumlahpenjualanunit',
+        'harga_satuan_rp', 'hargasatuanrp', 'total_harga_rp', 'totalhargarp',
+        'pembeli_nama', 'pembelinama', 'pembeli_alamat', 'pembelialamat', 'pembeli_notelp', 'pembelitelp',
+        'jenis_ternak', 'jenisternak', 'ternak_masuk', 'ternakmasuk', 'ternak_masuk_jenis', 'ternakmasukjenis', 'ternak_masuk_qty', 'ternakmasukqty',
+        'ternak_keluar', 'ternakkeluar', 'ternak_keluar_jenis', 'ternakkeluarjenis', 'ternak_keluar_qty', 'ternakkeluarqty',
+        'populasi_ternak', 'populasiternak', 'pakan_masuk_kg', 'pakanmasukkg', 'pakan_keluar_kg', 'pakankeluarkg',
+        'jenis_komoditas_ternak', 'jeniskomoditasternak', 'jumlah_penjualan_ternak', 'jumlahpenjualanternak',
+        'harga_satuan_ternak_rp', 'hargasatuanternakrp', 'total_harga_ternak_rp', 'totalhargaternakrp',
+        'pembeli_ternak_nama', 'pembeliternaknama', 'pembeli_ternak_alamat', 'pembeliternakalamat', 'pembeli_ternak_notelp', 'pembeliternaktelp',
+        'jumlah_unit_penggunaan', 'jumlahunitpenggunaan', 'tujuan_penggunaan', 'tujuanpenggunaan', 'tujuan_penggunaan_ternak', 'tujuanpenggunaanternak',
+        'capaian_kegiatan', 'capaiankegiatan', 'anggota_terlapor', 'anggotaterlapor', 'kendala', 'upaya',
+        'pengawasan', 'detail_pengawasan', 'detailpengawasan', 'pengawasan_rincian', 'pengawasanrincian',
+        'administrasi', 'detail_administrasi', 'detailadministrasi', 'office_jenis', 'officejenis', 'office_rincian', 'officerincian'
       ];
       internalKeys.forEach(k => {
         fields.forEach(f => {
@@ -1223,8 +1399,52 @@
         });
       });
 
+      // Anggota Terlapor
+      const rawAnggota = getFieldValue(['anggotaterlapor', 'anggota_terlapor', 'anggotatim'], item.anggotaTerlapor);
+      let anggotaList = [];
+      if (Array.isArray(rawAnggota)) {
+        anggotaList = rawAnggota;
+      } else if (typeof rawAnggota === 'string' && rawAnggota.trim().startsWith('[')) {
+        try {
+          anggotaList = JSON.parse(rawAnggota);
+        } catch (e) {
+          anggotaList = [];
+        }
+      }
+
+      let anggotaSectionHtml = '';
+      if (anggotaList && anggotaList.length > 0) {
+        anggotaSectionHtml = `
+          <div style="grid-column: 1 / -1; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.4rem;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Anggota Tim yang Dilaporkan (${anggotaList.length} Orang)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+              ${anggotaList.map((m, idx) => `
+                <div style="font-size: 0.8rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 5px; padding: 0.4rem 0.6rem;">
+                  <strong style="color: #1e293b;">${idx + 1}. ${escapeHtml(m.name || m.id)} (${escapeHtml(m.id)}):</strong> <span style="color: #475569;">${escapeHtml(m.deskripsi || '-')}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (typeof rawAnggota === 'string' && rawAnggota.trim() && rawAnggota !== '-') {
+        anggotaSectionHtml = `
+          <div style="grid-column: 1 / -1; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.9rem;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">Anggota Tim yang Dilaporkan:</div>
+            <div style="font-size: 0.8rem; color: #475569;">${escapeHtml(rawAnggota)}</div>
+          </div>
+        `;
+      }
+
       // Find unconsumed custom questions added dynamically by admin
-      const unconsumedCustomFields = fields.filter(f => !consumedKeys.has(f.label) && f.value !== undefined && f.value !== null && String(f.value).trim() !== '' && String(f.value).trim() !== '-');
+      const unconsumedCustomFields = fields.filter(f => {
+        if (!f || consumedKeys.has(f.label) || isStandardReportKey(f.label)) return false;
+        if (f.value === undefined || f.value === null) return false;
+        const valStr = String(f.value).trim();
+        return valStr !== '' && valStr !== '-';
+      });
 
       let html = '';
 
@@ -1233,7 +1453,10 @@
       // ==========================================
       html += `
         <div class="inspector-section">
-          <div class="inspector-section-heading">📋 Informasi Umum &amp; Lokasi Penugasan</div>
+          <div class="inspector-section-heading">
+            <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Informasi Umum &amp; Lokasi Penugasan</span>
+          </div>
           <div class="inspector-data-grid">
             <div class="inspector-data-item">
               <span class="inspector-data-label">Nama PIC / ID</span>
@@ -1244,8 +1467,16 @@
               <span class="inspector-data-value">${escapeHtml(divisi || '-')}</span>
             </div>
             <div class="inspector-data-item">
-              <span class="inspector-data-label">Nomor Telepon</span>
-              <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(noTelp || '-')}</span>
+              <span class="inspector-data-label">Nomor Telepon PIC</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(noTelp || '-')}</span>
+                ${noTelp && noTelp !== '-' ? `
+                  <a href="${getWhatsAppUrl(noTelp, `Halo Bapak/Ibu ${namaPic || ''}, saya Admin dari PT MPL ingin menindaklanjuti Laporan Kegiatan Lapangan (${kodeKegiatan || '-'}) di lokasi ${lokasi || '-'}.`)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" title="Hubungi PIC via WhatsApp">
+                    <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-3.56 3.63c-.2 0-.41.02-.6.08-.23.08-.43.21-.57.4-.33.45-.63 1.05-.63 1.84 0 1.06.63 2.15 1.13 2.84 1.11 1.54 2.68 2.64 4.3 3.32.74.31 1.32.44 1.8.49.56.06 1.15-.02 1.57-.34.34-.26.68-.78.83-1.34.1-.38.08-.66-.02-.8-.1-.13-.3-.22-.61-.37-.32-.15-1.87-.92-2.16-1.03-.29-.1-.5-.15-.71.16-.21.31-.81 1.02-.99 1.23-.18.21-.37.23-.68.08-.32-.15-1.34-.49-2.55-1.57-.94-.84-1.58-1.87-1.76-2.19-.18-.31-.02-.48.13-.63.14-.14.32-.37.48-.55.16-.18.21-.31.32-.52.1-.21.05-.39-.03-.55-.07-.15-.68-1.63-.93-2.24-.24-.59-.49-.51-.67-.52z"/></svg>
+                    <span>WhatsApp</span>
+                  </a>
+                ` : ''}
+              </div>
             </div>
             <div class="inspector-data-item">
               <span class="inspector-data-label">Lokasi Penugasan</span>
@@ -1255,17 +1486,21 @@
               <span class="inspector-data-label">Agenda Kegiatan Hari Ini</span>
               <span class="inspector-data-value" style="font-weight: 600; color: var(--primary);">${escapeHtml(jenisKegiatan || '-')}</span>
             </div>
+            ${anggotaSectionHtml}
           </div>
         </div>
       `;
 
       // ==========================================
-      // SECTION 2: BUDIDAYA & PENANAMAN (LANGKAH 2)
+      // SECTION 2: BUDIDAYA & PENANAMAN (AGRO TANAM)
       // ==========================================
       if (isTanamActive) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading" style="color: #15803d; border-color: #bbf7d0;">🌱 Rincian Kegiatan Tanam / Tebar</div>
+            <div class="inspector-section-heading" style="color: #15803d; border-color: #bbf7d0;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M12 2a10 10 0 0 0-10 10c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+              <span>Rincian Kegiatan Tanam / Tebar Agro</span>
+            </div>
             <div class="inspector-data-grid">
               <div class="inspector-data-item">
                 <span class="inspector-data-label">Status Pengelolaan</span>
@@ -1301,12 +1536,15 @@
       }
 
       // ==========================================
-      // SECTION 3: PANEN & PENJUALAN (LANGKAH 3)
+      // SECTION 3: PANEN & PENJUALAN AGRO
       // ==========================================
       if (isPanenActive) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading" style="color: #2563eb; border-color: #bfdbfe;">🌾 Rincian Panen &amp; Penjualan</div>
+            <div class="inspector-section-heading" style="color: #2563eb; border-color: #bfdbfe;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <span>Rincian Panen &amp; Penjualan Agro</span>
+            </div>
             <div class="inspector-data-grid">
               <div class="inspector-data-item">
                 <span class="inspector-data-label">Status Pengelolaan Panen</span>
@@ -1317,7 +1555,7 @@
                 <span class="inspector-data-value" style="font-weight: 700; color: #2563eb;">${escapeHtml(komoditasPanen || '-')}</span>
               </div>
               <div class="inspector-data-item">
-                <span class="inspector-data-label">Lokasi / Blok</span>
+                <span class="inspector-data-label">Lokasi / Blok Panen</span>
                 <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(lokasiBlokPanen || '-')}</span>
               </div>
               <div class="inspector-data-item">
@@ -1352,13 +1590,35 @@
                 <span class="inspector-data-label" style="color: #1d4ed8;">Total Nilai Penjualan</span>
                 <span class="inspector-data-value money-value" style="font-size: 1.1rem; color: #1e40af;">${totalHargaRp ? 'Rp ' + formatRupiah(totalHargaRp) : 'Rp 0'}</span>
               </div>
+              ${(pembeliNama || pembeliTelp || pembeliAlamat) ? `
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Nama Pembeli</span>
+                  <span class="inspector-data-value">${escapeHtml(pembeliNama || '-')}</span>
+                </div>
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">No Telepon Pembeli</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(pembeliTelp || '-')}</span>
+                    ${pembeliTelp && pembeliTelp !== '-' ? `
+                      <a href="${getWhatsAppUrl(pembeliTelp, `Halo Bapak/Ibu ${pembeliNama || ''}, kami dari PT MPL mengonfirmasi transaksi penjualan komoditas ${komoditasPanen || komoditasTanam || 'Agro'} terkait laporan ${kodeKegiatan || '-'}.`)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" title="Hubungi Pembeli via WhatsApp">
+                        <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-3.56 3.63c-.2 0-.41.02-.6.08-.23.08-.43.21-.57.4-.33.45-.63 1.05-.63 1.84 0 1.06.63 2.15 1.13 2.84 1.11 1.54 2.68 2.64 4.3 3.32.74.31 1.32.44 1.8.49.56.06 1.15-.02 1.57-.34.34-.26.68-.78.83-1.34.1-.38.08-.66-.02-.8-.1-.13-.3-.22-.61-.37-.32-.15-1.87-.92-2.16-1.03-.29-.1-.5-.15-.71.16-.21.31-.81 1.02-.99 1.23-.18.21-.37.23-.68.08-.32-.15-1.34-.49-2.55-1.57-.94-.84-1.58-1.87-1.76-2.19-.18-.31-.02-.48.13-.63.14-.14.32-.37.48-.55.16-.18.21-.31.32-.52.1-.21.05-.39-.03-.55-.07-.15-.68-1.63-.93-2.24-.24-.59-.49-.51-.67-.52z"/></svg>
+                        <span>WhatsApp</span>
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
+                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+                  <span class="inspector-data-label">Alamat Pembeli</span>
+                  <span class="inspector-data-value">${escapeHtml(pembeliAlamat || '-')}</span>
+                </div>
+              ` : ''}
               ${(jumlahUnitPenggunaan || tujuanPenggunaan) ? `
                 <div class="inspector-data-item">
                   <span class="inspector-data-label">Unit Penggunaan Internal</span>
                   <span class="inspector-data-value">${jumlahUnitPenggunaan ? formatNumber(jumlahUnitPenggunaan) + ' Unit' : '-'}</span>
                 </div>
                 <div class="inspector-data-item">
-                  <span class="inspector-data-label">Tujuan Penggunaan</span>
+                  <span class="inspector-data-label">Tujuan Penggunaan Internal</span>
                   <span class="inspector-data-value">${escapeHtml(tujuanPenggunaan || '-')}</span>
                 </div>
               ` : ''}
@@ -1368,24 +1628,84 @@
       }
 
       // ==========================================
-      // SECTION 4: PENGAWASAN & ADMINISTRASI (LANGKAH 4 & 5)
+      // SECTION 4: PETERNAKAN & TERNAK
       // ==========================================
-      if (isPengawasanActive || isAdministrasiActive) {
+      if (isTernakActive) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading" style="color: #7c3aed; border-color: #ddd6fe;">🔍 Tindakan Pengawasan &amp; Administrasi</div>
+            <div class="inspector-section-heading" style="color: #d97706; border-color: #fde68a;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              <span>Rincian Kegiatan Peternakan</span>
+            </div>
             <div class="inspector-data-grid">
-              ${isPengawasanActive ? `
-                <div class="inspector-data-item" style="grid-column: 1 / -1;">
-                  <span class="inspector-data-label">Tindakan Pengawasan</span>
-                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(pengawasan || '-')}</span>
-                  ${detailPengawasan ? `<span style="font-size: 0.8rem; color: #475569; margin-top: 2px;">Rincian: ${escapeHtml(detailPengawasan)}</span>` : ''}
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Jenis Ternak</span>
+                <span class="inspector-data-value" style="font-weight: 700; color: #d97706;">${escapeHtml(jenisTernak || '-')}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Populasi Ternak Saat Ini</span>
+                <span class="inspector-data-value highlight-value">${populasiTernak ? formatNumber(populasiTernak) + ' Ekor' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Ternak Masuk (Kelahiran/Beli)</span>
+                <span class="inspector-data-value">${formatTernakMutationDisplay(ternakMasuk, ternakMasukQty)}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Ternak Keluar (Mati/Jual)</span>
+                <span class="inspector-data-value">${formatTernakMutationDisplay(ternakKeluar, ternakKeluarQty)}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Pakan Masuk</span>
+                <span class="inspector-data-value">${pakanMasukKg ? formatNumber(pakanMasukKg) + ' Kg' : '-'}</span>
+              </div>
+              <div class="inspector-data-item">
+                <span class="inspector-data-label">Pakan Keluar</span>
+                <span class="inspector-data-value">${pakanKeluarKg ? formatNumber(pakanKeluarKg) + ' Kg' : '-'}</span>
+              </div>
+              ${jenisKomoditasTernak ? `
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Komoditas Ternak Dijual</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(jenisKomoditasTernak)}</span>
+                </div>
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Jumlah Penjualan Ternak</span>
+                  <span class="inspector-data-value">${jumlahPenjualanTernak ? formatNumber(jumlahPenjualanTernak) : '-'}</span>
+                </div>
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Harga Satuan Ternak</span>
+                  <span class="inspector-data-value">${hargaSatuanTernakRp ? 'Rp ' + formatRupiah(hargaSatuanTernakRp) : '-'}</span>
+                </div>
+                <div class="inspector-data-item" style="grid-column: 1 / -1; background: #fffbeb; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #fde68a;">
+                  <span class="inspector-data-label" style="color: #92400e;">Total Nilai Penjualan Ternak</span>
+                  <span class="inspector-data-value money-value" style="font-size: 1.1rem; color: #b45309;">${totalHargaTernakRp ? 'Rp ' + formatRupiah(totalHargaTernakRp) : 'Rp 0'}</span>
                 </div>
               ` : ''}
-              ${isAdministrasiActive ? `
+              ${(pembeliTernakNama || pembeliTernakTelp || pembeliTernakAlamat) ? `
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">Nama Pembeli Ternak</span>
+                  <span class="inspector-data-value">${escapeHtml(pembeliTernakNama || '-')}</span>
+                </div>
+                <div class="inspector-data-item">
+                  <span class="inspector-data-label">No Telepon Pembeli</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="inspector-data-value" style="font-family: monospace;">${escapeHtml(pembeliTernakTelp || '-')}</span>
+                    ${pembeliTernakTelp && pembeliTernakTelp !== '-' ? `
+                      <a href="${getWhatsAppUrl(pembeliTernakTelp, `Halo Bapak/Ibu ${pembeliTernakNama || pembeliNama || ''}, kami dari PT MPL mengonfirmasi transaksi penjualan ternak ${jenisKomoditasTernak || jenisTernak || 'Ternak'} terkait laporan ${kodeKegiatan || '-'}.`)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" title="Hubungi Pembeli Ternak via WhatsApp">
+                        <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm-3.56 3.63c-.2 0-.41.02-.6.08-.23.08-.43.21-.57.4-.33.45-.63 1.05-.63 1.84 0 1.06.63 2.15 1.13 2.84 1.11 1.54 2.68 2.64 4.3 3.32.74.31 1.32.44 1.8.49.56.06 1.15-.02 1.57-.34.34-.26.68-.78.83-1.34.1-.38.08-.66-.02-.8-.1-.13-.3-.22-.61-.37-.32-.15-1.87-.92-2.16-1.03-.29-.1-.5-.15-.71.16-.21.31-.81 1.02-.99 1.23-.18.21-.37.23-.68.08-.32-.15-1.34-.49-2.55-1.57-.94-.84-1.58-1.87-1.76-2.19-.18-.31-.02-.48.13-.63.14-.14.32-.37.48-.55.16-.18.21-.31.32-.52.1-.21.05-.39-.03-.55-.07-.15-.68-1.63-.93-2.24-.24-.59-.49-.51-.67-.52z"/></svg>
+                        <span>WhatsApp</span>
+                      </a>
+                    ` : ''}
+                  </div>
+                </div>
                 <div class="inspector-data-item" style="grid-column: 1 / -1;">
-                  <span class="inspector-data-label">Tugas Administrasi</span>
-                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(administrasi || detailAdministrasi || '-')}</span>
+                  <span class="inspector-data-label">Alamat Pembeli Ternak</span>
+                  <span class="inspector-data-value">${escapeHtml(pembeliTernakAlamat || '-')}</span>
+                </div>
+              ` : ''}
+              ${tujuanPenggunaanTernak ? `
+                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+                  <span class="inspector-data-label">Tujuan Penggunaan Internal Ternak</span>
+                  <span class="inspector-data-value">${escapeHtml(tujuanPenggunaanTernak)}</span>
                 </div>
               ` : ''}
             </div>
@@ -1394,12 +1714,45 @@
       }
 
       // ==========================================
-      // SECTION 5: EVALUASI, CAPAIAN & KENDALA (LANGKAH 6)
+      // SECTION 5: PENGAWASAN & OFFICE / ADMINISTRASI
+      // ==========================================
+      if (isPengawasanActive || isOfficeActive) {
+        html += `
+          <div class="inspector-section">
+            <div class="inspector-section-heading" style="color: #7c3aed; border-color: #ddd6fe;">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span>Rincian Pengawasan &amp; Administrasi</span>
+            </div>
+            <div class="inspector-data-grid">
+              ${isPengawasanActive ? `
+                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+                  <span class="inspector-data-label">Tindakan Pengawasan</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(pengawasan || '-')}</span>
+                  ${detailPengawasan ? `<span style="font-size: 0.8rem; color: #475569; margin-top: 2px;">Rincian: ${escapeHtml(detailPengawasan)}</span>` : ''}
+                </div>
+              ` : ''}
+              ${isOfficeActive ? `
+                <div class="inspector-data-item" style="grid-column: 1 / -1;">
+                  <span class="inspector-data-label">Kegiatan Office / Administrasi</span>
+                  <span class="inspector-data-value" style="font-weight: 600;">${escapeHtml(officeJenis || administrasi || '-')}</span>
+                  ${officeRincian ? `<span style="font-size: 0.8rem; color: #475569; margin-top: 2px;">Rincian: ${escapeHtml(officeRincian)}</span>` : ''}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // ==========================================
+      // SECTION 6: EVALUASI, CAPAIAN & KENDALA
       // ==========================================
       html += `
         <div class="inspector-section">
           <div class="inspector-section-heading" style="${isKendalaReal ? 'color: #be123c; border-color: #fecdd3;' : ''}">
-            ${isKendalaReal ? '⚠️ Kendala &amp; Tindak Lanjut' : '📝 Capaian &amp; Evaluasi Lapangan'}
+            <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${isKendalaReal ? '#be123c' : 'currentColor'}" stroke-width="2">
+              ${isKendalaReal ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' : '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'}
+            </svg>
+            <span>${isKendalaReal ? 'Kendala Lapangan &amp; Tindak Lanjut' : 'Capaian &amp; Evaluasi Lapangan'}</span>
           </div>
           <div class="inspector-data-grid" style="grid-template-columns: 1fr;">
             ${capaianKegiatan && capaianKegiatan !== '-' ? `
@@ -1408,10 +1761,10 @@
                 <span class="inspector-data-value">${escapeHtml(capaianKegiatan)}</span>
               </div>
             ` : ''}
-            <div class="inspector-data-item" style="${isKendalaReal ? 'background: #fff1f2; padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid #fecdd3;' : ''}">
-              <span class="inspector-data-label" style="${isKendalaReal ? 'color: #be123c;' : ''}">Kendala Lapangan</span>
-              <span class="inspector-data-value ${isKendalaReal ? 'warning-value' : ''}">
-                ${isKendalaReal ? escapeHtml(kendala) : '✅ Tidak ada kendala lapangan (Operasional Berjalan Lancar)'}
+            <div class="inspector-data-item" style="${isKendalaReal ? 'background: #fff1f2; padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid #fecdd3;' : 'background: #f0fdf4; padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid #bbf7d0;'}">
+              <span class="inspector-data-label" style="${isKendalaReal ? 'color: #be123c;' : 'color: #15803d;'}">Status Kendala</span>
+              <span class="inspector-data-value ${isKendalaReal ? 'warning-value' : ''}" style="${isKendalaReal ? '' : 'color: #166534; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;'}">
+                ${isKendalaReal ? escapeHtml(kendala) : '<svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> <span>Tidak ada kendala lapangan (Operasional Berjalan Lancar)</span>'}
               </span>
             </div>
             ${isKendalaReal ? `
@@ -1425,12 +1778,15 @@
       `;
 
       // ==========================================
-      // SECTION 6: PERTANYAAN TAMBAHAN (KUSTOM)
+      // SECTION 7: PERTANYAAN TAMBAHAN (KUSTOM)
       // ==========================================
       if (unconsumedCustomFields.length > 0) {
         html += `
           <div class="inspector-section">
-            <div class="inspector-section-heading">🧩 Pertanyaan Tambahan Formulir</div>
+            <div class="inspector-section-heading">
+              <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              <span>Pertanyaan Tambahan Formulir</span>
+            </div>
             <table class="inspector-kv-table">
               <tbody>
                 ${unconsumedCustomFields.map(f => `
@@ -1446,7 +1802,7 @@
       }
 
       // ==========================================
-      // SECTION 7: FOTO BUKTI LAPANGAN (LANGKAH 7)
+      // SECTION 8: FOTO BUKTI LAPANGAN
       // ==========================================
       const photosToRender = (Array.isArray(item.photos) && item.photos.length > 0)
         ? item.photos.filter(p => p && String(p).startsWith('http'))
@@ -1454,7 +1810,10 @@
 
       html += `
         <div class="inspector-section">
-          <div class="inspector-section-heading">📸 Foto Bukti Lapangan (${photosToRender.length} Foto)</div>
+          <div class="inspector-section-heading">
+            <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Foto Bukti Lapangan (${photosToRender.length} Foto)</span>
+          </div>
       `;
 
       if (photosToRender.length > 0) {
@@ -1534,13 +1893,20 @@
     });
 
     async function toggleModalVerification(reportId, targetStatus) {
-      await updateStatus('operasional', reportId, targetStatus);
       const item = currentFilteredData[currentModalIndex];
-      if (item && item.reportId === reportId) {
-        item.reviewStatus = targetStatus;
+      const previousStatus = item ? item.reviewStatus : 'Belum Terverifikasi';
+      try {
+        await updateStatus('operasional', reportId, targetStatus);
+        if (item && item.reportId === reportId) {
+          item.reviewStatus = targetStatus;
+        }
+        openDetailModal(currentModalIndex);
+        renderCurrentPage();
+      } catch (err) {
+        console.error('toggleModalVerification error:', err);
+        if (item) item.reviewStatus = previousStatus;
+        openDetailModal(currentModalIndex);
       }
-      openDetailModal(currentModalIndex);
-      renderCurrentPage();
     }
 
     async function updateStatus(type, reportId, newStatus, selectElement) {
@@ -1548,6 +1914,7 @@
       isUpdatingStatus = true;
       const normalized = normalizeReviewStatus(newStatus);
       const prevClass = selectElement ? (selectElement.classList.contains('is-verified') ? 'is-verified' : 'is-unverified') : null;
+      const prevValue = selectElement ? selectElement.value : null;
 
       try {
         if (selectElement) {
@@ -1586,10 +1953,12 @@
         showToast(`Status verifikasi berhasil diperbarui: "${normalized}"`, 'success');
       } catch (err) {
         console.error('Update status error:', err);
-        if (selectElement && prevClass) {
-          selectElement.className = `table-status-select ${prevClass}`;
+        if (selectElement) {
+          if (prevClass) selectElement.className = `table-status-select ${prevClass}`;
+          if (prevValue) selectElement.value = prevValue;
         }
         showToast('Gagal memperbarui status: ' + (err.message || err.toString()), 'error');
+        throw err;
       } finally {
         isUpdatingStatus = false;
       }

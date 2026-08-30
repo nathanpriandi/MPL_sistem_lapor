@@ -1,11 +1,11 @@
-<header>
-  <div class="nav-container">
-    <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" data-page="index" onclick="navigateToPage('index', this); return false;" class="logo">
-      <span class="logo-badge">AGRI-DIGITAL</span>
-      <span>Portal Pelaporan</span>
-    </a>
-    <nav>
-      <a href="<?= webAppUrl ? webAppUrl + '?page=index' : '#' ?>" onclick="navigateToPage('index', this); return false;" class="nav-link <?= currentPage === 'index' ? 'active' : '' ?>">Form Laporan Operasional</a>
-    </nav>
+<header class="public-app-header">
+  <div class="public-header-container">
+    <div class="public-brand-display" aria-label="Sistem Lapor MPL">
+      <?!= include('brand'); ?>
+      <span class="header-divider-dot">•</span>
+      <span class="header-portal-tag">Form Laporan Operasional</span>
+    </div>
   </div>
 </header>
+
+
