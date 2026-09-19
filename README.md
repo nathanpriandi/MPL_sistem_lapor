@@ -46,27 +46,31 @@ MPL_sistem_lapor/
 ├── CONFIG.md                  # Operational parameters, site registry & keyword rules
 ├── README.md                  # System architecture, deployment guide & technical reference
 ├── src/
-│   ├── appsscript.json        # Apps Script manifest (Asia/Jakarta timezone & scopes)
+│   ├── appsscript.json        # Apps Script manifest (Asia/Jakarta timezone, scopes & webapp config)
 │   ├── Setup.gs               # Spreadsheet, Google Drive folders & initial schema provisioning
-│   ├── Automation.gs          # Triage keyword engine & automated data retention triggers
-│   ├── AdminService.gs        # Internal admin queue processing, review verification & employee registry
+│   ├── Automation.gs          # Time-driven cron trigger delivery entry points
+│   ├── AdminService.gs        # Unified Application Facade coordinating admin workflows
+│   ├── AdminQueueService.gs   # Operational review queue, verification & inspector lookups
+│   ├── EmployeeService.gs     # Master employee registry, delegation rules & division policies
+│   ├── MaintenanceService.gs  # Automated daily/weekly email digests & 90-day storage retention
+│   ├── SecurityService.gs     # Rate limiting, RBAC guards, input sanitization & formula neutralization
 │   ├── AnalyticsService.gs    # Executive analytics computations, harvest yields & revenue trends
-│   ├── AuthService.gs         # RBAC session validation & Google account role gating
+│   ├── AuthService.gs         # RBAC identity evaluation, deployment isolation & session security
 │   ├── ReportService.gs       # Report submission coordinator, photo upload & dynamic form intake
 │   ├── FormManagementService.gs # Form schema registry CRUD, step builders & tab-per-form provisioning
-│   ├── SpreadsheetRepository.gs # DAO layer for integrated spreadsheet reads/writes & GID lookups
-│   ├── ConfigRepository.gs    # Script Properties configuration wrapper
+│   ├── SpreadsheetRepository.gs # DAO repository for integrated spreadsheet operations & GID lookups
+│   ├── ConfigRepository.gs    # Centralized Script Properties & environment configuration wrapper
 │   ├── DomainEntities.gs      # Domain data models, employee master registry & severity constants
-│   ├── TriageEngine.gs        # Triage obstacle evaluator & severity classifier
-│   ├── NotificationAdapter.gs # Instant HTML email alert dispatcher
+│   ├── TriageEngine.gs        # Pure obstacle evaluator & severity classifier
+│   ├── NotificationAdapter.gs # Instant HTML email alert dispatcher & digest builders
 │   ├── FormHandlers.gs        # Native Google Form trigger handlers
 │   ├── Triggers.gs            # Time-driven and event trigger management
-│   ├── Utils.gs               # Date formatting, rupiah formatters & validation helper utilities
-│   ├── MockSimulator.gs       # Seed mock test generator for staging validation
-│   ├── Web.gs                 # HTTP doGet router, RBAC authentication, deployment check & layout includes
-│   ├── ClientAPI.gs           # Server RPC bridge for Web App (google.script.run dispatcher)
+│   ├── Utils.gs               # Pure utility helpers (date/phone formatting, rupiah, ISO week)
+│   ├── PortfolioSeedGenerator.gs # 96-record multi-month synthetic operational data seed generator
+│   ├── Web.gs                 # HTTP doGet router, role delivery & HTML template evaluation
+│   ├── ClientAPI.gs           # Server RPC gateway (google.script.run bridge with security guards)
 │   │
-│   ├── index.html             # Public Unified 6-Step Operational Reporting Form with camera capture
+│   ├── index.html             # Public Unified Operational Reporting Form with camera capture
 │   ├── camera.html            # Standalone pop-up WebRTC camera fallback page
 │   ├── dynamicform.html       # Public Dynamic Custom Form intake view (supports dynamic fields & photos)
 │   ├── admin.html             # Internal Admin Queue view (Inspector modal, search, filters & CSV export)
@@ -82,7 +86,8 @@ MPL_sistem_lapor/
 └── docs/
     ├── USER_GUIDE_DAILY_REPORT.md # Field staff step-by-step reporting guide
     ├── ADMIN_MANUAL.md        # Admin runbook & queue management guide
-    └── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
+    ├── CONSENT_NOTICE_UU_PDP.md   # Plain-language Indonesia UU PDP privacy notice
+    └── SECURITY_AUDIT_REPORT.md   # Comprehensive enterprise cybersecurity & RBAC audit report
 ```
 
 > 💡 **Single Source of Truth**: All operational source code lives exclusively in `src/`. Running `npm run push` deploys `src/` directly to Google Apps Script.
@@ -104,7 +109,7 @@ MPL_sistem_lapor/
 # Login to Google Account via Clasp CLI
 npx clasp login
 
-# Initialize standalone Apps Script project
+# Initialize standalone Apps Script project (or configure .clasp.json with your Script ID)
 npx clasp create --type standalone --title "Sistem Pelaporan MPL" --rootDir src
 ```
 
@@ -129,13 +134,14 @@ In the Apps Script Editor, go to **Project Settings** (⚙️) → **Script Prop
 
 | Property Name | Required | Example / Description |
 |---|---|---|
-| `ADMIN_EMAIL` | **Yes** | Active Admin Google email (e.g. `admin.operasional@perusahaan.co.id`). Receives instant urgent notifications. |
+| `PORTFOLIO_MODE` | Optional | Set to `true` (default) for portfolio showcase demonstration mode; set to `false` for strict enterprise corporate production. |
+| `ADMIN_EMAIL` | **Yes** | Active Admin Google email (e.g. `yourname@gmail.com`). Receives instant urgent notifications. |
 | `MANAGER_EMAIL` | **Yes** | Active Executive Manager Google email. Receives weekly digests and accesses Analytics. |
 | `SPREADSHEET_ID` | **Yes** | ID of the single integrated Google Spreadsheet (auto-generated by `Setup.gs`). |
 | `MAIN_FORM_ID` | **Yes** | ID of the Unified Operational Google Form (auto-generated by `Setup.gs`). |
 | `REGISTERED_FORMS_JSON` | **Auto** | JSON array of all registered dynamic custom forms, tab GIDs, and Drive photo folders. |
-| `PUBLIC_WEB_APP_URL` | **Yes** | Web App URL of **Deployment A** (Public Access). Set after creating Deployment A. |
-| `INTERNAL_WEB_APP_URL` | **Yes** | Web App URL of **Deployment B** (Internal Operations Console). Set after creating Deployment B. |
+| `PUBLIC_WEB_APP_URL` | **Yes** | Web App URL of **Deployment A** (Public Access). Aliased by `PUBLIC_URL`. |
+| `INTERNAL_WEB_APP_URL` | **Yes** | Web App URL of **Deployment B** (Internal Operations Console). Aliased by `INTERNAL_URL`. |
 | `RETENTION_DAYS` | Optional | Archival threshold in days for `archiveOldReports()`. Defaults to `90` days. |
 
 ---
@@ -144,23 +150,23 @@ In the Apps Script Editor, go to **Project Settings** (⚙️) → **Script Prop
 
 To ensure zero friction for field staff on mobile devices while securing internal management data, deploy two Web App instances from the same script project:
 
-### Deployment A — Public Portal (Field Staff)
+### Deployment A — Public Portal (Field Staff & Public Intake)
 - **Deploy** → **New deployment**
 - **Type**: `Web app`
 - **Description**: `Deployment A — Public Field Staff Intake`
 - **Execute as**: `Me`
-- **Who has access**: `Anyone` *(No Google login required)*
-- **Landing**: Directly loads the 6-Step Operational Reporting Form (`index.html`) or Dynamic Custom Forms (`dynamicform.html`).
+- **Who has access**: `Anyone` *(No Google login required for external evaluators and field workers)*
+- **Landing**: Directly loads the Unified Operational Reporting Form (`index.html`) or Dynamic Custom Forms (`dynamicform.html`).
 
-### Deployment B — Internal Operations Console (Admin & Manager)
+### Deployment B — Internal Operations Console (Admin & Executive Manager)
 - **Deploy** → **New deployment**
 - **Type**: `Web app`
 - **Description**: `Deployment B — Internal Operations Console`
 - **Execute as**: `Me`
-- **Who has access**: `Anyone with Google account` *(Requires Google login)*
-- **Landing**: Automatically evaluates user email and routes to `admin.html` (Admin), `dashboard.html` (Manager), `employees.html`, or `forms.html`.
+- **Who has access**: `Anyone` *(In portfolio mode for showcase evaluation; in enterprise production: `Anyone with Google account`)*
+- **Landing**: Automatically lands on the **Executive Manager Dashboard** (`dashboard.html`), with direct navigation to **Antrean Admin** (`?page=admin`), **Pengaturan Karyawan** (`?page=employees`), **Pengaturan Form** (`?page=forms`), and **Hak Akses & Role** (`?page=roles`).
 
-> ⚠️ **Configuration Step**: Copy both Web App URLs into `PUBLIC_WEB_APP_URL` and `INTERNAL_WEB_APP_URL` in **Script Properties** so role routing and inter-module links work properly.
+> ⚠️ **Configuration Step**: Copy both Web App URLs into `PUBLIC_URL` and `INTERNAL_URL` in **Script Properties** so cross-deployment routing and inter-module links resolve correctly.
 
 ---
 
@@ -182,7 +188,7 @@ To ensure zero friction for field staff on mobile devices while securing interna
 
 ### 3. Employee Master & 2-Tier SGA Role Structure (`employees.html` & `DomainEntities.gs`)
 - **Management (`MNJ-01`..`09`) & Alprof (`ALP-01`..`07`)**: Full direct reporting permissions (`isPic: true`).
-- **PIC SGA (`SGA-01` Ketut & `SGA-02` Amas S)**: Designated PICs with exclusive authorization to submit official operational reports for the SGA division and record team attendance.
+- **PIC SGA (`SGA-01` Wayan Darmawan & `SGA-02` Made Suardika)**: Designated PICs with exclusive authorization to submit official operational reports for the SGA division and record team attendance.
 - **SGA Field Members (`SGA-03`..`12`)**: Field team members whose attendance is logged via PIC SGA.
 - **Employee Settings Console**: Real-time CRUD interface with auto-increment ID generation, division filters, and `PIC SGA` badge indicators (`badge-div-pic-sga`).
 

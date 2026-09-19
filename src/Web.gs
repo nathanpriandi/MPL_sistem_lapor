@@ -26,9 +26,10 @@ function doGet(e) {
     camera: 'camera'
   };
 
+  const isPortfolio = ConfigRepository.isPortfolioMode();
   const userRole = AuthService.getUserRole();
   const isInternalDeployment = AuthService.isInternalWebAppDeployment();
-  const templateUserRole = isInternalDeployment ? userRole : null;
+  const templateUserRole = (isInternalDeployment || isPortfolio) ? (userRole || 'both') : userRole;
 
   let file = allowed[pageParam];
 
@@ -37,56 +38,64 @@ function doGet(e) {
   // - On Internal Admin Deployment (isInternalDeployment === true):
   //   * If authenticated as manager: 'dashboard'
   //   * If authenticated as admin/superadmin: 'admin'
-  //   * If unauthenticated: 'admin' (will trigger renderAccessRestricted below)
+  //   * If in portfolio mode without specific role: 'dashboard'
   if (!file) {
     if (isInternalDeployment) {
-      file = (userRole === 'manager') ? 'dashboard' : 'admin';
+      // On Internal Console Deployment:
+      // - Dedicated 'admin' role lands on 'admin' queue
+      // - 'manager', 'both' (Superadmin), or portfolio review mode lands on 'dashboard'
+      file = (userRole === 'admin') ? 'admin' : 'dashboard';
     } else {
+      // On Public Intake Deployment:
+      // - Always lands on 'index' (Formulir Laporan Operasional)
       file = 'index';
     }
   }
 
   // Access control: strict per-role RBAC for internal console pages
-  // 1. If someone accesses internal console pages on the Public Deployment -> Block!
-  if ((file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') && !isInternalDeployment) {
-    return renderAccessRestricted(
-      'Akses Konsol Internal Tidak Tersedia di Deployment Ini',
-      'Halaman Konsol Internal (Antrean Admin, Dashboard Manajer, Pengaturan) hanya tersedia melalui <strong>Deployment Admin Internal</strong> Sistem Lapor MPL. Tautan publik ini khusus untuk pengisian formulir laporan operasional.'
-    );
-  }
-
-  // 2. If someone accesses internal console pages on the Internal Deployment without an authorized Google account -> Block!
-  if (file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') {
-    if (!userRole) {
-      const adminEmailDisplay = ConfigRepository.getAdminEmail() || 'Superadmin';
+  // In Portfolio Mode, demonstration access is granted so reviewers can evaluate the features.
+  if (!isPortfolio) {
+    // 1. If someone accesses internal console pages on the Public Deployment -> Block!
+    if ((file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') && !isInternalDeployment) {
       return renderAccessRestricted(
-        'Akses Konsol Internal Terbatas',
-        `Akun Google Anda belum terdaftar dalam sistem atau belum masuk (login). Silakan hubungi Superadmin di <code>${adminEmailDisplay}</code> untuk mendaftarkan hak akses akun Anda.`
+        'Akses Konsol Internal Tidak Tersedia di Deployment Ini',
+        'Halaman Konsol Internal (Antrean Admin, Dashboard Manajer, Pengaturan) hanya tersedia melalui <strong>Deployment Admin Internal</strong> Sistem Lapor MPL. Tautan publik ini khusus untuk pengisian formulir laporan operasional.'
       );
     }
 
-    // 2a. Hak Akses & Role (?page=roles) -> STRICTLY SUPERADMIN ONLY
-    if (file === 'roles' && userRole !== 'both') {
-      return renderAccessRestricted(
-        'Akses Ditolak — Khusus Superadmin',
-        'Halaman <strong>Manajemen Hak Akses & Role</strong> hanya dapat diakses oleh <strong>Superadmin</strong> sistem.'
-      );
-    }
+    // 2. If someone accesses internal console pages on the Internal Deployment without an authorized Google account -> Block!
+    if (file === 'admin' || file === 'dashboard' || file === 'forms' || file === 'employees' || file === 'roles') {
+      if (!userRole) {
+        const adminEmailDisplay = ConfigRepository.getAdminEmail() || 'Superadmin';
+        return renderAccessRestricted(
+          'Akses Konsol Internal Terbatas',
+          `Akun Google Anda belum terdaftar dalam sistem atau belum masuk (login). Silakan hubungi Superadmin di <code>${adminEmailDisplay}</code> untuk mendaftarkan hak akses akun Anda.`
+        );
+      }
 
-    // 2b. Manager Role -> STRICTLY MANAGER DASHBOARD ONLY
-    if (userRole === 'manager' && (file === 'admin' || file === 'forms' || file === 'employees' || file === 'roles')) {
-      return renderAccessRestricted(
-        'Akses Ditolak — Hak Akses Tidak Memadai',
-        'Peran Anda (<strong>Manager Eksekutif</strong>) hanya memiliki izin untuk mengakses <strong>Dashboard Manajer</strong>. Silakan hubungi Superadmin jika Anda membutuhkan wewenang lain.'
-      );
-    }
+      // 2a. Hak Akses & Role (?page=roles) -> STRICTLY SUPERADMIN ONLY
+      if (file === 'roles' && userRole !== 'both') {
+        return renderAccessRestricted(
+          'Akses Ditolak — Khusus Superadmin',
+          'Halaman <strong>Manajemen Hak Akses & Role</strong> hanya dapat diakses oleh <strong>Superadmin</strong> sistem.'
+        );
+      }
 
-    // 2c. Admin Role -> STRICTLY ADMIN MODULES ONLY (Antrean Admin, Karyawan, Form)
-    if (userRole === 'admin' && (file === 'dashboard' || file === 'roles')) {
-      return renderAccessRestricted(
-        'Akses Ditolak — Hak Akses Tidak Memadai',
-        'Peran Anda (<strong>Admin Operasional</strong>) hanya memiliki izin untuk mengakses modul operasional (<strong>Antrean Admin</strong>, <strong>Pengaturan Karyawan</strong>, dan <strong>Pengaturan Form</strong>).'
-      );
+      // 2b. Manager Role -> STRICTLY MANAGER DASHBOARD ONLY
+      if (userRole === 'manager' && (file === 'admin' || file === 'forms' || file === 'employees' || file === 'roles')) {
+        return renderAccessRestricted(
+          'Akses Ditolak — Hak Akses Tidak Memadai',
+          'Peran Anda (<strong>Manager Eksekutif</strong>) hanya memiliki izin untuk mengakses <strong>Dashboard Manajer</strong>. Silakan hubungi Superadmin jika Anda membutuhkan wewenang lain.'
+        );
+      }
+
+      // 2c. Admin Role -> STRICTLY ADMIN MODULES ONLY (Antrean Admin, Karyawan, Form)
+      if (userRole === 'admin' && (file === 'dashboard' || file === 'roles')) {
+        return renderAccessRestricted(
+          'Akses Ditolak — Hak Akses Tidak Memadai',
+          'Peran Anda (<strong>Admin Operasional</strong>) hanya memiliki izin untuk mengakses modul operasional (<strong>Antrean Admin</strong>, <strong>Pengaturan Karyawan</strong>, dan <strong>Pengaturan Form</strong>).'
+        );
+      }
     }
   }
 
@@ -100,6 +109,9 @@ function doGet(e) {
     } catch (e) {
       userEmail = '';
     }
+  }
+  if (!userEmail && isPortfolio) {
+    userEmail = ConfigRepository.getAdminEmail() || 'nathan.priandi@gmail.com';
   }
 
   template.webAppUrl = webAppUrl;

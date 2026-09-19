@@ -10,12 +10,13 @@ After running `setupReportingSystem()`, you must set the following properties in
 
 | Property Name | Example / Expected Value | Description |
 |---|---|---|
-| `ADMIN_EMAIL` | `admin.operasional@perusahaan.co.id` | Primary Admin Google email. Receives urgent incident alerts and daily 17:00 WIB digests. |
-| `MANAGER_EMAIL` | `manager.eksekutif@perusahaan.co.id` | Primary Manager Google email. Receives weekly Monday 08:00 WIB executive summary digests. |
+| `PORTFOLIO_MODE` | `true` | Optional flag. Set to `true` (default) for portfolio showcase demonstration mode; set to `false` for strict enterprise corporate production. |
+| `ADMIN_EMAIL` | `yourname@gmail.com` | Primary Admin Google email. Receives urgent incident alerts and daily 17:00 WIB digests. |
+| `MANAGER_EMAIL` | `yourname@gmail.com` | Primary Manager Google email. Receives weekly Monday 08:00 WIB executive summary digests. |
 | `SPREADSHEET_ID` | `1A2b3C4d5E...` | Generated automatically by `Setup.gs` or linked to your central operational Google Sheet. |
 | `MAIN_FORM_ID` | `1F2g3H4i5J...` | Generated automatically by `Setup.gs` for the unified Operational Google Form. |
-| `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment URL for public field-staff portal (`?page=index`). |
-| `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment URL for Admin Queue and Manager Dashboard console. |
+| `PUBLIC_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment URL for public field-staff portal (`?page=index`). Also supports alias `PUBLIC_URL`. |
+| `INTERNAL_WEB_APP_URL` | `https://script.google.com/macros/s/.../exec` | Deployment URL for Admin Queue and Manager Dashboard console. Also supports alias `INTERNAL_URL`. |
 | `PUBLIC_DEPLOYMENT_ID` | `AKfycb...` | Explicit Deployment ID for the public portal to enforce isolation from internal console routes. |
 
 ---

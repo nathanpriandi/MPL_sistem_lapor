@@ -50,14 +50,17 @@ function navigateToPage(pageName, anchorEl) {
     const cleanUrl = baseUrl.split('?')[0];
     const targetUrl = `${cleanUrl}?page=${pageName}`;
     try {
-      if (window.top && window.top.location) {
-        window.top.location.href = targetUrl;
-      } else {
+      window.open(targetUrl, '_top');
+    } catch (e) {
+      try {
+        if (window.top) {
+          window.top.location.href = targetUrl;
+        } else {
+          window.location.href = targetUrl;
+        }
+      } catch (e2) {
         window.location.href = targetUrl;
       }
-    } catch (e) {
-      // Cross-origin restriction — navigate the inner frame directly
-      window.location.href = targetUrl;
     }
   } else {
     // Local preview fallback: update ?page= query param in current URL

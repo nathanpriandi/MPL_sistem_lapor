@@ -80,7 +80,7 @@ const ReportService = {
 
     // Validation for SGA Division delegation, Alprof delegation (BKO 28), & Management delegation (PKH)
     if (isSgaJunior(payload.idKaryawan)) {
-      throw new Error('Pengisian formulir untuk Divisi SGA didelegasikan khusus kepada PIC: Ketut (SGA-01) atau Amas S (SGA-02). Silakan laporkan aktivitas Anda kepada PIC.');
+      throw new Error('Pengisian formulir untuk Divisi SGA didelegasikan khusus kepada PIC: Wayan Darmawan (SGA-01) atau Made Suardika (SGA-02). Silakan laporkan aktivitas Anda kepada PIC.');
     }
     if (isBkoSubordinate(payload.idKaryawan)) {
       throw new Error('Pengisian formulir untuk BKO 28 didelegasikan melalui tim Alprof. Silakan sampaikan catatan aktivitas Anda kepada tim Alprof.');
