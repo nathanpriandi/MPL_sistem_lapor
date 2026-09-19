@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem Lapor MPL | Laporan Operasional</title>
+  <base target="_top">
   <?!= include('style'); ?>
 </head>
 <body class="public-form-body">
@@ -152,53 +153,53 @@
   <?!= includeApp(webAppUrl); ?>
   <script>
     const DYN_EMPLOYEE_REGISTRY = [
-      // Manajemen (9 Orang) — Bebas mengisi form langsung
-      { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-02', name: 'Ariyana', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-03', name: 'Pupu F Fauzi', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-04', name: 'Martaty', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-05', name: 'Riska F', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-06', name: 'M Fauzan', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-07', name: 'Rasinta', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-08', name: 'Alamsyah', division: 'Manajemen', isPic: true },
-      { id: 'MNJ-09', name: 'Devi Rosdiana', division: 'Manajemen', isPic: true },
+      // Manajemen Operasional (9 Orang) — Bebas mengisi form langsung
+      { id: 'MNJ-01', name: 'Hendra Gunawan', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-02', name: 'Budi Pratama', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-03', name: 'Siti Rahmawati', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-04', name: 'Eko Wahyudi', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-05', name: 'Dewi Lestari', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-06', name: 'Agus Setiawan', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-07', name: 'Maya Anggraini', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-08', name: 'Rizky Hidayat', division: 'Manajemen', isPic: true },
+      { id: 'MNJ-09', name: 'Anita Kusuma', division: 'Manajemen', isPic: true },
 
-      // BKO 28 (2 Orang) — Pelaporan via Manajemen
-      { id: 'BKO-01', name: 'Didi', division: 'BKO 28', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'BKO-02', name: 'Gultom', division: 'BKO 28', isPic: false, delegatedTo: 'Manajemen' },
+      // Keamanan Lapangan / BKO 28 (2 Orang) — Pelaporan via Alprof
+      { id: 'BKO-01', name: 'Bambang Wijaya', division: 'BKO 28', isPic: false, delegatedTo: 'Alprof' },
+      { id: 'BKO-02', name: 'Surya Saputra', division: 'BKO 28', isPic: false, delegatedTo: 'Alprof' },
 
-      // Pekerja Harian (8 Orang) — Pelaporan via Manajemen
-      { id: 'PKH-01', name: 'Atang', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-02', name: 'Adim', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-03', name: 'Heru', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-04', name: 'Alok', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-05', name: 'Samid', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-06', name: 'Komarudin', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-07', name: 'Sanih', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
-      { id: 'PKH-08', name: 'Ira', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      // Tenaga Kerja Harian (8 Orang) — Pelaporan via Manajemen
+      { id: 'PKH-01', name: 'Joko Susilo', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-02', name: 'Wahyu Utomo', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-03', name: 'Tono Darsono', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-04', name: 'Asep Saepudin', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-05', name: 'Ujang Suherman', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-06', name: 'Rohman Hakim', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-07', name: 'Slamet Riyadi', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
+      { id: 'PKH-08', name: 'Yanto Wardoyo', division: 'Pekerja Harian', isPic: false, delegatedTo: 'Manajemen' },
 
-      // Alprof (7 Orang) — Bebas mengisi form langsung
-      { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', isPic: true },
-      { id: 'ALP-02', name: 'Andi Willy', division: 'Alprof', isPic: true },
-      { id: 'ALP-03', name: 'Sugiyo', division: 'Alprof', isPic: true },
-      { id: 'ALP-04', name: 'M Aris', division: 'Alprof', isPic: true },
-      { id: 'ALP-05', name: 'Mursito', division: 'Alprof', isPic: true },
-      { id: 'ALP-06', name: 'Jatniko', division: 'Alprof', isPic: true },
-      { id: 'ALP-07', name: 'Mislan', division: 'Alprof', isPic: true },
+      // Staf Teknis / Alprof (7 Orang) — Bebas mengisi form langsung
+      { id: 'ALP-01', name: 'Fajar Nugraha', division: 'Alprof', isPic: true },
+      { id: 'ALP-02', name: 'Dian Permana', division: 'Alprof', isPic: true },
+      { id: 'ALP-03', name: 'Tri Cahyono', division: 'Alprof', isPic: true },
+      { id: 'ALP-04', name: 'Bayu Firmansyah', division: 'Alprof', isPic: true },
+      { id: 'ALP-05', name: 'Ilham Maulana', division: 'Alprof', isPic: true },
+      { id: 'ALP-06', name: 'Danang Prasetyo', division: 'Alprof', isPic: true },
+      { id: 'ALP-07', name: 'Rahmat Hidayatullah', division: 'Alprof', isPic: true },
 
-      // SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Ketut (SGA-01) & Amas S (SGA-02)
-      { id: 'SGA-01', name: 'Ketut', division: 'SGA', isPic: true },
-      { id: 'SGA-02', name: 'Amas S', division: 'SGA', isPic: true },
-      { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-04', name: 'Hasanudin', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-05', name: 'Roby Sandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-06', name: 'Rukman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-07', name: 'Subandi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-08', name: 'Suganda', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-09', name: 'Dede', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-10', name: 'Wafa', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-11', name: 'Rafi', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
-      { id: 'SGA-12', name: 'Nur Iman', division: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
+      // Tim Budidaya Lapangan / SGA (12 Orang) — Pengisian form KHUSUS melalui PIC Wayan Darmawan (SGA-01) & Made Suardika (SGA-02)
+      { id: 'SGA-01', name: 'Wayan Darmawan', division: 'SGA', role: 'PIC SGA', isPic: true },
+      { id: 'SGA-02', name: 'Made Suardika', division: 'SGA', role: 'PIC SGA', isPic: true },
+      { id: 'SGA-03', name: 'Agung Wicaksono', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-04', name: 'Galih Pramono', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-05', name: 'Dimas Kurniawan', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-06', name: 'Bagus Pangestu', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-07', name: 'Arif Budiman', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-08', name: 'Indra Lesmana', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-09', name: 'Yoga Pratama', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-10', name: 'Faisal Rahman', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-11', name: 'Gilang Ramadhan', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' },
+      { id: 'SGA-12', name: 'Doni Hendrawan', division: 'SGA', role: 'SGA', isPic: false, delegatedTo: 'SGA PIC' }
     ];
 
     function handleDynEmpIdInput(val) {

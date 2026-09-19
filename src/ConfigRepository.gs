@@ -9,9 +9,6 @@
 
 const ConfigRepository = {
   DEFAULT_RETENTION_DAYS: 90,
-  DEFAULT_PUBLIC_URL: 'https://script.google.com/macros/s/AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav/exec',
-  DEFAULT_INTERNAL_URL: 'https://script.google.com/macros/s/AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p/exec',
-  DEFAULT_ADMIN_EMAIL: 'mpl.sisteminformasi@gmail.com',
 
   /**
    * Reads raw script property string.
@@ -68,11 +65,32 @@ const ConfigRepository = {
   },
 
   /**
+   * Checks if system is operating in Portfolio Showcase mode.
+   * In portfolio mode, demonstration visitors are granted access to explore dashboards and queues.
+   * @returns {boolean}
+   */
+  isPortfolioMode: function() {
+    const val = String(this.getProperty('PORTFOLIO_MODE') || '').trim().toLowerCase();
+    if (val === 'false' || val === '0' || val === 'no') {
+      return false;
+    }
+    // Defaults to true for portfolio deployment
+    return true;
+  },
+
+  /**
    * Retrieves primary Admin email from script properties.
    * @returns {string}
    */
   getAdminEmail: function() {
-    return this.getProperty('ADMIN_EMAIL') || this.DEFAULT_ADMIN_EMAIL;
+    const email = this.getProperty('ADMIN_EMAIL');
+    if (!email) {
+      if (this.isPortfolioMode()) {
+        return 'nathan.priandi@gmail.com';
+      }
+      throw new Error('ADMIN_EMAIL belum dikonfigurasi di Script Properties.');
+    }
+    return email;
   },
 
   /**
@@ -80,29 +98,44 @@ const ConfigRepository = {
    * @returns {string}
    */
   getManagerEmail: function() {
-    return this.getProperty('MANAGER_EMAIL') || this.DEFAULT_ADMIN_EMAIL;
+    const email = this.getProperty('MANAGER_EMAIL') || this.getProperty('ADMIN_EMAIL');
+    if (!email) {
+      if (this.isPortfolioMode()) {
+        return 'nathan.priandi@gmail.com';
+      }
+      throw new Error('MANAGER_EMAIL belum dikonfigurasi di Script Properties.');
+    }
+    return email;
   },
 
   /**
    * Retrieves public Web App deployment URL.
+   * Supports both PUBLIC_WEB_APP_URL and PUBLIC_URL keys.
    * @returns {string}
    */
   getPublicWebAppUrl: function() {
-    const raw = this.getProperty('PUBLIC_WEB_APP_URL');
-    if (!raw || raw.includes('AKfycbzr')) {
-      return this.DEFAULT_PUBLIC_URL;
+    const raw = this.getProperty('PUBLIC_WEB_APP_URL') || this.getProperty('PUBLIC_URL');
+    if (!raw) {
+      if (this.isPortfolioMode()) {
+        return 'https://script.google.com/macros/s/AKfycbxtC6W04Eu_ABYePyiIbtbZqAYsfaeHOf6I3G5l0eN_m_u6srsGTrf0EWIvBvQvHEvl/exec';
+      }
+      throw new Error('PUBLIC_WEB_APP_URL belum dikonfigurasi di Script Properties.');
     }
     return raw;
   },
 
   /**
    * Retrieves internal admin/manager Web App deployment URL.
+   * Supports both INTERNAL_WEB_APP_URL and INTERNAL_URL keys.
    * @returns {string}
    */
   getInternalWebAppUrl: function() {
-    const raw = this.getProperty('INTERNAL_WEB_APP_URL');
+    const raw = this.getProperty('INTERNAL_WEB_APP_URL') || this.getProperty('INTERNAL_URL');
     if (!raw) {
-      return this.DEFAULT_INTERNAL_URL;
+      if (this.isPortfolioMode()) {
+        return 'https://script.google.com/macros/s/AKfycbzfp6T8nlbxZdCIDjcyZ9NwyPRxeCIodUTq-5gs969M1QIUTJoc1RWVNqHZ-mKEWSU/exec';
+      }
+      throw new Error('INTERNAL_WEB_APP_URL belum dikonfigurasi di Script Properties.');
     }
     return raw;
   },
@@ -118,6 +151,7 @@ const ConfigRepository = {
 
   /**
    * Evaluates configured emails and returns effective multi-user sets.
+   * Only resolves emails explicitly provisioned in Script Properties.
    * @returns {{ effectiveAdmin: string|null, effectiveManager: string|null, adminEmails: Array<string>, managerEmails: Array<string>, superadminEmails: Array<string> }}
    */
   getEffectiveRoleEmails: function() {
@@ -142,14 +176,10 @@ const ConfigRepository = {
     });
 
     // 2. Backward compatibility fallback with legacy single properties
-    const legacyAdmin = (this.getProperty('ADMIN_EMAIL') || this.DEFAULT_ADMIN_EMAIL).toLowerCase();
-    const legacyManager = (this.getProperty('MANAGER_EMAIL') || this.DEFAULT_ADMIN_EMAIL).toLowerCase();
+    const legacyAdmin = (this.getProperty('ADMIN_EMAIL') || '').toLowerCase();
+    const legacyManager = (this.getProperty('MANAGER_EMAIL') || '').toLowerCase();
     if (legacyAdmin) legacyAdmin.split(',').forEach(e => { const clean = e.trim(); if (clean) { adminEmails.add(clean); superadminEmails.add(clean); } });
     if (legacyManager) legacyManager.split(',').forEach(e => { const clean = e.trim(); if (clean) managerEmails.add(clean); });
-
-    // Always ensure primary admin email is in superadmin set
-    adminEmails.add(this.DEFAULT_ADMIN_EMAIL.toLowerCase());
-    superadminEmails.add(this.DEFAULT_ADMIN_EMAIL.toLowerCase());
 
     const effectiveAdmin = adminEmails.size > 0 ? Array.from(adminEmails)[0] : null;
     const effectiveManager = managerEmails.size > 0 ? Array.from(managerEmails)[0] : null;
@@ -162,6 +192,7 @@ const ConfigRepository = {
       superadminEmails: Array.from(superadminEmails)
     };
   },
+
 
   /**
    * Retrieves active User Roles registry from Spreadsheet, falling back to Script Properties.

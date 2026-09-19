@@ -315,19 +315,56 @@
     height: 26px;
   }
 
-  .mpl-brand--sidebar .mpl-brand__mark {
-    width: 30px;
-    height: 30px;
+  /* Sidebar Brand Specific Typography & Geometry */
+  .sidebar-brand-display .mpl-brand,
+  .mpl-brand--sidebar {
+    gap: 8px;
+    width: 100%;
   }
 
+  .sidebar-brand-display .mpl-brand__mark,
+  .mpl-brand--sidebar .mpl-brand__mark {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-brand-display .mpl-brand__text-col,
+  .mpl-brand--sidebar .mpl-brand__text-col {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .sidebar-brand-display .mpl-brand__wordmark,
+  .mpl-brand--sidebar .mpl-brand__wordmark {
+    gap: 4px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  .sidebar-brand-display .mpl-brand__name,
+  .sidebar-brand-display .mpl-brand__prefix,
   .mpl-brand--sidebar .mpl-brand__name,
   .mpl-brand--sidebar .mpl-brand__prefix {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
+    letter-spacing: -0.015em;
   }
 
+  .sidebar-brand-display .mpl-brand__suffix,
+  .sidebar-brand-display .mpl-brand__focus,
   .mpl-brand--sidebar .mpl-brand__suffix,
   .mpl-brand--sidebar .mpl-brand__focus {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+  }
+
+  .sidebar-brand-display .mpl-brand__tagline,
+  .mpl-brand--sidebar .mpl-brand__tagline {
+    font-size: 0.675rem;
+    letter-spacing: 0.1px;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: normal;
   }
 
   .mpl-brand--public .mpl-brand__mark {
@@ -3146,7 +3183,7 @@
   }
 
   .sidebar {
-    width: 260px;
+    width: 275px;
     background: var(--bg-surface);
     border-right: 1px solid var(--border-color);
     display: flex;
@@ -3161,7 +3198,7 @@
   }
 
   .sidebar-header {
-    padding: 1.15rem 1.15rem 1rem;
+    padding: 1.15rem 0.85rem 1rem;
     border-bottom: 1px solid var(--border-color);
   }
 
@@ -3170,6 +3207,7 @@
     align-items: center;
     cursor: default;
     user-select: none;
+    width: 100%;
   }
 
   .sidebar-logo {
@@ -3309,7 +3347,7 @@
   /* Main Content Wrapper */
   .main-wrapper {
     flex: 1;
-    margin-left: 260px;
+    margin-left: 275px;
     display: flex;
     flex-direction: column;
     min-width: 0;

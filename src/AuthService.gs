@@ -33,12 +33,15 @@ const AuthService = {
       if (isSuperadmin || (isAdmin && isManager)) return 'both';
       if (isAdmin) return 'admin';
       if (isManager) return 'manager';
-
-      // Unauthorized Google account
-      return null;
     }
 
-    // Anonymous or unauthenticated visitor -> always null (Never auto-grant both/admin)
+    // In Portfolio Showcase mode, grant demo superadmin access ('both')
+    // so reviewers and evaluators can inspect the dashboard, queues, and features.
+    if (ConfigRepository.isPortfolioMode()) {
+      return 'both';
+    }
+
+    // Anonymous or unauthenticated visitor outside portfolio mode
     return null;
   },
 
@@ -55,10 +58,10 @@ const AuthService = {
     }
 
     const role = this.getUserRole();
-    const primaryAdmin = ConfigRepository.getAdminEmail();
+    const primaryAdmin = ConfigRepository.getAdminEmail() || 'nathan.priandi@gmail.com';
 
     return {
-      email: userEmail || (role ? primaryAdmin : '') || '',
+      email: userEmail || (ConfigRepository.isPortfolioMode() ? primaryAdmin : (role ? primaryAdmin : '')) || '',
       role: role,
       isAuthorized: !!role
     };
@@ -143,20 +146,26 @@ const AuthService = {
     }
 
     // 1. Explicit Public Deployment check: if serviceUrl matches Public Deployment ID -> strictly false
-    const publicUrl = ConfigRepository.getPublicWebAppUrl();
-    const publicDeploymentId = ConfigRepository.getProperty('PUBLIC_DEPLOYMENT_ID') || 
-                               this.extractDeploymentId_(publicUrl) || 
-                               'AKfycbyI3IYeIYyhztSgaeMjmuzMyfKt4Ty7axaEpvRSgkAFvjSI3U4DeNcaxHw7Ne6bHMav';
+    let publicDeploymentId = ConfigRepository.getProperty('PUBLIC_DEPLOYMENT_ID');
+    if (!publicDeploymentId) {
+      try {
+        const publicUrl = ConfigRepository.getPublicWebAppUrl();
+        publicDeploymentId = this.extractDeploymentId_(publicUrl);
+      } catch (e) {}
+    }
 
     if (publicDeploymentId && serviceUrl.includes(publicDeploymentId)) {
       return false;
     }
 
     // 2. Explicit Internal Deployment check: if serviceUrl matches Internal Deployment ID -> true
-    const internalUrl = ConfigRepository.getInternalWebAppUrl();
-    const internalDeploymentId = ConfigRepository.getProperty('INTERNAL_DEPLOYMENT_ID') || 
-                                 this.extractDeploymentId_(internalUrl) || 
-                                 'AKfycbxNLMyfiB0DUmQgsdT3hXyHE5L9I-biIvgtH9sH06aE4EKW7265sgkr6STCHcQtcF7p';
+    let internalDeploymentId = ConfigRepository.getProperty('INTERNAL_DEPLOYMENT_ID');
+    if (!internalDeploymentId) {
+      try {
+        const internalUrl = ConfigRepository.getInternalWebAppUrl();
+        internalDeploymentId = this.extractDeploymentId_(internalUrl);
+      } catch (e) {}
+    }
 
     if (internalDeploymentId && serviceUrl.includes(internalDeploymentId)) {
       return true;

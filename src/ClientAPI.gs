@@ -651,13 +651,20 @@ function recordUserLogout(email) {
 }
 
 /**
- * Seeds comprehensive mock operational data for functional testing.
+ * Seeds rich multi-month demonstration operational data for portfolio showcase.
  * Protected: Requires Superadmin role.
  * @param {Object} [options]
  * @returns {Object}
  */
 function seedMockOperationalData(options) {
   return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
-    return seedMockData(options);
+    return PortfolioSeedGenerator.generatePortfolioSeedData(options);
   });
 }
+
+function seedPortfolioData(options) {
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return PortfolioSeedGenerator.generatePortfolioSeedData(options);
+  });
+}
+

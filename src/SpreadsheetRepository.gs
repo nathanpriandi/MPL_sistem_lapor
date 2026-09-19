@@ -1849,7 +1849,10 @@ const SpreadsheetRepository = {
         }
 
         let role = String(row[1] || 'admin').trim().toLowerCase();
-        const primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : ConfigRepository.DEFAULT_ADMIN_EMAIL || '').toLowerCase();
+        let primaryAdmin = '';
+        try {
+          primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : '').toLowerCase();
+        } catch (e) {}
         if (primaryAdmin && email === primaryAdmin) {
           role = 'both';
         }
@@ -1992,7 +1995,10 @@ const SpreadsheetRepository = {
     const sheet = this.getUserRolesSheet_();
     const emailToDelete = email.trim().toLowerCase();
 
-    const primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : ConfigRepository.DEFAULT_ADMIN_EMAIL || '').toLowerCase();
+    let primaryAdmin = '';
+    try {
+      primaryAdmin = (ConfigRepository.getAdminEmail ? ConfigRepository.getAdminEmail() : '').toLowerCase();
+    } catch (e) {}
     if (primaryAdmin && emailToDelete === primaryAdmin) {
       throw new Error('Akun Superadmin Utama (' + primaryAdmin + ') tidak dapat dihapus.');
     }

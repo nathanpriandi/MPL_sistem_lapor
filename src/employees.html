@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem Lapor MPL | Pengaturan Karyawan</title>
+  <base target="_top">
   <?!= include('style'); ?>
   <style>
     .badge-id {
@@ -563,11 +564,11 @@
           allEmployees = Array.isArray(list) ? list : [];
         } else {
           allEmployees = (typeof EMPLOYEE_REGISTRY !== 'undefined') ? EMPLOYEE_REGISTRY.map(e => ({ ...e })) : [
-            { id: 'MNJ-01', name: 'Sadmoko', division: 'Manajemen', role: 'Manajemen', isPic: true },
-            { id: 'ALP-01', name: 'Pasrep N', division: 'Alprof', role: 'Alprof', isPic: true },
-            { id: 'SGA-01', name: 'Ketut', division: 'SGA', role: 'PIC SGA', isPic: true },
-            { id: 'SGA-02', name: 'Amas S', division: 'SGA', role: 'PIC SGA', isPic: true },
-            { id: 'SGA-03', name: 'M Yusuf', division: 'SGA', role: 'SGA', isPic: false }
+            { id: 'MNJ-01', name: 'Hendra Gunawan', division: 'Manajemen', role: 'Manajemen', isPic: true },
+            { id: 'ALP-01', name: 'Fajar Nugraha', division: 'Alprof', role: 'Alprof', isPic: true },
+            { id: 'SGA-01', name: 'Wayan Darmawan', division: 'SGA', role: 'PIC SGA', isPic: true },
+            { id: 'SGA-02', name: 'Made Suardika', division: 'SGA', role: 'PIC SGA', isPic: true },
+            { id: 'SGA-03', name: 'Agung Wicaksono', division: 'SGA', role: 'SGA', isPic: false }
           ];
         }
 

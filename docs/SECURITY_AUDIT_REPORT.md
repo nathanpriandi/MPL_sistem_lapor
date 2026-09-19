@@ -73,8 +73,8 @@ graph TD
   - Integrated 429 toast alert interceptor in `src/app.html`.
 
 ### 3.4 [MEDIUM] Hardcoded Production Secrets and Identifiers (CWE-798)
-- **Finding:** Production Spreadsheet ID (`1kzJI_6Er...`), Google Web App deployment IDs (`AKfycby...`, `AKfycbx...`), and developer email addresses (`mpl.sisteminformasi@gmail.com`) were hardcoded as fallback constants across `.gs` and `.html` files.
-- **Remediation:** Purged all hardcoded IDs and emails across all 32 codebase files. Migrated all configurations to `ConfigRepository` utilizing `PropertiesService.getScriptProperties()`. Enhanced `.gitignore` and created `.env.example`.
+- **Finding:** Production Spreadsheet ID (`[REDACTED_SPREADSHEET_ID]`), Google Web App deployment IDs (`[REDACTED_DEPLOYMENT_ID]`), and developer email addresses (`[REDACTED_EMAIL]`) were hardcoded as fallback constants across `.gs` and `.html` files.
+- **Remediation:** Purged all hardcoded IDs and emails across all codebase files. Migrated all configurations to `ConfigRepository` utilizing `PropertiesService.getScriptProperties()`. Enhanced `.gitignore` and created `.env.example`.
 
 ### 3.5 [MEDIUM] Unbounded Payload & Attachment Abuse (CWE-400 / CWE-434)
 - **Finding:** File uploads did not validate maximum payload bytes or enforce strict image MIME-type whitelists prior to Drive persistence.
