@@ -531,26 +531,11 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-      fetchAndRenderEmployees();
+      fetchAndRenderEmployees(false);
       if (typeof loadQuickLinks === 'function') {
         loadQuickLinks();
       }
     });
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById('appSidebar');
-      if (sidebar) sidebar.classList.toggle('sidebar-open');
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
 
     function getDivBadgeInfo(emp) {
       const div = emp.division || '';
@@ -672,7 +657,6 @@
 
       tbody.innerHTML = list.map((emp, idx) => {
         const badgeInfo = getDivBadgeInfo(emp);
-        const encodedEmp = encodeURIComponent(JSON.stringify(emp));
 
         return `
           <tr>
@@ -686,11 +670,11 @@
             </td>
             <td style="text-align: center;">
               <div style="display: inline-flex; gap: 0.35rem; align-items: center;">
-                <button type="button" class="table-action-btn" onclick="openEditEmployeeModal('${encodedEmp}')" title="Ubah Data Karyawan">
+                <button type="button" class="table-action-btn" onclick="openEditEmployeeModal('${escapeHtml(emp.id)}')" title="Ubah Data Karyawan">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                   <span>Edit</span>
                 </button>
-                <button type="button" class="table-action-btn" onclick="openDeleteEmployeeModal('${escapeHtml(emp.id)}', '${escapeHtml(emp.name)}')" title="Hapus Karyawan" style="color: #dc2626; border-color: #fecaca;">
+                <button type="button" class="table-action-btn" onclick="openDeleteEmployeeModal('${escapeHtml(emp.id)}')" title="Hapus Karyawan" style="color: #dc2626; border-color: #fecaca;">
                   <svg class="svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                   <span>Hapus</span>
                 </button>
@@ -797,55 +781,136 @@
 
     function openAddEmployeeModal() {
       isEditingEmployee = false;
-      document.getElementById('employeeModalTitle').innerText = 'Tambah Karyawan Baru';
-      document.getElementById('employeeModalSubtitle').innerText = 'Kelola data identitas, penugasan divisi, dan hak akses form.';
-      document.getElementById('btnSubmitEmployeeText').innerText = 'Simpan Data';
-      document.getElementById('empModalOldId').value = '';
-      document.getElementById('empModalDivision').value = '';
-      document.getElementById('empModalId').value = '';
-      document.getElementById('empModalName').value = '';
+      const titleEl = document.getElementById('employeeModalTitle');
+      if (titleEl) titleEl.innerText = 'Tambah Karyawan Baru';
+
+      const subTitleEl = document.getElementById('employeeModalSubtitle');
+      if (subTitleEl) subTitleEl.innerText = 'Kelola data identitas, penugasan divisi, dan hak akses form.';
+
+      const btnTextEl = document.getElementById('btnSubmitEmployeeText');
+      if (btnTextEl) {
+        btnTextEl.innerText = 'Simpan Data';
+      } else {
+        const btn = document.getElementById('btnSubmitEmployee');
+        if (btn) {
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span id="btnSubmitEmployeeText">Simpan Data</span>`;
+        }
+      }
+
+      const oldIdEl = document.getElementById('empModalOldId');
+      if (oldIdEl) oldIdEl.value = '';
+
+      const divSelect = document.getElementById('empModalDivision');
+      if (divSelect) divSelect.value = '';
+
+      const idInput = document.getElementById('empModalId');
+      if (idInput) idInput.value = '';
+
+      const nameInput = document.getElementById('empModalName');
+      if (nameInput) nameInput.value = '';
+
       const pill = document.getElementById('idSuggestPill');
       if (pill) pill.style.display = 'none';
+
       updateRoleCapabilityBox('');
-      document.getElementById('employeeModalOverlay').style.display = 'flex';
+
+      const modal = document.getElementById('employeeModalOverlay');
+      if (modal) modal.style.display = 'flex';
     }
 
-    function openEditEmployeeModal(encodedEmp) {
+    function openEditEmployeeModal(empIdentifier) {
       isEditingEmployee = true;
       try {
-        const emp = JSON.parse(decodeURIComponent(encodedEmp));
-        document.getElementById('employeeModalTitle').innerText = `Edit Karyawan: ${emp.id}`;
-        document.getElementById('employeeModalSubtitle').innerText = `Perbarui identitas atau peran penugasan untuk ${emp.name || emp.id}.`;
-        document.getElementById('btnSubmitEmployeeText').innerText = 'Perbarui Data';
-        document.getElementById('empModalOldId').value = emp.id;
+        let emp = null;
+        if (typeof empIdentifier === 'object' && empIdentifier !== null) {
+          emp = empIdentifier;
+        } else if (typeof empIdentifier === 'string') {
+          if (empIdentifier.startsWith('%7B') || empIdentifier.startsWith('{')) {
+            try {
+              emp = JSON.parse(decodeURIComponent(empIdentifier));
+            } catch (_) {
+              emp = null;
+            }
+          }
+          if (!emp) {
+            emp = allEmployees.find(e => String(e.id).toUpperCase() === String(empIdentifier).toUpperCase());
+          }
+        }
+
+        if (!emp) {
+          throw new Error(`Data karyawan tidak ditemukan (${empIdentifier || 'ID kosong'}).`);
+        }
+
+        const titleEl = document.getElementById('employeeModalTitle');
+        if (titleEl) titleEl.innerText = `Edit Karyawan: ${emp.id}`;
+
+        const subTitleEl = document.getElementById('employeeModalSubtitle');
+        if (subTitleEl) subTitleEl.innerText = `Perbarui identitas atau peran penugasan untuk ${emp.name || emp.id}.`;
+
+        const btnTextEl = document.getElementById('btnSubmitEmployeeText');
+        if (btnTextEl) {
+          btnTextEl.innerText = 'Perbarui Data';
+        } else {
+          const btn = document.getElementById('btnSubmitEmployee');
+          if (btn) {
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span id="btnSubmitEmployeeText">Perbarui Data</span>`;
+          }
+        }
+
+        const oldIdEl = document.getElementById('empModalOldId');
+        if (oldIdEl) oldIdEl.value = emp.id || '';
         
         let divVal = emp.division || '';
+        const s = divVal.toLowerCase();
         const isPic = (emp.isPic !== undefined) ? !!emp.isPic : (emp.id === 'SGA-01' || emp.id === 'SGA-02');
-        if (divVal === 'SGA') {
-          divVal = (emp.role === 'PIC SGA' || isPic) ? 'PIC SGA' : 'SGA';
+        if (s.includes('sga')) {
+          divVal = (emp.role === 'PIC SGA' || isPic || emp.id === 'SGA-01' || emp.id === 'SGA-02') ? 'PIC SGA' : 'SGA';
+        } else if (s.includes('alprof') || s.includes('alp')) {
+          divVal = 'Alprof';
+        } else if (s.includes('manajemen') || s.includes('mnj')) {
+          divVal = 'Manajemen';
+        } else if (s.includes('bko')) {
+          divVal = 'BKO 28';
+        } else if (s.includes('pekerja') || s.includes('pkh')) {
+          divVal = 'Pekerja Harian';
         }
-        document.getElementById('empModalDivision').value = divVal;
-        document.getElementById('empModalId').value = emp.id || '';
-        document.getElementById('empModalName').value = emp.name || '';
+
+        const divSelect = document.getElementById('empModalDivision');
+        if (divSelect) divSelect.value = divVal;
+
+        const idInput = document.getElementById('empModalId');
+        if (idInput) idInput.value = emp.id || '';
+
+        const nameInput = document.getElementById('empModalName');
+        if (nameInput) nameInput.value = emp.name || '';
+
         const pill = document.getElementById('idSuggestPill');
         if (pill) pill.style.display = 'none';
+
         updateRoleCapabilityBox(divVal);
-        document.getElementById('employeeModalOverlay').style.display = 'flex';
+
+        const modal = document.getElementById('employeeModalOverlay');
+        if (modal) modal.style.display = 'flex';
       } catch (e) {
         showToast('Gagal membuka modal edit: ' + e.message, 'error');
       }
     }
 
     function closeEmployeeModal() {
-      document.getElementById('employeeModalOverlay').style.display = 'none';
+      const modal = document.getElementById('employeeModalOverlay');
+      if (modal) modal.style.display = 'none';
     }
 
     async function handleEmployeeFormSubmit(e) {
       e.preventDefault();
-      const oldId = document.getElementById('empModalOldId').value;
-      const divisionSelectVal = document.getElementById('empModalDivision').value;
-      const id = document.getElementById('empModalId').value.trim().toUpperCase();
-      const name = document.getElementById('empModalName').value.trim();
+      const oldIdInput = document.getElementById('empModalOldId');
+      const oldId = oldIdInput ? oldIdInput.value : '';
+      const divSelect = document.getElementById('empModalDivision');
+      const divisionSelectVal = divSelect ? divSelect.value : '';
+      const idInput = document.getElementById('empModalId');
+      const id = idInput ? idInput.value.trim().toUpperCase() : '';
+      const nameInput = document.getElementById('empModalName');
+      const name = nameInput ? nameInput.value.trim() : '';
 
       if (!id || !name || !divisionSelectVal) {
         showToast('Mohon lengkapi seluruh isian wajib.', 'warning');
@@ -869,9 +934,12 @@
 
       const payload = { id, name, division, role, isPic, oldId };
       const btn = document.getElementById('btnSubmitEmployee');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Menyimpan...';
+      const btnTextEl = document.getElementById('btnSubmitEmployeeText');
+      if (btn) btn.disabled = true;
+      if (btnTextEl) {
+        btnTextEl.innerText = isEditingEmployee ? 'Memperbarui...' : 'Menyimpan...';
+      } else if (btn) {
+        btn.innerText = isEditingEmployee ? 'Memperbarui...' : 'Menyimpan...';
       }
 
       try {
@@ -898,26 +966,35 @@
         console.error('Save employee error:', err);
         showToast(err.message || 'Gagal menyimpan data karyawan.', 'error');
       } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = 'Simpan Data';
+        if (btn) btn.disabled = false;
+        const finalLabel = isEditingEmployee ? 'Perbarui Data' : 'Simpan Data';
+        if (btnTextEl) {
+          btnTextEl.innerText = finalLabel;
+        } else if (btn) {
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span id="btnSubmitEmployeeText">${finalLabel}</span>`;
         }
       }
     }
 
     // CUSTOM ENTERPRISE DELETE MODAL
     function openDeleteEmployeeModal(empId, empName) {
+      const emp = allEmployees.find(e => String(e.id).toUpperCase() === String(empId).toUpperCase());
+      const name = emp ? emp.name : (empName || empId);
       pendingDeleteEmpId = empId;
-      pendingDeleteEmpName = empName;
-      document.getElementById('deleteModalEmpId').innerText = empId;
-      document.getElementById('deleteModalEmpName').innerText = empName;
-      document.getElementById('deleteEmployeeModalOverlay').style.display = 'flex';
+      pendingDeleteEmpName = name;
+      const idEl = document.getElementById('deleteModalEmpId');
+      if (idEl) idEl.innerText = empId;
+      const nameEl = document.getElementById('deleteModalEmpName');
+      if (nameEl) nameEl.innerText = name;
+      const modal = document.getElementById('deleteEmployeeModalOverlay');
+      if (modal) modal.style.display = 'flex';
     }
 
     function closeDeleteEmployeeModal() {
       pendingDeleteEmpId = '';
       pendingDeleteEmpName = '';
-      document.getElementById('deleteEmployeeModalOverlay').style.display = 'none';
+      const modal = document.getElementById('deleteEmployeeModalOverlay');
+      if (modal) modal.style.display = 'none';
     }
 
     async function executeDeleteEmployee() {
@@ -994,11 +1071,6 @@
         }
       }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadQuickLinks();
-      fetchAndRenderEmployees(false);
-    });
   </script>
 </body>
 </html>

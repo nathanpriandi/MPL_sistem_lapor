@@ -299,71 +299,44 @@ function isAlprofSubordinate(empId) {
 }
 
 /**
- * Returns active employee registry, preferring customized script property if present,
- * falling back to default EMPLOYEE_REGISTRY.
+ * Pure Domain facade: Returns active employee registry.
+ * Delegates to EmployeeService if available, or defaults to static EMPLOYEE_REGISTRY.
  * @returns {Array<{ id: string, name: string, division: string, role?: string, isPic?: boolean }>}
  */
 function getActiveEmployeeRegistry() {
-  let list = [];
-  if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getCustomEmployeeRegistry) {
-    const custom = ConfigRepository.getCustomEmployeeRegistry();
-    if (custom && Array.isArray(custom) && custom.length > 0) {
-      list = custom;
-    }
+  if (typeof EmployeeService !== 'undefined' && EmployeeService.getActiveRegistry) {
+    return EmployeeService.getActiveRegistry();
   }
-  if (!list || list.length === 0) {
-    list = EMPLOYEE_REGISTRY.map(e => ({ id: e.id, name: e.name, division: e.division, role: e.role || e.division, isPic: !!e.isPic }));
-  }
-
-  // Ensure isPic is always properly normalized based on ID rules:
-  list = list.map(e => {
-    const cleanId = String(e.id || '').toUpperCase().replace(/[\s\-_]/g, '');
-    let isPic = (e.isPic !== undefined) ? !!e.isPic : true;
-    if (cleanId.startsWith('SGA')) {
-      isPic = (e.role === 'PIC SGA' || cleanId === 'SGA01' || cleanId === 'SGA02');
-    } else if (cleanId.startsWith('BKO') || cleanId.startsWith('PKH')) {
-      isPic = false;
-    }
-    const role = (cleanId.startsWith('SGA') && isPic) ? 'PIC SGA' : (e.role || e.division);
-    return {
-      id: e.id,
-      name: e.name,
-      division: e.division,
-      role: role,
-      isPic: isPic,
-      delegatedTo: e.delegatedTo || ''
-    };
-  });
-
-  return JSON.parse(JSON.stringify(list));
+  return EMPLOYEE_REGISTRY.map(e => ({
+    id: e.id,
+    name: e.name,
+    division: e.division,
+    role: e.role || e.division,
+    isPic: !!e.isPic,
+    delegatedTo: e.delegatedTo || ''
+  }));
 }
 
 /**
- * Searches employee by ID or Name with flexible forgiving match
- * (case-insensitive, trims, ignores hyphens/spaces for IDs).
+ * Searches employee by ID or Name.
+ * Delegates to EmployeeService if available, or performs pure in-memory lookup.
  * @param {string} query
  * @returns {{ id: string, name: string, division: string, status?: string }|null}
  */
 function lookupEmployee(query) {
+  if (typeof EmployeeService !== 'undefined' && EmployeeService.lookupEmployee) {
+    return EmployeeService.lookupEmployee(query);
+  }
   if (!query) return null;
-  const rawQ = String(query).trim();
-  if (!rawQ) return null;
-
-  const cleanQ = rawQ.toLowerCase().replace(/[\s\-_]/g, '');
-  const lowerQ = rawQ.toLowerCase();
-  const currentRegistry = getActiveEmployeeRegistry(false);
-
-  // 1. Exact ID match or normalized ID match (e.g. "alp01" -> "ALP-01", "mnj-02" -> "MNJ-02")
-  const idMatch = currentRegistry.find(e => {
-    const cleanId = String(e.id || '').toLowerCase().replace(/[\s\-_]/g, '');
-    return cleanId === cleanQ || String(e.id || '').toLowerCase() === lowerQ;
+  const rawQ = String(query).trim().toLowerCase();
+  const cleanQ = rawQ.replace(/[\s\-_]/g, '');
+  const idMatch = EMPLOYEE_REGISTRY.find(e => {
+    const c = String(e.id || '').toLowerCase().replace(/[\s\-_]/g, '');
+    return c === cleanQ || String(e.id || '').toLowerCase() === rawQ;
   });
   if (idMatch) return Object.assign({}, idMatch);
-
-  // 2. Exact Name match (case-insensitive full name)
-  const exactNameMatch = currentRegistry.find(e => String(e.name || '').toLowerCase() === lowerQ);
-  if (exactNameMatch) return Object.assign({}, exactNameMatch);
-
+  const nameMatch = EMPLOYEE_REGISTRY.find(e => String(e.name || '').toLowerCase() === rawQ);
+  if (nameMatch) return Object.assign({}, nameMatch);
   return null;
 }
 
@@ -551,25 +524,11 @@ function OperationalReport(data) {
   let bidangDivisi = data.bidangDivisi || data.site || '';
 
   // Auto-resolve from registry if ID or name is provided
-  if (typeof ConfigRepository !== 'undefined' && ConfigRepository.getEmployee) {
-    const emp = ConfigRepository.getEmployee(idKaryawan || namaPic);
-    if (emp) {
-      idKaryawan = emp.id;
-      namaPic = emp.name;
-      bidangDivisi = bidangDivisi || emp.division;
-    }
-  } else if (idKaryawan && (!namaPic || !bidangDivisi)) {
-    const emp = lookupEmployee(idKaryawan);
+  if (typeof lookupEmployee === 'function') {
+    const emp = lookupEmployee(idKaryawan || namaPic);
     if (emp) {
       idKaryawan = emp.id;
       namaPic = namaPic || emp.name;
-      bidangDivisi = bidangDivisi || emp.division;
-    }
-  } else if (!idKaryawan && namaPic) {
-    const emp = lookupEmployee(namaPic);
-    if (emp) {
-      idKaryawan = emp.id;
-      namaPic = emp.name;
       bidangDivisi = bidangDivisi || emp.division;
     }
   }

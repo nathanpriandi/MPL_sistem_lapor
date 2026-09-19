@@ -205,8 +205,36 @@ function downloadCSV(filename, headers, rows) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 }
+
+/**
+ * Safe HTML Escaping Helper (Prevents XSS in DOM injections)
+ * @param {*} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Currency and Number Formatting Helpers (IDR)
+ */
+function formatRupiah(num) {
+  if (!num || isNaN(num)) return '0';
+  return new Intl.NumberFormat('id-ID').format(num);
+}
+
+function formatNumber(num) {
+  if (num === null || num === undefined || isNaN(num)) return '0';
+  return new Intl.NumberFormat('id-ID').format(num);
+}
+
 
 /**
  * Renders user identity strip in Internal Console header
@@ -828,4 +856,51 @@ function normalizeKendalaText(text) {
 function isActualKendala(text) {
   return normalizeKendalaText(text).length > 0;
 }
+
+/**
+ * Centralized MPL Client Architecture Namespace
+ * Exposes core API bridge, UI utilities, formatters, and triage logic.
+ */
+window.MPLClient = {
+  // API Bridge
+  runServer: runServer,
+  isLiveServer: isLiveServer,
+  navigateToPage: navigateToPage,
+  toggleSidebar: toggleSidebar,
+
+  // UI & Feedback
+  showToast: showToast,
+  toast: showToast,
+
+  // Sanitization & Formatters
+  escapeHtml: escapeHtml,
+  formatRupiah: formatRupiah,
+  formatNumber: formatNumber,
+  formatDateISO: formatDateISO,
+  formatDateNow: formatDateNow,
+  normalizePhoneNumber: normalizePhoneNumber,
+  downloadCSV: downloadCSV,
+
+  // Domain Triage & Period Analytics
+  evaluateFlags: evaluateFlags,
+  normalizeKendalaText: normalizeKendalaText,
+  isActualKendala: isActualKendala,
+  getPeriodDateRanges: getPeriodDateRanges,
+  computePeriodSummary: computePeriodSummary,
+
+  // Offline / Storage Fallback
+  getDB: getDB,
+  saveDB: saveDB,
+
+  // System Diagnostics & Identity
+  renderIdentityStrip: renderIdentityStrip,
+  handleUserLogout: handleUserLogout,
+  loadQuickLinks: loadQuickLinks,
+  loadDiagnostics: loadDiagnostics,
+  openAdminManualModal: openAdminManualModal,
+  closeAdminManualModal: closeAdminManualModal
+};
+
+// Global Alias for Ergonomics
+window.MPL = window.MPLClient;
 </script>

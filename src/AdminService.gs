@@ -1,18 +1,25 @@
 /**
- * AdminService.gs — Application Service for Management & Operations Workflows
+ * AdminService.gs — Unified Facade for Operations & Administrative Workflows
  * Digital Reporting System for Integrated Agriculture Company
  * 
- * Clean Architecture Layer: APPLICATION / SERVICE
- * Responsibility: Coordinates queue queries, dashboard analytics, digests, and archival.
+ * Clean Architecture Layer: APPLICATION / UNIFIED FACADE
+ * Responsibility: Coordinates administrative workflows across EmployeeService,
+ * AdminQueueService, MaintenanceService, AnalyticsService, and FormManagement.
+ * Acts as an orchestrating facade maintaining 100% backward compatibility for existing callers.
  */
 
 const AdminService = {
+
+  // =========================================================================
+  // 1. ADMIN QUEUE & VERIFICATION (Delegated to AdminQueueService)
+  // =========================================================================
+
   /**
    * Returns Admin_Queue rows.
-   * @returns {Array} Array of QueueItem objects.
+   * @returns {Array<Object>}
    */
   getAdminQueueData: function() {
-    return SpreadsheetRepository.getAdminQueueData();
+    return AdminQueueService.getQueueItems();
   },
 
   /**
@@ -22,19 +29,152 @@ const AdminService = {
    * @returns {{ success: boolean, updated?: boolean, error?: string }}
    */
   updateReviewStatus: function(reportId, newStatus) {
-    if (!reportId || !newStatus) {
-      throw new Error('Report ID and new status are required.');
-    }
-    return SpreadsheetRepository.updateReviewStatus(reportId, newStatus);
+    return AdminQueueService.updateReviewStatus(reportId, newStatus);
   },
 
   /**
+   * Returns single report detail for inspector modal.
+   * @param {string} reportId 
+   * @returns {Object|null}
+   */
+  getReportDetails: function(reportId) {
+    return AdminQueueService.getReportDetails(reportId);
+  },
+
+  // =========================================================================
+  // 2. EMPLOYEE MASTER REGISTRY (Delegated to EmployeeService)
+  // =========================================================================
+
+  /**
+   * Returns full employee registry.
+   * @param {boolean} [includeInactive=false]
+   * @returns {Array<Object>}
+   */
+  getEmployeeRegistry: function(includeInactive) {
+    return EmployeeService.getActiveRegistry();
+  },
+
+  /**
+   * Creates or updates employee record.
+   * @param {Object} empData 
+   * @returns {{ success: boolean, message: string, employee: Object }}
+   */
+  saveEmployee: function(empData) {
+    return EmployeeService.saveEmployee(empData);
+  },
+
+  /**
+   * Deletes employee from registry.
+   * @param {string} empId 
+   * @returns {{ success: boolean, message: string }}
+   */
+  deleteEmployee: function(empId) {
+    return EmployeeService.deleteEmployee(empId);
+  },
+
+  /**
+   * Resets employee registry back to standard 38 default records.
+   * @returns {{ success: boolean, message: string }}
+   */
+  resetEmployeeRegistry: function() {
+    return EmployeeService.resetRegistry();
+  },
+
+  // =========================================================================
+  // 3. SCHEDULED MAINTENANCE & CRONS (Delegated to MaintenanceService)
+  // =========================================================================
+
+  /**
+   * Daily Admin Digest scheduled trigger action (17:00 WIB).
+   */
+  sendDailyDigest: function() {
+    MaintenanceService.sendDailyDigest();
+  },
+
+  /**
+   * Weekly Manager Digest scheduled trigger action (Mondays 08:00 WIB).
+   */
+  sendWeeklyManagerDigest: function() {
+    MaintenanceService.sendWeeklyManagerDigest();
+  },
+
+  /**
+   * Daily trigger action to delete expired daily report tabs (>90 days).
+   * @param {number} [customRetentionDays]
+   * @returns {{ success: boolean, deletedCount: number }}
+   */
+  deleteExpiredDailyTabs: function(customRetentionDays) {
+    return MaintenanceService.deleteExpiredDailyTabs(customRetentionDays);
+  },
+
+  /**
+   * Returns daily tabs nearing expiration for Admin Queue warnings.
+   * @returns {Array}
+   */
+  getExpiringDailyTabs: function() {
+    return MaintenanceService.getExpiringDailyTabs();
+  },
+
+  /**
+   * Generates CSV export for a daily tab.
+   * @param {string} tabName 
+   * @returns {string}
+   */
+  getDailyTabCsvData: function(tabName) {
+    return MaintenanceService.getDailyTabCsvData(tabName);
+  },
+
+  /**
+   * Cleans up (trashes) Google Drive daily photo folders older than retention period.
+   * @param {number} [retentionDays] 
+   * @returns {{ success: boolean, deletedFolderCount: number, deletedFolders: Array<string> }}
+   */
+  cleanupExpiredDailyPhotoFolders: function(retentionDays) {
+    return MaintenanceService.cleanupExpiredDailyPhotoFolders(retentionDays);
+  },
+
+  /**
+   * Purges legacy 'Reporting System Photos' folder from Google Drive.
+   * @returns {{ success: boolean, purgedCount: number }}
+   */
+  purgeLegacyPhotoFolders: function() {
+    return MaintenanceService.purgeLegacyPhotoFolders();
+  },
+
+  /**
+   * Inspects and returns photo storage usage and metrics.
+   * @returns {Object}
+   */
+  getPhotoStorageStatus: function() {
+    return MaintenanceService.getPhotoStorageStatus();
+  },
+
+  // =========================================================================
+  // 4. ANALYTICS & EXECUTIVE INSIGHTS (Delegated to AnalyticsService)
+  // =========================================================================
+
+  /**
    * Returns aggregated stats for Dashboard Manajer.
+   * @param {Object} [options]
    * @returns {Object|null}
    */
   getDashboardStats: function(options) {
     return AnalyticsService.getAnalyticsDashboardData(options || {});
   },
+
+  /**
+   * Aggregates weekly trend data live across integrated spreadsheet tabs.
+   * @param {Spreadsheet} [ss] 
+   * @returns {Array} List of weekly trend buckets.
+   */
+  aggregateWeeklyData: function(ss) {
+    const stats = SpreadsheetRepository.getDashboardStatsData();
+    return stats.weeklyTrend || [];
+  },
+
+  // =========================================================================
+  // 5. WORKSPACE QUICK LINKS
+  // =========================================================================
 
   /**
    * Returns quick links for Admin/Manager workspace.
@@ -54,7 +194,7 @@ const AdminService = {
 
     let photoFolderUrl = '';
     try {
-      const photoStatus = this.getPhotoStorageStatus();
+      const photoStatus = MaintenanceService.getPhotoStorageStatus();
       if (photoStatus && photoStatus.rootFolderUrl) {
         photoFolderUrl = photoStatus.rootFolderUrl;
       }
@@ -67,373 +207,9 @@ const AdminService = {
     };
   },
 
-  /**
-   * Daily Admin Digest scheduled trigger action (17:00 WIB).
-   */
-  sendDailyDigest: function() {
-    Logger.log('AdminService: Running sendDailyDigest...');
-    const queueItems = this.getAdminQueueData();
-    let totalPending = 0;
-    let urgentCount = 0;
-    let warningCount = 0;
-    let normalCount = 0;
-
-    queueItems.forEach(item => {
-      totalPending++;
-      const severity = String(item.severity || '').toLowerCase();
-      if (severity === ReportSeverity.URGENT) urgentCount++;
-      else if (severity === ReportSeverity.WARNING) warningCount++;
-      else normalCount++;
-    });
-
-    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
-    NotificationAdapter.sendDailyDigest(totalPending, urgentCount, warningCount, normalCount, publicWebAppUrl);
-  },
-
-  /**
-   * Aggregates weekly trend data live across integrated spreadsheet tabs.
-   * Produces divisional sales and harvest volume broken down by weeks.
-   * @param {Spreadsheet} [ss] 
-   * @returns {Array} List of weekly trend buckets.
-   */
-  aggregateWeeklyData: function(ss) {
-    const stats = SpreadsheetRepository.getDashboardStatsData();
-    return stats.weeklyTrend || [];
-  },
-
-  /**
-   * Weekly Manager Digest scheduled trigger action (Mondays 08:00 WIB).
-   * Gathers live monthly/weekly operational metrics and dispatches executive email.
-   */
-  sendWeeklyManagerDigest: function() {
-    Logger.log('AdminService: Running sendWeeklyManagerDigest...');
-    const stats = SpreadsheetRepository.getDashboardStatsData();
-    const periodLabel = stats.currentPeriodLabel || getISOWeekLabel(new Date());
-    const publicWebAppUrl = ConfigRepository.getPublicWebAppUrl();
-
-    NotificationAdapter.sendWeeklyManagerDigest(stats, periodLabel, publicWebAppUrl);
-  },
-
-  /**
-   * Monthly Data Archival scheduled trigger action.
-   * @returns {{ success: boolean, totalArchived: number }}
-   */
-  /**
-   * Daily trigger action to delete expired daily report tabs (>90 days).
-   * @returns {{ success: boolean, deletedCount: number }}
-   */
-  deleteExpiredDailyTabs: function() {
-    const retentionDays = ConfigRepository.getRetentionDays() || 90;
-    Logger.log(`AdminService: Starting deleteExpiredDailyTabs with retention: ${retentionDays} days.`);
-    return SpreadsheetRepository.deleteExpiredDailyTabs(retentionDays);
-  },
-
-  /**
-   * Returns daily tabs nearing expiration for Admin Queue warnings.
-   * @returns {Array}
-   */
-  getExpiringDailyTabs: function() {
-    return SpreadsheetRepository.getExpiringDailyTabs();
-  },
-
-  /**
-   * Generates CSV export for a daily tab.
-   * @param {string} tabName 
-   * @returns {string}
-   */
-  getDailyTabCsvData: function(tabName) {
-    return SpreadsheetRepository.getDailyTabCsvData(tabName);
-  },
-
-  /**
-   * Omits irrelevant and duplicate tabs from the central spreadsheet.
-   * @returns {Object}
-   */
-  cleanupIrrelevantSpreadsheetTabs: function() {
-    return cleanupIrrelevantSpreadsheetTabs();
-  },
-
-  /**
-   * Cleans up (trashes) Google Drive daily photo folders older than retentionDays (default: 90 days).
-   * @param {number} [retentionDays=90] 
-   * @returns {{ success: boolean, deletedFolderCount: number, deletedFolders: Array<string> }}
-   */
-  cleanupExpiredDailyPhotoFolders: function(retentionDays) {
-    const thresholdDays = retentionDays || ConfigRepository.getRetentionDays() || 90;
-    Logger.log(`AdminService: Starting cleanupExpiredDailyPhotoFolders with threshold: ${thresholdDays} days.`);
-
-    if (typeof DriveApp === 'undefined') {
-      return { success: false, message: 'DriveApp unavailable', deletedFolderCount: 0, deletedFolders: [] };
-    }
-
-    // 0. Automatically purge any legacy 'Reporting System Photos' folder
-    try {
-      const legacyIter = DriveApp.getFoldersByName('Reporting System Photos');
-      while (legacyIter && legacyIter.hasNext()) {
-        const legacyFolder = legacyIter.next();
-        legacyFolder.setTrashed(true);
-        Logger.log('AdminService: Purged legacy folder "Reporting System Photos".');
-      }
-    } catch (eLeg) {}
-
-    let rootFolder = null;
-    const rootFolderId = ConfigRepository.getProperty('DRIVE_PHOTO_FOLDER_ID');
-    if (rootFolderId) {
-      try { rootFolder = DriveApp.getFolderById(rootFolderId); } catch (e) {}
-    }
-    if (!rootFolder) {
-      const rootIter = DriveApp.getFoldersByName('MPL_Dokumentasi_Foto');
-      if (rootIter && rootIter.hasNext()) rootFolder = rootIter.next();
-    }
-    if (!rootFolder) {
-      return { success: true, deletedFolderCount: 0, deletedFolders: [], message: 'Root photo folder not yet initialized.' };
-    }
-
-    const subfolders = rootFolder.getFolders();
-    let deletedCount = 0;
-    const deletedNames = [];
-    const now = new Date();
-
-    while (subfolders.hasNext()) {
-      const folder = subfolders.next();
-      const name = folder.getName();
-      const match = name.match(/^(\d{4}-\d{2}-\d{2})$/);
-      if (match) {
-        const folderDate = new Date(match[1] + 'T00:00:00');
-        if (!isNaN(folderDate.getTime())) {
-          const diffDays = Math.floor((now.getTime() - folderDate.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays >= thresholdDays) {
-            try {
-              folder.setTrashed(true);
-              deletedCount++;
-              deletedNames.push(name);
-              Logger.log(`AdminService: Trashed expired photo folder ${name} (age: ${diffDays} days).`);
-            } catch (eTrash) {
-              Logger.log(`AdminService Error trashing ${name}: ${eTrash.toString()}`);
-            }
-          }
-        }
-      }
-    }
-
-    return {
-      success: true,
-      deletedFolderCount: deletedCount,
-      deletedFolders: deletedNames
-    };
-  },
-
-  /**
-   * Purges legacy 'Reporting System Photos' folder from Google Drive.
-   * @returns {{ success: boolean, purgedCount: number }}
-   */
-  purgeLegacyPhotoFolders: function() {
-    if (typeof DriveApp === 'undefined') return { success: false, purgedCount: 0 };
-    try {
-      let count = 0;
-      const legacyIter = DriveApp.getFoldersByName('Reporting System Photos');
-      while (legacyIter && legacyIter.hasNext()) {
-        const legacyFolder = legacyIter.next();
-        legacyFolder.setTrashed(true);
-        count++;
-        Logger.log('AdminService: Trashed legacy folder "Reporting System Photos".');
-      }
-      return { success: true, purgedCount: count };
-    } catch (e) {
-      Logger.log('AdminService Error in purgeLegacyPhotoFolders: ' + e.toString());
-      return { success: false, error: e.toString() };
-    }
-  },
-
-  /**
-   * Retrieves Google Drive photo storage status, root URL, and expiring folder warnings.
-   * @param {number} [retentionDays=90] 
-   * @returns {{ rootFolderUrl: string, totalDailyFolders: number, expiringFolders: Array<Object>, expiredFolders: Array<Object> }}
-   */
-  getPhotoStorageStatus: function(retentionDays) {
-    const thresholdDays = retentionDays || ConfigRepository.getRetentionDays() || 90;
-    const warningDays = Math.max(1, thresholdDays - 5);
-
-    if (typeof DriveApp === 'undefined') {
-      return { rootFolderUrl: '', totalDailyFolders: 0, expiringFolders: [], expiredFolders: [] };
-    }
-
-    let rootFolder = null;
-    const rootFolderId = ConfigRepository.getProperty('DRIVE_PHOTO_FOLDER_ID');
-    if (rootFolderId) {
-      try { rootFolder = DriveApp.getFolderById(rootFolderId); } catch (e) {}
-    }
-    if (!rootFolder) {
-      const rootIter = DriveApp.getFoldersByName('MPL_Dokumentasi_Foto');
-      if (rootIter && rootIter.hasNext()) rootFolder = rootIter.next();
-    }
-    if (!rootFolder) {
-      return { rootFolderUrl: '', totalDailyFolders: 0, expiringFolders: [], expiredFolders: [] };
-    }
-
-    const subfolders = rootFolder.getFolders();
-    let totalCount = 0;
-    const expiringFolders = [];
-    const expiredFolders = [];
-    const now = new Date();
-
-    while (subfolders.hasNext()) {
-      const folder = subfolders.next();
-      const name = folder.getName();
-      const match = name.match(/^(\d{4}-\d{2}-\d{2})$/);
-      if (match) {
-        totalCount++;
-        const folderDate = new Date(match[1] + 'T00:00:00');
-        if (!isNaN(folderDate.getTime())) {
-          const diffDays = Math.floor((now.getTime() - folderDate.getTime()) / (1000 * 60 * 60 * 24));
-          const folderInfo = {
-            name: name,
-            url: folder.getUrl(),
-            ageDays: diffDays,
-            daysRemaining: Math.max(0, thresholdDays - diffDays)
-          };
-          if (diffDays >= thresholdDays) {
-            expiredFolders.push(folderInfo);
-          } else if (diffDays >= warningDays) {
-            expiringFolders.push(folderInfo);
-          }
-        }
-      }
-    }
-
-    return {
-      rootFolderUrl: rootFolder.getUrl(),
-      totalDailyFolders: totalCount,
-      expiringFolders: expiringFolders,
-      expiredFolders: expiredFolders,
-      retentionDays: thresholdDays
-    };
-  },
-
-  /**
-   * Returns deployment diagnostics for Admin/Manager troubleshooting.
-   * @returns {Object} Diagnostic details.
-   */
-  getDeploymentDiagnostics: function() {
-    const role = AuthService.getUserRole();
-    if (!role) {
-      throw new Error('Akses ditolak: Hanya Admin/Manager yang dapat mengakses diagnosa.');
-    }
-
-    const serviceUrl = AuthService.getExecutingWebAppUrl_();
-    const publicUrl = ConfigRepository.getPublicWebAppUrl();
-    const internalUrl = ConfigRepository.getInternalWebAppUrl();
-
-    return {
-      executingUrl: serviceUrl,
-      configuredPublicUrl: publicUrl,
-      configuredInternalUrl: internalUrl,
-      executingDeploymentId: AuthService.extractDeploymentId_(serviceUrl),
-      publicDeploymentId: AuthService.extractDeploymentId_(publicUrl),
-      internalDeploymentId: AuthService.extractDeploymentId_(internalUrl),
-      isInternalDeployment: AuthService.isInternalWebAppDeployment(),
-      userRole: role
-    };
-  },
-
-  /**
-   * Retrieves full employee list.
-   * @returns {Array<Object>}
-   */
-  getEmployeeRegistry: function() {
-    const list = getActiveEmployeeRegistry();
-    return JSON.parse(JSON.stringify(list || []));
-  },
-
-  /**
-   * Creates or updates employee record in custom script properties.
-   * @param {{ id: string, name: string, division: string, oldId?: string }} empData 
-   * @returns {{ success: boolean, message: string, employee: Object }}
-   */
-  saveEmployee: function(empData) {
-    if (!empData) throw new Error('Data karyawan tidak valid.');
-    const cleanId = String(empData.id || '').trim().toUpperCase();
-    const cleanName = String(empData.name || '').trim();
-    const cleanDiv = String(empData.division || '').trim();
-    const oldId = empData.oldId ? String(empData.oldId).trim().toUpperCase() : null;
-
-    if (!cleanId) throw new Error('ID Karyawan wajib diisi (contoh: ALP-01).');
-    if (!cleanName) throw new Error('Nama Karyawan wajib diisi.');
-    if (!cleanDiv) throw new Error('Divisi Karyawan wajib dipilih.');
-
-    let list = getActiveEmployeeRegistry();
-    const isPic = (empData.isPic !== undefined) ? !!empData.isPic : (cleanDiv !== 'BKO 28' && cleanDiv !== 'Pekerja Harian');
-    const role = empData.role || (cleanDiv.includes('SGA') && isPic ? 'PIC SGA' : cleanDiv);
-    const newEmp = { id: cleanId, name: cleanName, division: cleanDiv, role: role, isPic: isPic };
-
-    if (oldId && oldId !== cleanId) {
-      // Renaming ID: check if new ID already exists
-      const conflict = list.find(e => String(e.id).toUpperCase() === cleanId);
-      if (conflict) {
-        throw new Error(`ID Karyawan '${cleanId}' sudah digunakan oleh ${conflict.name}.`);
-      }
-      // Remove old entry
-      list = list.filter(e => String(e.id).toUpperCase() !== oldId);
-      list.push(newEmp);
-    } else {
-      const existingIdx = list.findIndex(e => String(e.id).toUpperCase() === cleanId);
-      if (existingIdx >= 0) {
-        list[existingIdx] = newEmp;
-      } else {
-        list.push(newEmp);
-      }
-    }
-
-    // Sort list by Division, then ID
-    list.sort((a, b) => {
-      const divComp = String(a.division).localeCompare(String(b.division));
-      if (divComp !== 0) return divComp;
-      return String(a.id).localeCompare(String(b.id));
-    });
-
-    ConfigRepository.setCustomEmployeeRegistry(list);
-    Logger.log(`AdminService: Saved employee ${cleanId} (${cleanName}) - total: ${list.length}`);
-
-    return {
-      success: true,
-      message: `Data karyawan ${cleanName} (${cleanId}) berhasil disimpan.`,
-      employee: { id: cleanId, name: cleanName, division: cleanDiv }
-    };
-  },
-
-  /**
-   * Deletes employee record from registry.
-   * @param {string} empId 
-   * @returns {{ success: boolean, message: string }}
-   */
-  deleteEmployee: function(empId) {
-    if (!empId) throw new Error('ID Karyawan tidak valid.');
-    const targetId = String(empId).trim().toUpperCase();
-    let list = getActiveEmployeeRegistry();
-
-    list = list.filter(e => String(e.id).toUpperCase() !== targetId);
-
-    ConfigRepository.setCustomEmployeeRegistry(list);
-    Logger.log(`AdminService: Deleted employee ${targetId} - remaining: ${list.length}`);
-
-    return {
-      success: true,
-      message: `Karyawan ${targetId} berhasil dihapus dari daftar karyawan.`
-    };
-  },
-
-  /**
-   * Resets custom employee registry back to default 38 records.
-   * @returns {{ success: boolean, message: string }}
-   */
-  resetEmployeeRegistry: function() {
-    ConfigRepository.setCustomEmployeeRegistry(null);
-    Logger.log('AdminService: Reset custom employee registry to default.');
-    return {
-      success: true,
-      message: 'Data master karyawan berhasil di-reset ke data bawaan awal (38 Karyawan).'
-    };
-  },
+  // =========================================================================
+  // 6. REPORTING FORM CONFIGURATION SCHEMA
+  // =========================================================================
 
   /**
    * Retrieves current reporting form configuration schema.
@@ -497,13 +273,15 @@ const AdminService = {
   },
 
   /**
-   * Synchronizes active Google Form (if any) with the latest question schema.
+   * Synchronizes active Google Form (if any) with latest question schema.
    * @returns {{ success: boolean, message: string }}
    */
   syncGoogleFormWithLatestDesign: function() {
     try {
-      const res = syncLiveGoogleFormItems();
-      return res;
+      if (typeof syncLiveGoogleFormItems === 'function') {
+        return syncLiveGoogleFormItems();
+      }
+      return { success: false, message: 'Fungsi sinkronisasi Google Form tidak tersedia.' };
     } catch (e) {
       Logger.log('AdminService: syncGoogleFormWithLatestDesign error: ' + e.toString());
       return { success: false, message: e.message || e.toString() };
@@ -531,6 +309,10 @@ const AdminService = {
       schema: defaultSchema
     };
   },
+
+  // =========================================================================
+  // 7. USER ACCESS ROLES
+  // =========================================================================
 
   /**
    * Returns list of registered Google accounts with access roles.
@@ -598,10 +380,3 @@ const AdminService = {
     };
   }
 };
-
-/**
- * Backward compatibility wrapper for getDeploymentDiagnostics.
- */
-function getDeploymentDiagnostics() {
-  return AdminService.getDeploymentDiagnostics();
-}

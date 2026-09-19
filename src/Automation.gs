@@ -3,15 +3,19 @@
  * Digital Reporting System for Integrated Agriculture Company
  * 
  * Clean Architecture Layer: DELIVERY / CRON CONTROLLER
- * Responsibility: Delivery entry points for scheduled triggers.
- * Delegates background tasks to AdminService.
+ * Responsibility: Delivery entry points for scheduled time-based triggers.
+ * Delegates background tasks directly to MaintenanceService.
  */
 
 /**
  * Daily Admin Digest — Scheduled every day at 17:00 WIB.
  */
 function sendDailyDigest() {
-  AdminService.sendDailyDigest();
+  if (typeof MaintenanceService !== 'undefined') {
+    MaintenanceService.sendDailyDigest();
+  } else {
+    AdminService.sendDailyDigest();
+  }
 }
 
 /**
@@ -19,7 +23,11 @@ function sendDailyDigest() {
  * Gathers live operational metrics and sends weekly executive email digest to Manager.
  */
 function sendWeeklyManagerDigest() {
-  AdminService.sendWeeklyManagerDigest();
+  if (typeof MaintenanceService !== 'undefined') {
+    MaintenanceService.sendWeeklyManagerDigest();
+  } else {
+    AdminService.sendWeeklyManagerDigest();
+  }
 }
 
 /**
@@ -27,14 +35,19 @@ function sendWeeklyManagerDigest() {
  * @returns {{ success: boolean, deletedCount: number }}
  */
 function deleteExpiredDailyTabs() {
+  if (typeof MaintenanceService !== 'undefined') {
+    return MaintenanceService.deleteExpiredDailyTabs();
+  }
   return AdminService.deleteExpiredDailyTabs();
 }
-
 
 /**
  * Daily time-driven trigger function to purge (trash) Google Drive daily photo folders older than 90 days.
  * @returns {{ success: boolean, deletedFolderCount: number, deletedFolders: Array<string> }}
  */
 function cleanupExpiredDailyPhotoFolders() {
+  if (typeof MaintenanceService !== 'undefined') {
+    return MaintenanceService.cleanupExpiredDailyPhotoFolders();
+  }
   return AdminService.cleanupExpiredDailyPhotoFolders();
 }
