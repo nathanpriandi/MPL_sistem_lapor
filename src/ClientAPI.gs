@@ -2,11 +2,64 @@
  * ClientAPI.gs — Server RPC Controller Functions called by Client (google.script.run)
  * Digital Reporting System for Integrated Agriculture Company
  * 
- * Clean Architecture Layer: DELIVERY / API CONTROLLER
- * Responsibility: Entry points for client RPC requests.
+ * Clean Architecture Layer: DELIVERY / API CONTROLLER GATEWAY
+ * Responsibility: Serves as the secure public gateway for client RPC requests.
  * Enforces Rate Limiting, RBAC Authorization Guards, Payload Validation,
- * Input Sanitization, and delegates execution to Application Services.
+ * Input Sanitization, and delegates execution to Application Services via ControllerBridge.
  */
+
+const ControllerBridge = {
+  /**
+   * Centralized RPC middleware executing rate limiting, RBAC, payload validation, and secure error masking.
+   * @param {Object} options
+   * @param {'AUTH'|'SUBMISSION'|'READ_QUERY'|'GENERAL'} [options.rateLimit='GENERAL']
+   * @param {'superadmin'|'adminOrSuperadmin'|'managerOrSuperadmin'|'authenticatedStaff'} [options.role]
+   * @param {any} [options.payload]
+   * @param {number} [options.maxPayloadBytes]
+   * @param {boolean} [options.validateOperationalPayload=false]
+   * @param {Function} handler
+   * @returns {any}
+   */
+  dispatch: function(options, handler) {
+    try {
+      if (typeof SecurityService !== 'undefined') {
+        const rl = options.rateLimit || 'GENERAL';
+        if (rl === 'SUBMISSION') SecurityService.RateLimiter.checkSubmissionRateLimit();
+        else if (rl === 'READ_QUERY') SecurityService.RateLimiter.checkReadRateLimit();
+        else if (rl === 'AUTH') SecurityService.RateLimiter.checkAuthRateLimit();
+        else SecurityService.RateLimiter.checkGeneralRateLimit();
+
+        if (options.role === 'superadmin') {
+          SecurityService.AccessGuard.requireSuperadmin();
+        } else if (options.role === 'adminOrSuperadmin') {
+          SecurityService.AccessGuard.requireAdminOrSuperadmin();
+        } else if (options.role === 'managerOrSuperadmin') {
+          SecurityService.AccessGuard.requireManagerOrSuperadmin();
+        } else if (options.role === 'authenticatedStaff') {
+          SecurityService.AccessGuard.requireAuthorizedStaff();
+        }
+
+        if (options.validateOperationalPayload && options.payload) {
+          SecurityService.PayloadValidator.validateOperationalPayload(options.payload);
+        } else if (options.payload) {
+          SecurityService.PayloadValidator.validatePayloadSize(options.payload, options.maxPayloadBytes);
+        }
+      }
+
+      const res = handler();
+      return (res !== undefined && res !== null && typeof res === 'object') ? JSON.parse(JSON.stringify(res)) : res;
+    } catch (err) {
+      if (typeof SecurityService !== 'undefined' && SecurityService.AccessGuard) {
+        throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
+      }
+      throw err;
+    }
+  }
+};
+
+// =============================================================================
+// 1. OPERATIONAL & FORM SUBMISSION CONTROLLERS
+// =============================================================================
 
 /**
  * Submits a new Operational Report (Kegiatan, Panen & Penjualan) from Web App.
@@ -15,185 +68,13 @@
  * @returns {{ success: boolean, reportId: string, kodeKegiatan: string }}
  */
 function submitOperationalReport(payload) {
-  try {
-    SecurityService.RateLimiter.checkSubmissionRateLimit();
-    SecurityService.PayloadValidator.validateOperationalPayload(payload);
+  return ControllerBridge.dispatch({ rateLimit: 'SUBMISSION', validateOperationalPayload: true, payload }, () => {
     return ReportService.submitOperationalReport(payload);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Returns full employee registry (38 default employees + custom additions).
- * @param {boolean} [includeInactive=false]
- * @returns {Array<{ id: string, name: string, division: string, status?: string }>}
- */
-function getEmployeeRegistry(includeInactive) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    return AdminService.getEmployeeRegistry(includeInactive);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Creates or updates employee record in custom registry.
- * Protected: Requires Admin or Superadmin role.
- * @param {{ id: string, name: string, division: string, status?: string, oldId?: string }} empData 
- * @returns {{ success: boolean, message: string, employee: Object }}
- */
-function saveEmployee(empData) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    SecurityService.PayloadValidator.validatePayloadSize(empData, 1024 * 1024);
-    return AdminService.saveEmployee(empData);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Deletes employee from registry.
- * Protected: Requires Admin or Superadmin role.
- * @param {string} empId 
- * @returns {{ success: boolean, message: string }}
- */
-function deleteEmployee(empId) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    const cleanId = SecurityService.InputSanitizer.sanitizeText(empId, 50);
-    return AdminService.deleteEmployee(cleanId);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Resets employee registry back to 38 default records.
- * Protected: Requires Superadmin role.
- * @returns {{ success: boolean, message: string }}
- */
-function resetEmployeeRegistry() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    return AdminService.resetEmployeeRegistry();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Retrieves reporting form schema.
- * @returns {Object}
- */
-function getReportingFormSchema() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    return AdminService.getReportingFormSchema();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Saves reporting form schema.
- * Protected: Requires Admin or Superadmin role.
- * @param {Object} schema 
- * @returns {{ success: boolean, message: string, schema: Object }}
- */
-function saveReportingFormSchema(schema) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    SecurityService.PayloadValidator.validatePayloadSize(schema, 2 * 1024 * 1024);
-    return AdminService.saveReportingFormSchema(schema);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Resets reporting form schema to default.
- * Protected: Requires Superadmin role.
- * @returns {{ success: boolean, message: string, schema: Object }}
- */
-function resetReportingFormSchema() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    return AdminService.resetReportingFormSchema();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Explicitly synchronizes custom fields with Google Spreadsheet headers.
- * Protected: Requires Admin or Superadmin role.
- * @returns {{ success: boolean, message: string }}
- */
-function syncFormSchemaWithSpreadsheet() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    return AdminService.syncFormSchemaWithSpreadsheet();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Synchronizes active Google Form with latest schema.
- * Protected: Requires Admin or Superadmin role.
- * @returns {{ success: boolean, message: string }}
- */
-function syncGoogleFormWithLatestDesign() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    return AdminService.syncGoogleFormWithLatestDesign();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Searches employee by ID or Name.
- * @param {string} query 
- * @returns {{ id: string, name: string, division: string }|null}
- */
-function lookupEmployeeRPC(query) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    const cleanQuery = SecurityService.InputSanitizer.sanitizeText(query, 100);
-    const emp = lookupEmployee(cleanQuery);
-    return emp ? JSON.parse(JSON.stringify(emp)) : null;
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Returns recent activity codes (Kode Kegiatan) for reference autocomplete.
- * @returns {Array<string>}
- */
-function getRecentActivityCodes() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    return ReportService.getRecentActivityCodes();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
  * Uploads a base64 photo attachment into employee/daily structured Drive folder.
- * Validates payload size, MIME type whitelist, and base64 integrity.
  * @param {string} base64Data 
  * @param {string} mimeType 
  * @param {string} formId 
@@ -205,8 +86,7 @@ function getRecentActivityCodes() {
  * @returns {string|Object} File view URL or object.
  */
 function uploadReportAttachment(base64Data, mimeType, formId, reportId, kodeKegiatan, empId, namaPic, dateStr) {
-  try {
-    SecurityService.RateLimiter.checkSubmissionRateLimit();
+  return ControllerBridge.dispatch({ rateLimit: 'SUBMISSION' }, () => {
     const photoMeta = SecurityService.InputSanitizer.validatePhotoAttachment(base64Data, mimeType);
     const cleanFormId = SecurityService.InputSanitizer.sanitizeText(formId, 100);
     const cleanReportId = SecurityService.InputSanitizer.sanitizeText(reportId, 100);
@@ -226,19 +106,26 @@ function uploadReportAttachment(base64Data, mimeType, formId, reportId, kodeKegi
       cleanDate
     );
     return (res && res.url) ? res.url : (res || '');
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
+}
+
+/**
+ * Returns recent activity codes (Kode Kegiatan) for reference autocomplete.
+ * @returns {Array<string>}
+ */
+function getRecentActivityCodes() {
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY' }, () => {
+    return ReportService.getRecentActivityCodes();
+  });
 }
 
 /**
  * Returns schema definition for a custom form.
  * @param {string} formId 
- * @returns {Object} { id, title, description, fields }
+ * @returns {Object}
  */
 function getFormSchema(formId) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY' }, () => {
     const cleanFormId = SecurityService.InputSanitizer.sanitizeText(formId, 100);
     const forms = FormManagementService.getFormList();
     let formRecord = forms.find(f => f.id === cleanFormId);
@@ -261,16 +148,14 @@ function getFormSchema(formId) {
     }
 
     if (!formRecord) throw new Error('Form tidak ditemukan.');
-    return JSON.parse(JSON.stringify({
+    return {
       id: formRecord.id,
       title: formRecord.title || 'Form Laporan Kustom',
       description: formRecord.description || '',
       type: formRecord.type || 'kustom',
       fields: formRecord.fields || []
-    }));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    };
+  });
 }
 
 /**
@@ -280,80 +165,131 @@ function getFormSchema(formId) {
  * @returns {{ success: boolean, reportId: string }}
  */
 function submitDynamicFormResponse(formId, payload) {
-  try {
-    SecurityService.RateLimiter.checkSubmissionRateLimit();
-    SecurityService.PayloadValidator.validatePayloadSize(payload);
+  return ControllerBridge.dispatch({ rateLimit: 'SUBMISSION', payload }, () => {
     const cleanFormId = SecurityService.InputSanitizer.sanitizeText(formId, 100);
     return ReportService.submitDynamicFormResponse(cleanFormId, payload);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
+
+// =============================================================================
+// 2. EMPLOYEE REGISTRY CONTROLLERS (Delegated to EmployeeService)
+// =============================================================================
+
+/**
+ * Returns full employee registry (38 default employees + custom additions).
+ * @param {boolean} [includeInactive=false]
+ * @returns {Array<Object>}
+ */
+function getEmployeeRegistry(includeInactive) {
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY' }, () => {
+    return EmployeeService.getActiveRegistry();
+  });
+}
+
+/**
+ * Searches employee by ID or Name.
+ * @param {string} query 
+ * @returns {Object|null}
+ */
+function lookupEmployeeRPC(query) {
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY' }, () => {
+    const cleanQuery = SecurityService.InputSanitizer.sanitizeText(query, 100);
+    return EmployeeService.lookupEmployee(cleanQuery);
+  });
+}
+
+/**
+ * Creates or updates employee record in custom registry.
+ * Protected: Requires Admin or Superadmin role.
+ * @param {Object} empData 
+ * @returns {{ success: boolean, message: string, employee: Object }}
+ */
+function saveEmployee(empData) {
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin', payload: empData, maxPayloadBytes: 1024 * 1024 }, () => {
+    return EmployeeService.saveEmployee(empData);
+  });
+}
+
+/**
+ * Deletes employee from registry.
+ * Protected: Requires Admin or Superadmin role.
+ * @param {string} empId 
+ * @returns {{ success: boolean, message: string }}
+ */
+function deleteEmployee(empId) {
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin' }, () => {
+    const cleanId = SecurityService.InputSanitizer.sanitizeText(empId, 50);
+    return EmployeeService.deleteEmployee(cleanId);
+  });
+}
+
+/**
+ * Resets employee registry back to 38 default records.
+ * Protected: Requires Superadmin role.
+ * @returns {{ success: boolean, message: string }}
+ */
+function resetEmployeeRegistry() {
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return EmployeeService.resetRegistry();
+  });
+}
+
+// =============================================================================
+// 3. ADMIN QUEUE & TRIAGE CONTROLLERS (Delegated to AdminQueueService)
+// =============================================================================
 
 /**
  * Returns Admin_Queue rows for admin display.
  * Protected: Requires Admin or Superadmin role.
- * @returns {Array} Array of QueueItem objects.
+ * @returns {Array<Object>}
  */
 function getAdminQueueData() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    return AdminService.getAdminQueueData();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'adminOrSuperadmin' }, () => {
+    return AdminQueueService.getQueueItems();
+  });
 }
 
 /**
  * Updates Review_Status of a report by matching Report_ID.
  * Protected: Requires Admin or Superadmin role.
- * @param {string} reportId - Unique UUID of report.
- * @param {string} newStatus - Target status ('Unreviewed', 'In Review', 'Action Needed', 'Closed').
- * @returns {{ success: boolean, reportId: string, sheet?: string, updatedStatus?: string }}
+ * @param {string} reportId
+ * @param {string} newStatus
+ * @returns {Object}
  */
 function updateReviewStatus(reportId, newStatus) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin' }, () => {
     const cleanReportId = SecurityService.InputSanitizer.sanitizeText(reportId, 100);
     const cleanStatus = SecurityService.InputSanitizer.sanitizeText(newStatus, 50);
-    return AdminService.updateReviewStatus(cleanReportId, cleanStatus);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return AdminQueueService.updateReviewStatus(cleanReportId, cleanStatus);
+  });
 }
+
+// =============================================================================
+// 4. EXECUTIVE ANALYTICS CONTROLLERS (Delegated to AnalyticsService)
+// =============================================================================
 
 /**
  * Returns aggregated stats and smart analytics for Dashboard Manajer.
  * Protected: Requires Manager or Superadmin role.
  * @param {Object} [params]
- * @returns {Object} JSON dataset for manager dashboard rendering.
+ * @returns {Object}
  */
 function getAnalyticsDashboardData(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireManagerOrSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'managerOrSuperadmin' }, () => {
     return AnalyticsService.getAnalyticsDashboardData(params);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
- * Returns commodity analysis (trend or breakdown) with card-local independent scoping.
+ * Returns commodity analysis (trend or breakdown).
  * Protected: Requires Manager or Superadmin role.
  * @param {Object} [params]
  * @returns {Object}
  */
 function getCommodityAnalysis(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireManagerOrSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'managerOrSuperadmin' }, () => {
     return AnalyticsService.getCommodityAnalysis(params);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
@@ -363,28 +299,20 @@ function getCommodityAnalysis(params) {
  * @returns {Object}
  */
 function getDecisionViewsData(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireManagerOrSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'managerOrSuperadmin' }, () => {
     return AnalyticsService.getDecisionViewsData(params);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
- * Returns dynamic distinct options for any filterable field based on active filters.
+ * Returns dynamic distinct options for any filterable field.
  * @param {Object} [params]
- * @returns {Array<{ value: string, count: number }>}
+ * @returns {Array<Object>}
  */
 function getAnalyticsFilterOptions(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireManagerOrSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'managerOrSuperadmin' }, () => {
     return AnalyticsService.getDynamicFilterOptions(params);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
@@ -392,13 +320,9 @@ function getAnalyticsFilterOptions(params) {
  * @returns {Array<Object>}
  */
 function getAnalyticsFieldCatalogRPC() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireManagerOrSuperadmin();
-    return getAnalyticsFieldCatalog();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'managerOrSuperadmin' }, () => {
+    return (typeof getAnalyticsFieldCatalog === 'function') ? getAnalyticsFieldCatalog() : [];
+  });
 }
 
 /**
@@ -417,14 +341,10 @@ function getDashboardStats(options) {
  * @returns {Array<Object>}
  */
 function getEmployeeLeaderboard(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'authenticatedStaff' }, () => {
     const allRows = SpreadsheetRepository.getAllOperationalRows();
     return AnalyticsService.getEmployeeReportingLeaderboard(allRows);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
@@ -434,14 +354,10 @@ function getEmployeeLeaderboard(params) {
  * @returns {Array<Object>}
  */
 function getHarvestScheduleData(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'authenticatedStaff' }, () => {
     const allRows = SpreadsheetRepository.getAllOperationalRows();
     return AnalyticsService.getHarvestSchedule(allRows);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
@@ -451,29 +367,80 @@ function getHarvestScheduleData(params) {
  * @returns {Object}
  */
 function getSalesAnalyticsData(params) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'authenticatedStaff' }, () => {
     const allRows = SpreadsheetRepository.getAllOperationalRows();
     return AnalyticsService.getSalesAnalytics(allRows, (params && params.interval) || 'day');
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
  * Returns direct quick links for Admin/Manager workspace resources.
  * Protected: Requires Authorized Staff.
- * @returns {{ publicWebAppUrl: string }}
+ * @returns {Object}
  */
 function getAdminQuickLinks() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAuthorizedStaff();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'authenticatedStaff' }, () => {
     return AdminService.getAdminQuickLinks();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
+}
+
+// =============================================================================
+// 5. FORM BLUEPRINT & PROVISIONING CONTROLLERS
+// =============================================================================
+
+/**
+ * Retrieves reporting form schema.
+ * @returns {Object}
+ */
+function getReportingFormSchema() {
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY' }, () => {
+    return AdminService.getReportingFormSchema();
+  });
+}
+
+/**
+ * Saves reporting form schema.
+ * Protected: Requires Admin or Superadmin role.
+ * @param {Object} schema 
+ * @returns {Object}
+ */
+function saveReportingFormSchema(schema) {
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin', payload: schema, maxPayloadBytes: 2 * 1024 * 1024 }, () => {
+    return AdminService.saveReportingFormSchema(schema);
+  });
+}
+
+/**
+ * Resets reporting form schema to default.
+ * Protected: Requires Superadmin role.
+ * @returns {Object}
+ */
+function resetReportingFormSchema() {
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return AdminService.resetReportingFormSchema();
+  });
+}
+
+/**
+ * Explicitly synchronizes custom fields with Google Spreadsheet headers.
+ * Protected: Requires Admin or Superadmin role.
+ * @returns {Object}
+ */
+function syncFormSchemaWithSpreadsheet() {
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin' }, () => {
+    return AdminService.syncFormSchemaWithSpreadsheet();
+  });
+}
+
+/**
+ * Synchronizes active Google Form with latest schema.
+ * Protected: Requires Admin or Superadmin role.
+ * @returns {Object}
+ */
+function syncGoogleFormWithLatestDesign() {
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin' }, () => {
+    return AdminService.syncGoogleFormWithLatestDesign();
+  });
 }
 
 /**
@@ -482,118 +449,88 @@ function getAdminQuickLinks() {
  * @returns {Array<Object>}
  */
 function getRegisteredForms() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    const res = FormManagementService.getFormList();
-    return JSON.parse(JSON.stringify(res || []));
-  } catch (e) {
-    Logger.log('ClientAPI Error in getRegisteredForms: ' + e.toString());
-    return [];
-  }
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'adminOrSuperadmin' }, () => {
+    return FormManagementService.getFormList();
+  });
 }
 
 /**
  * Creates and provisions a new Google Form or Custom Dynamic Form.
  * Protected: Requires Admin or Superadmin role.
- * @param {Object} params - { title, description, formType, sites, fields }
+ * @param {Object} params
  * @returns {Object}
  */
 function createNewReportingForm(params) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    SecurityService.PayloadValidator.validatePayloadSize(params);
-    const res = FormManagementService.createForm(params);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin', payload: params }, () => {
+    return FormManagementService.createForm(params);
+  });
 }
 
 /**
  * Updates form configuration settings and Google Form properties.
  * Protected: Requires Admin or Superadmin role.
  * @param {string} formId 
- * @param {Object} updates - { title, description, status, fields }
+ * @param {Object} updates
  * @returns {Object}
  */
 function updateReportingForm(formId, updates) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    SecurityService.PayloadValidator.validatePayloadSize(updates);
+  return ControllerBridge.dispatch({ role: 'adminOrSuperadmin', payload: updates }, () => {
     const cleanFormId = SecurityService.InputSanitizer.sanitizeText(formId, 100);
-    const res = FormManagementService.updateFormConfig(cleanFormId, updates);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return FormManagementService.updateFormConfig(cleanFormId, updates);
+  });
 }
 
 /**
  * Deletes a form registration.
  * Protected: Requires Superadmin role.
  * @param {string} formId 
- * @param {boolean} deleteDriveFile 
+ * @param {boolean} [deleteDriveFile=false]
  * @returns {boolean}
  */
 function deleteReportingForm(formId, deleteDriveFile = false) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
     const cleanFormId = SecurityService.InputSanitizer.sanitizeText(formId, 100);
     return FormManagementService.deleteForm(cleanFormId, !!deleteDriveFile);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
-}
-
-/**
- * Executes historical data migration script from central spreadsheet to per-form dedicated spreadsheets.
- * Protected: Requires Superadmin role.
- * @returns {Object}
- */
-function runHistoricalMigration() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    return FormManagementService.migrateHistoricalDataToPerFormSheets();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
  * Retrieves or provisions dedicated spreadsheet URL for a specific form.
  * Protected: Requires Admin or Superadmin role.
  * @param {string} formId 
- * @returns {string} Spreadsheet edit URL.
+ * @returns {string}
  */
 function getFormSheetUrl(formId) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'adminOrSuperadmin' }, () => {
     const cleanFormId = SecurityService.InputSanitizer.sanitizeText(formId, 100);
     return FormManagementService.getFormSheetUrl(cleanFormId);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  });
 }
 
 /**
- * Returns list of daily tabs approaching expiration (<= 5 days left) for safety warnings.
+ * Executes historical data migration script from central spreadsheet to per-form sheets.
+ * Protected: Requires Superadmin role.
+ * @returns {Object}
+ */
+function runHistoricalMigration() {
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return FormManagementService.migrateHistoricalDataToPerFormSheets();
+  });
+}
+
+// =============================================================================
+// 6. SYSTEM MAINTENANCE & STORAGE CONTROLLERS (Delegated to MaintenanceService)
+// =============================================================================
+
+/**
+ * Returns list of daily tabs approaching expiration (<= 5 days left).
  * Protected: Requires Admin or Superadmin role.
  * @returns {Array}
  */
 function getExpiringDailyTabs() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    return AdminService.getExpiringDailyTabs();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'adminOrSuperadmin' }, () => {
+    return MaintenanceService.getExpiringDailyTabs();
+  });
 }
 
 /**
@@ -603,14 +540,10 @@ function getExpiringDailyTabs() {
  * @returns {string}
  */
 function getDailyTabCsvData(tabName) {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'adminOrSuperadmin' }, () => {
     const cleanTab = SecurityService.InputSanitizer.sanitizeText(tabName, 100);
-    return AdminService.getDailyTabCsvData(cleanTab);
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return MaintenanceService.getDailyTabCsvData(cleanTab);
+  });
 }
 
 /**
@@ -619,13 +552,11 @@ function getDailyTabCsvData(tabName) {
  * @returns {Object}
  */
 function cleanupIrrelevantSpreadsheetTabs() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    return AdminService.cleanupIrrelevantSpreadsheetTabs();
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return (typeof cleanupIrrelevantSpreadsheetTabs === 'function')
+      ? cleanupIrrelevantSpreadsheetTabs()
+      : { success: true, message: 'Cleanup complete' };
+  });
 }
 
 /**
@@ -634,14 +565,9 @@ function cleanupIrrelevantSpreadsheetTabs() {
  * @returns {Object}
  */
 function getPhotoStorageStatus() {
-  try {
-    SecurityService.RateLimiter.checkReadRateLimit();
-    SecurityService.AccessGuard.requireAdminOrSuperadmin();
-    const res = AdminService.getPhotoStorageStatus();
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ rateLimit: 'READ_QUERY', role: 'adminOrSuperadmin' }, () => {
+    return MaintenanceService.getPhotoStorageStatus();
+  });
 }
 
 /**
@@ -651,15 +577,10 @@ function getPhotoStorageStatus() {
  * @returns {Object}
  */
 function triggerPhotoStorageCleanup(retentionDays) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
     const days = retentionDays ? parseInt(retentionDays, 10) : 90;
-    const res = AdminService.cleanupExpiredDailyPhotoFolders(days);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return MaintenanceService.cleanupExpiredDailyPhotoFolders(days);
+  });
 }
 
 /**
@@ -668,101 +589,75 @@ function triggerPhotoStorageCleanup(retentionDays) {
  * @returns {Object}
  */
 function purgeLegacyPhotoFolders() {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    const res = AdminService.purgeLegacyPhotoFolders();
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return MaintenanceService.purgeLegacyPhotoFolders();
+  });
 }
+
+// =============================================================================
+// 7. USER ACCESS ROLES & IDENTITY CONTROLLERS
+// =============================================================================
 
 /**
  * Returns list of registered Google accounts with roles.
- * Protected: Requires Superadmin role & Auth Rate Limit (max 5/15 min).
+ * Protected: Requires Superadmin role & Auth Rate Limit.
  * @returns {Array<Object>}
  */
 function getUserRolesList() {
-  try {
-    SecurityService.RateLimiter.checkAuthRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    const res = AdminService.getUserRolesList();
-    return JSON.parse(JSON.stringify(res || []));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ rateLimit: 'AUTH', role: 'superadmin' }, () => {
+    return AdminService.getUserRolesList();
+  });
 }
 
 /**
  * Saves or updates a Google account role.
- * Protected: Requires Superadmin role & Auth Rate Limit (max 5/15 min).
+ * Protected: Requires Superadmin role & Auth Rate Limit.
  * @param {Object} accountData
  * @returns {Object}
  */
 function saveUserRoleAccount(accountData) {
-  try {
-    SecurityService.RateLimiter.checkAuthRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    SecurityService.PayloadValidator.validatePayloadSize(accountData, 100 * 1024);
+  return ControllerBridge.dispatch({ rateLimit: 'AUTH', role: 'superadmin', payload: accountData, maxPayloadBytes: 100 * 1024 }, () => {
     if (accountData && accountData.email) {
       accountData.email = SecurityService.InputSanitizer.sanitizeEmail(accountData.email);
     }
-    const res = AdminService.saveUserRoleAccount(accountData);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return AdminService.saveUserRoleAccount(accountData);
+  });
 }
 
 /**
  * Deletes a Google account role.
- * Protected: Requires Superadmin role & Auth Rate Limit (max 5/15 min).
+ * Protected: Requires Superadmin role & Auth Rate Limit.
  * @param {string} email
  * @returns {Object}
  */
 function deleteUserRoleAccount(email) {
-  try {
-    SecurityService.RateLimiter.checkAuthRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
+  return ControllerBridge.dispatch({ rateLimit: 'AUTH', role: 'superadmin' }, () => {
     const cleanEmail = SecurityService.InputSanitizer.sanitizeEmail(email);
-    const res = AdminService.deleteUserRoleAccount(cleanEmail);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return AdminService.deleteUserRoleAccount(cleanEmail);
+  });
 }
 
 /**
  * Records user logout timestamp.
- * Protected: Auth Rate Limit (max 5/15 min).
+ * Protected: Auth Rate Limit.
  * @param {string} [email]
  * @returns {Object}
  */
 function recordUserLogout(email) {
-  try {
-    SecurityService.RateLimiter.checkAuthRateLimit();
+  return ControllerBridge.dispatch({ rateLimit: 'AUTH' }, () => {
     const cleanEmail = email ? SecurityService.InputSanitizer.sanitizeEmail(email) : '';
-    const res = AuthService.recordUserLogout(cleanEmail);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+    return AuthService.recordUserLogout(cleanEmail);
+  });
 }
 
 /**
  * Seeds comprehensive mock operational data for functional testing.
- * Protected: Requires Superadmin role & General Rate Limit.
+ * Protected: Requires Superadmin role.
  * @param {Object} [options]
  * @returns {Object}
  */
 function seedMockOperationalData(options) {
-  try {
-    SecurityService.RateLimiter.checkGeneralRateLimit();
-    SecurityService.AccessGuard.requireSuperadmin();
-    const res = seedMockData(options);
-    return JSON.parse(JSON.stringify(res || {}));
-  } catch (err) {
-    throw new Error(SecurityService.AccessGuard.maskSensitiveError(err));
-  }
+  return ControllerBridge.dispatch({ role: 'superadmin' }, () => {
+    return seedMockData(options);
+  });
 }

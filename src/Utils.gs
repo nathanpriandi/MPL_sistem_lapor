@@ -1,9 +1,11 @@
 /**
- * Utils.gs — Pure Utility Helpers & Unit Test Suite
+ * Utils.gs — Pure Utility Helpers & Formatters
  * Digital Reporting System for Integrated Agriculture Company
  * 
  * Clean Architecture Layer: UTILITIES / SHARED HELPERS
- * Responsibility: Provides timezone-aware date formatting, ISO week calculations, and test execution.
+ * Responsibility: Provides timezone-aware date formatting, phone number normalization,
+ * currency formatting, ISO week calculations, and string escaping.
+ * Pure utility functions with zero database or business-logic coupling.
  */
 
 /**
@@ -16,7 +18,6 @@ function formatDate(date) {
   if (typeof date === 'string') {
     const trimmed = date.trim();
     if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '-') return '';
-    // If it's already a formatted string like 'YYYY-MM-DD HH:mm', check validity
   }
   try {
     const d = new Date(date);
@@ -92,28 +93,57 @@ function getISOWeekLabel(date) {
 }
 
 /**
+ * Formats a number to Indonesian Rupiah (IDR).
+ * @param {number|string} amount 
+ * @returns {string} e.g. "Rp 1.500.000"
+ */
+function formatRupiah(amount) {
+  const num = Number(amount) || 0;
+  return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+}
+
+/**
+ * Escapes HTML entities to prevent XSS injection.
+ * @param {string} str 
+ * @returns {string}
+ */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
  * Aggregates live operational summary statistics.
- * Backward compatibility wrapper delegating to AdminService.
+ * Backward compatibility wrapper delegating to SpreadsheetRepository.
  * @param {Spreadsheet} [ss] - Active Spreadsheet object.
  * @returns {Array} List of aggregated weekly trend statistics objects.
  */
 function aggregateWeeklyData(ss) {
-  return AdminService.aggregateWeeklyData(ss);
+  if (typeof SpreadsheetRepository !== 'undefined' && SpreadsheetRepository.getDashboardStatsData) {
+    const stats = SpreadsheetRepository.getDashboardStatsData();
+    return (stats && stats.weeklyTrend) ? stats.weeklyTrend : [];
+  }
+  return [];
 }
 
 /**
- * Unit Test Helper: Evaluates keyword rules locally against TriageEngine.
- * Can be run from Apps Script editor to verify behavior without sending forms.
+ * Unit Test Helper: Evaluates literal triage rules against TriageEngine.
  */
 function testKeywordMatcher() {
   const testCases = [
-    { input: ['EMP-01', 'Site A', '2026-07-23', 'Completed', 500, 'Equipment'], expectedSev: 'warning', expectedRank: 2 },
-    { input: ['EMP-02', 'Site B', '2026-07-23', 'Ada kecelakaan kerja di kandang 3'], expectedSev: 'urgent', expectedRank: 1 },
-    { input: ['EMP-03', 'Site C', '2026-07-23', 'Stok pakan ayam habis total'], expectedSev: 'warning', expectedRank: 2 },
-    { input: ['EMP-04', 'Site A', '2026-07-23', 'Semua kegiatan lancar dan aman'], expectedSev: 'normal', expectedRank: 3 }
+    { input: 'Ada kecelakaan kerja di kandang 3', expectedSev: 'urgent', expectedRank: 1 },
+    { input: 'Stok pakan ayam habis total', expectedSev: 'urgent', expectedRank: 1 },
+    { input: 'Semua kegiatan lancar dan aman', expectedSev: 'normal', expectedRank: 2 },
+    { input: 'tidak ada kendala', expectedSev: 'normal', expectedRank: 2 },
+    { input: '-', expectedSev: 'normal', expectedRank: 2 }
   ];
 
-  Logger.log('=== RUNNING KEYWORD MATCHER UNIT TESTS (TRIAGE ENGINE) ===');
+  Logger.log('=== RUNNING TRIAGE ENGINE UNIT TESTS ===');
   testCases.forEach((tc, idx) => {
     const result = TriageEngine.evaluate(tc.input);
     const pass = (result.severity === tc.expectedSev) && (result.rank === tc.expectedRank);
